@@ -29,10 +29,10 @@ public class MainTask {
 			for (String zip : zipCode) {
 				File output = new File(outMupFile, zip);
 				output.mkdirs();
-//				SelectParcels select = new SelectParcels(rootFile, outMupFile, zip, notBuilt,oneParcelPerCell);
-//				listSelection.addAll(select.run());
-				notBuilt = false;
 				SelectParcels select = new SelectParcels(rootFile, outMupFile, zip, notBuilt,oneParcelPerCell);
+				listSelection.addAll(select.run());
+				notBuilt = false;
+				select = new SelectParcels(rootFile, outMupFile, zip, notBuilt,oneParcelPerCell);
 				listSelection.addAll(select.run());
 			}
 		}

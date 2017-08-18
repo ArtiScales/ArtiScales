@@ -42,12 +42,15 @@ public class BuildingsToHousehold {
 		return bth.run();
 	}
 
-	public int run() throws IOException {
+	public void run() throws IOException {
 		putSimuNames();
+		System.out.println();
 		System.out.println("la simu est " + simPLUSimu + " ou zip de " + zipCode + " ou supsimu de " + mUPSimu);
-		int lgt = simpleEstimate();
+		for (File f : listFile){
+		int lgt = simpleEstimate(f);
 		toGenCSV(lgt);
-		return lgt;
+		}
+
 	}
 
 	private void putSimuNames() {
@@ -60,13 +63,13 @@ public class BuildingsToHousehold {
 		System.out.println(rootFile);
 	}
 
-	public int simpleEstimate() throws IOException {
+	public int simpleEstimate(File f) throws IOException {
 		double surface = 0;
 		double hauteur = 0;
 		long etage;
 		int logements = 0;
 		// pas encore de prise en compte de batiments s'intersectant
-		for (File f : listFile) {
+
 			ShapefileDataStore shpDSBuilding = new ShapefileDataStore(f.toURI().toURL());
 			SimpleFeatureCollection buildingCollection = shpDSBuilding.getFeatureSource().getFeatures();
 			for (Object feature : buildingCollection.toArray()) {
@@ -83,7 +86,7 @@ public class BuildingsToHousehold {
 				toCSV(surface, hauteur, etage, logement);
 			}
 
-		}
+		
 		System.out.println("on peux ici construire " + logements + " logements");
 		return logements;
 	}
