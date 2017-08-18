@@ -22,13 +22,16 @@ public class MainTask {
 		List<File> listMupOutput = sortieMupCity.run();
 
 		// Parcel selection
-		boolean notBuilt = false;
-		boolean oneParcelPerCell = true;
+		boolean notBuilt = true;
+		boolean oneParcelPerCell = false;
 		ArrayList<File> listSelection = new ArrayList<File>();
 		for (File outMupFile : listMupOutput) {
 			for (String zip : zipCode) {
 				File output = new File(outMupFile, zip);
 				output.mkdirs();
+//				SelectParcels select = new SelectParcels(rootFile, outMupFile, zip, notBuilt,oneParcelPerCell);
+//				listSelection.addAll(select.run());
+				notBuilt = false;
 				SelectParcels select = new SelectParcels(rootFile, outMupFile, zip, notBuilt,oneParcelPerCell);
 				listSelection.addAll(select.run());
 			}
@@ -38,10 +41,11 @@ public class MainTask {
 		List<File> listBatis = new ArrayList<File>();
 		for (File parcelSelection : listSelection) {
 			// cette ligne est vraiment pas belle
+			System.out.println(parcelSelection);
 			String zip = new File(parcelSelection.getParent()).getParent().substring(
 					(new File(parcelSelection.getParent()).getParent().length() - 5),
 					new File(parcelSelection.getParent()).getParent().length());
-			SimPLUSimulator SPLUS = new SimPLUSimulator(rootFile, parcelSelection, zip);
+			SimPLUSimulator SPLUS = new SimPLUSimulator(rootFile, parcelSelection.getParentFile(), zip);
 			listBatis.addAll(SPLUS.run());
 		}
 		// converstion buildings/households

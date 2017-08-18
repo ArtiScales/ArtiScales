@@ -253,6 +253,8 @@ public class SimPLUSimulator {
 		Filter filterIn = ff.intersects(ff.property(geometryInPropertyName), ff.literal(bBox));
 
 		SimpleFeatureCollection inTown = inCollection.subCollection(filterIn);
+		System.out.println(fileOut);
+		fileOut.getParentFile().mkdirs();
 		SelectParcels.exportSFC(inTown, fileOut);
 
 		return fileOut;

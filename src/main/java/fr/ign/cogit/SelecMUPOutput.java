@@ -69,8 +69,11 @@ public class SelecMUPOutput {
 				listMupOutput.add(outputMup);
 				File outputMupRaster = new File(outputMup, rasterOutputFolder.getName());
 				Files.copy(rasterOutputFolder, outputMupRaster);
-				createMupOutput(importRaster(outputMupRaster), new File(outputMup,outputMup.getName()+"-vectorized.shp"));
-			}
+				File vectFile = new File(outputMup,outputMup.getName()+"-vectorized.shp");
+				if (!vectFile.exists()){
+				createMupOutput(importRaster(outputMupRaster),vectFile);
+				}
+				}
 		}
 		return listMupOutput;
 	}
