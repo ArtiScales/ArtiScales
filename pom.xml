@@ -128,19 +128,19 @@
 			<artifactId>mupcity</artifactId>
 			<version>1.2-SNAPSHOT</version>
 		</dependency>
-	<!--  	<dependency>
-			<groupId>org.thema</groupId>
-			<artifactId>fracgis</artifactId>
-			<version>0.5.7</version>
-			<scope>system</scope>
-			<systemPath>${project.basedir}/lib/fracgis-0.5.7.jar
-		</systemPath>
-		</dependency>-->
+		<!-- <dependency> <groupId>org.thema</groupId> <artifactId>fracgis</artifactId> 
+			<version>0.5.7</version> <scope>system</scope> <systemPath>${project.basedir}/lib/fracgis-0.5.7.jar 
+			</systemPath> </dependency> -->
 		<dependency>
 			<groupId>fr.ign.cogit</groupId>
 			<artifactId>simplu3d</artifactId>
 			<version>1.2-SNAPSHOT</version>
 		</dependency>
+<dependency>
+    <groupId>org.geotools</groupId>
+    <artifactId>gt-grid</artifactId>
+    <version>16.1</version>
+</dependency>
 	</dependencies>
 	<repositories>
 		<repository>
@@ -158,6 +158,7 @@
 			<name>Open Source Geospatial Foundation Repository</name>
 			<url>http://download.osgeo.org/webdav/geotools/</url>
 		</repository>
+
 	</repositories>
 	<reporting>
 		<plugins>

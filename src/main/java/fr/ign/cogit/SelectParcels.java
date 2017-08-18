@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Serializable;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -11,6 +12,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import org.apache.xerces.dom.NotationImpl;
 import org.geotools.data.DefaultTransaction;
 import org.geotools.data.Transaction;
 import org.geotools.data.shapefile.ShapefileDataStore;
@@ -22,21 +24,19 @@ import org.geotools.data.simple.SimpleFeatureStore;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.factory.GeoTools;
 import org.geotools.feature.DefaultFeatureCollection;
-import org.geotools.feature.simple.SimpleFeatureImpl;
+import org.geotools.filter.NotImpl;
 import org.geotools.filter.text.cql2.CQLException;
-import org.geotools.geometry.jts.JTS;
-import org.geotools.referencing.CRS;
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
+import org.opengis.filter.ExcludeFilter;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory2;
-import org.opengis.filter.MultiValuedFilter.MatchAction;
+import org.opengis.filter.Not;
+import org.opengis.filter.spatial.Intersects;
 import org.opengis.geometry.MismatchedDimensionException;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
 
 import com.vividsolutions.jts.geom.Geometry;
@@ -45,10 +45,9 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 
 public class SelectParcels {
 
-
 	public static void main(String[] args) throws Exception {
-		run(new File("/home/mcolomb/donnee/couplage"), new File("/home/mcolomb/donnee/couplage/parcelSelection"),
-				"25086", false);
+		run(new File("/home/mcolomb/donnee/couplage"), new File("/home/mcolomb/donnee/couplage/output/N5_Ba_Moy_ahpx_seed42-eval_anal-20.0"),
+				"25245", true, false);
 	}
 
 	File rootFile;
@@ -60,31 +59,32 @@ public class SelectParcels {
 	boolean notBuilt;
 	boolean oneParcelPerCell;
 
-	public SelectParcels(File rootfile, File spatialconfiguration, String zipcode, boolean notbuilt)
+	public SelectParcels(File rootfile, File spatialconfiguration, String zipcode, boolean notbuilt, boolean oneparcelpercell)
 			throws IOException, CQLException {
 		rootFile = rootfile;
 		spatialConfiguration = spatialconfiguration;
 		zipCode = zipcode;
 		notBuilt = notbuilt;
+		oneParcelPerCell = oneparcelpercell;
 		zoningsFile = new File(rootFile, "pluZoning/reproj");
 		geoFile = new File(rootFile, "donneeGeographiques");
-	File zipFiles = new File(spatialconfiguration, zipcode);
-	String nBuilt = "built";
-	String nParcels="multipleParcels";
-	if (notbuilt){
-		nBuilt = "notBuilt";
-	}
-	if (oneParcelPerCell){
-		nParcels = "onlyOneParcel";
-	}
-	selecFiles = new File(zipFiles,nParcels+"--"+nBuilt);
+		File zipFiles = new File(spatialconfiguration, zipcode);
+		String nBuilt = "built";
+		String nParcels = "multipleParcels";
+		if (notbuilt) {
+			nBuilt = "notBuilt";
+		}
+		if (oneParcelPerCell) {
+			nParcels = "onlyOneParcel";
+		}
+		selecFiles = new File(zipFiles, nParcels + "--" + nBuilt);
 		selecFiles.mkdirs();
 	}
 
-	public static ArrayList<File> run(File rootfile, File testFile, String zipcode, boolean notbuilt)
+	public static ArrayList<File> run(File rootfile, File testFile, String zipcode, boolean notbuilt, boolean oneparcelpercell)
 			throws IOException, CQLException, NoSuchAuthorityCodeException, FactoryException,
 			MismatchedDimensionException, TransformException {
-		SelectParcels sp = new SelectParcels(rootfile, testFile, zipcode, notbuilt);
+		SelectParcels sp = new SelectParcels(rootfile, testFile, zipcode, notbuilt, oneparcelpercell);
 		return sp.run();
 	}
 
@@ -92,13 +92,24 @@ public class SelectParcels {
 			MismatchedDimensionException, TransformException {
 		ArrayList<File> selectionList = new ArrayList<File>();
 		SimpleFeatureCollection zoning = selecParcelZonePLU("U");
-		selectionList.add(selecParcelInCell(zoning, spatialConfiguration));
 		
-		// File newSelectionFile = exportSFC(selection, new File(selecFiles +
-		// "parcelSelection.shp"));
-		// selectionList.add(newSelectionFile);
+		if (notBuilt){
+		zoning = parcelNoBuilt(zoning);
+		}
+
+		if (!oneParcelPerCell){
+		selectionList.add(selecMultipleParcelInCell(zoning));
+		}
+		else{
+			selectionList.add(selecOneParcelInCell(zoning));
+		}
+//	//	 File newSelectionFile = exportSFC(selection, new File(selecFiles +
+//		 "parcelSelection.shp"));
+//		 selectionList.add(newSelectionFile);
 		return selectionList;
 	}
+
+
 
 	/**
 	 * 
@@ -127,17 +138,18 @@ public class SelectParcels {
 		// import of the zoning file
 		ShapefileDataStore shpDSZone = new ShapefileDataStore(getZoning().toURI().toURL());
 		SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
-//		CoordinateReferenceSystem sourceZoneCRS = CRS.decode("epsg:3947");
-//		CoordinateReferenceSystem targetZoneCRS = shpDSParcel.getSchema().getCoordinateReferenceSystem();
-//
-//		MathTransform transform = CRS.findMathTransform(sourceZoneCRS, targetZoneCRS);
+		// CoordinateReferenceSystem sourceZoneCRS = CRS.decode("epsg:3947");
+		// CoordinateReferenceSystem targetZoneCRS =
+		// shpDSParcel.getSchema().getCoordinateReferenceSystem();
+		//
+		// MathTransform transform = CRS.findMathTransform(sourceZoneCRS,
+		// targetZoneCRS);
 
 		// verificaiton
-		System.out.println("Pour la commune "+ zipCode);
+		System.out.println("Pour la commune " + zipCode);
 		System.out.println("on a " + featuresZones.size() + " zones");
 
-		// creation of the filter to select only wanted type of zone in the PLU
-		// zoning shp
+		// creation of the filter to select only wanted type of zone in the PLU zoning shp
 		// for the 'AU' zones, a temporality attribute is usually pre-fixed, we
 		// need to search after
 		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
@@ -147,43 +159,48 @@ public class SelectParcels {
 
 		// Filter to select parcels that intersects the selected zonnig zone
 
-//		Geometry union = JTS.transform(unionSFC(featureZoneSelected), transform);
+		// Geometry union = JTS.transform(unionSFC(featureZoneSelected),transform);
 		Geometry union = unionSFC(featureZoneSelected);
-		
+
 		String geometryParcelPropertyName = shpDSParcel.getSchema().getGeometryDescriptor().getLocalName();
 		// TODO opérateur géométrique pas bon
 		Filter inter = ff.intersects(ff.property(geometryParcelPropertyName), ff.literal(union));
-	
+
 		// deuxième méthode qui pourrait marcher?
-//		String geometryZonePropertyName = shpDSZone.getSchema().getGeometryDescriptor().getLocalName();
-//		Filter in = ff.(ff.property(geometryZonePropertyName),ff.literal(union));
-//		SimpleFeatureCollection parcelSelected2 = parcelCollection.subCollection(in);
+		// String geometryZonePropertyName =
+		// shpDSZone.getSchema().getGeometryDescriptor().getLocalName();
+		// Filter in =
+		// ff.(ff.property(geometryZonePropertyName),ff.literal(union));
+		// SimpleFeatureCollection parcelSelected2 =
+		// parcelCollection.subCollection(in);
 		SimpleFeatureCollection parcelSelected = parcelCollection.subCollection(inter);
 		// SimpleFeatureCollection parcelSelected2 =
 		// parcelSelectedtemp.subCollection(touch);
 		System.out.println("parcelSelected : " + parcelSelected.size());
-//		System.out.println("parcelSelected deuxième méthode : " + parcelSelected2.size());
-//		File newParcelSelection = new File(selecFiles, "parcelIn" + typeZone + ".shp");
-//		exportSFC(parcelSelected, newParcelSelection);		
-//		File newParcelSelection2 = new File(selecFiles, "parcelIn" + typeZone + ".shp");
-//		exportSFC(parcelSelected2, newParcelSelection2);
+		// System.out.println("parcelSelected deuxième méthode : " +
+		// parcelSelected2.size());
+		// File newParcelSelection = new File(selecFiles, "parcelIn" + typeZone
+		// + ".shp");
+		// exportSFC(parcelSelected, newParcelSelection);
+		// File newParcelSelection2 = new File(selecFiles, "parcelIn" + typeZone
+		// + ".shp");
+		// exportSFC(parcelSelected2, newParcelSelection2);
 
 		return parcelSelected;
 	}
 
-	// not finished yo
-	public File selecParcelInCell(SimpleFeatureCollection parcelIn, File cellIn) throws IOException {
+	public File selecMultipleParcelInCell(SimpleFeatureCollection parcelIn) throws IOException {
 
-		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
-File shpCellIn = new File(cellIn, cellIn.getName()+"-vectorized.shp");
 		// import of the MUP-City outputs
+		File shpCellIn = new File(spatialConfiguration, spatialConfiguration.getName() + "-vectorized.shp");
 		ShapefileDataStore shpDSCells = new ShapefileDataStore(shpCellIn.toURI().toURL());
 		SimpleFeatureCollection cellsCollection = shpDSCells.getFeatureSource().getFeatures();
 		Geometry cellsUnion = unionSFC(cellsCollection);
 
+
+		
+		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
 		String geometryParcelPropertyName = parcelIn.getSchema().getGeometryDescriptor().getLocalName();
-
-
 		Filter inter = ff.intersects(ff.property(geometryParcelPropertyName), ff.literal(cellsUnion));
 		SimpleFeatureCollection parcelSelected = parcelIn.subCollection(inter);
 
@@ -193,7 +210,59 @@ File shpCellIn = new File(cellIn, cellIn.getName()+"-vectorized.shp");
 		exportSFC(parcelSelected, newParcelSelection);
 		return newParcelSelection;
 	}
+	public File selecOneParcelInCell(SimpleFeatureCollection parcelIn) throws IOException {
+		// TODO finir cette méthode : pourquoi est ce que la méthode dessous requied d'etre statique alors qu'elle est utilisé dans la  classe SimPLUSimulator?
+		// mettre le recouvrement des cellules dans un attribut et favoriser selon le plus gros pourcentage? 
+		//	spatialConfiguration = SimPLUSimulator.snapDatas(spatialConfiguration, new File(spatialConfiguration, "snap"));
 
+		File shpCellIn = new File(spatialConfiguration, spatialConfiguration.getName() + "-vectorized.shp");
+		ShapefileDataStore shpDSCells = new ShapefileDataStore(shpCellIn.toURI().toURL());
+		SimpleFeatureCollection cellsCollection = shpDSCells.getFeatureSource().getFeatures();
+
+		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
+		String geometryParcelPropertyName = parcelIn.getSchema().getGeometryDescriptor().getLocalName();
+
+		for (Object obj : cellsCollection.toArray()){
+
+			SimpleFeature feat = (SimpleFeature) obj;
+			Filter inter = ff.intersects(ff.property(geometryParcelPropertyName), ff.literal(feat.getDefaultGeometry()));
+			SimpleFeatureCollection parcelMultipleSelection = parcelIn.subCollection(inter);
+			if (!parcelMultipleSelection.isEmpty()){
+				SimpleFeature bestFeature=null;
+				for (Object parc : parcelMultipleSelection.toArray()){
+				SimpleFeature featParc = (SimpleFeature) parc;
+				System.out.println(featParc.getAttribute("eval"));
+				
+			}
+			}
+		}
+		
+		return null;
+	} 
+	
+	
+	public SimpleFeatureCollection parcelNoBuilt(SimpleFeatureCollection parcelIn) throws IOException{
+		//getBatiFiles
+		ShapefileDataStore shpDSBati = new ShapefileDataStore(getBati().toURI().toURL());
+		SimpleFeatureCollection batiCollection = shpDSBati.getFeatureSource().getFeatures();
+		Geometry batiUnion = unionSFC(batiCollection);
+		
+		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
+		String geometryParcelPropertyName = parcelIn.getSchema().getGeometryDescriptor().getLocalName();
+		Filter inter = ff.intersects(ff.property(geometryParcelPropertyName), ff.literal(batiUnion));
+//		ExcludeFilter yo = inter.EXCLUDE;
+//		SimpleFeatureCollection parcelSelected = parcelIn.subCollection(yo);
+		
+		SimpleFeatureCollection parcelInter = parcelIn.subCollection(inter);
+		DefaultFeatureCollection collection = new DefaultFeatureCollection();
+		collection.addAll(parcelIn);
+		for(Object tet : parcelInter.toArray()){
+			SimpleFeature feat = (SimpleFeature) tet;
+			collection.remove(feat);
+		}
+		return collection;
+	}
+	
 	public static File exportSFC(SimpleFeatureCollection toExport, File fileName) throws IOException {
 		return exportSFC(toExport, fileName, toExport.getSchema());
 	}
@@ -251,7 +320,7 @@ File shpCellIn = new File(cellIn, cellIn.getName()+"-vectorized.shp");
 
 	public File getBati() throws FileNotFoundException {
 		for (File f : geoFile.listFiles()) {
-			if (f.toString().contains("BATI_AU.shp")) {
+			if (f.toString().contains("batiment.shp")) {
 				return f;
 			}
 		}
@@ -274,9 +343,7 @@ File shpCellIn = new File(cellIn, cellIn.getName()+"-vectorized.shp");
 	}
 
 	public File getZoning() throws FileNotFoundException {
-		System.out.println(zipCode);
 		for (File f : zoningsFile.listFiles()) {
-			System.out.println(f);
 			Pattern insee = Pattern.compile("INSEE_");
 			String[] list = insee.split(f.toString());
 			if (list.length > 1 && list[1].equals(zipCode + ".shp")) {

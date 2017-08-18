@@ -1,6 +1,7 @@
 package fr.ign.cogit;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,7 +15,6 @@ import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.factory.GeoTools;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.CRS;
-import org.math.plot.utils.Array;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory2;
 import org.opengis.geometry.MismatchedDimensionException;
@@ -65,35 +65,30 @@ public class SimPLUSimulator {
 		rootFile = rootfile;
 		zipCode = zipcode;
 
-		File zoningsFile = new File(rootFile, "pluZoning/reproj");
-		for (File f : zoningsFile.listFiles()) {
-			Pattern insee = Pattern.compile("INSEE_");
-			String[] list = insee.split(f.toString());
-			if (list.length > 1 && list[1].equals(zipCode + ".shp")) {
-				System.out.println("hehre");
-				zoningFile=f;
-			}
-		}
-		System.out.println(zoningFile);
+		zoningFile = selecZoningFile();
 		// scenarName = scenarname;
-		if (!new File(rootFile, "donneeGeographiques/snap/" + zipCode).exists()) {
-			snapDatas();
-		}
 
 		parcelFile = parcelfiles;
-		buildFile = new File(rootFile, "donneeGeographiques/snap/" + zipCode + "/batiment.shp");
-		roadFile = new File(rootFile, "donneeGeographiques/snap/" + zipCode + "/route.shp");
+		buildFile = snapDatas(new File(rootFile, "donneeGeographiques/batiment.shp"),
+				new File(parcelFile, "/snap/batiment.shp"));
+		roadFile = snapDatas(new File(rootFile, "donneeGeographiques/route.shp"),
+				new File(parcelFile, "/snap/route.shp"));
 		// doc urba :: à quoi ça sert?
 		codeFile = new File(rootFile, "pluZoning/codes/DOC_URBA.shp");
 		filePrescPonct = new File(rootFile, "pluZoning/codes/PRESCRIPTION_PONCT.shp");
 		filePrescLin = new File(rootFile, "pluZoning/codes/PRESCRIPTION_LIN.shp");
 		filePrescSurf = new File(rootFile, "pluZoning/codes/PRESCRIPTION_SURF.shp");
-		
-		//Compteur pour savoir combien de simu différentes ont été faires par simPLU
+
+		// Compteur pour savoir combien de simu différentes ont été faires par
+		// simPLU
 		compteur = 0;
 
 	}
 
+	public static void main(String[] args) throws Exception {
+		run(new File("/home/mcolomb/donnee/couplage"),new File("/home/mcolomb/donnee/couplage/output/N5_Ba_Moy_ahpx_seed42-eval_anal-20.0/25245/multipleParcels--notBuilt"),"25245");
+	}
+	
 	public static List<File> run(File rootFile, File parcelfiles, String zipcode) throws Exception {
 		SimPLUSimulator SPLUS = new SimPLUSimulator(rootFile, parcelfiles, zipcode);
 		return SPLUS.run();
@@ -109,7 +104,8 @@ public class SimPLUSimulator {
 
 		// Load default environment
 		File simuFile = new File(parcelFile, "simu");
-		Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile, parcelFile, roadFile, buildFile,
+		System.out.println(parcelFile);
+		Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile, new File (parcelFile,"parcelSelected.shp"), roadFile, buildFile,
 				filePrescPonct, filePrescLin, filePrescSurf, null);
 		// Select a parcel on which generation is proceeded
 
@@ -126,7 +122,8 @@ public class SimPLUSimulator {
 			// Rules parameters
 
 			Regulation regle = null;
-			Map<Integer, List<Regulation>> regles = Regulation.loadRegulationSet(codeFile.getParent() + "/predicate.csv");
+			Map<Integer, List<Regulation>> regles = Regulation
+					.loadRegulationSet(codeFile.getParent() + "/predicate.csv");
 			for (UrbaZone zone : env.getUrbaZones()) {
 				if (zone.getGeom().contains(bPU.getGeom())) {
 					typez = zone.getLibelle();
@@ -183,7 +180,7 @@ public class SimPLUSimulator {
 			// PredicateDensification<Cuboid, GraphConfiguration<Cuboid>,
 			// BirthDeathModification<Cuboid>> pred = new PredicateIAUIDF();
 
-			System.out.println("nbiter = "+p.get("nbiter"));
+			System.out.println("nbiter = " + p.get("nbiter"));
 			// Run of the optimisation on a parcel with the predicate
 			GraphConfiguration<Cuboid> cc = oCB.process(bPU, p, env, 1, pred);
 
@@ -210,59 +207,55 @@ public class SimPLUSimulator {
 			// WARNING : 'out' parameter from configuration file have to be
 			// change
 
-			File output = new File (parcelFile.getParent(), "/simu"+ compteur+"/out-parcelle_" + i + ".shp");
-			listBatiSimu.add(output);
-			
-			System.out.println("output"+output);
-			output.mkdirs();
-			
-			ShapefileWriter.write(iFeatC,output.toString());
+			File output = new File(simuFile.getParent(), "/simu" + compteur + "/out-parcelle_" + i + ".shp");
 
+			System.out.println("output" + output);
+			output.getParentFile().mkdirs();
+			ShapefileWriter.write(iFeatC, output.toString());
+			if (output.exists()) {
+				listBatiSimu.add(output);
+			}
 			System.out.println("That's all folks");
 		}
 		return listBatiSimu;
 	}
 
-	public File snapDatas() throws IOException, NoSuchAuthorityCodeException, FactoryException,
+	public File selecZoningFile() throws FileNotFoundException {
+		File zoningsFile = new File(rootFile, "pluZoning/reproj");
+		for (File f : zoningsFile.listFiles()) {
+			Pattern insee = Pattern.compile("INSEE_");
+			String[] list = insee.split(f.toString());
+			if (list.length > 1 && list[1].equals(zipCode + ".shp")) {
+				return f;
+			}
+		}
+		throw new FileNotFoundException("Zoning file not found");
+	}
+
+	public File snapDatas(File fileIn, File fileOut) throws IOException, NoSuchAuthorityCodeException, FactoryException,
 			MismatchedDimensionException, TransformException {
 
-		// load the roads from the general folder
-		ShapefileDataStore shpDSRoad = new ShapefileDataStore(
-				new File(rootFile, "donneeGeographiques/route.shp").toURI().toURL());
-		SimpleFeatureCollection roadCollection = shpDSRoad.getFeatureSource().getFeatures();
-
-		// load the buildings from the general folder
-		ShapefileDataStore shpDSBuild = new ShapefileDataStore(
-				new File(rootFile, "donneeGeographiques/batiment.shp").toURI().toURL());
-		SimpleFeatureCollection buildCollection = shpDSBuild.getFeatureSource().getFeatures();
+		// load the input from the general folder
+		ShapefileDataStore shpDSIn = new ShapefileDataStore(fileIn.toURI().toURL());
+		SimpleFeatureCollection inCollection = shpDSIn.getFeatureSource().getFeatures();
 
 		// load the zoning file of the studied town
-		ShapefileDataStore shpDSZone = new ShapefileDataStore(zoningFile.toURI().toURL());
+		ShapefileDataStore shpDSZone = new ShapefileDataStore(selecZoningFile().toURI().toURL());
 		SimpleFeatureCollection zoneCollection = shpDSZone.getFeatureSource().getFeatures();
 
-		CoordinateReferenceSystem sourceZoneCRS = CRS.decode("epsg:3947");
-		CoordinateReferenceSystem targetZoneCRS = shpDSRoad.getSchema().getCoordinateReferenceSystem();
-
-		MathTransform transform = CRS.findMathTransform(sourceZoneCRS, targetZoneCRS);
-		Geometry bBox = JTS.transform(SelectParcels.unionSFC(zoneCollection), transform);
+		Geometry bBox = SelectParcels.unionSFC(zoneCollection);
 
 		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
 
-		String geometryBuildPropertyName = shpDSBuild.getSchema().getGeometryDescriptor().getLocalName();
-		String geometryRoadPropertyName = shpDSRoad.getSchema().getGeometryDescriptor().getLocalName();
+		
+		String geometryInPropertyName = shpDSIn.getSchema().getGeometryDescriptor().getLocalName();
 
-		Filter filterBuild = ff.intersects(ff.property(geometryBuildPropertyName), ff.literal(bBox));
-		Filter filterRoad = ff.intersects(ff.property(geometryRoadPropertyName), ff.literal(bBox));
+		Filter filterIn = ff.intersects(ff.property(geometryInPropertyName), ff.literal(bBox));
 
-		SimpleFeatureCollection roadTown = roadCollection.subCollection(filterRoad);
-		SimpleFeatureCollection buildTown = buildCollection.subCollection(filterBuild);
+		SimpleFeatureCollection inTown = inCollection.subCollection(filterIn);
+		SelectParcels.exportSFC(inTown, fileOut);
 
-		File snapFile = new File(rootFile, "donneeGeographiques/snap/" + zipCode);
-		snapFile.mkdirs();
-		SelectParcels.exportSFC(roadTown, new File(snapFile, "route.shp"));
-		SelectParcels.exportSFC(buildTown, new File(snapFile, "batiment.shp"));
-
-		return snapFile;
+		return fileOut;
 
 	}
 
