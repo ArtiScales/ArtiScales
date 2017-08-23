@@ -5,6 +5,8 @@ import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.ign.cogit.Indicators.BuildingToHousehold;
+
 public class MainTask {
 
 	public static void main(String[] args) throws Exception {
@@ -15,24 +17,25 @@ public class MainTask {
 		// "25381", "25395", "25397", "25410", "25429", "25448", "25454",
 		// "25467", "25473", "25477", "25495", "25532", "25542", "25557",
 		// "25561", "25593", "25611" };
-		String[] zipCode = {"25495","25245"};
+		String[] zipCode = { "25495", "25245" };
 		File rootFile = new File("donnee/couplage");
 		// MUP-City output selection
 		SelecMUPOutput sortieMupCity = new SelecMUPOutput(rootFile);
 		List<File> listMupOutput = sortieMupCity.run();
 
 		// Parcel selection
-		boolean notBuilt = true;
-		boolean oneParcelPerCell = false;
+
+
 		ArrayList<File> listSelection = new ArrayList<File>();
 		for (File outMupFile : listMupOutput) {
 			for (String zip : zipCode) {
 				File output = new File(outMupFile, zip);
 				output.mkdirs();
-				SelectParcels select = new SelectParcels(rootFile, outMupFile, zip, notBuilt,oneParcelPerCell);
+				boolean notBuilt = true;
+				SelectParcels select = new SelectParcels(rootFile, outMupFile, zip, notBuilt);
 				listSelection.addAll(select.run());
 				notBuilt = false;
-				select = new SelectParcels(rootFile, outMupFile, zip, notBuilt,oneParcelPerCell);
+				select = new SelectParcels(rootFile, outMupFile, zip, notBuilt);
 				listSelection.addAll(select.run());
 			}
 		}
@@ -56,8 +59,7 @@ public class MainTask {
 				"MUP-City Simulation, City zipCode , Selection type , SimPLU Simulation, number of simulated households");
 		writer.append("\n");
 		writer.close();
-
-		BuildingsToHousehold bht = new BuildingsToHousehold(listBatis, 100);
+		BuildingToHousehold bht = new BuildingToHousehold(listBatis, 100);
 		bht.run();
 
 	}

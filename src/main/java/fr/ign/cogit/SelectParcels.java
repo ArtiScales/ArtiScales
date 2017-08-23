@@ -57,34 +57,31 @@ public class SelectParcels {
 	File selecFiles;
 	String zipCode;
 	boolean notBuilt;
-	boolean oneParcelPerCell;
 
-	public SelectParcels(File rootfile, File spatialconfiguration, String zipcode, boolean notbuilt, boolean oneparcelpercell)
+
+	public SelectParcels(File rootfile, File spatialconfiguration, String zipcode, boolean notbuilt)
 			throws IOException, CQLException {
 		rootFile = rootfile;
 		spatialConfiguration = spatialconfiguration;
 		zipCode = zipcode;
 		notBuilt = notbuilt;
-		oneParcelPerCell = oneparcelpercell;
+
 		zoningsFile = new File(rootFile, "pluZoning/reproj");
 		geoFile = new File(rootFile, "donneeGeographiques");
 		File zipFiles = new File(spatialconfiguration, zipcode);
 		String nBuilt = "built";
-		String nParcels = "multipleParcels";
 		if (notbuilt) {
 			nBuilt = "notBuilt";
 		}
-		if (oneParcelPerCell) {
-			nParcels = "onlyOneParcel";
-		}
-		selecFiles = new File(zipFiles, nParcels + "--" + nBuilt);
+
+		selecFiles = new File(zipFiles, nBuilt);
 		selecFiles.mkdirs();
 	}
 
 	public static ArrayList<File> run(File rootfile, File testFile, String zipcode, boolean notbuilt, boolean oneparcelpercell)
 			throws IOException, CQLException, NoSuchAuthorityCodeException, FactoryException,
 			MismatchedDimensionException, TransformException {
-		SelectParcels sp = new SelectParcels(rootfile, testFile, zipcode, notbuilt, oneparcelpercell);
+		SelectParcels sp = new SelectParcels(rootfile, testFile, zipcode, notbuilt);
 		return sp.run();
 	}
 
@@ -96,13 +93,8 @@ public class SelectParcels {
 		if (notBuilt){
 		zoning = parcelNoBuilt(zoning);
 		}
-
-		if (!oneParcelPerCell){
 		selectionList.add(selecMultipleParcelInCell(zoning));
-		}
-		else{
-			selectionList.add(selecOneParcelInCell(zoning));
-		}
+
 //	//	 File newSelectionFile = exportSFC(selection, new File(selecFiles +
 //		 "parcelSelection.shp"));
 //		 selectionList.add(newSelectionFile);

@@ -35,6 +35,7 @@ import fr.ign.cogit.geoxygene.util.conversion.ShapefileWriter;
 import fr.ign.cogit.simplu3d.experiments.iauidf.regulation.Regulation;
 import fr.ign.cogit.simplu3d.io.nonStructDatabase.shp.LoaderSHP;
 import fr.ign.cogit.simplu3d.model.BasicPropertyUnit;
+import fr.ign.cogit.simplu3d.model.CadastralParcel;
 import fr.ign.cogit.simplu3d.model.Environnement;
 import fr.ign.cogit.simplu3d.model.UrbaZone;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.Cuboid;
@@ -86,7 +87,7 @@ public class SimPLUSimulator {
 	}
 
 	public static void main(String[] args) throws Exception {
-		run(new File("/home/mcolomb/donnee/couplage"),new File("/home/mcolomb/donnee/couplage/output/N5_Ba_Moy_ahpx_seed42-eval_anal-20.0/25245/multipleParcels--notBuilt"),"25245");
+		run(new File("/home/mcolomb/donnee/couplage"),new File("/home/mcolomb/donnee/couplage/output/N5_Ba_Moy_ahpx_seed42-eval_anal-20.0/25245/notBuilt"),"25245");
 	}
 	
 	public static List<File> run(File rootFile, File parcelfiles, String zipcode) throws Exception {
@@ -113,6 +114,10 @@ public class SimPLUSimulator {
 
 		HashMap<String, SamplePredicate<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>>> catalog = new HashMap<String, SamplePredicate<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>>>();
 		System.out.println("total de parcelles : " + env.getBpU().size());
+		
+		IFeatureCollection<IFeature> iFeatGenC = new FT_FeatureCollection<>();
+
+		
 		for (int i = 0; i < env.getBpU().size(); i++) {
 			BasicPropertyUnit bPU = env.getBpU().get(i);
 			// Instantiation of the sampler
@@ -179,8 +184,11 @@ public class SimPLUSimulator {
 					bPU, distReculVoirie, distReculFond, distReculLat, distanceInterBati, maximalCES);
 			// PredicateDensification<Cuboid, GraphConfiguration<Cuboid>,
 			// BirthDeathModification<Cuboid>> pred = new PredicateIAUIDF();
+			Double areaParcels =0.0;
+			for (CadastralParcel yo : bPU.getCadastralParcels()){
+				areaParcels = areaParcels + yo.getArea();
+			}
 
-			System.out.println("nbiter = " + p.get("nbiter"));
 			// Run of the optimisation on a parcel with the predicate
 			GraphConfiguration<Cuboid> cc = oCB.process(bPU, p, env, 1, pred);
 
@@ -200,7 +208,9 @@ public class SimPLUSimulator {
 				AttributeManager.addAttribute(feat, "Hauteur", v.getValue().height, "Double");
 				AttributeManager.addAttribute(feat, "Rotation", v.getValue().orientation, "Double");
 				AttributeManager.addAttribute(feat, "Surface", v.getValue().getArea(), "Double");
+				AttributeManager.addAttribute(feat, "areaParcel", areaParcels, "Double");
 				iFeatC.add(feat);
+				iFeatGenC.add(feat);
 			}
 
 			// A shapefile is written as output
@@ -213,10 +223,17 @@ public class SimPLUSimulator {
 			output.getParentFile().mkdirs();
 			ShapefileWriter.write(iFeatC, output.toString());
 			if (output.exists()) {
-				listBatiSimu.add(output);
+				if(!listBatiSimu.contains(output.getParentFile())){
+				listBatiSimu.add(output.getParentFile());
+				}
 			}
 			System.out.println("That's all folks");
+			for (File f : listBatiSimu){
+			}
 		}
+		File shpGen=(new File (simuFile.getParent(),"/simu" + compteur +"/TotBatiSimu/TotBatiSimu.shp"));
+		shpGen.getParentFile().mkdirs();
+		ShapefileWriter.write(iFeatGenC, shpGen.toString());
 		return listBatiSimu;
 	}
 
