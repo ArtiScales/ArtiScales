@@ -62,15 +62,14 @@ public class SelecMUPOutput {
 				listMupOutput.add(outputMup);
 				File outputMupRaster = new File(outputMup, rasterOutputFolder.getName());
 				Files.copy(rasterOutputFolder, outputMupRaster);
-				File vectFile = new File(outputMup,outputMup.getName()+"-vectorized.shp");
-				if (!vectFile.exists()){
-				createMupOutput(importRaster(outputMupRaster),vectFile);
+				File vectFile = new File(outputMup, outputMup.getName() + "-vectorized.shp");
+				if (!vectFile.exists()) {
+					createMupOutput(importRaster(outputMupRaster), vectFile);
 				}
-				}
+			}
 		}
 		return listMupOutput;
 	}
-
 
 	public SimpleFeatureSource createMupOutput(GridCoverage2D coverage, File destFile)
 			throws IOException, NoSuchAuthorityCodeException, FactoryException, ParseException {
@@ -119,7 +118,7 @@ public class SelecMUPOutput {
 
 			DirectPosition2D coord = new DirectPosition2D(
 					(feat.getBounds().getMaxX() - feat.getBounds().getHeight() / 2),
-					(feat.getBounds().getMaxY() - feat.getBounds().getHeight() / 2));			
+					(feat.getBounds().getMaxY() - feat.getBounds().getHeight() / 2));
 			float[] yo = (float[]) coverage.evaluate(coord);
 			if (yo[0] > 0) {
 				i = i + 1;
@@ -129,9 +128,7 @@ public class SelecMUPOutput {
 				victory.add(feature);
 			}
 		}
-
 		SelectParcels.exportSFC(victory.collection(), destFile);
-
 		return grid;
 	}
 
@@ -144,10 +141,7 @@ public class SelecMUPOutput {
 		useJaiRead.setValue(true);
 		GeneralParameterValue[] params = new GeneralParameterValue[] { policy, gridsize, useJaiRead };
 		GridCoverage2DReader reader = new GeoTiffReader(rasterIn);
-		GridCoverage2D coverage = reader.read(params);		
+		GridCoverage2D coverage = reader.read(params);
 		return coverage;
-		
 	}
-
-
 }

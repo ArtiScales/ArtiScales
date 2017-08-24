@@ -234,7 +234,7 @@ public class SimPLUSimulator {
 	}
 
 	public File selecZoningFile() throws FileNotFoundException {
-		File zoningsFile = new File(rootFile, "pluZoning/reproj");
+		File zoningsFile = new File(rootFile, "pluZoning");
 		for (File f : zoningsFile.listFiles()) {
 			Pattern insee = Pattern.compile("INSEE_");
 			String[] list = insee.split(f.toString());

@@ -34,11 +34,12 @@ public class MainTask {
 			for (String zip : zipCode) {
 				File output = new File(outMupFile, zip);
 				output.mkdirs();
+				boolean splitParcel = false;
 				boolean notBuilt = true;
-				SelectParcels select = new SelectParcels(rootFile, outMupFile, zip, notBuilt);
+				SelectParcels select = new SelectParcels(rootFile, outMupFile, zip, notBuilt,splitParcel);
 				listSelection.addAll(select.runBrownfield());
 				notBuilt = false;
-				select = new SelectParcels(rootFile, outMupFile, zip, notBuilt);
+				select = new SelectParcels(rootFile, outMupFile, zip, notBuilt,splitParcel);
 				listSelection.addAll(select.runBrownfield());
 			}
 		}
@@ -62,6 +63,7 @@ public class MainTask {
 			int missingHousingUnits = getHousingUnitsGoals(new File("donnee/couplage"), "25495")-bht.run();
 			System.out.println("missingHousingUnits" + missingHousingUnits);
 		}
+		
 	}
 
 	public static int getHousingUnitsGoals(File rootFile, String zipCode) throws IOException {
@@ -84,7 +86,7 @@ public class MainTask {
 					ColZip = i;
 					System.out.println("found zipcode at column " + i);
 				}
-				i += 1;
+				i =i+ 1;
 			}
 			if (row[ColZip].equals(zipCode)) {
 				System.out.println("gotit");

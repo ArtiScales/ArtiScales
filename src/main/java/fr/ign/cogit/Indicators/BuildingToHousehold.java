@@ -39,7 +39,7 @@ public class BuildingToHousehold extends indicators {
 			if (batiFile.toString().endsWith(".shp")) {
 				System.out.println("bati file : " + batiFile);
 				int lgt = simpleEstimate(batiFile);
-				totLgt += lgt;
+				totLgt = totLgt + lgt;
 			}
 			toGenCSV(getInfoSimuCsv() + totLgt);
 		}
