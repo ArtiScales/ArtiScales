@@ -3,18 +3,13 @@ package fr.ign.cogit;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.grid.io.AbstractGridFormat;
 import org.geotools.coverage.grid.io.GridCoverage2DReader;
 import org.geotools.coverage.grid.io.OverviewPolicy;
-import org.geotools.data.shapefile.ShapefileDataStore;
-import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureSource;
-import org.geotools.feature.AttributeTypeBuilder;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
@@ -22,7 +17,6 @@ import org.geotools.gce.geotiff.GeoTiffReader;
 import org.geotools.geometry.DirectPosition2D;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.grid.Grids;
-import org.geotools.process.raster.PolygonExtractionProcess;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
@@ -33,7 +27,6 @@ import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.google.common.io.Files;
-import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
@@ -157,14 +150,4 @@ public class SelecMUPOutput {
 	}
 
 
-	public File VectorizeMupOutput(GridCoverage2D rasterIn, File mupVector) throws IOException {
-		// not used anymore, but still could be useful?!
-
-		Collection<Number> nooData = Arrays.asList(-1, 0, 1);
-
-		PolygonExtractionProcess coucou = new PolygonExtractionProcess();
-		SimpleFeatureCollection vectorizedCells = coucou.execute(rasterIn, 0, true, null, nooData, null, null);
-		SelectParcels.exportSFC(vectorizedCells, new File(mupVector, mupVector.getName() + "-vectorized.shp"));
-		return mupVector;
-	}
 }

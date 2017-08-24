@@ -1,10 +1,6 @@
 package fr.ign.cogit.MUPCityAnalyses;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.List;
-
-import org.thema.mupcity.analyse.MergeRasterResultAndBati;
 
 public class FractalDimentionCalcul {
 

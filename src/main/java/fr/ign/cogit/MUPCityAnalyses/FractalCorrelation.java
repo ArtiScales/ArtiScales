@@ -1,13 +1,5 @@
 package fr.ign.cogit.MUPCityAnalyses;
 
-import java.io.File;
-
-import org.geotools.xml.schema.Sequence;
-import org.thema.common.swing.TaskMonitor;
-import org.thema.data.feature.DefaultFeature;
-import org.thema.data.feature.DefaultFeatureCoverage;
-
-
 public class FractalCorrelation {
 //	public static double fracgisCorrelationVect(File shapefile) {
 //

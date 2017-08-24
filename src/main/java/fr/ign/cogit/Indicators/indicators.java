@@ -3,8 +3,6 @@ package fr.ign.cogit.Indicators;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 public abstract class indicators {
 	String mUPSimu;

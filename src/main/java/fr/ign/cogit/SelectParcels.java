@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Serializable;
-import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -12,7 +11,6 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import org.apache.xerces.dom.NotationImpl;
 import org.geotools.data.DefaultTransaction;
 import org.geotools.data.Transaction;
 import org.geotools.data.shapefile.ShapefileDataStore;
@@ -24,16 +22,12 @@ import org.geotools.data.simple.SimpleFeatureStore;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.factory.GeoTools;
 import org.geotools.feature.DefaultFeatureCollection;
-import org.geotools.filter.NotImpl;
 import org.geotools.filter.text.cql2.CQLException;
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.filter.ExcludeFilter;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory2;
-import org.opengis.filter.Not;
-import org.opengis.filter.spatial.Intersects;
 import org.opengis.geometry.MismatchedDimensionException;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
@@ -82,14 +76,13 @@ public class SelectParcels {
 			throws IOException, CQLException, NoSuchAuthorityCodeException, FactoryException,
 			MismatchedDimensionException, TransformException {
 		SelectParcels sp = new SelectParcels(rootfile, testFile, zipcode, notbuilt);
-		return sp.run();
+		return sp.runGreenfield();
 	}
 
-	public ArrayList<File> run() throws IOException, CQLException, NoSuchAuthorityCodeException, FactoryException,
+	public ArrayList<File> runBrownfield() throws IOException, CQLException, NoSuchAuthorityCodeException, FactoryException,
 			MismatchedDimensionException, TransformException {
 		ArrayList<File> selectionList = new ArrayList<File>();
 		SimpleFeatureCollection zoning = selecParcelZonePLU("U");
-		
 		if (notBuilt){
 		zoning = parcelNoBuilt(zoning);
 		}
@@ -101,8 +94,14 @@ public class SelectParcels {
 		return selectionList;
 	}
 
+	public ArrayList<File> runGreenfield(){
+		
+		
+		return null;
+	}
 
-
+	
+	
 	/**
 	 * 
 	 * @param typeZone

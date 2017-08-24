@@ -1,10 +1,14 @@
 package fr.ign.cogit;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import au.com.bytecode.opencsv.CSVReader;
 import fr.ign.cogit.Indicators.BuildingToHousehold;
 
 public class MainTask {
@@ -25,7 +29,6 @@ public class MainTask {
 
 		// Parcel selection
 
-
 		ArrayList<File> listSelection = new ArrayList<File>();
 		for (File outMupFile : listMupOutput) {
 			for (String zip : zipCode) {
@@ -33,10 +36,10 @@ public class MainTask {
 				output.mkdirs();
 				boolean notBuilt = true;
 				SelectParcels select = new SelectParcels(rootFile, outMupFile, zip, notBuilt);
-				listSelection.addAll(select.run());
+				listSelection.addAll(select.runBrownfield());
 				notBuilt = false;
 				select = new SelectParcels(rootFile, outMupFile, zip, notBuilt);
-				listSelection.addAll(select.run());
+				listSelection.addAll(select.runBrownfield());
 			}
 		}
 
@@ -53,15 +56,50 @@ public class MainTask {
 		}
 		// converstion buildings/households
 
+		setGenStat(rootFile);
+		for (File f : listBatis) {
+			BuildingToHousehold bht = new BuildingToHousehold(f, 100);
+			int missingHousingUnits = getHousingUnitsGoals(new File("donnee/couplage"), "25495")-bht.run();
+			System.out.println("missingHousingUnits" + missingHousingUnits);
+		}
+	}
+
+	public static int getHousingUnitsGoals(File rootFile, String zipCode) throws IOException {
+		File donneGen = new File(rootFile, "donneeGeographiques/donnecommune.csv");
+		CSVReader csvReader = new CSVReader(new FileReader(donneGen));
+		List content = csvReader.readAll();
+		int ColLog = 0;
+		int ColZip = 0;
+		int nbObjLog = 0;
+		for (Object object : content) {
+			String[] row = (String[]) object;
+			int i = 0;
+			for (String s : row) {
+				if (s.contains("nbLogObjectif")) {
+					System.out.println("found log obj at column  : " + i);
+					ColLog = i;
+				}
+				if (s.contains("zipcode")) {
+
+					ColZip = i;
+					System.out.println("found zipcode at column " + i);
+				}
+				i += 1;
+			}
+			if (row[ColZip].equals(zipCode)) {
+				System.out.println("gotit");
+				return (nbObjLog = Integer.parseInt(row[ColLog]));
+			}
+		}
+		throw new FileNotFoundException("Housing units objectives not found");
+	}
+
+	public static void setGenStat(File rootFile) throws IOException {
 		File fileName = new File(rootFile, "output/results.csv");
 		FileWriter writer = new FileWriter(fileName, true);
 		writer.append(
 				"MUP-City Simulation, City zipCode , Selection type , SimPLU Simulation, number of simulated households");
 		writer.append("\n");
 		writer.close();
-		BuildingToHousehold bht = new BuildingToHousehold(listBatis, 100);
-		bht.run();
-
 	}
-
 }
