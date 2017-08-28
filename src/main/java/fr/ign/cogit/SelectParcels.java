@@ -405,14 +405,9 @@ public class SelectParcels {
 		File newParcelSelection = new File(selecFiles + "/parcelSelected.shp");
 
 		FeatureComparators.Name	comp = new Name("eval");
-		newParcel.sort((SortBy) comp);
 		
 		SortByImpl sbt = new SortByImpl(ff.property("eval"),SortOrder.ASCENDING);
-		SimpleFeatureCollection salut = newParcel.collection().sort(sbt);
-		System.out.println("parcelEval : " + salut.size());
-		for (Object obj : salut.toArray()) {
-			System.out.println(obj);
-		}
+		newParcel.sort(sbt);
 		exportSFC(newParcel.collection(), newParcelSelection);
 
 		return newParcelSelection;
