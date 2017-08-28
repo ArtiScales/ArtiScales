@@ -8,13 +8,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.geotools.data.shapefile.ShapefileDataStore;
+import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.data.simple.SimpleFeatureIterator;
+
 import au.com.bytecode.opencsv.CSVReader;
 import fr.ign.cogit.Indicators.BuildingToHousehold;
 
 public class MainTask {
 
 	public static void main(String[] args) throws Exception {
-		// TODO Auto-generated method stub
 
 		// String[] zipCode = { "25086", "25030", "25084", "25112", "25136",
 		// "25137", "25147", "25212", "25245", "25267", "25287", "25297",
@@ -23,6 +26,7 @@ public class MainTask {
 		// "25561", "25593", "25611" };
 		String[] zipCode = { "25495", "25245" };
 		File rootFile = new File("donnee/couplage");
+
 		// MUP-City output selection
 		SelecMUPOutput sortieMupCity = new SelecMUPOutput(rootFile);
 		List<File> listMupOutput = sortieMupCity.run();
@@ -36,11 +40,11 @@ public class MainTask {
 				output.mkdirs();
 				boolean splitParcel = false;
 				boolean notBuilt = true;
-				SelectParcels select = new SelectParcels(rootFile, outMupFile, zip, notBuilt,splitParcel);
-				listSelection.addAll(select.runBrownfield());
+				SelectParcels select = new SelectParcels(rootFile, outMupFile, zip, notBuilt, splitParcel);
+				listSelection.add(select.runBrownfield());
 				notBuilt = false;
-				select = new SelectParcels(rootFile, outMupFile, zip, notBuilt,splitParcel);
-				listSelection.addAll(select.runBrownfield());
+				select = new SelectParcels(rootFile, outMupFile, zip, notBuilt, splitParcel);
+				listSelection.add(select.runBrownfield());
 			}
 		}
 
@@ -58,12 +62,36 @@ public class MainTask {
 		// converstion buildings/households
 
 		setGenStat(rootFile);
+		int missingHousingUnits = 0;
 		for (File f : listBatis) {
 			BuildingToHousehold bht = new BuildingToHousehold(f, 100);
-			int missingHousingUnits = getHousingUnitsGoals(new File("donnee/couplage"), "25495")-bht.run();
-			System.out.println("missingHousingUnits" + missingHousingUnits);
+			missingHousingUnits = getHousingUnitsGoals(new File("donnee/couplage"), "25495") - bht.run();
+			System.out.println("missingHousingUnits :" + missingHousingUnits);
+
+			SelectParcels select = new SelectParcels(rootFile, f, bht.getZipCode(f), false, true);
+
+			SimpleFeatureCollection parcelCollection = (new ShapefileDataStore(select.runGreenfield().toURI().toURL()))
+					.getFeatureSource().getFeatures();
+			// filling the AU lands
+			int i = 0;
+			SimpleFeatureIterator iterator = parcelCollection.features();
+			try {
+
+				while (missingHousingUnits > 0 && iterator.hasNext()) {
+
+					// logger.warning("not enough parcels on the
+					// "+bht.getZipCode(f)+" city to fill the housing unit
+					// demand");
+					// System.exit(0);
+					SimPLUSimulator SPLUS = new SimPLUSimulator(rootFile, iterator.next(), bht.getZipCode(f));
+					missingHousingUnits = missingHousingUnits - SPLUS.runOneSim(f);
+				}
+			} finally {
+				iterator.close();
+			}
+
 		}
-		
+
 	}
 
 	public static int getHousingUnitsGoals(File rootFile, String zipCode) throws IOException {
@@ -86,7 +114,7 @@ public class MainTask {
 					ColZip = i;
 					System.out.println("found zipcode at column " + i);
 				}
-				i =i+ 1;
+				i = i + 1;
 			}
 			if (row[ColZip].equals(zipCode)) {
 				System.out.println("gotit");
@@ -100,7 +128,7 @@ public class MainTask {
 		File fileName = new File(rootFile, "output/results.csv");
 		FileWriter writer = new FileWriter(fileName, true);
 		writer.append(
-				"MUP-City Simulation, City zipCode , Selection type , SimPLU Simulation, number of simulated households");
+				"MUP-City Simulation, City zipCode , Selection type , SimPLU Simulation, number of simulated households in brownfield land, number of simulated households in brownfield land, numer of house, number of flat, ");
 		writer.append("\n");
 		writer.close();
 	}

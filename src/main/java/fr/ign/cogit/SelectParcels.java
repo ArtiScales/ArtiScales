@@ -6,16 +6,11 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import org.geotools.data.DataUtilities;
 import org.geotools.data.DefaultTransaction;
 import org.geotools.data.Transaction;
 import org.geotools.data.shapefile.ShapefileDataStore;
@@ -27,8 +22,12 @@ import org.geotools.data.simple.SimpleFeatureStore;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.factory.GeoTools;
 import org.geotools.feature.DefaultFeatureCollection;
+import org.geotools.feature.FeatureComparators;
+import org.geotools.feature.FeatureComparators.Name;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
+import org.geotools.filter.SortByImpl;
+import org.geotools.filter.SortOrder;
 import org.geotools.filter.text.cql2.CQLException;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.Feature;
@@ -36,6 +35,7 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory2;
+import org.opengis.filter.sort.SortBy;
 import org.opengis.geometry.MismatchedDimensionException;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
@@ -51,19 +51,14 @@ import com.vividsolutions.jts.io.WKTReader;
 
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
-import fr.ign.cogit.geoxygene.api.feature.type.GF_AttributeType;
-import fr.ign.cogit.geoxygene.api.feature.type.GF_FeatureType;
 import fr.ign.cogit.geoxygene.api.spatial.coordgeom.IPolygon;
 import fr.ign.cogit.geoxygene.convert.FromGeomToSurface;
 import fr.ign.cogit.geoxygene.feature.FT_FeatureCollection;
-import fr.ign.cogit.geoxygene.schema.schemaConceptuelISOJeu.AttributeType;
 import fr.ign.cogit.geoxygene.sig3d.calculation.parcelDecomposition.OBBBlockDecomposition;
+import fr.ign.cogit.geoxygene.util.attribute.AttributeManager;
+import fr.ign.cogit.geoxygene.util.conversion.GeOxygeneGeoToolsTypes;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileReader;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileWriter;
-import fr.ign.cogit.geoxygene.util.attribute.AttributeManager;
-import fr.ign.cogit.geoxygene.util.conversion.AdapterFactory;
-import fr.ign.cogit.geoxygene.util.conversion.GeOxygeneGeoToolsTypes;
-import fr.ign.cogit.simplu3d.experiments.herault.parcel.ParcelSplitting;
 import fr.ign.random.Random;
 
 public class SelectParcels {
@@ -101,20 +96,20 @@ public class SelectParcels {
 			nBuilt = "notBuilt";
 		}
 		String nSplit = "notSplit";
-		if (notbuilt) {
+		if (splitParcel) {
 			nSplit = "Split";
 		}
 		selecFiles = new File(zipFiles, nBuilt + "-" + nSplit);
 		selecFiles.mkdirs();
 	}
 
-	public static ArrayList<File> run(File rootfile, File testFile, String zipcode, boolean notbuilt,
-			boolean splitparcel) throws Exception {
+	public static File run(File rootfile, File testFile, String zipcode, boolean notbuilt, boolean splitparcel)
+			throws Exception {
 		SelectParcels sp = new SelectParcels(rootfile, testFile, zipcode, notbuilt, splitparcel);
-		return sp.runGreenfield(0);
+		return sp.runGreenfield();
 	}
 
-	public ArrayList<File> runBrownfield() throws Exception {
+	public File runBrownfield() throws Exception {
 		ArrayList<File> selectionList = new ArrayList<File>();
 		SimpleFeatureCollection parcelU = selecParcelZonePLU("U");
 		if (splitParcel) {
@@ -124,26 +119,21 @@ public class SelectParcels {
 			parcelU = parcelNoBuilt(parcelU);
 		}
 		SimpleFeatureCollection parcelInCell = selecMultipleParcelInCell(parcelU);
-		selectionList.add(putEvalInParcel(parcelInCell));
-		return selectionList;
+		return putEvalInParcel(parcelInCell);
 	}
 
-	public ArrayList<File> runGreenfield(int missingHousingUnit) throws Exception {
+	public File runGreenfield() throws Exception {
 		ArrayList<File> selectionList = new ArrayList<File>();
 		SimpleFeatureCollection parcelAU = selecParcelZonePLU("AU");
 		SimpleFeatureCollection spiltedParcels = generateSplitedParcels(parcelAU);
-		exportSFC(spiltedParcels, new File("/home/mcolomb/tmp/splited.shp"));
-		// if (notBuilt) {
-		// spiltedParcels = parcelNoBuilt(spiltedParcels);
-		// }
-		// SimpleFeatureCollection parcelInCell =
-		// selecMultipleParcelInCell(spiltedParcels);
-		// selectionList.add(putEvalInParcel(parcelInCell));
-		//
-		// selectionList.sort(Comparator.comparing(File::(SimpleFeature)((new
-		// ShapefileDataStore(getZoning().toURI().toURL())).getFeatureSource().getFeatures().toArray()[0]).getAttribute("EVAL")));
-		// System.out.println(selectionList);
-		return selectionList;
+		// exportSFC(spiltedParcels, new File("/home/mcolomb/tmp/splited.shp"));
+		if (notBuilt) {
+			spiltedParcels = parcelNoBuilt(spiltedParcels);
+		}
+		SimpleFeatureCollection parcelInCell = selecMultipleParcelInCell(spiltedParcels);
+		System.out.println(selectionList);
+		// retourne direct les parcel.shp
+		return putEvalInParcel(parcelInCell);
 	}
 
 	/**
@@ -221,7 +211,8 @@ public class SelectParcels {
 		// exportSFC(parcelSelected, newParcelSelection);
 		// File newParcelSelection2 = new File(selecFiles, "parcelIn" + typeZone
 		// + ".shp");
-		exportSFC(parcelSelected, new File("/home/mcolomb/tmp/test/parcel2SplitIn.shp"));
+		// exportSFC(parcelSelected, new
+		// File("/home/mcolomb/tmp/test/parcel2SplitIn.shp"));
 
 		return parcelSelected;
 	}
@@ -238,10 +229,7 @@ public class SelectParcels {
 		Filter inter = ff.intersects(ff.property(geometryParcelPropertyName), ff.literal(cellsUnion));
 		SimpleFeatureCollection parcelSelected = parcelIn.subCollection(inter);
 
-		File newParcelSelection = new File(selecFiles + "/parcelSelected.shp");
 		System.out.println("parcelSelected with cells: " + parcelSelected.size());
-		System.out.println("");
-		exportSFC(parcelSelected, newParcelSelection);
 		return parcelSelected;
 	}
 
@@ -329,7 +317,7 @@ public class SelectParcels {
 				ifeatCollOut.add(featTemp);
 			}
 		}
-		ShapefileWriter.write(ifeatCollOut, "/home/mcolomb/tmp/splited.shp");
+		ShapefileWriter.write(ifeatCollOut, rootFile.toString());
 		return GeOxygeneGeoToolsTypes.convert2FeatureCollection(ifeatCollOut);
 	}
 
@@ -360,12 +348,11 @@ public class SelectParcels {
 					roadEpsilon, noise);
 
 			IFeatureCollection<IFeature> featCollTemp = obb.decompParcel();
-			
-			for(IFeature feat2:featCollTemp){
+
+			for (IFeature feat2 : featCollTemp) {
 				AttributeManager.addAttribute(feat2, "ID", count++, "Integer");
 				System.out.println(feat2.getGeom());
 			}
-			
 
 			ifeatCollOut.addAll(featCollTemp);
 		}
@@ -413,11 +400,22 @@ public class SelectParcels {
 
 			SimpleFeature feature = sfBuilder.buildFeature(String.valueOf(i), attr);
 			newParcel.add(feature);
+			i = i + 1;
 		}
-		System.out.println("parcelEval : " + newParcel.size());
-		File exportedFile = new File("/home/mcolomb/tmp/test/parcelWeval.shp");
-		exportSFC(newParcel.collection(), exportedFile);
-		return exportedFile;
+		File newParcelSelection = new File(selecFiles + "/parcelSelected.shp");
+
+		FeatureComparators.Name	comp = new Name("eval");
+		newParcel.sort((SortBy) comp);
+		
+		SortByImpl sbt = new SortByImpl(ff.property("eval"),SortOrder.ASCENDING);
+		SimpleFeatureCollection salut = newParcel.collection().sort(sbt);
+		System.out.println("parcelEval : " + salut.size());
+		for (Object obj : salut.toArray()) {
+			System.out.println(obj);
+		}
+		exportSFC(newParcel.collection(), newParcelSelection);
+
+		return newParcelSelection;
 	}
 
 	public File selecOneParcelInCell(SimpleFeatureCollection parcelIn) throws IOException {
@@ -486,9 +484,6 @@ public class SelectParcels {
 		return exportSFC(toExport, fileName, toExport.getSchema());
 	}
 
-  
-
-
 	public static File exportSFC(SimpleFeatureCollection toExport, File fileName, SimpleFeatureType ft)
 			throws IOException {
 
@@ -500,14 +495,14 @@ public class SelectParcels {
 
 		ShapefileDataStore newDataStore = (ShapefileDataStore) dataStoreFactory.createNewDataStore(params);
 		newDataStore.createSchema(ft);
-		
+
 		Transaction transaction = new DefaultTransaction("create");
 
 		String typeName = newDataStore.getTypeNames()[0];
 		SimpleFeatureSource featureSource = newDataStore.getFeatureSource(typeName);
-		
-		 SimpleFeatureType SHAPE_TYPE = featureSource.getSchema();
-		 System.out.println("SHAPE:"+SHAPE_TYPE);
+
+		SimpleFeatureType SHAPE_TYPE = featureSource.getSchema();
+		System.out.println("SHAPE:" + SHAPE_TYPE);
 
 		if (featureSource instanceof SimpleFeatureStore) {
 			SimpleFeatureStore featureStore = (SimpleFeatureStore) featureSource;

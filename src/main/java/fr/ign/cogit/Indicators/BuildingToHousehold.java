@@ -14,6 +14,7 @@ public class BuildingToHousehold extends indicators {
 	public BuildingToHousehold(File filebatis, double surfacelog) {
 		fileBatis = filebatis;
 		surfaceLog = surfacelog;
+		putSimuNames(filebatis);
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -29,7 +30,6 @@ public class BuildingToHousehold extends indicators {
 	}
 
 	public int run() throws IOException {
-		putSimuNames(fileBatis);
 		System.out.println(fileBatis);
 		System.out.println(
 				"la simu est " + simPLUSimu + " avec le code zip " + zipCode + " frome the Mupsimu: " + mUPSimu);
