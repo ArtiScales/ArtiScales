@@ -2,7 +2,6 @@ package fr.ign.cogit;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,16 +16,14 @@ import org.geotools.feature.DefaultFeatureCollection;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory2;
-import org.opengis.geometry.MismatchedDimensionException;
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.NoSuchAuthorityCodeException;
-import org.opengis.referencing.operation.TransformException;
 
 import com.vividsolutions.jts.geom.Geometry;
 
 import fr.ign.cogit.Indicators.BuildingToHousehold;
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
+import fr.ign.cogit.geoxygene.api.spatial.geomaggr.IAggregate;
+import fr.ign.cogit.geoxygene.api.spatial.geomroot.IGeometry;
 import fr.ign.cogit.geoxygene.feature.DefaultFeature;
 import fr.ign.cogit.geoxygene.feature.FT_FeatureCollection;
 import fr.ign.cogit.geoxygene.util.attribute.AttributeManager;
@@ -57,6 +54,8 @@ public class SimPLUSimulator {
 	File codeFile;
 	File zoningFile;
 	File simuFile;
+	int compteurOutput = 0;
+
 	IFeatureCollection<IFeature> iFeatGenC = new FT_FeatureCollection<>();
 
 	File filePrescPonct;
@@ -65,25 +64,37 @@ public class SimPLUSimulator {
 	File rootFile;
 	int compteur;
 
-	public SimPLUSimulator(File rootfile, SimpleFeature feat, String zipcode) throws Exception{
-		this(rootfile,new File("") , zipcode);
+	boolean singleBuild;
+
+	public SimPLUSimulator(File rootfile, File fillFile, SimpleFeature feat, String zipcode, File snapfile,
+			boolean singlebuild) throws Exception {
+		this(rootfile, new File(""), zipcode, snapfile, singlebuild);
 		DefaultFeatureCollection tempShp = new DefaultFeatureCollection();
 		tempShp.add(feat);
-		parcelFile=new File(rootfile,"tmp.shp");
-		SelectParcels.exportSFC(tempShp,new File(rootfile,"tmp.shp"));
+		simuFile = fillFile;
+		parcelFile = new File(rootfile, "tmp.shp");
+		SelectParcels.exportSFC(tempShp, parcelFile);
 	}
-	
-	public SimPLUSimulator(File rootfile, File parcelfile, String zipcode) throws Exception {
+
+	public SimPLUSimulator(File rootfile, File parcelfile, String zipcode, File snapfile, boolean singlebuild)
+			throws Exception {
 		rootFile = rootfile;
 		zipCode = zipcode;
-
+		singleBuild = singlebuild;
 		zoningFile = selecZoningFile();
 
 		parcelFile = parcelfile;
-		buildFile = snapDatas(new File(rootFile, "donneeGeographiques/batiment.shp"),
-				new File(parcelFile, "/snap/batiment.shp"));
-		roadFile = snapDatas(new File(rootFile, "donneeGeographiques/route.shp"),
-				new File(parcelFile, "/snap/route.shp"));
+		// si dans l'autre constucteur, les snaps seront déjà crées dans un
+		// autre dossiers
+		if (!parcelFile.exists()) {
+			buildFile = new File(snapfile, "batiment.shp");
+			roadFile = new File(snapfile, "route.shp");
+		} else {
+			buildFile = snapDatas(new File(rootFile, "donneeGeographiques/batiment.shp"),
+					new File(parcelFile, "/snap/batiment.shp"));
+			roadFile = snapDatas(new File(rootFile, "donneeGeographiques/route.shp"),
+					new File(parcelFile, "/snap/route.shp"));
+		}
 		// doc urba :: à quoi ça sert?
 		codeFile = new File(rootFile, "pluZoning/codes/DOC_URBA.shp");
 		filePrescPonct = new File(rootFile, "pluZoning/codes/PRESCRIPTION_PONCT.shp");
@@ -98,26 +109,25 @@ public class SimPLUSimulator {
 
 	public static void main(String[] args) throws Exception {
 		run(new File("/home/mcolomb/donnee/couplage"),
-				new File("/home/mcolomb/donnee/couplage/output/N6_St_Moy_ahpx_seed42-eval_anal-20.0/25245/notBuilt-Split"),
-				"25245");
+				new File(
+						"/home/mcolomb/workspace/PLUCities/donnee/couplage/output/N5_St_Moy_ahpx_seed42-eval_anal-20.0/25495/built-notSplit/"),
+				"25495", false);
 	}
 
-	public static List<File> run(File rootFile, File parcelfiles, String zipcode) throws Exception {
-		SimPLUSimulator SPLUS = new SimPLUSimulator(rootFile, parcelfiles, zipcode);
+	public static List<File> run(File rootFile, File parcelfiles, String zipcode, boolean singleBuild)
+			throws Exception {
+		SimPLUSimulator SPLUS = new SimPLUSimulator(rootFile, parcelfiles, zipcode, null, singleBuild);
 		return SPLUS.run();
 	}
 
-	public int runOneSim(File f) throws Exception {
-		compteur = Integer.parseInt(f.getParentFile().getName().replace("simu",""));
-		Parameters p = Parameters.unmarshall(new File(paramFile,"param"+compteur+".xml"));
-		
-		Environnement env = LoaderSHP.load(f, codeFile, zoningFile,
-				parcelFile, roadFile, buildFile, filePrescPonct, filePrescLin,
-				filePrescSurf, null);
-		int i=env.getBpU().size();
-		System.out.println("i?" + i);
-		File yoy = runSimulation(env, i, p);
-		BuildingToHousehold greenBuilding = new BuildingToHousehold (yoy, 100);
+	public int runOneSim(File f, int num) throws Exception {
+		compteur = Integer.parseInt(f.getName().replace("simu", ""));
+		Parameters p = Parameters.unmarshall(new File(paramFile, "param" + compteur + ".xml"));
+		Environnement env = LoaderSHP.load(f, codeFile, zoningFile, parcelFile, roadFile, buildFile, filePrescPonct,
+				filePrescLin, filePrescSurf, null);
+
+		File yoy = runSimulation(env, 0, p);
+		BuildingToHousehold greenBuilding = new BuildingToHousehold(yoy, 100);
 		return greenBuilding.simpleEstimate(yoy);
 	}
 
@@ -127,23 +137,23 @@ public class SimPLUSimulator {
 		// information and simulated annealing configuration
 		List<File> listBatiSimu = new ArrayList<File>();
 		for (File pFile : paramFile.listFiles()) {
-			if (pFile.toString().endsWith(".xml")){
-			System.out.println(pFile);
-			Parameters p = Parameters.unmarshall(pFile);
-			// Load default environment
-			simuFile = new File(parcelFile, "simu" + compteur);
-			System.out.println(parcelFile);
-			Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile,
-					new File(parcelFile, "parcelSelected.shp"), roadFile, buildFile, filePrescPonct, filePrescLin,
-					filePrescSurf, null);
-			System.out.println("total de parcelles : " + env.getBpU().size());
-			for (int i = 0; i < env.getBpU().size(); i++) {
-				runSimulation(env, i, p);
+			if (pFile.toString().endsWith(".xml")) {
+				System.out.println(pFile);
+				Parameters p = Parameters.unmarshall(pFile);
+				// Load default environment
+				simuFile = new File(parcelFile, "simu" + compteur);
+				System.out.println(parcelFile);
+				Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile,
+						new File(parcelFile, "parcelSelected.shp"), roadFile, buildFile, filePrescPonct, filePrescLin,
+						filePrescSurf, null);
+				System.out.println("total de parcelles : " + env.getBpU().size());
+				for (int i = 0; i < env.getBpU().size(); i++) {
+					runSimulation(env, i, p);
+				}
+				buildingInOneShp();
+				listBatiSimu.add(simuFile);
+				compteur = compteur + 1;
 			}
-			buildingInOneShp();
-			listBatiSimu.add(simuFile);
-			compteur = compteur + 1;
-		}
 		}
 		return listBatiSimu;
 	}
@@ -190,6 +200,7 @@ public class SimPLUSimulator {
 													// batiment à coté ::à
 													// développer yo
 		double distReculLat = regle.getArt_72();
+
 		double distanceInterBati = regle.getArt_8();
 		if (regle.getArt_8() == 99) {
 			distanceInterBati = 0;
@@ -211,7 +222,8 @@ public class SimPLUSimulator {
 
 		// Instantiation of the rule checker
 		SamplePredicate<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = new SamplePredicate<>(
-				bPU, distReculVoirie, distReculFond, distReculLat, distanceInterBati, maximalCES);
+				bPU, distReculVoirie, distReculFond, distReculLat, distanceInterBati, maximalCES, maximalhauteur,
+				singleBuild);
 		// PredicateDensification<Cuboid, GraphConfiguration<Cuboid>,
 		// BirthDeathModification<Cuboid>> pred = new PredicateIAUIDF();
 		Double areaParcels = 0.0;
@@ -224,6 +236,7 @@ public class SimPLUSimulator {
 
 		// Witting the output
 		IFeatureCollection<IFeature> iFeatC = new FT_FeatureCollection<>();
+
 		// For all generated boxes
 		for (GraphVertex<Cuboid> v : cc.getGraph().vertexSet()) {
 
@@ -231,25 +244,36 @@ public class SimPLUSimulator {
 			IFeature feat = new DefaultFeature(v.getValue().generated3DGeom());
 
 			// We write some attributes
+
 			AttributeManager.addAttribute(feat, "Longueur", Math.max(v.getValue().length, v.getValue().width),
 					"Double");
 			AttributeManager.addAttribute(feat, "Largeur", Math.min(v.getValue().length, v.getValue().width), "Double");
 			AttributeManager.addAttribute(feat, "Hauteur", v.getValue().height, "Double");
 			AttributeManager.addAttribute(feat, "Rotation", v.getValue().orientation, "Double");
 			AttributeManager.addAttribute(feat, "Surface", v.getValue().getArea(), "Double");
+			// AttributeManager.addAttribute(feat, "SurfaceEdifice",
+			// formTot.area(), "Double");
 			AttributeManager.addAttribute(feat, "areaParcel", areaParcels, "Double");
+			AttributeManager.addAttribute(feat, "num", i, "Integer");
 			iFeatC.add(feat);
 			iFeatGenC.add(feat);
 		}
-
+		// TODO mettre la bonne aire des cuboides mergés
+		IAggregate<? extends IGeometry> formTot = iFeatC.getGeomAggregate();
+		System.out.println("forrrm tottaaaal " + formTot.area());
 		// A shapefile is written as output
 		// WARNING : 'out' parameter from configuration file have to be
 		// change
 
 		File output = new File(simuFile, "out-parcelle_" + i + ".shp");
-
-		System.out.println("output" + output);
+		while (output.exists()) {
+			output = new File(simuFile, "out-parcelle_" + compteurOutput + ".shp");
+			compteurOutput = compteurOutput + 1;
+		}
+		System.out.println("output : " + output);
 		output.getParentFile().mkdirs();
+		// TODO merge of the iFeatC objects
+
 		ShapefileWriter.write(iFeatC, output.toString());
 		System.out.println("That's all folks");
 
@@ -257,7 +281,7 @@ public class SimPLUSimulator {
 	}
 
 	public void buildingInOneShp() {
-		File shpGen = (new File(simuFile,"TotBatiSimu/TotBatiSimu.shp"));
+		File shpGen = (new File(simuFile, "TotBatiSimu/TotBatiSimu.shp"));
 		shpGen.getParentFile().mkdirs();
 		ShapefileWriter.write(iFeatGenC, shpGen.toString());
 	}
@@ -274,8 +298,7 @@ public class SimPLUSimulator {
 		throw new FileNotFoundException("Zoning file not found");
 	}
 
-	public File snapDatas(File fileIn, File fileOut) throws IOException, NoSuchAuthorityCodeException, FactoryException,
-			MismatchedDimensionException, TransformException {
+	public File snapDatas(File fileIn, File fileOut) throws Exception {
 
 		// load the input from the general folder
 		ShapefileDataStore shpDSIn = new ShapefileDataStore(fileIn.toURI().toURL());

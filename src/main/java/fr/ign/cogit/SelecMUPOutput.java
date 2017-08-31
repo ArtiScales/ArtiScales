@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.grid.io.AbstractGridFormat;
@@ -33,6 +34,7 @@ import com.vividsolutions.jts.io.WKTReader;
 
 public class SelecMUPOutput {
 	File rootFile;
+	double sizeCell;
 
 	public SelecMUPOutput(File rootfile) {
 		rootFile = rootfile;
@@ -57,7 +59,12 @@ public class SelecMUPOutput {
 		ArrayList<File> listMupOutput = new ArrayList<File>();
 		for (File rasterOutputFolder : MupOutputFolder.listFiles()) {
 			if (rasterOutputFolder.getName().endsWith(".tif")) {
-				File outputMup = new File(output, rasterOutputFolder.getName().replace(".tif", ""));
+				// get the cells size
+				String rasterOutputString = rasterOutputFolder.getName().replace(".tif", "");
+				Pattern ech = Pattern.compile("-");
+				String[] list = ech.split(rasterOutputString);
+				sizeCell = Double.parseDouble(list[2]);
+				File outputMup = new File(output, rasterOutputString);
 				outputMup.mkdirs();
 				listMupOutput.add(outputMup);
 				File outputMupRaster = new File(outputMup, rasterOutputFolder.getName());
@@ -109,7 +116,7 @@ public class SelecMUPOutput {
 
 		DefaultFeatureCollection victory = new DefaultFeatureCollection();
 
-		SimpleFeatureSource grid = Grids.createSquareGrid(gridBounds, 20.0);
+		SimpleFeatureSource grid = Grids.createSquareGrid(gridBounds, sizeCell);
 
 		int i = 0;
 		for (Object object : grid.getFeatures().toArray()) {
@@ -136,7 +143,6 @@ public class SelecMUPOutput {
 		ParameterValue<OverviewPolicy> policy = AbstractGridFormat.OVERVIEW_POLICY.createValue();
 		policy.setValue(OverviewPolicy.IGNORE);
 		ParameterValue<String> gridsize = AbstractGridFormat.SUGGESTED_TILE_SIZE.createValue();
-		gridsize.setValue(20 + "," + 20);
 		ParameterValue<Boolean> useJaiRead = AbstractGridFormat.USE_JAI_IMAGEREAD.createValue();
 		useJaiRead.setValue(true);
 		GeneralParameterValue[] params = new GeneralParameterValue[] { policy, gridsize, useJaiRead };
