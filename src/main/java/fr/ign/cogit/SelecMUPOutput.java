@@ -35,46 +35,50 @@ import com.vividsolutions.jts.io.WKTReader;
 public class SelecMUPOutput {
 	File rootFile;
 	double sizeCell;
+	File rasterOutputFolder;
 
-	public SelecMUPOutput(File rootfile) {
+	public SelecMUPOutput(File rootfile, File rasteroutputfolder) {
 		rootFile = rootfile;
+		rasterOutputFolder = rasteroutputfolder;
 	}
 
 	public static void main(String[] args) throws Exception {
-		run(new File("/home/mcolomb/donnee/couplage"));
+		run(new File("/home/mcolomb/donnee/couplage"),
+				new File("/home/mcolomb/donnee/couplage/depotConfigSpat/N5_Ba_Moy_ahpx_seed42-eval_anal-20.0.tif"));
 	}
 
-	public static List<File> run(File rootfile)
-			throws IOException, NoSuchAuthorityCodeException, FactoryException, ParseException {
+	public static List<File> run(File rootfile, File rasteroutputfolder)
+			throws Exception {
 		// automatic vectorization of the MUP-City outputs
-		SelecMUPOutput smo = new SelecMUPOutput(rootfile);
+		SelecMUPOutput smo = new SelecMUPOutput(rootfile, rasteroutputfolder);
 		return smo.run();
 	}
 
-	public List<File> run() throws IOException, NoSuchAuthorityCodeException, FactoryException, ParseException {
-
-		File MupOutputFolder = new File(rootFile, "depotConfigSpat");
+	public List<File> run() throws Exception {
 		File output = new File(rootFile, "output");
 		output.mkdirs();
+		
 		ArrayList<File> listMupOutput = new ArrayList<File>();
-		for (File rasterOutputFolder : MupOutputFolder.listFiles()) {
-			if (rasterOutputFolder.getName().endsWith(".tif")) {
-				// get the cells size
-				String rasterOutputString = rasterOutputFolder.getName().replace(".tif", "");
-				Pattern ech = Pattern.compile("-");
-				String[] list = ech.split(rasterOutputString);
-				sizeCell = Double.parseDouble(list[2]);
-				File outputMup = new File(output, rasterOutputString);
-				outputMup.mkdirs();
-				listMupOutput.add(outputMup);
-				File outputMupRaster = new File(outputMup, rasterOutputFolder.getName());
-				Files.copy(rasterOutputFolder, outputMupRaster);
-				File vectFile = new File(outputMup, outputMup.getName() + "-vectorized.shp");
-				if (!vectFile.exists()) {
-					createMupOutput(importRaster(outputMupRaster), vectFile);
-				}
-			}
+		// get the cells size
+		String rasterOutputString = rasterOutputFolder.getName().replace(".tif", "");
+		Pattern ech = Pattern.compile("-");
+		
+		String[] list = ech.split(rasterOutputString);
+		sizeCell = Double.parseDouble(list[2]);
+		
+		File outputMup = new File(output, rasterOutputString);
+		outputMup.mkdirs();
+		
+		
+		listMupOutput.add(outputMup);
+		File outputMupRaster = new File(outputMup, rasterOutputFolder.getName());
+
+		Files.copy(rasterOutputFolder, outputMupRaster);
+		File vectFile = new File(outputMup, outputMup.getName() + "-vectorized.shp");
+		if (!vectFile.exists()) {
+			createMupOutput(importRaster(outputMupRaster), vectFile);
 		}
+
 		return listMupOutput;
 	}
 
@@ -139,7 +143,7 @@ public class SelecMUPOutput {
 		return grid;
 	}
 
-	public GridCoverage2D importRaster(File rasterIn) throws IOException {
+	public static GridCoverage2D importRaster(File rasterIn) throws IOException {
 		ParameterValue<OverviewPolicy> policy = AbstractGridFormat.OVERVIEW_POLICY.createValue();
 		policy.setValue(OverviewPolicy.IGNORE);
 		ParameterValue<String> gridsize = AbstractGridFormat.SUGGESTED_TILE_SIZE.createValue();

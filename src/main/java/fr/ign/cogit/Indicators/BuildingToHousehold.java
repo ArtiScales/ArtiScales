@@ -21,7 +21,6 @@ public class BuildingToHousehold extends indicators {
 
 		File f = new File(
 				"/home/mcolomb/donnee/couplage/output/N6_St_Moy_ahpx_seed42-eval_anal-20.0/25245/notBuilt/simu0");
-
 		run(f, 100);
 	}
 
@@ -58,15 +57,18 @@ public class BuildingToHousehold extends indicators {
 		long etage;
 		int logements = 0;
 		Double totParcelArea = 0.0;
-		// pas encore de prise en compte de batiments s'intersectant
+
 		if (!f.exists()) {
 			return 0;
 		} else {
 			ShapefileDataStore shpDSBuilding = new ShapefileDataStore(f.toURI().toURL());
 			SimpleFeatureCollection buildingCollection = shpDSBuilding.getFeatureSource().getFeatures();
-			for (Object feature : buildingCollection.toArray()) {
+			
+			//on ne prends que le premier objet pour faire le calcul de l'air total des batiments
+			Object feature = buildingCollection.toArray()[0];
+		
 				SimpleFeature feat = (SimpleFeature) feature;
-				surface = (double) feat.getAttribute("Surface");
+				surface = (double) feat.getAttribute("SurfaceTot");
 				hauteur = (double) feat.getAttribute("Hauteur");
 				num = (int) feat.getAttribute("num");
 				System.out.println("le batiment de la parcelle " + num + " fait " + surface + " mcarré et " + hauteur
@@ -88,7 +90,7 @@ public class BuildingToHousehold extends indicators {
 			}
 			System.out.println("construction totale de " + logements + " logements pour une densité de "
 					+ (logements / (totParcelArea / 10000)));
-		}
+		
 		return logements;
 	}
 }
