@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,37 +36,37 @@ import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory2;
 import org.opengis.filter.expression.PropertyName;
 import org.opengis.filter.sort.SortBy;
-import org.opengis.geometry.DirectPosition;
 import org.opengis.geometry.MismatchedDimensionException;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.TransformException;
 
-import com.vividsolutions.jts.awt.PointShapeFactory.Point;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryCollection;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
-import fr.ign.parameters.Parameters;
+
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
+import fr.ign.cogit.geoxygene.api.feature.type.GF_AttributeType;
 import fr.ign.cogit.geoxygene.api.spatial.coordgeom.IPolygon;
 import fr.ign.cogit.geoxygene.convert.FromGeomToSurface;
+import fr.ign.cogit.geoxygene.feature.DefaultFeature;
 import fr.ign.cogit.geoxygene.feature.FT_FeatureCollection;
 import fr.ign.cogit.geoxygene.sig3d.calculation.parcelDecomposition.OBBBlockDecomposition;
+import fr.ign.cogit.geoxygene.util.attribute.AttributeManager;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileReader;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileWriter;
+import fr.ign.parameters.Parameters;
 import fr.ign.random.Random;
 
 public class SelectParcels {
 
 	public static void main(String[] args) throws Exception {
-		run(new File("/home/mcolomb/donnee/couplage"),
-				new File("/home/mcolomb/donnee/couplage/output/N5_Ba_Moy_ahpx_seed42-eval_anal-20.0"), "25495", true,
-				true);
+		run(new File("/home/mcolomb/donnee/couplage"), new File("/home/mcolomb/donnee/couplage/output/N5_St_Moy_ahpx_seed_42-eval_anal-20.0"), "25495", true, true);
 	}
 
 	File rootFile;
@@ -79,16 +78,13 @@ public class SelectParcels {
 	String typeZone;
 	boolean notBuilt;
 	boolean splitParcel;
-	Parameters p=null;
+	Parameters p = null;
 
-
-	public SelectParcels(File rootfile, File spatialconfiguration, String zipcode, boolean notbuilt,
-			boolean splitparcel) throws Exception {
-		this(rootfile,spatialconfiguration,zipcode,notbuilt,splitparcel,null);
+	public SelectParcels(File rootfile, File spatialconfiguration, String zipcode, boolean notbuilt, boolean splitparcel) throws Exception {
+		this(rootfile, spatialconfiguration, zipcode, notbuilt, splitparcel, null);
 	}
-	
-	public SelectParcels(File rootfile, File spatialconfiguration, String zipcode, boolean notbuilt,
-			boolean splitparcel,Parameters pa) throws Exception {
+
+	public SelectParcels(File rootfile, File spatialconfiguration, String zipcode, boolean notbuilt, boolean splitparcel, Parameters pa) throws Exception {
 		p = pa;
 		rootFile = rootfile;
 		spatialConfiguration = spatialconfiguration;
@@ -113,13 +109,12 @@ public class SelectParcels {
 		selecFiles.mkdirs();
 	}
 
-	public static File run(File rootfile, File testFile, String zipcode, boolean notbuilt, boolean splitparcel)
-			throws Exception {
+	public static File run(File rootfile, File testFile, String zipcode, boolean notbuilt, boolean splitparcel) throws Exception {
 		SelectParcels sp = new SelectParcels(rootfile, testFile, zipcode, notbuilt, splitparcel);
-		return sp.runGreenfield();
+		return sp.runBrownfield();
 	}
 
-	//fill the already urbanised lands
+	// fill the already urbanised lands
 	public File runBrownfield() throws Exception {
 		typeZone = "U";
 		SimpleFeatureCollection parcelU = selecParcelZonePLU();
@@ -166,13 +161,10 @@ public class SelectParcels {
 	/**
 	 * 
 	 * @param typeZone
-	 *            the code of the zone willed to be selected. In a french
-	 *            context, it can either be (A, N, U, AU) or one of its
-	 *            subsection
+	 *            the code of the zone willed to be selected. In a french context, it can either be (A, N, U, AU) or one of its subsection
 	 * @param zipCode
 	 *            the zipcode of the city to select parcels in
-	 * @return a SimpleFeatureCollection which contains the parcels that are
-	 *         included in the zoning area
+	 * @return a SimpleFeatureCollection which contains the parcels that are included in the zoning area
 	 * @throws IOException
 	 * @throws CQLException
 	 * @throws FactoryException
@@ -188,9 +180,8 @@ public class SelectParcels {
 		return selecParcelZonePLU(typeZone, parcelCollection, shpDSParcel);
 	}
 
-	public SimpleFeatureCollection selecParcelZonePLU(String typeZone, SimpleFeatureCollection parcelCollection,
-			ShapefileDataStore shpDSParcel) throws IOException, CQLException, NoSuchAuthorityCodeException,
-			FactoryException, MismatchedDimensionException, TransformException {
+	public SimpleFeatureCollection selecParcelZonePLU(String typeZone, SimpleFeatureCollection parcelCollection, ShapefileDataStore shpDSParcel)
+			throws IOException, CQLException, NoSuchAuthorityCodeException, FactoryException, MismatchedDimensionException, TransformException {
 
 		// import of the zoning file
 		ShapefileDataStore shpDSZone = new ShapefileDataStore(getZoning().toURI().toURL());
@@ -213,9 +204,11 @@ public class SelectParcels {
 		Geometry union = unionSFC(featureZoneSelected);
 
 		String geometryParcelPropertyName = shpDSParcel.getSchema().getGeometryDescriptor().getLocalName();
-		// TODO opérateur géométrique pas bon
+		// TODO opérateur géométrique pas terrible, mais rattrapé par le
+		// découpage de SimPLU
 		Filter inter = ff.intersects(ff.property(geometryParcelPropertyName), ff.literal(union));
 		SimpleFeatureCollection parcelSelected = parcelCollection.subCollection(inter);
+
 		System.out.println("parcelSelected : " + parcelSelected.size());
 		return parcelSelected;
 	}
@@ -237,26 +230,26 @@ public class SelectParcels {
 	public SimpleFeatureCollection generateSplitedParcels(SimpleFeatureCollection parcelIn) throws Exception {
 
 		// splitting method option
-		
+
 		double roadEpsilon = 0.5;
 		double noise = 10;
 		double maximalArea = 1000;
 		double maximalWidth = 50;
-		if (!(p == null)){
+		if (!(p == null)) {
 			maximalArea = p.getDouble("maximalAreaSplitParcel");
 			maximalWidth = p.getDouble("maximalWidthSplitParcel");
 		}
-	
+
 		// putting the need of splitting into attribute
 		WKTReader wktReader = new WKTReader();
 		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
-
 		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
 		sfTypeBuilder.setName("testType");
 		sfTypeBuilder.setCRS(sourceCRS);
 		sfTypeBuilder.add("the_geom", Polygon.class);
 		sfTypeBuilder.setDefaultGeometry("the_geom");
 		sfTypeBuilder.add("SPLIT", Integer.class);
+		sfTypeBuilder.add("num", Integer.class);
 
 		SimpleFeatureType featureType = sfTypeBuilder.buildFeatureType();
 		SimpleFeatureBuilder sfBuilder = new SimpleFeatureBuilder(featureType);
@@ -266,11 +259,11 @@ public class SelectParcels {
 
 		for (Object obj : parcelIn.toArray()) {
 			SimpleFeature feat = (SimpleFeature) obj;
-			Object[] attr = { 0 };
+			Object[] attr = { 0, 0 };
 			if (((Geometry) feat.getDefaultGeometry()).getArea() > maximalArea) {
 				attr[0] = 1;
 			}
-
+			attr[1] = feat.getAttribute("NUMERO");
 			sfBuilder.add(wktReader.read(feat.getDefaultGeometry().toString()));
 			SimpleFeature feature = sfBuilder.buildFeature(String.valueOf(i), attr);
 			toSplit.add(feature);
@@ -281,8 +274,7 @@ public class SelectParcels {
 	}
 
 	/**
-	 * largely inspired from the simPLU.ParcelSplitting class but rewrote to
-	 * work with geotools SimpleFeatureCollection objects
+	 * largely inspired from the simPLU.ParcelSplitting class but rewrote to work with geotools SimpleFeatureCollection objects
 	 * 
 	 * @param toSplit
 	 * @param maximalArea
@@ -292,8 +284,7 @@ public class SelectParcels {
 	 * @return
 	 * @throws Exception
 	 */
-	public SimpleFeatureCollection splitParcels(SimpleFeatureCollection toSplit, double maximalArea,
-			double maximalWidth, double roadEpsilon, double noise) throws Exception {
+	public SimpleFeatureCollection splitParcels(SimpleFeatureCollection toSplit, double maximalArea, double maximalWidth, double roadEpsilon, double noise) throws Exception {
 		// TODO classe po bô du tout: faire une vraie conversion entre les types
 		// geotools et geox (passer par des shp a été le seul moyen que j'ai
 		// trouvé pour que ça fonctionne)
@@ -305,9 +296,7 @@ public class SelectParcels {
 		File shpIn = new File(rootFile, "temp-In.shp");
 		exportSFC(toSplit, shpIn);
 		IFeatureCollection<?> ifeatColl = ShapefileReader.read(shpIn.toString());
-
-		IFeatureCollection<IFeature> ifeatCollOut = new FT_FeatureCollection<>();
-
+		IFeatureCollection<IFeature> ifeatCollOut = new FT_FeatureCollection<IFeature>();
 		for (IFeature feat : ifeatColl) {
 			Object o = feat.getAttribute(attNameToTransform);
 			if (o == null) {
@@ -319,20 +308,36 @@ public class SelectParcels {
 				continue;
 			}
 			IPolygon pol = (IPolygon) FromGeomToSurface.convertGeom(feat.getGeom()).get(0);
-
-			OBBBlockDecomposition obb = new OBBBlockDecomposition(pol, maximalArea, maximalWidth, Random.random(),
-					roadEpsilon, noise);
-			IFeatureCollection<IFeature> featCollTemp = (IFeatureCollection<IFeature>) ifeatColl;
+			int num = (int) feat.getAttribute("num");
+			int numParcelle = 1;
+			OBBBlockDecomposition obb = new OBBBlockDecomposition(pol, maximalArea, maximalWidth, Random.random(), roadEpsilon, noise);
+			// TODO erreures récurentes sur le split
 			try {
-				featCollTemp = obb.decompParcel();
+				IFeatureCollection<IFeature> featCollDecomp = obb.decompParcel();
+				// recup du GF_AttributeType des numeros
+				GF_AttributeType attribute = null;
+				for (GF_AttributeType att : ifeatColl.getFeatureType().getFeatureAttributes()) {
+					if (att.toString().contains("num")) {
+						attribute = att;
+					}
+				}
+				for (IFeature featDecomp : featCollDecomp) {
+					// MAJ du numéro de la parcelle
+					int newNum = Integer.parseInt(String.valueOf(num) + "000" + String.valueOf(numParcelle));
+					numParcelle = numParcelle + 1;
+					IFeature newFeat = new DefaultFeature(featDecomp.getGeom());
+					AttributeManager.addAttribute(newFeat, "num", newNum, "Integer");
+					ifeatCollOut.add(newFeat);
+					System.out.println("num" + newFeat.getAttribute(attribute));
+				}
 			} catch (NullPointerException n) {
-				System.out.println("erreur sur le split");
-			}
-			for (IFeature featNew : featCollTemp) {
+				System.out.println("erreur sur le split pour la parcelle " + num);
 				IFeature featTemp = feat.cloneGeom();
-				featTemp.setGeom(featNew.getGeom());
 				ifeatCollOut.add(featTemp);
 			}
+		}
+		for (IFeature ft : ifeatCollOut) {
+			System.out.println(ft.getAttribute("num"));
 		}
 
 		File fileOut = new File(rootFile, "tmp.shp");
@@ -351,9 +356,11 @@ public class SelectParcels {
 		return splitedSFC;
 	}
 
-	public SimpleFeatureCollection putEvalInParcel(SimpleFeatureCollection parcelIn)
-			throws ParseException, NoSuchAuthorityCodeException, FactoryException, IOException {
-	//TODO Prends des évaluations nulles pour les parcelles ou il n'y a pas de cellules : aller chercher le raster d'évaluation et le prendre yo (encore pas mal de dev pour le début de la semaine prochaine mon coco)
+	public SimpleFeatureCollection putEvalInParcel(SimpleFeatureCollection parcelIn) throws ParseException, NoSuchAuthorityCodeException, FactoryException, IOException {
+		// TODO Prends des évaluations nulles pour les parcelles ou il n'y a pas
+		// de cellules : aller chercher le raster d'évaluation et le prendre yo
+		// (encore pas mal de dev pour le début de la semaine prochaine mon
+		// coco)
 		SimpleFeatureCollection cellsCollection = getCellSFC();
 		WKTReader wktReader = new WKTReader();
 		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
@@ -364,6 +371,7 @@ public class SelectParcels {
 		sfTypeBuilder.add("the_geom", Polygon.class);
 		sfTypeBuilder.setDefaultGeometry("the_geom");
 		sfTypeBuilder.add("eval", Float.class);
+		sfTypeBuilder.add("num", Integer.class);
 
 		SimpleFeatureType featureType = sfTypeBuilder.buildFeatureType();
 		SimpleFeatureBuilder sfBuilder = new SimpleFeatureBuilder(featureType);
@@ -386,26 +394,30 @@ public class SelectParcels {
 					bestEval = (Double) featu.getAttribute("eval");
 				}
 			}
-			Object[] attr = { bestEval };
+			Object[] attr = { bestEval, feat.getAttribute("num") };
 			sfBuilder.add(wktReader.read(feat.getDefaultGeometry().toString()));
 
 			SimpleFeature feature = sfBuilder.buildFeature(String.valueOf(i), attr);
 			newParcel.add(feature);
 			i = i + 1;
 		}
-		
-		//sort collection with evaluation
+
+		// sort collection with evaluation
 		PropertyName pN = ff.property("eval");
 		SortByImpl sbt = new SortByImpl(pN, org.opengis.filter.sort.SortOrder.DESCENDING);
 		SimpleFeatureCollection collectOut = new SortedSimpleFeatureCollection(newParcel, new SortBy[] { sbt });
 		return collectOut;
 	}
 
-	public SimpleFeatureCollection putEvalRasterInParcel(SimpleFeatureCollection parcelIn)
-			throws ParseException, NoSuchAuthorityCodeException, FactoryException, IOException {
-	//TODO Prends des évaluations nulles pour les parcelles ou il n'y a pas de cellules : aller chercher le raster d'évaluation et le prendre yo (encore pas mal de dev pour le début de la semaine prochaine mon coco)
-		System.out.println("est ce qu c'est bon?? : depotConfigSpat/"+spatialConfiguration.getName().substring(0, spatialConfiguration.getName().length()-14)+"eval-20.0.tif");
-		GridCoverage2D rasterEvalGrid = SelecMUPOutput.importRaster(new File(rootFile, "depotConfigSpat/"+spatialConfiguration.getName().substring(0, spatialConfiguration.getName().length()-14)+"eval-20.0.tif"));
+	public SimpleFeatureCollection putEvalRasterInParcel(SimpleFeatureCollection parcelIn) throws ParseException, NoSuchAuthorityCodeException, FactoryException, IOException {
+		// TODO Prends des évaluations nulles pour les parcelles ou il n'y a pas
+		// de cellules : aller chercher le raster d'évaluation et le prendre yo
+		// (encore pas mal de dev pour le début de la semaine prochaine mon
+		// coco)
+		System.out
+				.println("est ce qu c'est bon?? : depotConfigSpat/" + spatialConfiguration.getName().substring(0, spatialConfiguration.getName().length() - 14) + "eval-20.0.tif");
+		GridCoverage2D rasterEvalGrid = SelecMUPOutput
+				.importRaster(new File(rootFile, "depotConfigSpat/" + spatialConfiguration.getName().substring(0, spatialConfiguration.getName().length() - 14) + "eval-20.0.tif"));
 		WKTReader wktReader = new WKTReader();
 		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
 
@@ -422,27 +434,27 @@ public class SelectParcels {
 		DefaultFeatureCollection newParcel = new DefaultFeatureCollection();
 
 		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
-		
+
 		int i = 0;
 		for (Object obj : parcelIn.toArray()) {
 			SimpleFeature feat = (SimpleFeature) obj;
 			com.vividsolutions.jts.geom.Point yo = ((Geometry) feat.getDefaultGeometry()).getCentroid();
-			DirectPosition2D pt = new DirectPosition2D(yo.getX(),yo.getY());
+			DirectPosition2D pt = new DirectPosition2D(yo.getX(), yo.getY());
 			double[] yooo = (double[]) rasterEvalGrid.evaluate(pt);
-			Object[] attr = {yooo[0]};
+			Object[] attr = { yooo[0] };
 			sfBuilder.add(wktReader.read(feat.getDefaultGeometry().toString()));
 			SimpleFeature feature = sfBuilder.buildFeature(String.valueOf(i), attr);
 			newParcel.add(feature);
 			i = i + 1;
 		}
-		
-		//sort collection with evaluation
+
+		// sort collection with evaluation
 		PropertyName pN = ff.property("eval");
 		SortByImpl sbt = new SortByImpl(pN, org.opengis.filter.sort.SortOrder.DESCENDING);
 		SimpleFeatureCollection collectOut = new SortedSimpleFeatureCollection(newParcel, new SortBy[] { sbt });
 		return collectOut;
 	}
-	
+
 	public File selecOneParcelInCell(SimpleFeatureCollection parcelIn) throws IOException {
 		// TODO finir cette méthode : mais sert elle à quelque chose?
 		// requied d'etre statique alors qu'elle est utilisé dans la classe
@@ -461,8 +473,7 @@ public class SelectParcels {
 		for (Object obj : cellsCollection.toArray()) {
 
 			SimpleFeature feat = (SimpleFeature) obj;
-			Filter inter = ff.intersects(ff.property(geometryParcelPropertyName),
-					ff.literal(feat.getDefaultGeometry()));
+			Filter inter = ff.intersects(ff.property(geometryParcelPropertyName), ff.literal(feat.getDefaultGeometry()));
 			SimpleFeatureCollection parcelMultipleSelection = parcelIn.subCollection(inter);
 			if (!parcelMultipleSelection.isEmpty()) {
 				SimpleFeature bestFeature = null;
@@ -488,7 +499,6 @@ public class SelectParcels {
 		SimpleFeatureCollection cellsCollection = shpDSCells.getFeatureSource().getFeatures();
 		return cellsCollection;
 	}
-	
 
 	public SimpleFeatureCollection parcelNoBuilt(SimpleFeatureCollection parcelIn) throws IOException {
 		// getBatiFiles
@@ -516,8 +526,7 @@ public class SelectParcels {
 		return exportSFC(toExport, fileName, toExport.getSchema());
 	}
 
-	public static File exportSFC(SimpleFeatureCollection toExport, File fileName, SimpleFeatureType ft)
-			throws IOException {
+	public static File exportSFC(SimpleFeatureCollection toExport, File fileName, SimpleFeatureType ft) throws IOException {
 
 		ShapefileDataStoreFactory dataStoreFactory = new ShapefileDataStoreFactory();
 
@@ -557,8 +566,7 @@ public class SelectParcels {
 
 	public static Geometry unionSFC(SimpleFeatureCollection collection) throws IOException {
 		GeometryFactory factory = new GeometryFactory();
-		Stream<Geometry> s = Arrays.stream(collection.toArray(new SimpleFeature[0]))
-				.map(sf -> (Geometry) sf.getDefaultGeometry());
+		Stream<Geometry> s = Arrays.stream(collection.toArray(new SimpleFeature[0])).map(sf -> (Geometry) sf.getDefaultGeometry());
 		GeometryCollection geometryCollection = (GeometryCollection) factory.buildGeometry(Arrays.asList(s.toArray()));
 		return geometryCollection.union();
 	}
@@ -588,8 +596,7 @@ public class SelectParcels {
 		SimpleFeatureIterator iterator = batiFeatures.features();
 		while (iterator.hasNext()) {
 			SimpleFeature batiFeature = iterator.next();
-			if (feature.getDefaultGeometryProperty().getBounds()
-					.contains(batiFeature.getDefaultGeometryProperty().getBounds())) {
+			if (feature.getDefaultGeometryProperty().getBounds().contains(batiFeature.getDefaultGeometryProperty().getBounds())) {
 				isContent = true;
 			}
 		}

@@ -124,6 +124,11 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>xml-apis</groupId>
+			<artifactId>xml-apis</artifactId>
+			<version>1.4.01</version>
+		</dependency>
+		<dependency>
 			<groupId>org.thema</groupId>
 			<artifactId>mupcity</artifactId>
 			<version>1.2.1-SNAPSHOT</version>
@@ -136,11 +141,11 @@
 			<artifactId>simplu3d</artifactId>
 			<version>1.2-SNAPSHOT</version>
 		</dependency>
-<dependency>
-    <groupId>org.geotools</groupId>
-    <artifactId>gt-grid</artifactId>
-    <version>16.1</version>
-</dependency>
+		<dependency>
+			<groupId>org.geotools</groupId>
+			<artifactId>gt-grid</artifactId>
+			<version>16.1</version>
+		</dependency>
 	</dependencies>
 	<repositories>
 		<repository>

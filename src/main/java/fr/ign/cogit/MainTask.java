@@ -15,7 +15,11 @@ import org.geotools.feature.DefaultFeatureCollection;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
+import org.thema.mupcity.task.DecompTask;
+import org.thema.mupcity.task.ProjectCreationTask;
+import org.thema.mupcity.task.SimulTask;
 
+import com.google.common.io.Files;
 import com.vividsolutions.jts.io.ParseException;
 
 import au.com.bytecode.opencsv.CSVReader;
@@ -76,8 +80,7 @@ public class MainTask {
 		for (File parcelSelection : listSelection) {
 			// cette ligne est vraiment pas belle
 			System.out.println(parcelSelection);
-			String zip = new File(parcelSelection.getParent()).getParent().substring(
-					(new File(parcelSelection.getParent()).getParent().length() - 5),
+			String zip = new File(parcelSelection.getParent()).getParent().substring((new File(parcelSelection.getParent()).getParent().length() - 5),
 					new File(parcelSelection.getParent()).getParent().length());
 			SimPLUSimulator SPLUS = new SimPLUSimulator(rootFile, parcelSelection.getParentFile(), zip, null);
 			listBatis.addAll(SPLUS.run());
@@ -105,8 +108,7 @@ public class MainTask {
 		// File("/home/mcolomb/workspace/PLUCities/donnee/couplage/output/N5_Ba_Moy_ahpx_seed42-eval_anal-20.0/25495/notBuilt-notSplit/simu0"));
 		// listBatis.add(new
 		// File("/home/mcolomb/workspace/PLUCities/donnee/couplage/output/N6_St_Moy_ahpx_seed42-eval_anal-20.0/25495/built-Split/simu1"));
-		listBatis.add(new File(
-				"/home/mcolomb/workspace/PLUCities/donnee/couplage/output/N5_St_Moy_ahpx_seed42-eval_anal-20.0/25495/built-notSplit/simu2"));
+		listBatis.add(new File("/home/mcolomb/workspace/PLUCities/donnee/couplage/output/N5_St_Moy_ahpx_seed42-eval_anal-20.0/25495/built-notSplit/simu2"));
 
 		setGenStat(rootFile);
 		int missingHousingUnits = 0;
@@ -120,115 +122,127 @@ public class MainTask {
 			// TODO get the maxsurfaceparcelsplit parameter from the param file
 			// and put it as a argument
 
-			SelectParcels select2 = new SelectParcels(rootFile, new File(rootFile, "output/" + bht.getMupSimu(f)),
-					bht.getZipCode(f), false, true);
+			SelectParcels select2 = new SelectParcels(rootFile, new File(rootFile, "output/" + bht.getMupSimu(f)), bht.getZipCode(f), false, true);
 
-			SimpleFeatureCollection parcelCollection = (new ShapefileDataStore(
-					select2.runGreenfieldSelected().toURI().toURL())).getFeatureSource().getFeatures();
+			SimpleFeatureCollection parcelCollection = (new ShapefileDataStore(select2.runGreenfieldSelected().toURI().toURL())).getFeatureSource().getFeatures();
 
-			// filling the selected AU lands
-			File fillFile = new File(f, "fillingBuildings");
-			fillFile.mkdir();
-			int i = 0;
-			missingHousingUnits = fillAUSelectedParcels(parcelCollection, missingHousingUnits, bht, rootFile, fillFile,i,null);
-			// fill the non-selected parcels till the end of time
-
-			SimpleFeatureCollection parcelCollection2 = (new ShapefileDataStore(
-					select2.runGreenfield().toURI().toURL())).getFeatureSource().getFeatures();
-
-			missingHousingUnits = fillAUSelectedParcels(parcelCollection2, missingHousingUnits, bht, rootFile, fillFile, i,null);
-			BuildingToHousehold bhtFill = new BuildingToHousehold(fillFile, 100);
-			bhtFill.run();
-			mergeBatis(fillFile);
 		}
 	}
 
 	private static void runScenar() throws Exception {
 		File rootFile = new File("donnee/couplage");
 		String[] zipCode = { "25495" };
-//		File paramFiles = new File(MainTask.class.getClassLoader().getResource("paramSet/").getPath());
-//		
-//		for (File paramFile : paramFiles.listFiles()) {	
-//			if (paramFile.getName().endsWith(".xml")) {
-		File paramFile = new File(MainTask.class.getClassLoader().getResource("paramSet/").getPath()+"param1.xml");
-				Parameters p = Parameters.unmarshall(paramFile);
-				File outMup = (new SelecMUPOutput(rootFile,
-						new File(rootFile, "depotConfigSpat/" + p.getString("MupOutPath")))).run().get(0);
-				File selectParcels = (new SelectParcels(rootFile, outMup, zipCode[0], p.getBoolean("notBuilt"),
-						p.getBoolean("splitParcel"))).runBrownfield();
-				File simPLUsimu = (new SimPLUSimulator(rootFile, selectParcels.getParentFile(), zipCode[0],null, p)).run().get(0);
-				setGenStat(rootFile);
-				
-				BuildingToHousehold bht = new BuildingToHousehold(simPLUsimu,p.getInteger("HousingUnitSize"));
-				int constructedHU = bht.run();
-				int missingHousingUnits = getHousingUnitsGoals(new File("donnee/couplage"), zipCode[0]) - constructedHU;
-				System.out.println("missingHousingUnits :" + missingHousingUnits);
 
-				// TODO get the maxsurfaceparcelsplit parameter from the param file
-				// and put it as a argument
+		//
+		File paramFiles = new File(MainTask.class.getClassLoader().getResource("paramSet/").getPath());
+		// for (File paramFile : paramFiles.listFiles()) {
+		// if (paramFile.getName().endsWith(".xml")) {
+		File paramFile = new File(MainTask.class.getClassLoader().getResource("paramSet/").getPath() + "param0.xml");
 
-				SelectParcels select2 = new SelectParcels(rootFile, new File(rootFile, "output/" + bht.getMupSimu(simPLUsimu)),
-						zipCode[0], p.getBoolean("notBuilt"), true,p);
+		Parameters p = Parameters.unmarshall(paramFile);
 
-				SimpleFeatureCollection parcelCollection = (new ShapefileDataStore(
-						select2.runGreenfieldSelected().toURI().toURL())).getFeatureSource().getFeatures();
+//		// simu MUP-City
+//		String name = p.getString("nom");
+//		System.out.println(name);
+//		File folderIn = new File(rootFile, "/donneeGeographiques");
+//		File folderOut = new File(rootFile, "depotConfigSpat/simu");
+//		double width = 28303;
+//		double height = 21019;
+//		double xmin = 914760;
+//		double ymin = 6680157;
+//		double shiftX = 0;
+//		double shiftY = 0;
+//		double minSize = 20;
+//		double maxSize = 5000;
+//		double seuilDensBuild = 0;
+//
+//		double ahp8 = 0.083;
+//		double ahp7 = 0.083;
+//		double ahp6 = 0.083;
+//		double ahp5 = 0.04;
+//		double ahp4 = 0.218;
+//		double ahp3 = 0.218;
+//		double ahp2 = 0.218;
+//		double ahp1 = 0.03;
+//		double ahp0 = 0.027;
+//
+//		boolean useNU = false;
+//		long seed = 42;
+//
+//		System.out.println("----------Project creation----------");
+//		File projectFile = ProjectCreationTask.run(name, folderIn, folderOut, xmin, ymin, width, height, shiftX, shiftY, useNU);
+//		System.out.println("----------Decomp task----------");
+//		DecompTask.run(projectFile, name, minSize, maxSize, seuilDensBuild);
+//		System.out.println("----------Simulation task----------");
+//		File result = SimulTask.run(projectFile, name, p.getInteger("N"), p.getBoolean("strict"), ahp0, ahp1, ahp2, ahp3, ahp4, ahp5, ahp6, ahp7, ahp8, p.getBoolean("mean"), seed,
+//				useNU);
+//		System.out.println("resuuuult : " + result);
+//		System.out.println("----------End task----------");
+//
+//		// temp
+//		// File result = new File("donnee/couplage/depotConfigSpat/simu/compact/N5_St_Moy_ahpx_seed_42");
+//
+//		Files.copy(new File(result, "/" + p.getString("MupOutPath")), new File(folderOut.getParentFile(), p.getString("MupOutPath")));
 
-				// filling the selected AU lands
-				File fillFile = new File(simPLUsimu, "fillingBuildings");
-				fillFile.mkdir();
-				int i = 0;
-				missingHousingUnits = fillAUSelectedParcels(parcelCollection, missingHousingUnits, bht, rootFile, fillFile,i,p);
-				// fill the non-selected parcels till the end of time
+		File outMup = (new SelecMUPOutput(rootFile, new File(rootFile, "depotConfigSpat/" + p.getString("MupOutPath")))).run().get(0);
+		File selectParcels = (new SelectParcels(rootFile, outMup, zipCode[0], p.getBoolean("notBuilt"), p.getBoolean("splitParcel"))).runBrownfield();
 
-				SimpleFeatureCollection parcelCollection2 = (new ShapefileDataStore(
-						select2.runGreenfield().toURI().toURL())).getFeatureSource().getFeatures();
+		int missingHousingUnits = getHousingUnitsGoals(new File("donnee/couplage"), zipCode[0]);
 
-				missingHousingUnits = fillAUSelectedParcels(parcelCollection2, missingHousingUnits, bht, rootFile, fillFile, i,p);
-				BuildingToHousehold bhtFill = new BuildingToHousehold(fillFile, p.getInteger("HousingUnitSize"));
-				bhtFill.run();
-				mergeBatis(fillFile);
-	//		}
-	//	}
+		setGenStat(rootFile);
+		String zone = "U";
+		missingHousingUnits = fillSelectedParcels(selectParcels, missingHousingUnits, rootFile, zipCode[0], p, zone);
+
+		SelectParcels select2 = new SelectParcels(rootFile, new File(rootFile, "output/" + outMup), zipCode[0], p.getBoolean("notBuilt"), true, p);
+
+		File parcelCollectionAU = select2.runGreenfieldSelected();
+
+		// filling the selected AU lands
+		zone = "AU";
+		missingHousingUnits = fillSelectedParcels(parcelCollectionAU, missingHousingUnits, rootFile, zipCode[0], p, zone);
+
+		// fill the non-selected parcels till the end of time
+		File parcelCollectionAUleft = select2.runGreenfield();
+
+		missingHousingUnits = fillSelectedParcels(parcelCollectionAUleft, missingHousingUnits, rootFile, zipCode[0], p, zone);
+
+		// }
+		// }
 	}
 
-
-	
-	private static int fillAUSelectedParcels(SimpleFeatureCollection parcelCollection, int missingHousingUnits,
-			BuildingToHousehold bht, File rootFile, File f, int i, Parameters p) throws Exception {
-
-		SimpleFeatureIterator iterator = parcelCollection.features();
+	private static int fillSelectedParcels(File selectParcels, int missingHousingUnits, File rootFile, String zipcode, Parameters p, String zone) throws Exception {
+		SimpleFeatureIterator iterator = (new ShapefileDataStore(selectParcels.toURI().toURL())).getFeatureSource().getFeatures().features();
+		File simuFile = new File(selectParcels.getParentFile(), "in" + zone);
+		simuFile.mkdir();
 		try {
 			while (missingHousingUnits > 0 && iterator.hasNext()) {
-				SimPLUSimulator SPLUS = new SimPLUSimulator(rootFile, f, iterator.next(),
-						bht.getZipCode(f.getParentFile()),
-						new File(rootFile,
-								"output/" + bht.getMupSimu(f.getParentFile()) + "/" + bht.getZipCode(f.getParentFile())
-										+ "/" + bht.getSelection(f.getParentFile()) + "/snap"),p);
-				int fill = SPLUS.runOneSim(f.getParentFile(), i,p);
+				SimPLUSimulator simPLUsimu = new SimPLUSimulator(rootFile, simuFile, iterator.next(), zipcode, null, p);
+				int fill = simPLUsimu.runOneSim();
 				missingHousingUnits = missingHousingUnits - fill;
-				System.out.println("done for the " + i + "th parcel, missing " + missingHousingUnits + " units");
-				i = i + 1;
+				System.out.println("missing housing units : " + missingHousingUnits);
 				if (!iterator.hasNext()) {
-					System.out.println(
-							"STILLLL MISSING ROOM FOR NEW HOUSING : " + missingHousingUnits + " HOUSING UNITS MISSING");
+					System.out.println(" MISSING ROOM FOR NEW HOUSING in the greyfield : " + missingHousingUnits + " HOUSING UNITS MISSING");
 				}
-
 			}
 		} finally {
 			iterator.close();
 		}
+
+		BuildingToHousehold bhtU = new BuildingToHousehold(simuFile, p.getInteger("HousingUnitSize"));
+		bhtU.run();
+		mergeBatis(simuFile);
+
 		return missingHousingUnits;
 	}
 
 	public static int getHousingUnitsGoals(File rootFile, String zipCode) throws IOException {
 		File donneGen = new File(rootFile, "donneeGeographiques/donnecommune.csv");
 		CSVReader csvReader = new CSVReader(new FileReader(donneGen));
-		List content = csvReader.readAll();
+		List<String[]> content = csvReader.readAll();
 		int ColLog = 0;
 		int ColZip = 0;
 		int nbObjLog = 0;
-		for (Object object : content) {
-			String[] row = (String[]) object;
+		for (String[] row : content) {
 			int i = 0;
 			for (String s : row) {
 				if (s.contains("nbLogObjectif")) {
@@ -259,8 +273,7 @@ public class MainTask {
 		DefaultFeatureCollection newParcel = new DefaultFeatureCollection();
 		for (File f : file2MergeIn.listFiles()) {
 			if (f.toString().contains(".shp")) {
-				SimpleFeatureCollection parcelCollection = (new ShapefileDataStore(f.toURI().toURL()))
-						.getFeatureSource().getFeatures();
+				SimpleFeatureCollection parcelCollection = (new ShapefileDataStore(f.toURI().toURL())).getFeatureSource().getFeatures();
 				for (Object obj : parcelCollection.toArray()) {
 					SimpleFeature feat = (SimpleFeature) obj;
 					newParcel.add(feat);

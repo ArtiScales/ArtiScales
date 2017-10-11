@@ -32,7 +32,7 @@ public class BuildingToHousehold extends indicators {
 	public int run() throws IOException {
 		System.out.println(fileBatis);
 		System.out.println(
-				"la simu est " + simPLUSimu + " avec le code zip " + zipCode + " frome the Mupsimu: " + mUPSimu);
+				"la simu est " + simPLUSimu + " avec le code zip " + zipCode + " from the Mupsimu: " + mUPSimu);
 		int totLgt = 0;
 		firstLine = true;
 		for (File batiFile : fileBatis.listFiles()) {
@@ -63,34 +63,34 @@ public class BuildingToHousehold extends indicators {
 		} else {
 			ShapefileDataStore shpDSBuilding = new ShapefileDataStore(f.toURI().toURL());
 			SimpleFeatureCollection buildingCollection = shpDSBuilding.getFeatureSource().getFeatures();
-			
-			//on ne prends que le premier objet pour faire le calcul de l'air total des batiments
-			Object feature = buildingCollection.toArray()[0];
-		
-				SimpleFeature feat = (SimpleFeature) feature;
-				surface = (double) feat.getAttribute("SurfaceTot");
-				hauteur = (double) feat.getAttribute("Hauteur");
-				num = (int) feat.getAttribute("num");
-				System.out.println("le batiment de la parcelle " + num + " fait " + surface + " mcarré et " + hauteur
-						+ "m de haut");
-				etage = Math.round((hauteur / 2.5));
-				int logement = (int) Math.round((surface * etage) / surfaceLog);
-				logements = logements + logement;
-				double areaParcel = (double) feat.getAttribute("areaParcel");
-				totParcelArea = totParcelArea + areaParcel;
-				System.out.println("on peux ici construire " + logement + " logements de " + etage
-						+ " étages à une densité de " + (logement / (areaParcel / 10000)));
-				String firstline = new String(
-						"numParce, building surface, building height, number of stairs, number of households, housing units per hectare \n");
-				toCSV(f.getParentFile(), "housingUnits.csv", firstline,
-						f.toString().substring(f.toString().length() - 6, f.toString().length() - 4) + "," + surface
-								+ "," + hauteur + "," + etage + "," + logement + ","
-								+ (logement / (areaParcel / 10000)));
 
-			}
-			System.out.println("construction totale de " + logements + " logements pour une densité de "
-					+ (logements / (totParcelArea / 10000)));
-		
+			// on ne prends que le premier objet pour faire le calcul de l'air
+			// total des batiments
+			Object feature = buildingCollection.toArray()[0];
+
+			SimpleFeature feat = (SimpleFeature) feature;
+			surface = (double) feat.getAttribute("SurfaceTot");
+			hauteur = (double) feat.getAttribute("Hauteur");
+			num = (int) feat.getAttribute("num");
+			System.out.println(
+					"le batiment de la parcelle " + num + " fait " + surface + " mcarré et " + hauteur + "m de haut");
+			etage = Math.round((hauteur / 2.5));
+			int logement = (int) Math.round((surface * etage) / surfaceLog);
+			logements = logements + logement;
+			double areaParcel = (double) feat.getAttribute("areaParcel");
+			totParcelArea = totParcelArea + areaParcel;
+			System.out.println("on peux ici construire " + logement + " logements de " + etage
+					+ " étages à une densité de " + (logement / (areaParcel / 10000)));
+			String firstline = new String(
+					"numParce, building surface, building height, number of stairs, number of households, housing units per hectare \n");
+			toCSV(f.getParentFile(), "housingUnits.csv", firstline,
+					f.toString().substring(f.toString().length() - 6, f.toString().length() - 4) + "," + surface + ","
+							+ hauteur + "," + etage + "," + logement + "," + (logement / (areaParcel / 10000)));
+
+		}
+		System.out.println("construction totale de " + logements + " logements pour une densité de "
+				+ (logements / (totParcelArea / 10000)));
+
 		return logements;
 	}
 }
