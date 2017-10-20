@@ -33,6 +33,7 @@ import fr.ign.cogit.simplu3d.io.nonStructDatabase.shp.LoaderSHP;
 import fr.ign.cogit.simplu3d.model.BasicPropertyUnit;
 import fr.ign.cogit.simplu3d.model.CadastralParcel;
 import fr.ign.cogit.simplu3d.model.Environnement;
+import fr.ign.cogit.simplu3d.model.Prescription;
 import fr.ign.cogit.simplu3d.model.UrbaZone;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.Cuboid;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.loader.LoaderCuboid;
@@ -172,6 +173,7 @@ public class SimPLUSimulator {
 	public File runSimulation(Environnement env, int i, Parameters p) throws Exception {
 		HashMap<String, SamplePredicate<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>>> catalog = new HashMap<String, SamplePredicate<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>>>();
 		BasicPropertyUnit bPU = env.getBpU().get(i);
+
 		// Instantiation of the sampler
 		OptimisedBuildingsCuboidFinalDirectRejection oCB = new OptimisedBuildingsCuboidFinalDirectRejection();
 		String typez = new String();
@@ -199,14 +201,14 @@ public class SimPLUSimulator {
 			System.out.println("iz null");
 			regle = regles.get(999).get(0);
 		}
+
 		double distReculVoirie = regle.getArt_6();
-		double distReculFond = regle.getArt_73(); // ,regle.getArt_74())
-													// devrait prendre le
-													// minimum de la valeur
-													// fixe et du rapport à
-													// la hauteur du
-													// batiment à coté ::à
-													// développer yo
+		if (distReculVoirie == 77) {
+			distReculVoirie = 0;
+
+		}
+		double distReculFond = regle.getArt_73();
+		// regle.getArt_74()) devrait prendre le minimum de la valeur fixe et du rapport à la hauteur du batiment à coté ::à développer yo
 		double distReculLat = regle.getArt_72();
 
 		double distanceInterBati = regle.getArt_8();
@@ -219,12 +221,8 @@ public class SimPLUSimulator {
 			maximalCES = 0;
 		}
 
-		// définition de la hauteur. Si elle est exprimé en nombre d'étage,
-		// on comptera
-		// 3m pour le premier étage et 2.5m pour les étages supérieurs. Je
-		// ne sais pas comment
-		// on utilise ce paramètre car il n'est pas en argument dans le
-		// predicate.
+		// définition de la hauteur. Si elle est exprimé en nombre d'étage, on comptera 3m pour le premier étage et 2.5m pour les étages supérieurs. Je ne sais pas comment on
+		// utilise ce paramètre car il n'est pas en argument dans le predicate.
 		// TODO utiliser cette hauteur
 		double maximalhauteur = regle.getArt_10_m();
 
@@ -328,11 +326,11 @@ public class SimPLUSimulator {
 		ShapefileDataStore shpDSZone = new ShapefileDataStore(bBoxFile.toURI().toURL());
 		SimpleFeatureCollection zoneCollection = shpDSZone.getFeatureSource().getFeatures();
 		Geometry bBox = SelectParcels.unionSFC(zoneCollection);
-		
+
 		return SelectParcels.exportSFC(snapDatas(inCollection, bBox), fileOut);
 	}
 
-		public static SimpleFeatureCollection snapDatas(SimpleFeatureCollection SFCIn, Geometry bBox) throws Exception {	
+	public static SimpleFeatureCollection snapDatas(SimpleFeatureCollection SFCIn, Geometry bBox) throws Exception {
 
 		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
 		String geometryInPropertyName = SFCIn.getSchema().getGeometryDescriptor().getLocalName();
