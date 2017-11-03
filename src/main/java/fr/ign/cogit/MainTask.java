@@ -6,7 +6,9 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
@@ -134,55 +136,67 @@ public class MainTask {
 		String[] zipCode = { "25495" };
 
 		//
-		File paramFiles = new File(MainTask.class.getClassLoader().getResource("paramSet/").getPath());
+	//	File paramFiles = new File(MainTask.class.getClassLoader().getResource("paramSet/").getPath());
 		// for (File paramFile : paramFiles.listFiles()) {
 		// if (paramFile.getName().endsWith(".xml")) {
 		File paramFile = new File(MainTask.class.getClassLoader().getResource("paramSet/").getPath() + "param0.xml");
 
 		Parameters p = Parameters.unmarshall(paramFile);
 
-//		// simu MUP-City
-//		String name = p.getString("nom");
-//		System.out.println(name);
-//		File folderIn = new File(rootFile, "/donneeGeographiques");
-//		File folderOut = new File(rootFile, "depotConfigSpat/simu");
-//		double width = 28303;
-//		double height = 21019;
-//		double xmin = 914760;
-//		double ymin = 6680157;
-//		double shiftX = 0;
-//		double shiftY = 0;
-//		double minSize = 20;
-//		double maxSize = 5000;
-//		double seuilDensBuild = 0;
-//
-//		double ahp8 = 0.083;
-//		double ahp7 = 0.083;
-//		double ahp6 = 0.083;
-//		double ahp5 = 0.04;
-//		double ahp4 = 0.218;
-//		double ahp3 = 0.218;
-//		double ahp2 = 0.218;
-//		double ahp1 = 0.03;
-//		double ahp0 = 0.027;
-//
-//		boolean useNU = false;
-//		long seed = 42;
-//
-//		System.out.println("----------Project creation----------");
-//		File projectFile = ProjectCreationTask.run(name, folderIn, folderOut, xmin, ymin, width, height, shiftX, shiftY, useNU);
-//		System.out.println("----------Decomp task----------");
-//		DecompTask.run(projectFile, name, minSize, maxSize, seuilDensBuild);
-//		System.out.println("----------Simulation task----------");
-//		File result = SimulTask.run(projectFile, name, p.getInteger("N"), p.getBoolean("strict"), ahp0, ahp1, ahp2, ahp3, ahp4, ahp5, ahp6, ahp7, ahp8, p.getBoolean("mean"), seed,
-//				useNU);
-//		System.out.println("resuuuult : " + result);
-//		System.out.println("----------End task----------");
-//
-//		// temp
-//		// File result = new File("donnee/couplage/depotConfigSpat/simu/compact/N5_St_Moy_ahpx_seed_42");
-//
-//		Files.copy(new File(result, "/" + p.getString("MupOutPath")), new File(folderOut.getParentFile(), p.getString("MupOutPath")));
+		// simu MUP-City
+		String name = p.getString("nom");
+		System.out.println(name);
+		File folderIn = new File(rootFile, "/donneeGeographiques");
+		File folderOut = new File(rootFile, "depotConfigSpat/simu");
+		double width = 28303;
+		double height = 21019;
+		double xmin = 914760;
+		double ymin = 6680157;
+		double shiftX = 0;
+		double shiftY = 0;
+		double minSize = 20;
+		double maxSize = 5000;
+		double seuilDensBuild = 0;
+
+		double ahp8 = 0.083;
+		double ahp7 = 0.083;
+		double ahp6 = 0.083;
+		double ahp5 = 0.04;
+		double ahp4 = 0.218;
+		double ahp3 = 0.218;
+		double ahp2 = 0.218;
+		double ahp1 = 0.03;
+		double ahp0 = 0.027;
+
+		boolean useNU = false;
+		long seed = 42;
+		
+		Map<String,String> dataHT = new Hashtable<String,String>() ;
+		
+		//Data1.1
+		dataHT.put("name", "Data1");
+		dataHT.put("build", "batimentPro.shp");
+		dataHT.put("road", "routePro.shp");
+		dataHT.put("fac", "servicePro.shp");
+		dataHT.put("lei", "loisirsPro.shp");
+		dataHT.put("ptTram", "tramPro.shp");
+		dataHT.put("ptTrain", "trainPro.shp");
+		dataHT.put("nU", "nonUrbaPro.shp");
+
+		System.out.println("----------Project creation----------");
+		File projectFile = ProjectCreationTask.run(name, folderIn, folderOut, xmin, ymin, width, height, shiftX, shiftY, useNU,dataHT);
+		System.out.println("----------Decomp task----------");
+		DecompTask.run(projectFile, name, minSize, maxSize, seuilDensBuild);
+		System.out.println("----------Simulation task----------");
+		File result = SimulTask.run(projectFile, name, p.getInteger("N"), p.getBoolean("strict"), ahp0, ahp1, ahp2, ahp3, ahp4, ahp5, ahp6, ahp7, ahp8, p.getBoolean("mean"), seed,
+				useNU);
+		System.out.println("resuuuult : " + result);
+		System.out.println("----------End task----------");
+
+		// temp
+		// File result = new File("donnee/couplage/depotConfigSpat/simu/compact/N5_St_Moy_ahpx_seed_42");
+
+		Files.copy(new File(result, "/" + p.getString("MupOutPath")), new File(folderOut.getParentFile(), p.getString("MupOutPath")));
 
 		File outMup = (new SelecMUPOutput(rootFile, new File(rootFile, "depotConfigSpat/" + p.getString("MupOutPath")))).run().get(0);
 		File selectParcels = (new SelectParcels(rootFile, outMup, zipCode[0], p.getBoolean("notBuilt"), p.getBoolean("splitParcel"))).runBrownfield();

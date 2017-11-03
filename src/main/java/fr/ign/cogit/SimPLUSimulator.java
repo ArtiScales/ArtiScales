@@ -140,7 +140,6 @@ public class SimPLUSimulator {
 	 * @throws Exception
 	 */
 	public int runOneSim() throws Exception {
-
 		if (p == null) {
 			int numSimu = Integer.parseInt(parcelFile.getName().replace("simu", ""));
 			p = Parameters.unmarshall(new File(paramFile, "param" + numSimu + ".xml"));
@@ -225,10 +224,10 @@ public class SimPLUSimulator {
 		// utilise ce paramètre car il n'est pas en argument dans le predicate.
 		// TODO utiliser cette hauteur
 		double maximalhauteur = regle.getArt_10_m();
-
+		IFeatureCollection<Prescription> presc = null;
 		// Instantiation of the rule checker
 		PredicatePLUCities<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = new PredicatePLUCities<>(bPU, distReculVoirie, distReculFond, distReculLat,
-				distanceInterBati, maximalCES, maximalhauteur, p.getBoolean("singleBuild"));
+				distanceInterBati, maximalCES, maximalhauteur);
 		// PredicateDensification<Cuboid, GraphConfiguration<Cuboid>,
 		// BirthDeathModification<Cuboid>> pred = new PredicateIAUIDF();
 		Double areaParcels = 0.0;

@@ -98,21 +98,6 @@ public class SelecMUPOutput {
 		sfTypeBuilder.add("the_geom", Polygon.class);
 		sfTypeBuilder.setDefaultGeometry("the_geom");
 
-		// s'eut aurait été la méthode propre pour créer un nouvel attribut,
-		// mais je me suis arraché trop de poils de barbe et ça ne marche
-		// toujours pas
-		// AttributeTypeBuilder attBuilder = new AttributeTypeBuilder();
-		// attBuilder.setName("eval");
-		// attBuilder.setBinding(Float.class);
-		// attBuilder.setNillable(false);
-		// attBuilder.defaultValue(0);
-		// System.out.println(attBuilder.buildDescriptor("eval"));
-		// System.out.println(attBuilder.buildDescriptor("eval").getType());
-		// System.out.println(attBuilder.buildDescriptor("eval").getType().getBinding());
-		// sfTypeBuilder.add(attBuilder.buildDescriptor("eval",
-		// attBuilder.buildType()));
-		// sfTypeBuilder.addBinding(attBuilder.buildType());
-
 		sfTypeBuilder.add("eval", Float.class);
 
 		SimpleFeatureType featureType = sfTypeBuilder.buildFeatureType();
