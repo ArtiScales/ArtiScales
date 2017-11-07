@@ -75,43 +75,47 @@ public class SetData {
 		// emprise File
 		File empriseFile = createEmpriseFile(rootFile, new File(rootFile, "dataIn/admin.csv"));
 
-		//first part to turn on comment
+
 		
-//		 File NUFile = new File(rootFile, "/dataOut/NU/");
-//		 NUFile.mkdirs();
-//		
-//		 Integer[] nbDep = { 25, 39, 70 };
-//		
-//		 // geocodeBan("https://api-adresse.data.gouv.fr/", "?q=8 bd du port&postcode=44380");
-//		 // geocodeBan("http://nominatim.openstreetmap.org/search", "q=135+pilkington+avenue,+birmingham&format=xml&polygon=1&addressdetails=1");
-//		
-//		 // Bati
-//		 prepareBuild(rootFile, nbDep, empriseFile);
-//		 // // Road
-//		 prepareRoad(rootFile, nbDep, empriseFile);
-//		
-//		 // Hydro
-//		
-//		 prepareHydrography(rootFile, nbDep, empriseFile);
-//		
-//		 // Train
-//		
-//		 prepareTrain(rootFile, nbDep, empriseFile);
-//		 // Vegetation
-//		 prepareVege(rootFile, nbDep, empriseFile);
-//		// Amenities
-//
-//		sortAmenity1part(rootFile, empriseFile);
+		 File NUFile = new File(rootFile, "/dataOut/NU/");
+		 NUFile.mkdirs();
+		
+		 Integer[] nbDep = { 25, 39, 70 };
+
+			//first part to turn on comment
+		 
+		 
+		 // geocodeBan("https://api-adresse.data.gouv.fr/", "?q=8 bd du port&postcode=44380");
+		 // geocodeBan("http://nominatim.openstreetmap.org/search", "q=135+pilkington+avenue,+birmingham&format=xml&polygon=1&addressdetails=1");
+		
+		 // Bati
+		 prepareBuild(rootFile, nbDep, empriseFile);
+		 // // Road
+		 prepareRoad(rootFile, nbDep, empriseFile);
+		
+		 // Hydro
+		
+		 prepareHydrography(rootFile, nbDep, empriseFile);
+		
+	
+		 // Vegetation
+		 prepareVege(rootFile, nbDep, empriseFile);
+		// Amenities
+
+		sortAmenity1part(rootFile, empriseFile);
 
 		// switch here
 
 //		 sortAmenity2part(rootFile, empriseFile);
-
-		// Zones Non Urbanisables
-
-		makeFullZoneNU(rootFile);
-		//
-		makePhysicNU(rootFile);
+//
+//		 // Train
+//		
+//		 prepareTrain(rootFile, nbDep, empriseFile);
+//		// Zones Non Urbanisables
+//
+//		makeFullZoneNU(rootFile);
+//		//
+//		makePhysicNU(rootFile);
 
 	}
 /**
@@ -247,14 +251,13 @@ public class SetData {
 	public static void sortAmenity1part(File rootFile, File empriseFile) throws Exception {
 
 		File pointSireneIn = new File(rootFile, "dataIn/sirene/sirene-dep.csv");
-		File pointBPEIn = new File(rootFile, "dataIn/sirene/BPE.csv");
+
 
 		// tiré du GÉOFLA et jointuré avec la poste pour avoir les codes postaux
 		File listVille = new File(rootFile, "dataIn/admin.csv");
 		File csvServicesSirene = new File(rootFile, "tmp/siren-Services.csv");
 		File csvLoisirsSirene = new File(rootFile, "tmp/siren-Loisirs.csv");
-		File csvServicesBPE = new File(rootFile, "tmp/BPE-Services.csv");
-		File csvLoisirsBPE = new File(rootFile, "tmp/BPE-Loisirs.csv");
+
 
 		if (csvLoisirsSirene.exists()) {
 			Files.delete(csvLoisirsSirene.toPath());
@@ -262,12 +265,7 @@ public class SetData {
 		if (csvServicesSirene.exists()) {
 			Files.delete(csvServicesSirene.toPath());
 		}
-		if (csvLoisirsBPE.exists()) {
-			Files.delete(csvLoisirsBPE.toPath());
-		}
-		if (csvServicesBPE.exists()) {
-			Files.delete(csvServicesBPE.toPath());
-		}
+
 
 		CSVReader csvSirenePruned = new CSVReader(new FileReader(preselecGeocode(pointSireneIn, listVille)));
 		CSVWriter csvServiceW = new CSVWriter(new FileWriter(csvServicesSirene, true));
@@ -308,9 +306,26 @@ public class SetData {
 		csvLoisirW.close();
 
 		// for the BPE file
+		File pointBPEIn = new File(rootFile, "dataIn/sirene/BPE-tot.csv");
+		File csvServicesBPE = new File(rootFile, "tmp/BPE-Services.csv");
+		File csvLoisirsBPE = new File(rootFile, "tmp/BPE-Loisirs.csv");
+		File csvTrainsBPE = new File(rootFile, "tmp/BPE-Trains.csv");
+		
+		
+		if (csvLoisirsBPE.exists()) {
+			Files.delete(csvLoisirsBPE.toPath());
+		}
+		if (csvServicesBPE.exists()) {
+			Files.delete(csvServicesBPE.toPath());
+		}
+		if (csvTrainsBPE.exists()) {
+			Files.delete(csvTrainsBPE.toPath());
+		}
+		
 		CSVReader csvBPE = new CSVReader(new FileReader(pointBPEIn));
 		CSVWriter csvServiceBPE = new CSVWriter(new FileWriter(csvServicesBPE, true));
 		CSVWriter csvLoisirBPE = new CSVWriter(new FileWriter(csvLoisirsBPE, true));
+		CSVWriter csvTrainBPE = new CSVWriter(new FileWriter(csvTrainsBPE, true));
 		String[] firstLineBPE = csvBPE.readNext();
 		String[] newFirstLineBPE = new String[firstLineBPE.length + 2];
 		for (int k = 0; k < firstLineBPE.length; k = k + 1) {
@@ -320,24 +335,25 @@ public class SetData {
 		newFirstLineBPE[firstLineBPE.length + 1] = "LEVEL";
 		csvLoisirBPE.writeNext(newFirstLineBPE);
 		csvServiceBPE.writeNext(newFirstLineBPE);
+		String[] trainStr ={"NATURE","X","Y"};
+		csvTrainBPE.writeNext(trainStr);
 		ReferencedEnvelope env = ((new ShapefileDataStore(empriseFile.toURI().toURL())).getFeatureSource().getFeatures()).getBounds();
 
 		for (String[] row : csvBPE.readAll()) {
-			String[] result = new String[15];
-			if (!(row[8].isEmpty())) {
-				Double x = Double.parseDouble((row[8].split(","))[0]);
-				Double y = Double.parseDouble((row[9].split(","))[0]);
+			String[] result = new String[11];
+			if (!(row[6].isEmpty())) {
+				Double x = Double.parseDouble((row[6].split(","))[0]);
+				Double y = Double.parseDouble((row[7].split(","))[0]);
 				if (x < env.getMaxX() && x > env.getMinX() && y < env.getMaxY() && y > env.getMinY()) {
 					String[] resultOut = sortCatAmen(row[5], null);
 					if (!(resultOut[0] == null)) {
-						for (int i = 0; i < 13; i = i + 1) {
+						for (int i = 0; i < 9; i = i + 1) {
 							result[i] = row[i];
 						}
-						result[13] = resultOut[1];
-						result[14] = resultOut[2];
-						result[8] = String.valueOf(x);
-						result[9] = String.valueOf(y);
-
+						result[9] = resultOut[1];
+						result[10] = resultOut[2];
+						String[] resTrain = {result[1],String.valueOf(x),String.valueOf(y)};
+						
 						switch (resultOut[0]) {
 						case "service":
 							csvServiceBPE.writeNext(result);
@@ -345,6 +361,9 @@ public class SetData {
 						case "loisir":
 							csvLoisirBPE.writeNext(result);
 							break;
+						case "train":
+							System.out.println("alll");
+							csvTrainBPE.writeNext(resTrain);
 						}
 					}
 				}
@@ -353,9 +372,11 @@ public class SetData {
 		csvBPE.close();
 		csvServiceBPE.close();
 		csvLoisirBPE.close();
+		csvTrainBPE.close();
 
 		createPointFromCsv(csvServicesBPE, new File(rootFile, "tmp/BPE-Services.shp"), empriseFile, true);
 		createPointFromCsv(csvLoisirsBPE, new File(rootFile, "tmp/BPE-Loisirs.shp"), empriseFile, false);
+		createPointFromCsv(csvTrainsBPE, new File(rootFile, "dataOut/trainSys.shp"), empriseFile, false);
 
 		// je n'ai pour l'instant pas automatisé le géocodage - trop de temps et vieux problème de proxy
 		// geocodeBan(targetURL, urlParameters)
@@ -1014,6 +1035,20 @@ public class SetData {
 			classement[1] = "base-loisir";
 			classement[0] = "loisir";
 			break;
+		//trains 
+		case "E103":
+			classement[2] = "";
+			classement[1] = "LGV";
+			classement[0] = "train";
+			break;
+		case "E106":
+			classement[2] = "";
+			classement[1] = "normal";
+			classement[0] = "train";
+			break;
+			
+			
+			
 		}
 		return classement;
 	}
