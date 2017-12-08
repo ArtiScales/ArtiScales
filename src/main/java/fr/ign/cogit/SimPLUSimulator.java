@@ -28,7 +28,9 @@ import fr.ign.cogit.geoxygene.feature.FT_FeatureCollection;
 import fr.ign.cogit.geoxygene.util.attribute.AttributeManager;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileWriter;
 import fr.ign.cogit.simplu3d.experiments.PLUCities.PredicatePLUCities;
+import fr.ign.cogit.simplu3d.experiments.iauidf.predicate.PredicateIAUIDF;
 import fr.ign.cogit.simplu3d.experiments.iauidf.regulation.Regulation;
+import fr.ign.cogit.simplu3d.experiments.mupcity.util.PredicateDensification;
 import fr.ign.cogit.simplu3d.io.nonStructDatabase.shp.LoaderSHP;
 import fr.ign.cogit.simplu3d.model.BasicPropertyUnit;
 import fr.ign.cogit.simplu3d.model.CadastralParcel;
@@ -226,10 +228,10 @@ public class SimPLUSimulator {
 		double maximalhauteur = regle.getArt_10_m();
 		IFeatureCollection<Prescription> presc = null;
 		// Instantiation of the rule checker
-		PredicatePLUCities<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = new PredicatePLUCities<>(bPU, distReculVoirie, distReculFond, distReculLat,
-				distanceInterBati, maximalCES, maximalhauteur);
-		// PredicateDensification<Cuboid, GraphConfiguration<Cuboid>,
-		// BirthDeathModification<Cuboid>> pred = new PredicateIAUIDF();
+//		PredicatePLUCities<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = new PredicatePLUCities<>(bPU, distReculVoirie, distReculFond, distReculLat,
+//				distanceInterBati, maximalCES, maximalhauteur);
+		PredicateIAUIDF<Cuboid, GraphConfiguration<Cuboid>,
+		 BirthDeathModification<Cuboid>> pred = new PredicateIAUIDF(bPU,regle,regle);
 		Double areaParcels = 0.0;
 		for (CadastralParcel yo : bPU.getCadastralParcels()) {
 			areaParcels = areaParcels + yo.getArea();

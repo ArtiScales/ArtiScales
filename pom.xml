@@ -133,10 +133,20 @@
 			<artifactId>mupcity</artifactId>
 			<version>1.2.1-SNAPSHOT</version>
 		</dependency>
-			<dependency>
+		<dependency>
+			<groupId>fr.ign</groupId>
+			<artifactId>mupcity-openMole</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
 			<groupId>org.thema</groupId>
 			<artifactId>fracgis</artifactId>
 			<version>0.6.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.geotools</groupId>
+			<artifactId>gt-graph</artifactId>
+			<version>16.1</version>
 		</dependency>
 		<!-- <dependency> <groupId>org.thema</groupId> <artifactId>fracgis</artifactId> 
 			<version>0.5.7</version> <scope>system</scope> <systemPath>${project.basedir}/lib/fracgis-0.5.7.jar 

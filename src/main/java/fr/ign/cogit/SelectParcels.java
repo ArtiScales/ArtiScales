@@ -274,7 +274,7 @@ public class SelectParcels {
 	}
 
 	/**
-	 * largely inspired from the simPLU.ParcelSplitting class but rewrote to work with geotools SimpleFeatureCollection objects
+	 * largely inspired from the simPLU. ParcelSplitting class but rewrote to work with geotools SimpleFeatureCollection objects
 	 * 
 	 * @param toSplit
 	 * @param maximalArea
