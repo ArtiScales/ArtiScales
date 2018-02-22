@@ -17,13 +17,10 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
-import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.factory.GeoTools;
 import org.geotools.feature.DefaultFeatureCollection;
@@ -55,18 +52,13 @@ import fr.ign.cogit.SelectParcels;
 import fr.ign.cogit.SimPLUSimulator;
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
-import fr.ign.cogit.geoxygene.api.spatial.coordgeom.ILineString;
-import fr.ign.cogit.geoxygene.api.spatial.geomprim.IOrientableCurve;
 import fr.ign.cogit.geoxygene.contrib.cartetopo.Arc;
 import fr.ign.cogit.geoxygene.contrib.cartetopo.CarteTopo;
 import fr.ign.cogit.geoxygene.contrib.cartetopo.Chargeur;
 import fr.ign.cogit.geoxygene.contrib.cartetopo.Groupe;
-import fr.ign.cogit.geoxygene.convert.FromGeomToLineString;
-import fr.ign.cogit.geoxygene.feature.DefaultFeature;
 import fr.ign.cogit.geoxygene.feature.FT_FeatureCollection;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileReader;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileWriter;
-import fr.ign.cogit.simplu3d.generator.FootprintGenerator;
 
 public class SetData {
 
@@ -81,64 +73,74 @@ public class SetData {
 	 */
 	public static void main(String[] args) throws Exception {
 
+//		File rootFile = new File("/home/mcolomb/tmp/nonUrbaPhyPro");
+//		File empriseFile = createEmpriseFile(new File("/home/mcolomb/donnee/autom/besancon/"), new File("/home/mcolomb/donnee/autom/besancon/dataIn/admin.csv"));
+//		List<File> lF = new ArrayList<File>();
+//		for (File f : rootFile.listFiles()) {
+//			if (f.getName().endsWith(".shp")) {
+//				lF.add(f);
+//			}
+//		}
+//		mergeMultipleShp(rootFile, lF, new File(rootFile, "NonUrbaPhyPro.shp"), empriseFile, false);
 		// General
-
-		File rootFile = new File("/home/mcolomb/donnee/autom/besancon");
-
-		// temp folder
-		File testFile = new File(rootFile, "tmp");
-		testFile.mkdirs();
-
-		// emprise File
-		File empriseFile = createEmpriseFile(rootFile, new File(rootFile, "dataIn/admin.csv"));
-
-		File NUFile = new File(rootFile, "/dataOut/NU/");
-		NUFile.mkdirs();
-
-		Integer[] nbDep = { 25, 39, 70 };
-
-		// first part to turn on comment
-
-		// geocodeBan("https://api-adresse.data.gouv.fr/", "?q=8 bd du port&postcode=44380");
-		// geocodeBan("http://nominatim.openstreetmap.org/search", "q=135+pilkington+avenue,+birmingham&format=xml&polygon=1&addressdetails=1");
-
-		// // Bati
-		// prepareBuild(rootFile, nbDep, empriseFile);
-		// // Road
-		prepareRoad(rootFile, nbDep, empriseFile);
-
-		// // Hydro
-		//
-		// prepareHydrography(rootFile, nbDep, empriseFile);
-		//
-		//
-		// // Vegetation
-		// prepareVege(rootFile, nbDep, empriseFile);
-		// // Amenities
-		//
-		// sortAmenity1part(rootFile, empriseFile);
+		
+		 File rootFile = new File("/home/mcolomb/donnee/autom/besancon");
+		 // temp folder
+		 File testFile = new File(rootFile, "tmp");
+		 testFile.mkdirs();
+		
+		 // emprise File
+		 File empriseFile = createEmpriseFile(rootFile, new File(rootFile, "dataIn/admin.csv"));
+		
+		 File NUFile = new File(rootFile, "/dataOut/NU/");
+		 NUFile.mkdirs();
+		
+		 Integer[] nbDep = { 25, 39, 70 };
+		
+//		 // first part to turn on comment
+//		
+//		 // geocodeBan("https://api-adresse.data.gouv.fr/", "?q=8 bd du port&postcode=44380");
+//		 // geocodeBan("http://nominatim.openstreetmap.org/search", "q=135+pilkington+avenue,+birmingham&format=xml&polygon=1&addressdetails=1");
+//		
+//		 // // Bati
+//		 // prepareBuild(rootFile, nbDep, empriseFile);
+//		 // // Road
+//		 prepareRoad(rootFile, nbDep, empriseFile);
+//		
+//		 // Hydro
+//		 prepareHydrography(rootFile, nbDep, empriseFile);
+//		
+//		 // Vegetation
+//		 prepareVege(rootFile, nbDep, empriseFile);
+//		 // Amenities
+//		
+//		 sortAmenity1part(rootFile, empriseFile);
 
 		// switch here
 
-		// sortAmenity2part(rootFile, empriseFile);
-		//
-		// // Train
-		//
-		// prepareTrain(rootFile, nbDep, empriseFile);
-		// // Zones Non Urbanisables
-		//
-		// makeFullZoneNU(rootFile);
-		// //
-		// makePhysicNU(rootFile);
+		 System.out.println("khatoy");
+		 sortAmenity2part(rootFile, empriseFile);
+		
+		 // Train
+		
+		 prepareTrain(rootFile, nbDep, empriseFile);
+		 // Zones Non Urbanisables
+		
+		 makeFullZoneNU(rootFile);
+		 //
+		 makePhysicNU(rootFile);
 
 	}
 
 	/**
+	 * créée une emprise en fonction de la liste des villes contenus dans le fichier adminFile. Le fichier retouré est utilisé pour le découpage des shapefiles provenant de la
+	 * BDTopo.
 	 * 
-	 * @param rootFile
-	 *            : dossier principal ou sont entreposées les données
-	 * @param adminFile
-	 * @return
+	 * @param rootFile:
+	 *            dossier principal ou sont entreposées les données
+	 * @param adminFile:
+	 *            fichier csv listant les villes de notre cas d'étude
+	 * @return un shapefile contenant l'emprise de l'étude
 	 * @throws MalformedURLException
 	 * @throws IOException
 	 * @throws ParseException
@@ -887,14 +889,13 @@ public class SetData {
 			classement[1] = "restaurant";
 			classement[0] = "service";
 			break;
-//		case "Restauration traditionnelle":
-//			classement[2] = " 2";
-//			classement[1] = "restaurant";
-//			classement[0] = "service";
-//			break;
+		// case "Restauration traditionnelle":
+		// classement[2] = " 2";
+		// classement[1] = "restaurant";
+		// classement[0] = "service";
+		// break;
 
-
-		case "F305"://Conservatoire
+		case "F305":// Conservatoire
 			classement[2] = " 2";
 			classement[1] = "conservatoire";
 			classement[0] = "service";
@@ -908,48 +909,54 @@ public class SetData {
 			break;
 		case "Gestion sites monuments historiques & attractions tourist. simil.":
 			classement[2] = " 3";
-			classement[1] = "musee";
+			classement[1] = "equipement_culturel";
 			classement[0] = "service";
 			break;
-		case "Pratique dentaire":
-			classement[2] = " 3";
-			classement[1] = "specialiste";
-			classement[0] = "service";
-			break;
+		// case "Pratique dentaire":
+		// classement[2] = " 3";
+		// classement[1] = "specialiste";
+		// classement[0] = "service";
+		// break;
 		case "Organisation de jeux de hasard et d'argent":
 			classement[2] = " 3";
-			classement[1] = "autre_service_loisir";
+			classement[1] = "equipement_loisir";
 			classement[0] = "service";
 			break;
 		case "Projection de films cinématographiques":
 			classement[2] = " 3";
-			classement[1] = "equip-culturel";
+			classement[1] = "equipement_culturel";
 			classement[0] = "service";
 			break;
 		case "Gestion de salles de spectacles":
 			classement[2] = " 3";
-			classement[1] = "equip-culturel";
+			classement[1] = "equipement_culturel";
 			classement[0] = "service";
 			break;
-		case "F302": //Théâtre
+		case "Autres activités récréatives et de loisirs":
 			classement[2] = " 3";
-			classement[1] = "equip-culturel";
+			classement[1] = "equipement_loisir";
 			classement[0] = "service";
 			break;
-		case "F303": //Cinéma
+		case "F302": // Théâtre
 			classement[2] = " 3";
-			classement[1] = "equip-culturel";
+			classement[1] = "equipement_culturel";
 			classement[0] = "service";
 			break;
-		case "F304": //Musée
+		case "F303": // Cinéma
 			classement[2] = " 3";
-			classement[1] = "equip-culturel";
+			classement[1] = "equipement_culturel";
 			classement[0] = "service";
 			break;
+		case "F304": // Musée
+			classement[2] = " 3";
+			classement[1] = "equipement_culturel";
+			classement[0] = "service";
+			break;
+
 
 		// LOISIRS QUOTIDIENS
 
-		case "F111": //Plateaux et terrains de jeux extérieurs
+		case "F111": // Plateaux et terrains de jeux extérieurs
 			classement[2] = "1";
 			classement[1] = "jeux";
 			classement[0] = "loisir";
@@ -959,37 +966,37 @@ public class SetData {
 
 		// LOISIRS HEBDO
 
-		case "F101": //Bassin de natation
+		case "F101": // Bassin de natation
 			classement[2] = "2";
 			classement[1] = "piscine";
 			classement[0] = "loisir";
 			break;
-		case "F102": //Boulodrome
+		case "F102": // Boulodrome
 			classement[2] = "2";
 			classement[1] = "boulodrome";
 			classement[0] = "loisir";
 			break;
-		case "F103": //Tennis
+		case "F103": // Tennis
 			classement[2] = "2";
 			classement[1] = "tennis";
 			classement[0] = "loisir";
 			break;
-		case "F104": //Équipement de cyclisme
+		case "F104": // Équipement de cyclisme
 			classement[2] = "2";
 			classement[1] = "cyclisme";
 			classement[0] = "loisir";
 			break;
-		case "F106": //Centre équestre
+		case "F106": // Centre équestre
 			classement[2] = "2";
 			classement[1] = "equitation";
 			classement[0] = "loisir";
 			break;
-		case "F107"://Athlétisme
+		case "F107":// Athlétisme
 			classement[2] = "2";
 			classement[1] = "stade";
 			classement[0] = "loisir";
 			break;
-		case "F109"://Parcours sportif/santé
+		case "F109":// Parcours sportif/santé
 			classement[2] = "2";
 			classement[1] = "parcours";
 			classement[0] = "loisir";
@@ -999,7 +1006,7 @@ public class SetData {
 			classement[1] = "club-sport";
 			classement[0] = "loisir";
 			break;
-		case "F118": //Sports nautiques
+		case "F118": // Sports nautiques
 			classement[2] = "2";
 			classement[1] = "piscine";
 			classement[0] = "loisir";
@@ -1009,7 +1016,7 @@ public class SetData {
 		//
 		// }
 		// break;
-		case "F112": //Salles spécialisées
+		case "F112": // Salles spécialisées
 			classement[2] = "2";
 			classement[1] = "salle";
 			classement[0] = "loisir";
@@ -1019,46 +1026,46 @@ public class SetData {
 		// classement[1] = "salle";
 		// classement[0] = "loisir";
 		// break;
-		case "F113": //Terrain de grands jeux
+		case "F113": // Terrain de grands jeux
 			classement[2] = "3";
 			classement[1] = "base-loisir";
 			classement[0] = "multi-sport";
 			break;
-		case "F114": //Salles de combat
+		case "F114": // Salles de combat
 			classement[2] = "2";
 			classement[1] = "dojo";
 			classement[0] = "loisir";
 			break;
-		case "F117": //Roller-Skate-Vélo bicross ou freestyle
+		case "F117": // Roller-Skate-Vélo bicross ou freestyle
 			classement[2] = "2";
 			classement[1] = "skatepark";
 			classement[0] = "loisir";
 			break;
-		case "F121": //Salles multisports (gymnase)
+		case "F121": // Salles multisports (gymnase)
 			classement[2] = "2";
 			classement[1] = "gymnase";
 			classement[0] = "loisir";
 			break;
 		// Loisirs Mensuels
 
-		case "F201": //Baignade aménagée
+		case "F201": // Baignade aménagée
 			classement[2] = "2";
 			classement[1] = "base-loisir";
 			classement[0] = "loisir";
 			break;
-		case "F202": //Port de plaisance - Mouillage
+		case "F202": // Port de plaisance - Mouillage
 			classement[2] = "2";
 			classement[1] = "base-loisir";
 			classement[0] = "loisir";
 			break;
 		// trains
-	
-		case "E103": //Gare avec desserte train à grande vitesse (TAGV)
+
+		case "E103": // Gare avec desserte train à grande vitesse (TAGV)
 			classement[2] = "";
 			classement[1] = "LGV";
 			classement[0] = "train";
 			break;
-		case "E106": //Gare sans desserte train à grande vitesse (TAGV)
+		case "E106": // Gare sans desserte train à grande vitesse (TAGV)
 			classement[2] = "";
 			classement[1] = "normal";
 			classement[0] = "train";
@@ -1240,9 +1247,9 @@ public class SetData {
 		IFeatureCollection<IFeature> featColl = ShapefileReader.read(tmpTmpRoadFile.toString());
 
 		CarteTopo cT = new CarteTopo("Network");
-	    double tolerance = 0.0;
-	    Chargeur.importAsEdges(featColl, cT, "", null, "", null, null, tolerance);
-	    
+		double tolerance = 0.0;
+		Chargeur.importAsEdges(featColl, cT, "", null, "", null, null, tolerance);
+
 		Groupe gr = cT.getPopGroupes().nouvelElement();
 		gr.setListeArcs(cT.getListeArcs());
 		gr.setListeFaces(cT.getListeFaces());
@@ -1257,9 +1264,9 @@ public class SetData {
 		}
 
 		ShapefileWriter.write(featC, finalRoadFile.toString(), CRS.decode("EPSG:2154"));
-	
+
 		// create the Non-urbanizable shapefile
-		
+
 		SimpleFeatureCollection routesSFC = (new ShapefileDataStore((routeMerged).toURI().toURL())).getFeatureSource().getFeatures();
 		DefaultFeatureCollection bufferRoute = new DefaultFeatureCollection();
 		DefaultFeatureCollection bufferRouteExtra = new DefaultFeatureCollection();

@@ -15,15 +15,14 @@ import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.opengis.feature.simple.SimpleFeature;
-import org.thema.mupcity.task.DecompTask;
-import org.thema.mupcity.task.ProjectCreationTask;
-import org.thema.mupcity.task.SimulTask;
 
 import com.google.common.io.Files;
 
 import au.com.bytecode.opencsv.CSVReader;
 import fr.ign.cogit.Indicators.BuildingToHousehold;
 import fr.ign.parameters.Parameters;
+import fr.ign.task.ProjectCreationDecompTask;
+import fr.ign.task.SimulTask;
 
 public class MainTask {
 
@@ -179,10 +178,8 @@ public class MainTask {
 		dataHT.put("ptTrain", "trainPro.shp");
 		dataHT.put("nU", "nonUrbaPro.shp");
 
-		System.out.println("----------Project creation----------");
-		File projectFile = ProjectCreationTask.run(name, folderIn, folderOut, xmin, ymin, width, height, shiftX, shiftY,dataHT);
-		System.out.println("----------Decomp task----------");
-		DecompTask.run(projectFile, name, minSize, maxSize, seuilDensBuild);
+		System.out.println("----------Project creation and decomp----------");
+		File projectFile = ProjectCreationDecompTask.run(name, folderIn, folderOut, xmin, ymin, width, height, shiftX, shiftY,dataHT,minSize, maxSize, seuilDensBuild);
 		System.out.println("----------Simulation task----------");
 		File result = SimulTask.run(projectFile, name, p.getInteger("N"), p.getBoolean("strict"), ahp0, ahp1, ahp2, ahp3, ahp4, ahp5, ahp6, ahp7, ahp8, p.getBoolean("mean"), seed);
 		System.out.println("resuuuult : " + result);

@@ -22,16 +22,16 @@ import com.vividsolutions.jts.io.WKTReader;
 
 public class Test {
 
-	public static void main(String[] args) throws IOException, NoSuchAuthorityCodeException, FactoryException, ParseException{
-		SimpleFeatureCollection geoFlaSFC = (new ShapefileDataStore((new File("/home/mcolomb/donnee/mup-city/ICONE-zonesNUelargies_AU/ICONE-zonesNUelargies_AU.shp")).toURI().toURL())).getFeatureSource().getFeatures();
+	public static void main(String[] args) throws IOException, NoSuchAuthorityCodeException, FactoryException, ParseException {
+		SimpleFeatureCollection geoFlaSFC = (new ShapefileDataStore((new File("/home/mcolomb/tmp/cleaned2.shp")).toURI().toURL())).getFeatureSource().getFeatures();
 		DefaultFeatureCollection villeColl = new DefaultFeatureCollection();
 		DefaultFeatureCollection emprise = new DefaultFeatureCollection();
 
-			for (Object obj : geoFlaSFC.toArray()) {
-				SimpleFeature feat = (SimpleFeature) obj;
-					villeColl.add(feat);
-			}
-		
+		for (Object obj : geoFlaSFC.toArray()) {
+			SimpleFeature feat = (SimpleFeature) obj;
+			villeColl.add(feat);
+		}
+
 		Geometry geo = SelectParcels.unionSFC(villeColl);
 		WKTReader wktReader = new WKTReader();
 		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
@@ -46,7 +46,7 @@ public class Test {
 		SimpleFeature feature = sfBuilder.buildFeature("0");
 		emprise.add(feature);
 
-		SelectParcels.exportSFC(emprise.collection(), new File("/home/mcolomb/informatique/MUP/explo/dataExtra/NU-union.shp"));
-		
+		SelectParcels.exportSFC(emprise.collection(), new File("/home/mcolomb/workspace/mupcity-openMole/data/nonUrbaSys2.shp"));
+
 	}
 }
