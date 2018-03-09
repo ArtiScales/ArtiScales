@@ -10,6 +10,7 @@ import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.grid.io.AbstractGridFormat;
 import org.geotools.coverage.grid.io.GridCoverage2DReader;
 import org.geotools.coverage.grid.io.OverviewPolicy;
+import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
@@ -43,12 +44,10 @@ public class SelecMUPOutput {
 	}
 
 	public static void main(String[] args) throws Exception {
-		run(new File("/home/mcolomb/donnee/couplage"),
-				new File("/home/mcolomb/donnee/couplage/depotConfigSpat/N5_Ba_Moy_ahpx_seed42-eval_anal-20.0.tif"));
+		run(new File("/home/mcolomb/donnee/couplage"), new File("/home/mcolomb/donnee/couplage/depotConfigSpat/N5_Ba_Moy_ahpx_seed42-eval_anal-20.0.tif"));
 	}
 
-	public static List<File> run(File rootfile, File rasteroutputfolder)
-			throws Exception {
+	public static List<File> run(File rootfile, File rasteroutputfolder) throws Exception {
 		// automatic vectorization of the MUP-City outputs
 		SelecMUPOutput smo = new SelecMUPOutput(rootfile, rasteroutputfolder);
 		return smo.run();
@@ -57,19 +56,18 @@ public class SelecMUPOutput {
 	public List<File> run() throws Exception {
 		File output = new File(rootFile, "output");
 		output.mkdirs();
-		
+
 		ArrayList<File> listMupOutput = new ArrayList<File>();
 		// get the cells size
 		String rasterOutputString = rasterOutputFolder.getName().replace(".tif", "");
 		Pattern ech = Pattern.compile("-");
-		
+
 		String[] list = ech.split(rasterOutputString);
 		sizeCell = Double.parseDouble(list[2]);
-		
+
 		File outputMup = new File(output, rasterOutputString);
 		outputMup.mkdirs();
-		
-		
+
 		listMupOutput.add(outputMup);
 		File outputMupRaster = new File(outputMup, rasterOutputFolder.getName());
 
@@ -82,12 +80,10 @@ public class SelecMUPOutput {
 		return listMupOutput;
 	}
 
-	public SimpleFeatureSource createMupOutput(GridCoverage2D coverage, File destFile)
-			throws IOException, NoSuchAuthorityCodeException, FactoryException, ParseException {
+	public SimpleFeatureSource createMupOutput(GridCoverage2D coverage, File destFile) throws IOException, NoSuchAuthorityCodeException, FactoryException, ParseException {
 
 		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
-		ReferencedEnvelope gridBounds = new ReferencedEnvelope(coverage.getEnvelope2D().getMinX(),
-				coverage.getEnvelope2D().getMaxX(), coverage.getEnvelope2D().getMinY(),
+		ReferencedEnvelope gridBounds = new ReferencedEnvelope(coverage.getEnvelope2D().getMinX(), coverage.getEnvelope2D().getMaxX(), coverage.getEnvelope2D().getMinY(),
 				coverage.getEnvelope2D().getMaxY(), sourceCRS);
 
 		WKTReader wktReader = new WKTReader();
@@ -108,21 +104,26 @@ public class SelecMUPOutput {
 		SimpleFeatureSource grid = Grids.createSquareGrid(gridBounds, sizeCell);
 
 		int i = 0;
-		for (Object object : grid.getFeatures().toArray()) {
+		SimpleFeatureIterator featIt = grid.getFeatures().features();
+		try {
+			while (featIt.hasNext()) {
+				SimpleFeature feat = featIt.next();
 
-			SimpleFeature feat = (SimpleFeature) object;
-
-			DirectPosition2D coord = new DirectPosition2D(
-					(feat.getBounds().getMaxX() - feat.getBounds().getHeight() / 2),
-					(feat.getBounds().getMaxY() - feat.getBounds().getHeight() / 2));
-			float[] yo = (float[]) coverage.evaluate(coord);
-			if (yo[0] > 0) {
-				i = i + 1;
-				Object[] attr = { yo[0] };
-				sfBuilder.add(wktReader.read(feat.getDefaultGeometry().toString()));
-				SimpleFeature feature = sfBuilder.buildFeature("id" + i, attr);
-				victory.add(feature);
+				DirectPosition2D coord = new DirectPosition2D((feat.getBounds().getMaxX() - feat.getBounds().getHeight() / 2),
+						(feat.getBounds().getMaxY() - feat.getBounds().getHeight() / 2));
+				float[] yo = (float[]) coverage.evaluate(coord);
+				if (yo[0] > 0) {
+					i = i + 1;
+					Object[] attr = { yo[0] };
+					sfBuilder.add(wktReader.read(feat.getDefaultGeometry().toString()));
+					SimpleFeature feature = sfBuilder.buildFeature("id" + i, attr);
+					victory.add(feature);
+				}
 			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			featIt.close();
 		}
 		SelectParcels.exportSFC(victory.collection(), destFile);
 		return grid;

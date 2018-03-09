@@ -12,12 +12,12 @@ import org.geotools.coverage.grid.GridCoverageFactory;
 import org.geotools.coverage.grid.io.AbstractGridFormat;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.gce.geotiff.GeoTiffFormat;
 import org.geotools.gce.geotiff.GeoTiffWriteParams;
 import org.geotools.gce.geotiff.GeoTiffWriter;
 import org.geotools.geometry.DirectPosition2D;
 import org.geotools.geometry.jts.ReferencedEnvelope;
-import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -136,15 +136,23 @@ public class FractalCorrelation {
 	public static File rasterize(File batiFile, File fileOut) throws MalformedURLException, IOException {
 		HashSet<Feature> batiCol = new HashSet<>();
 		if (!fileOut.exists()) {
-			SimpleFeatureCollection bati = (new ShapefileDataStore((batiFile).toURI().toURL())).getFeatureSource().getFeatures();
+			ShapefileDataStore batiDS = new ShapefileDataStore((batiFile).toURI().toURL());
+			SimpleFeatureCollection bati = batiDS.getFeatureSource().getFeatures();
 			CoordinateReferenceSystem sourceCRS = bati.getSchema().getCoordinateReferenceSystem();
 			// rasterisation avec les outils de théma
 			// create a thema collection
 			int h = 0;
-			for (Object obj : bati.toArray()) {
-				Feature f = new DefaultFeature((Object) h, (Geometry) ((SimpleFeature) obj).getDefaultGeometry());
-				h = h + 1;
-				batiCol.add(f);
+			SimpleFeatureIterator batiIt = bati.features();
+			try {
+				while (batiIt.hasNext()) {
+					Feature f = new DefaultFeature((Object) h, (Geometry) batiIt.next().getDefaultGeometry());
+					h = h + 1;
+					batiCol.add(f);
+				}
+			} catch (Exception problem) {
+				problem.printStackTrace();
+			} finally {
+				batiIt.close();
 			}
 
 			DefaultFeatureCoverage featCov = new DefaultFeatureCoverage(batiCol);
@@ -154,6 +162,7 @@ public class FractalCorrelation {
 					featCov.getEnvelope().getMaxY(), sourceCRS);
 			GridCoverage2D rasterBati = new GridCoverageFactory().create("bati", wRaster, envBati);
 			writeGeotiff(fileOut, rasterBati);
+			batiDS.dispose();
 		}
 		return fileOut;
 	}

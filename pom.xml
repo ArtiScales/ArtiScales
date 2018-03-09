@@ -75,45 +75,45 @@
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.2.2</version>
-				<configuration>
-					<!-- Specifies the configuration file of the assembly plugin -->
-					<descriptors>
-						<descriptor>src/main/assembly/assembly.xml</descriptor>
-					</descriptors>
-					<outputDirectory>${project.build.directory}</outputDirectory>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<version>2.3.1</version>
-				<configuration>
-					<archive>
-						<manifest>
-							<addClasspath>true</addClasspath>
-							<classpathPrefix>lib/</classpathPrefix>
-							<mainClass>fr.ign.cogit.simplu3d.exec.GTRU3D</mainClass>
-						</manifest>
-					</archive>
-					<outputDirectory>${project.build.directory}</outputDirectory>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<version>2.5.1</version>
-				<executions>
-					<execution>
-						<!-- <id>copy-dependencies</id> <phase>package</phase> <goals> <goal>copy-dependencies</goal> 
-							</goals> <configuration> <prependGroupId>true</prependGroupId> <outputDirectory>${project.build.directory}/lib</outputDirectory> 
-							</configuration> -->
-					</execution>
-				</executions>
-			</plugin>
+<!-- 			<plugin> -->
+<!-- 				<groupId>org.apache.maven.plugins</groupId> -->
+<!-- 				<artifactId>maven-assembly-plugin</artifactId> -->
+<!-- 				<version>2.2.2</version> -->
+<!-- 				<configuration> -->
+<!-- 					Specifies the configuration file of the assembly plugin -->
+<!-- 					<descriptors> -->
+<!-- 						<descriptor>src/main/assembly/assembly.xml</descriptor> -->
+<!-- 					</descriptors> -->
+<!-- 					<outputDirectory>${project.build.directory}</outputDirectory> -->
+<!-- 				</configuration> -->
+<!-- 			</plugin> -->
+<!-- 			<plugin> -->
+<!-- 				<groupId>org.apache.maven.plugins</groupId> -->
+<!-- 				<artifactId>maven-jar-plugin</artifactId> -->
+<!-- 				<version>2.3.1</version> -->
+<!-- 				<configuration> -->
+<!-- 					<archive> -->
+<!-- 						<manifest> -->
+<!-- 							<addClasspath>true</addClasspath> -->
+<!-- 							<classpathPrefix>lib/</classpathPrefix> -->
+<!-- 							<mainClass>fr.ign.cogit.simplu3d.exec.GTRU3D</mainClass> -->
+<!-- 						</manifest> -->
+<!-- 					</archive> -->
+<!-- 					<outputDirectory>${project.build.directory}</outputDirectory> -->
+<!-- 				</configuration> -->
+<!-- 			</plugin> -->
+<!-- 			<plugin> -->
+<!-- 				<groupId>org.apache.maven.plugins</groupId> -->
+<!-- 				<artifactId>maven-dependency-plugin</artifactId> -->
+<!-- 				<version>2.5.1</version> -->
+<!-- 				<executions> -->
+<!-- 					<execution> -->
+<!-- 						<id>copy-dependencies</id> <phase>package</phase> <goals> <goal>copy-dependencies</goal> -->
+<!-- 							</goals> <configuration> <prependGroupId>true</prependGroupId> <outputDirectory>${project.build.directory}/lib</outputDirectory>  -->
+<!-- 							</configuration> -->
+<!-- 					</execution> -->
+<!-- 				</executions> -->
+<!-- 			</plugin> -->
 		</plugins>
 	</build>
 	<properties>
@@ -128,11 +128,11 @@
 			<artifactId>xml-apis</artifactId>
 			<version>1.4.01</version>
 		</dependency>
-<!-- 		<dependency> -->
-<!-- 			<groupId>org.thema</groupId> -->
-<!-- 			<artifactId>mupcity</artifactId> -->
-<!-- 			<version>1.2.2</version> -->
-<!-- 		</dependency> -->
+		<dependency>
+			<groupId>org.thema</groupId>
+			<artifactId>mupcity</artifactId>
+			<version>1.2.2</version>
+		</dependency>
 		<dependency>
 			<groupId>fr.ign</groupId>
 			<artifactId>mupcity-openMole</artifactId>
@@ -163,16 +163,16 @@
 		</dependency>
 	</dependencies>
 	<repositories>
-<!--      <repository> -->
-<!-- 		<id>mupcity</id> -->
-<!--             <name>ThéMA libs Repository</name> -->
-<!--             <url>http://sourcesup.renater.fr/nexus/content/repositories/mupcity-releases/</url> -->
-<!--         </repository>  -->
-<!--      <repository> -->
-<!-- 			<id>thema-sf</id> -->
-<!-- 			<name>ThéMA libs Repository</name> -->
-<!-- 			<url>http://themalibs.sourceforge.net/repository/</url> -->
-<!-- 		</repository> -->
+     <repository>
+		<id>mupcity</id>
+            <name>ThéMA libs Repository</name>
+            <url>http://sourcesup.renater.fr/nexus/content/repositories/mupcity-releases/</url>
+        </repository> 
+     <repository>
+			<id>thema-sf</id>
+			<name>ThéMA libs Repository</name>
+			<url>http://themalibs.sourceforge.net/repository/</url>
+		</repository>
 		<repository>
 			<id>maven2-repository.dev.java.net</id>
 			<name>Java.net repository</name>

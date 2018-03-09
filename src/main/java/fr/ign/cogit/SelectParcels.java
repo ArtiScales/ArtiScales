@@ -210,13 +210,15 @@ public class SelectParcels {
 		SimpleFeatureCollection parcelSelected = parcelCollection.subCollection(inter);
 
 		System.out.println("parcelSelected : " + parcelSelected.size());
+		shpDSZone.dispose();
 		return parcelSelected;
 	}
 
 	public SimpleFeatureCollection selecMultipleParcelInCell(SimpleFeatureCollection parcelIn) throws IOException {
 
 		// import of the MUP-City outputs
-		SimpleFeatureCollection cellsCollection = getCellSFC();
+		ShapefileDataStore shpDSCells = new ShapefileDataStore((new File(spatialConfiguration, spatialConfiguration.getName() + "-vectorized.shp")).toURI().toURL());
+		SimpleFeatureCollection cellsCollection = shpDSCells.getFeatureSource().getFeatures();
 		Geometry cellsUnion = unionSFC(cellsCollection);
 		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
 		String geometryParcelPropertyName = parcelIn.getSchema().getGeometryDescriptor().getLocalName();
@@ -224,6 +226,7 @@ public class SelectParcels {
 		SimpleFeatureCollection parcelSelected = parcelIn.subCollection(inter);
 
 		System.out.println("parcelSelected with cells: " + parcelSelected.size());
+		shpDSCells.dispose();
 		return parcelSelected;
 	}
 
@@ -256,18 +259,24 @@ public class SelectParcels {
 
 		DefaultFeatureCollection toSplit = new DefaultFeatureCollection();
 		int i = 0;
-
-		for (Object obj : parcelIn.toArray()) {
-			SimpleFeature feat = (SimpleFeature) obj;
-			Object[] attr = { 0, 0 };
-			if (((Geometry) feat.getDefaultGeometry()).getArea() > maximalArea) {
-				attr[0] = 1;
+		SimpleFeatureIterator parcelIt = parcelIn.features();
+		try {
+			while (parcelIt.hasNext()) {
+				SimpleFeature feat = parcelIt.next();
+				Object[] attr = { 0, 0 };
+				if (((Geometry) feat.getDefaultGeometry()).getArea() > maximalArea) {
+					attr[0] = 1;
+				}
+				attr[1] = feat.getAttribute("NUMERO");
+				sfBuilder.add(wktReader.read(feat.getDefaultGeometry().toString()));
+				SimpleFeature feature = sfBuilder.buildFeature(String.valueOf(i), attr);
+				toSplit.add(feature);
+				i = i + 1;
 			}
-			attr[1] = feat.getAttribute("NUMERO");
-			sfBuilder.add(wktReader.read(feat.getDefaultGeometry().toString()));
-			SimpleFeature feature = sfBuilder.buildFeature(String.valueOf(i), attr);
-			toSplit.add(feature);
-			i = i + 1;
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			parcelIt.close();
 		}
 		return splitParcels(toSplit, maximalArea, maximalWidth, roadEpsilon, noise);
 
@@ -350,7 +359,7 @@ public class SelectParcels {
 		ShapefileDataStore SSD = new ShapefileDataStore(fileOut.toURI().toURL());
 		SimpleFeatureCollection splitedSFC = SSD.getFeatureSource().getFeatures();
 		splitedSFC = selecParcelZonePLU(typeZone, splitedSFC, SSD);
-
+		SSD.dispose();
 		// return
 		// GeOxygeneGeoToolsTypes.convert2FeatureCollection(ifeatCollOut);
 		return splitedSFC;
@@ -361,7 +370,9 @@ public class SelectParcels {
 		// de cellules : aller chercher le raster d'évaluation et le prendre yo
 		// (encore pas mal de dev pour le début de la semaine prochaine mon
 		// coco)
-		SimpleFeatureCollection cellsCollection = getCellSFC();
+		ShapefileDataStore shpDSCells = new ShapefileDataStore((new File(spatialConfiguration, spatialConfiguration.getName() + "-vectorized.shp")).toURI().toURL());
+		SimpleFeatureCollection cellsCollection = shpDSCells.getFeatureSource().getFeatures();
+
 		WKTReader wktReader = new WKTReader();
 		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
 
@@ -382,26 +393,42 @@ public class SelectParcels {
 		String geometryCellPropertyName = cellsCollection.getSchema().getGeometryDescriptor().getLocalName();
 
 		int i = 0;
-		for (Object obj : parcelIn.toArray()) {
-			SimpleFeature feat = (SimpleFeature) obj;
-			Filter inter = ff.intersects(ff.property(geometryCellPropertyName), ff.literal(feat.getDefaultGeometry()));
-			SimpleFeatureCollection onlyCells = cellsCollection.subCollection(inter);
-			Double bestEval = 0.0;
-			// put the best cell evaluation into the parcel
-			for (Object obje : onlyCells.toArray()) {
-				SimpleFeature featu = (SimpleFeature) obje;
-				if ((Double) featu.getAttribute("eval") > bestEval) {
-					bestEval = (Double) featu.getAttribute("eval");
+		SimpleFeatureIterator parcelIt = parcelIn.features();
+		try {
+			while (parcelIt.hasNext()) {
+				SimpleFeature feat = parcelIt.next();
+				Filter inter = ff.intersects(ff.property(geometryCellPropertyName), ff.literal(feat.getDefaultGeometry()));
+				SimpleFeatureCollection onlyCells = cellsCollection.subCollection(inter);
+				Double bestEval = 0.0;
+				// put the best cell evaluation into the parcel
+				SimpleFeatureIterator onlyCellIt = onlyCells.features();
+				try {
+					while (onlyCellIt.hasNext()) {
+
+						SimpleFeature featu = onlyCellIt.next();
+						if ((Double) featu.getAttribute("eval") > bestEval) {
+							bestEval = (Double) featu.getAttribute("eval");
+						}
+					}
+				} catch (Exception problem) {
+					problem.printStackTrace();
+				} finally {
+					onlyCellIt.close();
 				}
+				Object[] attr = { bestEval, feat.getAttribute("num") };
+				sfBuilder.add(wktReader.read(feat.getDefaultGeometry().toString()));
+
+				SimpleFeature feature = sfBuilder.buildFeature(String.valueOf(i), attr);
+				newParcel.add(feature);
+				i = i + 1;
 			}
-			Object[] attr = { bestEval, feat.getAttribute("num") };
-			sfBuilder.add(wktReader.read(feat.getDefaultGeometry().toString()));
 
-			SimpleFeature feature = sfBuilder.buildFeature(String.valueOf(i), attr);
-			newParcel.add(feature);
-			i = i + 1;
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			parcelIt.close();
 		}
-
+		shpDSCells.dispose();
 		// sort collection with evaluation
 		PropertyName pN = ff.property("eval");
 		SortByImpl sbt = new SortByImpl(pN, org.opengis.filter.sort.SortOrder.DESCENDING);
@@ -436,16 +463,23 @@ public class SelectParcels {
 		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
 
 		int i = 0;
-		for (Object obj : parcelIn.toArray()) {
-			SimpleFeature feat = (SimpleFeature) obj;
-			com.vividsolutions.jts.geom.Point yo = ((Geometry) feat.getDefaultGeometry()).getCentroid();
-			DirectPosition2D pt = new DirectPosition2D(yo.getX(), yo.getY());
-			double[] yooo = (double[]) rasterEvalGrid.evaluate(pt);
-			Object[] attr = { yooo[0] };
-			sfBuilder.add(wktReader.read(feat.getDefaultGeometry().toString()));
-			SimpleFeature feature = sfBuilder.buildFeature(String.valueOf(i), attr);
-			newParcel.add(feature);
-			i = i + 1;
+		SimpleFeatureIterator parcelIt = parcelIn.features();
+		try {
+			while (parcelIt.hasNext()) {
+				SimpleFeature feat = parcelIt.next();
+				com.vividsolutions.jts.geom.Point yo = ((Geometry) feat.getDefaultGeometry()).getCentroid();
+				DirectPosition2D pt = new DirectPosition2D(yo.getX(), yo.getY());
+				double[] yooo = (double[]) rasterEvalGrid.evaluate(pt);
+				Object[] attr = { yooo[0] };
+				sfBuilder.add(wktReader.read(feat.getDefaultGeometry().toString()));
+				SimpleFeature feature = sfBuilder.buildFeature(String.valueOf(i), attr);
+				newParcel.add(feature);
+				i = i + 1;
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			parcelIt.close();
 		}
 
 		// sort collection with evaluation
@@ -468,22 +502,36 @@ public class SelectParcels {
 		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
 		String geometryParcelPropertyName = parcelIn.getSchema().getGeometryDescriptor().getLocalName();
 
-		SimpleFeatureCollection cellsCollection = getCellSFC();
+		ShapefileDataStore shpDSCells = new ShapefileDataStore((new File(spatialConfiguration, spatialConfiguration.getName() + "-vectorized.shp")).toURI().toURL());
+		SimpleFeatureCollection cellsCollection = shpDSCells.getFeatureSource().getFeatures();
 
-		for (Object obj : cellsCollection.toArray()) {
-
-			SimpleFeature feat = (SimpleFeature) obj;
-			Filter inter = ff.intersects(ff.property(geometryParcelPropertyName), ff.literal(feat.getDefaultGeometry()));
-			SimpleFeatureCollection parcelMultipleSelection = parcelIn.subCollection(inter);
-			if (!parcelMultipleSelection.isEmpty()) {
-				SimpleFeature bestFeature = null;
-				for (Object parc : parcelMultipleSelection.toArray()) {
-					SimpleFeature featParc = (SimpleFeature) parc;
-					System.out.println(featParc.getAttribute("eval"));
+		SimpleFeatureIterator cellIt = cellsCollection.features();
+		try {
+			while (cellIt.hasNext()) {
+				SimpleFeature feat = cellIt.next();
+				Filter inter = ff.intersects(ff.property(geometryParcelPropertyName), ff.literal(feat.getDefaultGeometry()));
+				SimpleFeatureCollection parcelMultipleSelection = parcelIn.subCollection(inter);
+				if (!parcelMultipleSelection.isEmpty()) {
+					SimpleFeature bestFeature = null;
+					SimpleFeatureIterator multipleSelec = parcelMultipleSelection.features();
+					try {
+						while (multipleSelec.hasNext()) {
+							SimpleFeature featParc = multipleSelec.next();
+							System.out.println(featParc.getAttribute("eval"));
+						}
+					} catch (Exception problem) {
+						problem.printStackTrace();
+					} finally {
+						multipleSelec.close();
+					}
 				}
 			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			cellIt.close();
 		}
-
+		shpDSCells.dispose();
 		return null;
 	}
 
@@ -493,12 +541,6 @@ public class SelectParcels {
 	 * @return the MUP-City vectorized output
 	 * @throws IOException
 	 */
-	public SimpleFeatureCollection getCellSFC() throws IOException {
-		File shpCellIn = new File(spatialConfiguration, spatialConfiguration.getName() + "-vectorized.shp");
-		ShapefileDataStore shpDSCells = new ShapefileDataStore(shpCellIn.toURI().toURL());
-		SimpleFeatureCollection cellsCollection = shpDSCells.getFeatureSource().getFeatures();
-		return cellsCollection;
-	}
 
 	public SimpleFeatureCollection parcelNoBuilt(SimpleFeatureCollection parcelIn) throws IOException {
 		// getBatiFiles
@@ -515,10 +557,18 @@ public class SelectParcels {
 		SimpleFeatureCollection parcelInter = parcelIn.subCollection(inter);
 		DefaultFeatureCollection collection = new DefaultFeatureCollection();
 		collection.addAll(parcelIn);
-		for (Object tet : parcelInter.toArray()) {
-			SimpleFeature feat = (SimpleFeature) tet;
-			collection.remove(feat);
+		SimpleFeatureIterator parcelInterIt = parcelInter.features();
+		try {
+			while (parcelInterIt.hasNext()) {
+				SimpleFeature feat = parcelInterIt.next();
+				collection.remove(feat);
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			parcelInterIt.close();
 		}
+		shpDSBati.dispose();
 		return collection;
 	}
 
@@ -561,6 +611,7 @@ public class SelectParcels {
 			System.out.println(typeName + " does not support read/write access");
 			System.exit(1);
 		}
+		newDataStore.dispose();
 		return fileName;
 	}
 
@@ -594,12 +645,19 @@ public class SelectParcels {
 		ShapefileDataStore bati_datastore = new ShapefileDataStore(getBati().toURI().toURL());
 		SimpleFeatureCollection batiFeatures = bati_datastore.getFeatureSource().getFeatures();
 		SimpleFeatureIterator iterator = batiFeatures.features();
-		while (iterator.hasNext()) {
-			SimpleFeature batiFeature = iterator.next();
-			if (feature.getDefaultGeometryProperty().getBounds().contains(batiFeature.getDefaultGeometryProperty().getBounds())) {
-				isContent = true;
+		try {
+			while (iterator.hasNext()) {
+				SimpleFeature batiFeature = iterator.next();
+				if (feature.getDefaultGeometryProperty().getBounds().contains(batiFeature.getDefaultGeometryProperty().getBounds())) {
+					isContent = true;
+				}
 			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			iterator.close();
 		}
+		bati_datastore.dispose();
 		return isContent;
 	}
 
