@@ -89,17 +89,6 @@ public class SetData {
 	 */
 	public static void main(String[] args) throws Exception {
 
-		// File rootFile = new File("/home/mcolomb/tmp/nonUrbaPhyPro");
-		// File empriseFile = createEmpriseFile(new File("/home/mcolomb/donnee/autom/besancon/"), new File("/home/mcolomb/donnee/autom/besancon/dataIn/admin.csv"));
-		// List<File> lF = new ArrayList<File>();
-		// for (File f : rootFile.listFiles()) {
-		// if (f.getName().endsWith(".shp")) {
-		// lF.add(f);
-		// }
-		// }
-		// mergeMultipleShp(rootFile, lF, new File(rootFile, "NonUrbaPhyPro.shp"), empriseFile, false);
-		// General
-
 		File rootFile = new File("/home/mcolomb/donnee/autom/besancon");
 		// temp folder
 		File tempFile = new File(rootFile, "tmp");
@@ -115,6 +104,7 @@ public class SetData {
 
 		// first part to turn on comment
 
+		// //TODO this is not working
 		// geocodeBan("https://api-adresse.data.gouv.fr/", "?q=8 bd du port&postcode=44380");
 		// geocodeBan("http://nominatim.openstreetmap.org/search", "q=135+pilkington+avenue,+birmingham&format=xml&polygon=1&addressdetails=1");
 
@@ -130,9 +120,10 @@ public class SetData {
 		// prepareVege(rootFile, nbDep, empriseFile);
 		// // Amenities
 		//
+		// // sort the different amenities -first part (before the geocoding
 		// sortAmenity1part(rootFile, empriseFile,nbDep);
 
-		// switch here
+		// Second part - switch here
 
 		// sortAmenity2part(rootFile, empriseFile);
 		//
@@ -475,7 +466,13 @@ public class SetData {
 		writer.close();
 		return sireneFile;
 	}
-
+/**
+ * trie les aménités - de SIRENE contenue dans une base de données locale - et de BPE contenue dans le fichier dataIn/sireneBPE/BPE-tot.csv
+ * @param rootFile : dossier principal
+ * @param empriseFile : shp de l'emprise générale (auto-généré)
+ * @param nbDep : liste des départements à prendre en compte
+ * @throws Exception
+ */
 	public static void sortAmenity1part(File rootFile, File empriseFile, int[] nbDep) throws Exception {
 
 		File pointSireneIn = extractSireneFromDB(new File(rootFile, "tmp"), nbDep, "jdbc:postgresql://localhost:5432/postgres", "postgres", "postgres");
