@@ -466,13 +466,18 @@ public class SetData {
 		writer.close();
 		return sireneFile;
 	}
-/**
- * trie les aménités - de SIRENE contenue dans une base de données locale - et de BPE contenue dans le fichier dataIn/sireneBPE/BPE-tot.csv
- * @param rootFile : dossier principal
- * @param empriseFile : shp de l'emprise générale (auto-généré)
- * @param nbDep : liste des départements à prendre en compte
- * @throws Exception
- */
+
+	/**
+	 * trie les aménités - de SIRENE contenue dans une base de données locale - et de BPE contenue dans le fichier dataIn/sireneBPE/BPE-tot.csv
+	 * 
+	 * @param rootFile
+	 *            : dossier principal
+	 * @param empriseFile
+	 *            : shp de l'emprise générale (auto-généré)
+	 * @param nbDep
+	 *            : liste des départements à prendre en compte
+	 * @throws Exception
+	 */
 	public static void sortAmenity1part(File rootFile, File empriseFile, int[] nbDep) throws Exception {
 
 		File pointSireneIn = extractSireneFromDB(new File(rootFile, "tmp"), nbDep, "jdbc:postgresql://localhost:5432/postgres", "postgres", "postgres");
