@@ -1667,9 +1667,15 @@ public class SetData {
 			routesIt.close();
 		}
 
-		SelectParcels.exportSFC(bufferRoute.collection(), new File(rootFile, "dataOut/NU/bufferRoute.shp"));
+		if(! bufferRoute.collection().isEmpty()) {
+			SelectParcels.exportSFC(bufferRoute.collection(), new File(rootFile, "dataOut/NU/bufferRoute.shp"));
+		}
 
-		SelectParcels.exportSFC(bufferRouteExtra.collection(), new File(rootFile, "dataOut/NU/bufferExtraRoute.shp"));
+		if(! bufferRouteExtra.collection().isEmpty()) {
+
+			SelectParcels.exportSFC(bufferRouteExtra.collection(), new File(rootFile, "dataOut/NU/bufferExtraRoute.shp"));
+				
+		}
 		routesSDS.dispose();
 
 	}
