@@ -5,7 +5,8 @@ import java.io.File;
 public class ExtensionLowerCase {
 
 	public static void main(String[] args) {
-		File folder = new File("/home/mcolomb/donnee/autom/besac2/dataIn/bati");
+		File folder = new File("/home/mcolomb/donnee/autom/besac2/dataIn/bati/");
+		lowerCaseExtention(folder);
 	}
 
 	public static File lowerCaseExtention(File folder) {
@@ -28,7 +29,6 @@ public class ExtensionLowerCase {
 			String extension = filePart[1].toLowerCase();
 
 			File newNameFile = new File(newName + "." + extension);
-
 			fSub.renameTo(newNameFile);
 		}
 		return folder;

@@ -69,13 +69,18 @@ import fr.ign.cogit.util.ExtensionLowerCase;
 import fr.ign.cogit.SimPLUSimulator;
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
+import fr.ign.cogit.geoxygene.api.spatial.coordgeom.ILineString;
+import fr.ign.cogit.geoxygene.api.spatial.geomprim.IOrientableCurve;
 import fr.ign.cogit.geoxygene.contrib.cartetopo.Arc;
 import fr.ign.cogit.geoxygene.contrib.cartetopo.CarteTopo;
 import fr.ign.cogit.geoxygene.contrib.cartetopo.Chargeur;
 import fr.ign.cogit.geoxygene.contrib.cartetopo.Groupe;
+import fr.ign.cogit.geoxygene.convert.FromGeomToLineString;
+import fr.ign.cogit.geoxygene.feature.DefaultFeature;
 import fr.ign.cogit.geoxygene.feature.FT_FeatureCollection;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileReader;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileWriter;
+import fr.ign.cogit.simplu3d.generator.FootprintGenerator;
 
 public class SetData {
 
@@ -237,15 +242,18 @@ public class SetData {
 	public static File mergeMultipleShp(List<File> listShp, File fileOut, File empriseFile, boolean keepAttributes, boolean discretize)
 			throws MalformedURLException, IOException, ParseException, NoSuchAuthorityCodeException, FactoryException {
 
-		for (File f : listShp) {
-			lowerCaseExtention(f);
-			if (!f.exists()) {
-				listShp.remove(f);
-			}
+		int nbFile = listShp.size();
+		for (int i = 0; i < nbFile; i++) {
+			System.out.println(listShp.get(i));
+			if (!listShp.get(i).exists()) {
+				listShp.remove(i);
+				i--;
+				nbFile--;
+			} 
 		}
 
 		if (listShp.isEmpty()) {
-			System.out.println("list empty, "+ fileOut+" null");
+			System.out.println("list empty, " + fileOut + " null");
 			return null;
 		}
 
@@ -322,6 +330,7 @@ public class SetData {
 		}
 		return SelectParcels.exportSFC(output, fileOut);
 	}
+
 
 	public static SimpleFeatureCollection discretizeShp(SimpleFeatureCollection input) throws IOException, NoSuchAuthorityCodeException, FactoryException {
 		DefaultFeatureCollection dfCuted = new DefaultFeatureCollection();
@@ -757,7 +766,7 @@ public class SetData {
 		if (sireneGeocodedServiceFile.exists()) {
 			listServices.add(createPointFromCsv(sireneGeocodedServiceFile, new File(rootFile, "tmp/Sirene-Services.shp"), empriseFile, true));
 		} else {
-			listServices.add(new File(rootFile, "temp/siren-Services.shp"));
+			listServices.add(new File(rootFile, "tmp/siren-Services.shp"));
 		}
 		listServices.add(new File(rootFile, "tmp/BPE-Services.shp"));
 
@@ -771,9 +780,9 @@ public class SetData {
 		if (sireneGeocodedLoisirsFile.exists()) {
 			listLoisirs.add(createPointFromCsv(sireneGeocodedLoisirsFile, new File(rootFile, "tmp/Sirene-Loisirs.shp"), empriseFile, false));
 		} else {
-			listServices.add(new File(rootFile, "temp/siren-Services.shp"));
+			listServices.add(new File(rootFile, "tmp/siren-Services.shp"));
 		}
-		listLoisirs.add(loisirProcessing(new File(rootFile, "dataIn/vege/ZONE_VEGETATION.shp"), new File(rootFile, "dataIn/route/CHEMIN.shp"),
+		listLoisirs.add(loisirProcessing(new File(rootFile, "dataIn/vege/ZONE_VEGETATION.SHP"), new File(rootFile, "dataIn/route/CHEMIN.SHP"),
 				new File(rootFile, "dataOut/routeAutom.shp")));
 		mergeMultipleShp(listLoisirs, pointLoisirs, empriseFile, true, false);
 
@@ -1570,32 +1579,33 @@ public class SetData {
 		return pointOut;
 	}
 
-	public static void prepareBuild(File rootFile, Integer[] nbDep, File empriseFile) throws Exception {
+	public static void prepareBuild(File rootFile, Integer[] listDep, File empriseFile) throws Exception {
 		File rootBuildFile = new File(rootFile, "dataIn/bati");
 		File finalBuildFile = new File(rootFile, "dataOut/batimentAutom.shp");
 
 		// merge and create the right road shapefile
-		String[] listNom = { "BATI_INDIFFERENCIE", "BATI_REMARQUABLE", "BATI_INDUSTRIEL", "CIMETIERE", "PISTE_AERODROME", "RESERVOIR", "TERRAIN_SPORT", "CONSTRUCTION_LEGERE" };
-
-		for (String s : listNom) {
-			mergeMultipleBdTopo(rootBuildFile, s, nbDep, empriseFile);
+		if (listDep.length > 1) {
+			String[] listNom = { "BATI_INDIFFERENCIE", "BATI_REMARQUABLE", "BATI_INDUSTRIEL", "CIMETIERE", "PISTE_AERODROME", "RESERVOIR", "TERRAIN_SPORT", "CONSTRUCTION_LEGERE" };
+			for (String s : listNom) {
+				mergeMultipleBdTopo(rootBuildFile, s, listDep, empriseFile);
+			}
 		}
 
 		// Final build file
 		List<File> listShpFinal = new ArrayList<>();
-		listShpFinal.add(new File(rootBuildFile, "BATI_INDIFFERENCIE.shp"));
-		listShpFinal.add(new File(rootBuildFile, "BATI_REMARQUABLE.shp"));
-		listShpFinal.add(new File(rootBuildFile, "BATI_INDUSTRIEL.shp"));
-		mergeMultipleShp(listShpFinal, finalBuildFile, new File(""), true, false);
+		listShpFinal.add(new File(rootBuildFile, "BATI_INDIFFERENCIE.SHP"));
+		listShpFinal.add(new File(rootBuildFile, "BATI_REMARQUABLE.SHP"));
+		listShpFinal.add(new File(rootBuildFile, "BATI_INDUSTRIEL.SHP"));
+		mergeMultipleShp(listShpFinal, finalBuildFile, empriseFile, true, false);
 
 		// create the Non-urbanizable shapefile
 
 		List<File> listShpNu = new ArrayList<>();
-		listShpNu.add(new File(rootBuildFile, "CIMETIERE.shp"));
-		listShpNu.add(new File(rootBuildFile, "CONSTRUCTION_LEGERE.shp"));
-		listShpNu.add(new File(rootBuildFile, "PISTE_AERODROME.shp"));
-		listShpNu.add(new File(rootBuildFile, "RESERVOIR.shp"));
-		listShpNu.add(new File(rootBuildFile, "TERRAIN_SPORT.shp"));
+		listShpNu.add(new File(rootBuildFile, "CIMETIERE.SHP"));
+		listShpNu.add(new File(rootBuildFile, "CONSTRUCTION_LEGERE.SHP"));
+		listShpNu.add(new File(rootBuildFile, "PISTE_AERODROME.SHP"));
+		listShpNu.add(new File(rootBuildFile, "RESERVOIR.SHP"));
+		listShpNu.add(new File(rootBuildFile, "TERRAIN_SPORT.SHP"));
 		mergeMultipleShp(listShpNu, new File(rootFile, "dataOut/NU/artificial.shp"), new File(""), false, false);
 	}
 
@@ -1629,7 +1639,7 @@ public class SetData {
 
 		// create the Non-urbanizable shapefile
 
-		ShapefileDataStore trainSDS = new ShapefileDataStore((new File(rootTrainFile, "TRONCON_VOIE_FERREE.shp")).toURI().toURL());
+		ShapefileDataStore trainSDS = new ShapefileDataStore((new File(rootTrainFile, "TRONCON_VOIE_FERREE.SHP")).toURI().toURL());
 		SimpleFeatureCollection trainSFC = trainSDS.getFeatureSource().getFeatures();
 		DefaultFeatureCollection bufferTrain = new DefaultFeatureCollection();
 
@@ -1668,7 +1678,7 @@ public class SetData {
 			trainIt.close();
 		}
 
-		ShapefileDataStore trainTriSDS = new ShapefileDataStore((new File(rootTrainFile, "AIRE_TRIAGE.shp")).toURI().toURL());
+		ShapefileDataStore trainTriSDS = new ShapefileDataStore((new File(rootTrainFile, "AIRE_TRIAGE.SHP")).toURI().toURL());
 		SimpleFeatureCollection trainAT_SFC = trainTriSDS.getFeatureSource().getFeatures();
 		SimpleFeatureIterator tratATIt = trainAT_SFC.features();
 		try {
@@ -1689,16 +1699,21 @@ public class SetData {
 		SelectParcels.exportSFC(bufferTrain.collection(), new File(rootFile, "dataOut/NU/bufferTrain.shp"));
 	}
 
-	public static void prepareRoad(File rootFile, Integer[] nbDep, File empriseFile) throws Exception {
+	public static void prepareRoad(File rootFile, Integer[] listDep, File empriseFile) throws Exception {
 		File rootRoadFile = new File(rootFile, "dataIn/route");
 		File finalRoadFile = new File(rootFile, "dataOut/routeAutom.shp");
 		// merge and create the right road shapefile
-		String[] listNom = { "TRONCON_ROUTE", "ROUTE_PRIMAIRE", "ROUTE_SECONDAIRE", "CHEMIN" };
-
+		
+		if (listDep.length > 1) {
+			String[] listNom = { "TRONCON_ROUTE", "ROUTE_PRIMAIRE", "ROUTE_SECONDAIRE", "CHEMIN" };
+			for (String s : listNom) {
+				mergeMultipleBdTopo(rootRoadFile, s, listDep, empriseFile);
+			}
+		}
 		List<File> listShp = new ArrayList<>();
-		listShp.add(new File(rootRoadFile, "ROUTE_PRIMAIRE.shp"));
-		listShp.add(new File(rootRoadFile, "ROUTE_SECONDAIRE.shp"));
-		listShp.add(new File(rootRoadFile, "TRONCON_ROUTE.shp"));
+		listShp.add(new File(rootRoadFile, "ROUTE_PRIMAIRE.SHP"));
+		listShp.add(new File(rootRoadFile, "ROUTE_SECONDAIRE.SHP"));
+		listShp.add(new File(rootRoadFile, "TRONCON_ROUTE.SHP"));
 
 		for (File f : listShp) {
 			System.out.println(f);
