@@ -573,6 +573,10 @@ public class SelectParcels {
 	}
 
 	public static File exportSFC(SimpleFeatureCollection toExport, File fileName) throws IOException {
+		if (toExport.isEmpty()){
+			System.out.println(fileName.getName()+" is empty");
+			return fileName;
+		}
 		return exportSFC(toExport, fileName, toExport.getSchema());
 	}
 

@@ -181,7 +181,7 @@ public class MainTask {
 		System.out.println("----------Project creation and decomp----------");
 		File projectFile = ProjectCreationDecompTask.run(name, folderIn, folderOut, xmin, ymin, width, height, shiftX, shiftY,dataHT,minSize, maxSize, seuilDensBuild);
 		System.out.println("----------Simulation task----------");
-		File result = SimulTask.run(projectFile, name, p.getInteger("N"), p.getBoolean("strict"), ahp0, ahp1, ahp2, ahp3, ahp4, ahp5, ahp6, ahp7, ahp8, p.getBoolean("mean"), seed);
+		File result = SimulTask.run(projectFile, name, p.getInteger("N"), p.getBoolean("strict"), ahp0, ahp1, ahp2, ahp3, ahp4, ahp5, ahp6, ahp7, ahp8, p.getBoolean("mean"), seed,false);
 		System.out.println("resuuuult : " + result);
 		System.out.println("----------End task----------");
 

@@ -65,6 +65,7 @@ import com.vividsolutions.jts.io.WKTReader;
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
 import fr.ign.cogit.SelectParcels;
+import fr.ign.cogit.util.ExtensionLowerCase;
 import fr.ign.cogit.SimPLUSimulator;
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
@@ -89,18 +90,19 @@ public class SetData {
 	 */
 	public static void main(String[] args) throws Exception {
 
-		File rootFile = new File("/home/mbrasebin/Documents/Donnees/Vincent/Pretraitement/");
+		File rootFile = new File("/home/mcolomb/donnee/autom/besac2/");
 		// temp folder
 		File tempFile = new File(rootFile, "tmp");
 		tempFile.mkdirs();
 
 		// emprise File
 		File empriseFile = createEmpriseFile(rootFile, new File(rootFile, "dataIn/admin.csv"));
-
 		File NUFile = new File(rootFile, "/dataOut/NU/");
 		NUFile.mkdirs();
 
-		Integer[] nbDep = {34};
+		Integer[] nbDep = { 25 };
+
+		String[] dbInfo = { "jdbc:postgresql://localhost:5432/postgres", "postgres", "postgres" };
 
 		// first part to turn on comment
 
@@ -108,31 +110,36 @@ public class SetData {
 		// geocodeBan("https://api-adresse.data.gouv.fr/", "?q=8 bd du port&postcode=44380");
 		// geocodeBan("http://nominatim.openstreetmap.org/search", "q=135+pilkington+avenue,+birmingham&format=xml&polygon=1&addressdetails=1");
 
-		 // Bati
-		 prepareBuild(rootFile, nbDep, empriseFile);
-		 // Road
-		 prepareRoad(rootFile, nbDep, empriseFile);
-		
-		 // Hydro
-		 prepareHydrography(rootFile, nbDep, empriseFile);
-		
-		 // Vegetation
-		 prepareVege(rootFile, nbDep, empriseFile);
-		 // Amenities
-		
-		 // sort the different amenities -first part (before the geocoding
-		 sortAmenity1part(rootFile, empriseFile,nbDep);
+		// Bati
+		prepareBuild(rootFile, nbDep, empriseFile);
 
-		// Second part - switch here
+		// Road
+		prepareRoad(rootFile, nbDep, empriseFile);
 
-		 sortAmenity2part(rootFile, empriseFile);
-		
-		 // Train
-		 prepareTrain(rootFile, nbDep, empriseFile);
-		 // Zones Non Urbanisables
-		 makeFullZoneNU(rootFile);
-		 //
-		 makePhysicNU(rootFile);
+		// Hydro
+		prepareHydrography(rootFile, nbDep, empriseFile);
+
+		// Vegetation
+		prepareVege(rootFile, nbDep, empriseFile);
+		// Amenities
+
+		// // IN CASE OF NO GEOCODED SIRENE POINTS
+		// // sort the different amenities -first part (before the geocoding
+		// sortAmenity1part(rootFile, empriseFile, nbDep, dbInfo);
+		//
+		// // Second part - switch here
+		//
+		// sortAmenity2part(rootFile, empriseFile);
+
+		// IN CASE OF GEOCODED SIRENE POINTS
+		sortAmenities(rootFile, empriseFile, nbDep);
+
+		// Train
+		prepareTrain(rootFile, nbDep, empriseFile);
+		// Zones Non Urbanisables
+		makeFullZoneNU(rootFile);
+		//
+		makePhysicNU(rootFile);
 
 	}
 
@@ -204,47 +211,44 @@ public class SetData {
 
 	public static File mergeMultipleBdTopo(File rootFile, String nom, Integer[] listDep)
 			throws MalformedURLException, IOException, ParseException, NoSuchAuthorityCodeException, FactoryException {
-		return mergeMultipleBdTopo(rootFile, nom, listDep, new File("no-enveloppe"));
+		return mergeMultipleBdTopo(rootFile, nom, listDep, new File(""));
 	}
 
 	public static File mergeMultipleBdTopo(File rootFile, String nom, Integer[] listDep, File empriseFile)
 			throws MalformedURLException, IOException, ParseException, NoSuchAuthorityCodeException, FactoryException {
 		List<File> listFile = new ArrayList<>();
 		for (int i = 0; i < listDep.length; i = i + 1) {
-			File fileDep = new File(rootFile, String.valueOf(listDep[i]) + "/" + nom + ".shp");
-			if(fileDep.exists()) {
-
+			File fileDep = new File("");
+			if (listDep.length > 1) {
+				fileDep = new File(rootFile, String.valueOf(listDep[i]) + "/" + nom + ".shp");
+			} else {
+				fileDep = new File(rootFile, nom + ".shp");
+			}
+			if (fileDep.exists()) {
 				listFile.add(fileDep);
-			
-				
-			}	}
-		if(listFile.isEmpty()) {
+			}
+		}
+		if (listFile.isEmpty()) {
 			return null;
 		}
-		return mergeMultipleShp(rootFile, listFile, new File(rootFile, nom + ".shp"), empriseFile, true, false);
+		return mergeMultipleShp(listFile, new File(rootFile, nom + ".shp"), empriseFile, true, false);
 	}
 
-	public static File mergeMultipleShp(File rootFile, List<File> listShp, File fileOut, File empriseFile, boolean keepAttributes, boolean discretize)
+	public static File mergeMultipleShp(List<File> listShp, File fileOut, File empriseFile, boolean keepAttributes, boolean discretize)
 			throws MalformedURLException, IOException, ParseException, NoSuchAuthorityCodeException, FactoryException {
-		
 
-		int nbFile = listShp.size();
-		
-		for(int i=0;i<nbFile;i++) {
-			if(! listShp.get(i).exists()) {
-				listShp.remove(i);
-				i--;
-				nbFile--;
+		for (File f : listShp) {
+			lowerCaseExtention(f);
+			if (!f.exists()) {
+				listShp.remove(f);
 			}
-			
 		}
-		
-		if(listShp.isEmpty()) {
+
+		if (listShp.isEmpty()) {
+			System.out.println("list empty, "+ fileOut+" null");
 			return null;
 		}
-		
-		
-		
+
 		DefaultFeatureCollection merged = new DefaultFeatureCollection();
 		int nId = 0;
 		ShapefileDataStore dS = new ShapefileDataStore(listShp.get(0).toURI().toURL());
@@ -261,7 +265,7 @@ public class SetData {
 		// keep the attributes or not
 
 		for (File f : listShp) {
-			if(! f.exists()) {
+			if (!f.exists()) {
 				System.out.println("File not found : " + f.getAbsolutePath());
 				continue;
 			}
@@ -276,7 +280,7 @@ public class SetData {
 		}
 
 		for (File f : listShp) {
-			if(! f.exists()) {
+			if (!f.exists()) {
 				System.out.println("File not found : " + f.getAbsolutePath());
 				continue;
 			}
@@ -305,8 +309,8 @@ public class SetData {
 			}
 			shpDS.dispose();
 		}
-		
-		if(merged.isEmpty()) {
+
+		if (merged.isEmpty()) {
 			return null;
 		}
 		SimpleFeatureCollection output = merged.collection();
@@ -447,6 +451,9 @@ public class SetData {
 	}
 
 	public static SimpleFeatureCollection cropSFC(SimpleFeatureCollection inSFC, File empriseFile) throws MalformedURLException, IOException {
+		if (inSFC.isEmpty()) {
+			return inSFC;
+		}
 		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
 		ShapefileDataStore envSDS = new ShapefileDataStore(empriseFile.toURI().toURL());
 		ReferencedEnvelope env = (envSDS.getFeatureSource().getFeatures()).getBounds();
@@ -506,7 +513,7 @@ public class SetData {
 	}
 
 	/**
-	 * trie les aménités - de SIRENE contenue dans une base de données locale - et de BPE contenue dans le fichier dataIn/sireneBPE/BPE-tot.csv
+	 * trie les aménités déjà géocodés de SIRENE - contenue dans un fichier dataIn/sireneBPE/sirene.shp et de BPE contenue dans le fichier dataIn/sireneBPE/BPE-tot.csv
 	 * 
 	 * @param rootFile
 	 *            : dossier principal
@@ -516,12 +523,92 @@ public class SetData {
 	 *            : liste des départements à prendre en compte
 	 * @throws Exception
 	 */
-	public static void sortAmenity1part(File rootFile, File empriseFile, Integer[] nbDep) throws Exception {
+	public static void sortAmenities(File rootFile, File empriseFile, Integer[] nbDep) throws Exception {
+		// general setting
 
-		File pointSireneIn = extractSireneFromDB(new File(rootFile, "tmp"), nbDep, "jdbc:postgresql://localhost:5432/postgres", "postgres", "postgres");
-		;
+		// Sirene points
+		ShapefileDataStore SDSirene = new ShapefileDataStore((new File(rootFile, "dataIn/sireneBPE/sirene.shp")).toURI().toURL());
+		SimpleFeatureCollection SFCSirene = SDSirene.getFeatureSource().getFeatures();
+		SimpleFeatureIterator itSirene = SFCSirene.features();
+		DefaultFeatureCollection sireneServices = new DefaultFeatureCollection();
+		DefaultFeatureCollection sireneLoisirs = new DefaultFeatureCollection();
 
-		// tiré du GÉOFLA et jointuré avec la poste pour avoir les codes postaux
+		SimpleFeatureTypeBuilder PointSfTypeBuilder = new SimpleFeatureTypeBuilder();
+		GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
+
+		PointSfTypeBuilder.setName("loisir");
+		PointSfTypeBuilder.setCRS(CRS.decode("EPSG:2154"));
+		PointSfTypeBuilder.add("the_geom", Point.class);
+		PointSfTypeBuilder.setDefaultGeometry("the_geom");
+		PointSfTypeBuilder.add("TYPE", String.class);
+		PointSfTypeBuilder.add("LEVEL", Integer.class);
+
+		Object[] attr = { 0, "" };
+
+		SimpleFeatureType pointFeatureType = PointSfTypeBuilder.buildFeatureType();
+		SimpleFeatureBuilder pointSfBuilder = new SimpleFeatureBuilder(pointFeatureType);
+
+		int i = 0;
+
+		try {
+			while (itSirene.hasNext()) {
+				SimpleFeature pt = itSirene.next();
+				String[] resultOut = sortCatAmen((String) pt.getAttribute("libel_naf5"), (String) pt.getAttribute("libel_naf5"));
+				if (!(resultOut[0] == null)) {
+					pointSfBuilder.add((Geometry) pt.getDefaultGeometry());
+
+					attr[0] = resultOut[1];
+					attr[1] = resultOut[2];
+					SimpleFeature feature = pointSfBuilder.buildFeature(String.valueOf(i), attr);
+					switch (resultOut[0]) {
+					case "service":
+						sireneServices.add(feature);
+						break;
+					case "loisir":
+						sireneLoisirs.add(feature);
+						break;
+					}
+					i++;
+				}
+			}
+
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			itSirene.close();
+		}
+
+		SelectParcels.exportSFC(cropSFC(sireneServices.collection(), empriseFile), new File(rootFile, "tmp/siren-Services.shp"));
+		SelectParcels.exportSFC(cropSFC(sireneLoisirs.collection(), empriseFile), new File(rootFile, "tmp/siren-Loisirs.shp"));
+		System.out.println("c'est fait pour sirene");
+		SDSirene.dispose();
+
+		// BPE points
+		proceedBPE(rootFile, empriseFile);
+
+		sortAmenity2part(rootFile, empriseFile);
+
+	}
+
+	/**
+	 * trie les aménités non géocodées - de SIRENE contenue dans une base de données locale - et de BPE contenue dans le fichier dataIn/sireneBPE/BPE-tot.csv
+	 * 
+	 * @param rootFile
+	 *            : dossier principal
+	 * @param empriseFile
+	 *            : shp de l'emprise générale (auto-généré)
+	 * @param nbDep
+	 *            : liste des départements à prendre en compte
+	 * @param dbInfo
+	 *            : Tableau de String contenant les infos de connexion à la base de donnée contenant Sirene rangé dans l'ordre suivant : [0] Url de la bdd [1] User de la bdd [2] pw
+	 *            du user
+	 * @throws Exception
+	 */
+	public static void sortAmenity1part(File rootFile, File empriseFile, Integer[] nbDep, String[] dbInfo) throws Exception {
+
+		File pointSireneIn = extractSireneFromDB(new File(rootFile, "tmp"), nbDep, dbInfo[0], dbInfo[1], dbInfo[2]);
+
+		// liste tirée du GÉOFLA et jointuré avec la poste pour avoir les codes postaux
 		File listVille = new File(rootFile, "dataIn/admin.csv");
 		File csvServicesSirene = new File(rootFile, "tmp/siren-Services.csv");
 		File csvLoisirsSirene = new File(rootFile, "tmp/siren-Loisirs.csv");
@@ -533,6 +620,7 @@ public class SetData {
 			Files.delete(csvServicesSirene.toPath());
 		}
 
+		// for the sirene file
 		CSVReader csvSirenePruned = new CSVReader(new FileReader(preselecGeocode(pointSireneIn, listVille)));
 		CSVWriter csvServiceW = new CSVWriter(new FileWriter(csvServicesSirene, true));
 		CSVWriter csvLoisirW = new CSVWriter(new FileWriter(csvLoisirsSirene, true));
@@ -545,7 +633,7 @@ public class SetData {
 		newFirstLine[firstLine.length + 1] = "LEVEL";
 		csvLoisirW.writeNext(newFirstLine);
 		csvServiceW.writeNext(newFirstLine);
-		// for the sirene file
+
 		for (String[] row : csvSirenePruned.readAll()) {
 			String[] result = new String[102];
 			String[] resultOut = sortCatAmen(row[43], row[73]);
@@ -570,6 +658,19 @@ public class SetData {
 		csvServiceW.close();
 		csvLoisirW.close();
 
+		proceedBPE(rootFile, empriseFile);
+
+		// je n'ai pour l'instant pas automatisé le géocodage - trop de temps et vieux problème de proxy
+		// geocodeBan(targetURL, urlParameters)
+
+		// TODO
+		// geocodeBan()
+		// File loisirTemp1 = createPointFromCsv(csvLoisirs, pointLoisirs, false);
+		// pointServices = createPointFromCsv(csvServices, pointServices, true);
+	}
+
+	public static void proceedBPE(File rootFile, File empriseFile)
+			throws IOException, MismatchedDimensionException, NoSuchAuthorityCodeException, FactoryException, ParseException, TransformException {
 		// for the BPE file
 		File pointBPEIn = new File(rootFile, "dataIn/sireneBPE/BPE-tot.csv");
 		File csvServicesBPE = new File(rootFile, "tmp/BPE-Services.csv");
@@ -642,37 +743,40 @@ public class SetData {
 		createPointFromCsv(csvServicesBPE, new File(rootFile, "tmp/BPE-Services.shp"), empriseFile, true);
 		createPointFromCsv(csvLoisirsBPE, new File(rootFile, "tmp/BPE-Loisirs.shp"), empriseFile, false);
 		createPointFromCsv(csvTrainsBPE, new File(rootFile, "dataOut/trainAutom.shp"), empriseFile, false);
-
-		// je n'ai pour l'instant pas automatisé le géocodage - trop de temps et vieux problème de proxy
-		// geocodeBan(targetURL, urlParameters)
-
-		// TODO
-		// geocodeBan()
-		// File loisirTemp1 = createPointFromCsv(csvLoisirs, pointLoisirs, false);
-		// pointServices = createPointFromCsv(csvServices, pointServices, true);
 	}
 
 	public static void sortAmenity2part(File rootFile, File empriseFile) throws Exception {
 
 		File pointServices = new File(rootFile, "dataOut/serviceAutom.shp");
 		File pointLoisirs = new File(rootFile, "dataOut/loisirAutom.shp");
+
+		// merge multiple services sources
 		System.out.println("services");
 		List<File> listServices = new ArrayList<>();
-		listServices.add(createPointFromCsv(new File(rootFile, "tmp/sirene-service-geocoded.csv"), new File(rootFile, "tmp/Sirene-Services.shp"), empriseFile, true));
+		File sireneGeocodedServiceFile = new File(rootFile, "tmp/sirene-service-geocoded.csv");
+		if (sireneGeocodedServiceFile.exists()) {
+			listServices.add(createPointFromCsv(sireneGeocodedServiceFile, new File(rootFile, "tmp/Sirene-Services.shp"), empriseFile, true));
+		} else {
+			listServices.add(new File(rootFile, "temp/siren-Services.shp"));
+		}
 		listServices.add(new File(rootFile, "tmp/BPE-Services.shp"));
 
-		mergeMultipleShp(rootFile, listServices, pointServices, empriseFile, true, false);
+		mergeMultipleShp(listServices, pointServices, empriseFile, true, false);
 
+		// merge multiple loisirs sources
 		List<File> listLoisirs = new ArrayList<>();
 		System.out.println("loisirs");
 		listLoisirs.add(new File(rootFile, "tmp/BPE-Loisirs.shp"));
-
-		listLoisirs.add(createPointFromCsv(new File(rootFile, "tmp/sirene-loisir-geocoded.csv"), new File(rootFile, "tmp/Sirene-Loisirs.shp"), empriseFile, false));
-
+		File sireneGeocodedLoisirsFile = new File(rootFile, "tmp/sirene-loisir-geocoded.csv");
+		if (sireneGeocodedLoisirsFile.exists()) {
+			listLoisirs.add(createPointFromCsv(sireneGeocodedLoisirsFile, new File(rootFile, "tmp/Sirene-Loisirs.shp"), empriseFile, false));
+		} else {
+			listServices.add(new File(rootFile, "temp/siren-Services.shp"));
+		}
 		listLoisirs.add(loisirProcessing(new File(rootFile, "dataIn/vege/ZONE_VEGETATION.shp"), new File(rootFile, "dataIn/route/CHEMIN.shp"),
 				new File(rootFile, "dataOut/routeAutom.shp")));
-		mergeMultipleShp(rootFile, listLoisirs, pointLoisirs, empriseFile, true, false);
-		System.out.println("done");
+		mergeMultipleShp(listLoisirs, pointLoisirs, empriseFile, true, false);
+
 	}
 
 	/**
@@ -995,6 +1099,7 @@ public class SetData {
 	}
 
 	public static File setSpeed(File fileIn, File fileOut) throws Exception {
+		System.out.println(fileIn);
 		ShapefileDataStore routesSDS = new ShapefileDataStore(fileIn.toURI().toURL());
 		SimpleFeatureCollection routes = routesSDS.getFeatureSource().getFeatures();
 
@@ -1018,11 +1123,9 @@ public class SetData {
 				SimpleFeature feat = routeIt.next();
 				Object[] attr = { 0, 0 };
 				// TODO fix encodage
-				
-				String nature = ((String) feat.getAttribute("NATURE")).replaceAll("Ã©", "e");
-				
 
-				
+				String nature = ((String) feat.getAttribute("NATURE")).replaceAll("Ã©", "e");
+
 				switch (nature) {
 				case "Autoroute":
 					attr[0] = 130;
@@ -1037,14 +1140,13 @@ public class SetData {
 					attr[1] = "Bretelle";
 					break;
 				default:
-					
+
 					String classement = (String) feat.getAttribute("CL_ADMIN");
-					
-					if(classement == null ||classement.isEmpty()) {
+
+					if (classement == null || classement.isEmpty()) {
 						classement = ((String) feat.getAttribute("CLASSEMENT")).replaceAll("Ã©", "e");
 					}
-					
-					
+
 					switch (classement) {
 					case "Autre":
 						attr[0] = 40;
@@ -1056,7 +1158,7 @@ public class SetData {
 					}
 				}
 				// la ligne ci dessous devrait logiquement être dans la méthode prepareRaod, mais la flemme de recharger l'obj gt pour trier les attributs ; c'est bien ici aussi.
-				if (!(nature.equals("Route empierrÃ©e")) ){
+				if (!(nature.equals("Route empierrÃ©e"))) {
 					sfBuilder.add((Geometry) feat.getDefaultGeometry());
 					SimpleFeature feature = sfBuilder.buildFeature(String.valueOf(i), attr);
 					roadDFC.add(feature);
@@ -1197,7 +1299,7 @@ public class SetData {
 			classement[1] = "bar";
 			classement[0] = "service";
 			break;
-		case "Hypermarchés":
+		case "Hypermarchés": // libel_naf5
 			classement[2] = " 2";
 			classement[1] = "supermarche";
 			classement[0] = "service";
@@ -1404,15 +1506,19 @@ public class SetData {
 	}
 
 	/**
-	 * Classe servant à
+	 * Classe servant à trier les entrées d'un CSV Sirene en comparant leurs codes postaux à une liste de villes
 	 * 
 	 * @param pointIn
+	 *            : le CSV contenant les aménités à trier
 	 * @param pointVille
+	 *            : la liste des villes
 	 * @return
 	 * @throws IOException
 	 */
 	public static File preselecGeocode(File pointIn, File pointVille) throws IOException {
 		File pointOut = new File(pointIn.getParentFile().getParentFile().getParentFile(), "tmp/sirenTri.csv");
+
+		// pas de doublons
 		if (pointOut.exists()) {
 			Files.delete(pointOut.toPath());
 		}
@@ -1426,13 +1532,14 @@ public class SetData {
 
 		int numCodPostSiren = 0;
 		String[] firstLine = listAm.get(0);
+		// repérage de la colonne code postal des aménités
 		for (int i = 0; i < firstLine.length; i = i + 1) {
 			String field = firstLine[i];
-
 			if (field.equals("codpos")) {
 				numCodPostSiren = i;
 			}
 		}
+		// repérage de la colonne code postal des villes
 		int numCodPost = 0;
 		firstLine = listVille.get(0);
 		for (int i = 0; i < firstLine.length; i = i + 1) {
@@ -1442,6 +1549,7 @@ public class SetData {
 			}
 		}
 
+		// copie des points sélectionnées dans un nouveau csv
 		CSVWriter csv2copy = new CSVWriter(new FileWriter(pointOut, false));
 		csv2copy.writeNext((String[]) listAm.get(0));
 		for (String[] row : listVille) {
@@ -1458,6 +1566,7 @@ public class SetData {
 		csv2copy.close();
 		csvVille.close();
 		csvAm.close();
+
 		return pointOut;
 	}
 
@@ -1477,7 +1586,7 @@ public class SetData {
 		listShpFinal.add(new File(rootBuildFile, "BATI_INDIFFERENCIE.shp"));
 		listShpFinal.add(new File(rootBuildFile, "BATI_REMARQUABLE.shp"));
 		listShpFinal.add(new File(rootBuildFile, "BATI_INDUSTRIEL.shp"));
-		mergeMultipleShp(rootBuildFile, listShpFinal, finalBuildFile, new File(""), true, false);
+		mergeMultipleShp(listShpFinal, finalBuildFile, new File(""), true, false);
 
 		// create the Non-urbanizable shapefile
 
@@ -1487,7 +1596,7 @@ public class SetData {
 		listShpNu.add(new File(rootBuildFile, "PISTE_AERODROME.shp"));
 		listShpNu.add(new File(rootBuildFile, "RESERVOIR.shp"));
 		listShpNu.add(new File(rootBuildFile, "TERRAIN_SPORT.shp"));
-		mergeMultipleShp(rootBuildFile, listShpNu, new File(rootFile, "dataOut/NU/artificial.shp"), new File(""), false, false);
+		mergeMultipleShp(listShpNu, new File(rootFile, "dataOut/NU/artificial.shp"), new File(""), false, false);
 	}
 
 	public static void prepareHydrography(File rootFile, Integer[] nbDep, File empriseFile)
@@ -1584,20 +1693,20 @@ public class SetData {
 		File rootRoadFile = new File(rootFile, "dataIn/route");
 		File finalRoadFile = new File(rootFile, "dataOut/routeAutom.shp");
 		// merge and create the right road shapefile
-		String[] listNom = {"TRONCON_ROUTE" , "ROUTE_PRIMAIRE", "ROUTE_SECONDAIRE", "CHEMIN"};
+		String[] listNom = { "TRONCON_ROUTE", "ROUTE_PRIMAIRE", "ROUTE_SECONDAIRE", "CHEMIN" };
 
-		for (String s : listNom) {
-			mergeMultipleBdTopo(rootRoadFile, s, nbDep, empriseFile);
-		}
 		List<File> listShp = new ArrayList<>();
 		listShp.add(new File(rootRoadFile, "ROUTE_PRIMAIRE.shp"));
 		listShp.add(new File(rootRoadFile, "ROUTE_SECONDAIRE.shp"));
 		listShp.add(new File(rootRoadFile, "TRONCON_ROUTE.shp"));
-		
-		File tmpRoadFile = new File(rootFile, "tmp/route.shp");
-		File routeMerged = mergeMultipleShp(rootRoadFile, listShp, tmpRoadFile, new File(""), true, false);
-		File tmpTmpRoadFile = new File(rootFile, "tmp/route2Temp.shp");
 
+		for (File f : listShp) {
+			System.out.println(f);
+		}
+		File routeMerged = mergeMultipleShp(listShp, new File(rootFile, "tmp/route.shp"), empriseFile, true, false);
+		System.out.println(routeMerged);
+
+		File tmpTmpRoadFile = new File(rootFile, "tmp/routeSpeed.shp");
 		setSpeed(routeMerged, tmpTmpRoadFile);
 
 		// delete the segments which are not linked to the main road network -- uses of geox tool coz I failed with geotools graphs. Conectors between objects still broken
@@ -1667,14 +1776,14 @@ public class SetData {
 			routesIt.close();
 		}
 
-		if(! bufferRoute.collection().isEmpty()) {
+		if (!bufferRoute.collection().isEmpty()) {
 			SelectParcels.exportSFC(bufferRoute.collection(), new File(rootFile, "dataOut/NU/bufferRoute.shp"));
 		}
 
-		if(! bufferRouteExtra.collection().isEmpty()) {
+		if (!bufferRouteExtra.collection().isEmpty()) {
 
 			SelectParcels.exportSFC(bufferRouteExtra.collection(), new File(rootFile, "dataOut/NU/bufferExtraRoute.shp"));
-				
+
 		}
 		routesSDS.dispose();
 
@@ -1696,7 +1805,7 @@ public class SetData {
 				listFullNU.add(f);
 			}
 		}
-		mergeMultipleShp(rootFileNU, listFullNU, new File(rootFileNU.getParentFile(), "nonUrbaAutom.shp"), new File(""), false, true);
+		mergeMultipleShp(listFullNU, new File(rootFileNU.getParentFile(), "nonUrbaAutom.shp"), new File(""), false, true);
 	}
 
 	public static void makePhysicNU(File rootFile) throws MalformedURLException, IOException, ParseException, NoSuchAuthorityCodeException, FactoryException {
@@ -1706,6 +1815,6 @@ public class SetData {
 		listFullNU.add(new File(rootFileNU, "SURFACE_EAU.shp"));
 		listFullNU.add(new File(rootFileNU, "artificial.shp"));
 		listFullNU.add(new File(rootFileNU, "bufferTrain.shp"));
-		mergeMultipleShp(rootFileNU, listFullNU, new File(rootFileNU.getParentFile(), "nonUrbaPhyAutom.shp"), new File(""), false, true);
+		mergeMultipleShp(listFullNU, new File(rootFileNU.getParentFile(), "nonUrbaPhyAutom.shp"), new File(""), false, true);
 	}
 }
