@@ -2,15 +2,15 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>fr.ign.cogit</groupId>
-	<artifactId>PLUCities</artifactId>
-	<version>0.1-SNAPSHOT</version>
+	<artifactId>ArtiScales</artifactId>
+	<version>0.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>PLUCities</name>
+	<name>ArtiScales</name>
 	<description></description>
 	<url>/</url>
 	<build>
-		<finalName>PLUCities${project.version}</finalName>
+		<finalName>ArtiScales${project.version}</finalName>
 		<sourceDirectory>src/main/java</sourceDirectory>
 		<testSourceDirectory>src/test/java</testSourceDirectory>
 		<resources>
