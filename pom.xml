@@ -75,45 +75,6 @@
 					</execution>
 				</executions>
 			</plugin>
-<!-- 			<plugin> -->
-<!-- 				<groupId>org.apache.maven.plugins</groupId> -->
-<!-- 				<artifactId>maven-assembly-plugin</artifactId> -->
-<!-- 				<version>2.2.2</version> -->
-<!-- 				<configuration> -->
-<!-- 					Specifies the configuration file of the assembly plugin -->
-<!-- 					<descriptors> -->
-<!-- 						<descriptor>src/main/assembly/assembly.xml</descriptor> -->
-<!-- 					</descriptors> -->
-<!-- 					<outputDirectory>${project.build.directory}</outputDirectory> -->
-<!-- 				</configuration> -->
-<!-- 			</plugin> -->
-<!-- 			<plugin> -->
-<!-- 				<groupId>org.apache.maven.plugins</groupId> -->
-<!-- 				<artifactId>maven-jar-plugin</artifactId> -->
-<!-- 				<version>2.3.1</version> -->
-<!-- 				<configuration> -->
-<!-- 					<archive> -->
-<!-- 						<manifest> -->
-<!-- 							<addClasspath>true</addClasspath> -->
-<!-- 							<classpathPrefix>lib/</classpathPrefix> -->
-<!-- 							<mainClass>fr.ign.cogit.simplu3d.exec.GTRU3D</mainClass> -->
-<!-- 						</manifest> -->
-<!-- 					</archive> -->
-<!-- 					<outputDirectory>${project.build.directory}</outputDirectory> -->
-<!-- 				</configuration> -->
-<!-- 			</plugin> -->
-<!-- 			<plugin> -->
-<!-- 				<groupId>org.apache.maven.plugins</groupId> -->
-<!-- 				<artifactId>maven-dependency-plugin</artifactId> -->
-<!-- 				<version>2.5.1</version> -->
-<!-- 				<executions> -->
-<!-- 					<execution> -->
-<!-- 						<id>copy-dependencies</id> <phase>package</phase> <goals> <goal>copy-dependencies</goal> -->
-<!-- 							</goals> <configuration> <prependGroupId>true</prependGroupId> <outputDirectory>${project.build.directory}/lib</outputDirectory>  -->
-<!-- 							</configuration> -->
-<!-- 					</execution> -->
-<!-- 				</executions> -->
-<!-- 			</plugin> -->
 		</plugins>
 	</build>
 	<properties>
@@ -128,9 +89,6 @@
 			<artifactId>mupcity</artifactId>
 			<version>1.2.2</version>
 		</dependency>
-		<!-- <dependency> <groupId>org.thema</groupId> <artifactId>fracgis</artifactId> 
-			<version>0.5.7</version> <scope>system</scope> <systemPath>${project.basedir}/lib/fracgis-0.5.7.jar 
-			</systemPath> </dependency> -->
 		<dependency>
 			<groupId>fr.ign.cogit</groupId>
 			<artifactId>simplu3d</artifactId>
