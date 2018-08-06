@@ -124,24 +124,9 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>xml-apis</groupId>
-			<artifactId>xml-apis</artifactId>
-			<version>1.4.01</version>
-		</dependency>
-		<dependency>
 			<groupId>org.thema</groupId>
 			<artifactId>mupcity</artifactId>
 			<version>1.2.2</version>
-		</dependency>
-		<dependency>
-			<groupId>org.thema</groupId>
-			<artifactId>fracgis</artifactId>
-			<version>0.6.3</version>
-		</dependency>
-		<dependency>
-			<groupId>org.geotools</groupId>
-			<artifactId>gt-graph</artifactId>
-			<version>16.1</version>
 		</dependency>
 		<!-- <dependency> <groupId>org.thema</groupId> <artifactId>fracgis</artifactId> 
 			<version>0.5.7</version> <scope>system</scope> <systemPath>${project.basedir}/lib/fracgis-0.5.7.jar 
@@ -150,11 +135,6 @@
 			<groupId>fr.ign.cogit</groupId>
 			<artifactId>simplu3d</artifactId>
 			<version>1.2-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>org.geotools</groupId>
-			<artifactId>gt-grid</artifactId>
-			<version>16.1</version>
 		</dependency>
 	</dependencies>
 	<repositories>
@@ -177,6 +157,28 @@
 			<id>osgeo</id>
 			<name>Open Source Geospatial Foundation Repository</name>
 			<url>http://download.osgeo.org/webdav/geotools/</url>
+		</repository>
+		<repository>
+			<id>ign-snapshots</id>
+			<name>Cogit Snapshots Repository</name>
+			<url>https://forge-cogit.ign.fr/nexus/content/repositories/snapshots/</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+		</repository>
+		<repository>
+			<id>ign-releases</id>
+			<name>Cogit Releases Repository</name>
+			<url>https://forge-cogit.ign.fr/nexus/content/repositories/releases/</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
 		</repository>
 
 	</repositories>
