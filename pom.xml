@@ -94,6 +94,21 @@
 			<artifactId>simplu3d</artifactId>
 			<version>1.2-SNAPSHOT</version>
 		</dependency>
+				<dependency>
+			<groupId>org.geotools</groupId>
+			<artifactId>gt-grid</artifactId>
+			<version>19.1</version>
+</dependency>
+		<dependency>
+			<groupId>org.thema</groupId>
+			<artifactId>fracgis</artifactId>
+			<version>0.6.3</version>
+</dependency>
+		<dependency>
+			<groupId>fr.ign</groupId>
+			<artifactId>mupcity-openMole</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+</dependency>
 	</dependencies>
 	<repositories>
      <repository>
