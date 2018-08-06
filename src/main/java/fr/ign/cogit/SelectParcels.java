@@ -66,7 +66,12 @@ import fr.ign.random.Random;
 public class SelectParcels {
 
 	public static void main(String[] args) throws Exception {
-		run(new File("/home/mcolomb/donnee/couplage"), new File("/home/mcolomb/donnee/couplage/output/N5_St_Moy_ahpx_seed_42-eval_anal-20.0"), "25495", true, true);
+		//run(new File("/home/mcolomb/donnee/couplage"), new File("/home/mcolomb/donnee/couplage/output/N5_St_Moy_ahpx_seed_42-eval_anal-20.0"), "25495", true, true);
+		File fileParcelle = new File("/home/mcolomb/doc_de_travail/PAU/PAU.shp");
+		SimpleFeatureCollection parcelU = new ShapefileDataStore(fileParcelle.toURI().toURL()).getFeatureSource().getFeatures();
+SelectParcels salut = new SelectParcels(fileParcelle.getParentFile(),fileParcelle,"",false,true);
+		exportSFC(salut.generateSplitedParcels(parcelU), new File("/home/mcolomb/doc_de_travail/PAU/parcelSplit.shp"));
+
 	}
 
 	File rootFile;
@@ -348,7 +353,6 @@ public class SelectParcels {
 		for (IFeature ft : ifeatCollOut) {
 			System.out.println(ft.getAttribute("num"));
 		}
-
 		File fileOut = new File(rootFile, "tmp.shp");
 		ShapefileWriter.write(ifeatCollOut, fileOut.toString());
 
@@ -358,7 +362,9 @@ public class SelectParcels {
 
 		ShapefileDataStore SSD = new ShapefileDataStore(fileOut.toURI().toURL());
 		SimpleFeatureCollection splitedSFC = SSD.getFeatureSource().getFeatures();
-		splitedSFC = selecParcelZonePLU(typeZone, splitedSFC, SSD);
+		//splitedSFC = selecParcelZonePLU(typeZone, splitedSFC, SSD);
+		
+		
 		SSD.dispose();
 		// return
 		// GeOxygeneGeoToolsTypes.convert2FeatureCollection(ifeatCollOut);

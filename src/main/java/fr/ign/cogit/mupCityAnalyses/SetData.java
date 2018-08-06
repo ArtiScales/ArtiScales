@@ -1303,6 +1303,16 @@ public class SetData {
 			classement[1] = "pharmacie";
 			classement[0] = "service";
 			break;
+		case "Gestion des bibliothèques et des archives":
+			classement[2] = " 2";
+			classement[1] = "bibliotheque";
+			classement[0] = "service";
+			break;
+		case "Coiffure":
+			classement[2] = " 2";
+			classement[1] = "coiffeur";
+			classement[0] = "service";
+			break;
 		case "Débits de boissons":
 			classement[2] = " 2";
 			classement[1] = "bar";
@@ -1466,7 +1476,7 @@ public class SetData {
 		// classement[0] = "loisir";
 		// break;
 		case "F113": // Terrain de grands jeux
-			classement[2] = "3";
+			classement[2] = "2";
 			classement[1] = "base-loisir";
 			classement[0] = "multi-sport";
 			break;
