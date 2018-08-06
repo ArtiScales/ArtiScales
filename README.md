@@ -1,4 +1,6 @@
-# PLUCities
+# ArtiScales
+
+[![Build Status](https://travis-ci.org/ArtiScales/ArtiScales.svg?branch=master)](https://travis-ci.org/ArtiScales/ArtiScales)
 
 Run the selectionParcel, SimPLU and BuiltToHousehold models. 
 MUP-City simulations are not plugged in yet \n
