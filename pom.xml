@@ -134,11 +134,6 @@
 			<version>1.2.2</version>
 		</dependency>
 		<dependency>
-			<groupId>fr.ign</groupId>
-			<artifactId>mupcity-openMole</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
-		<dependency>
 			<groupId>org.thema</groupId>
 			<artifactId>fracgis</artifactId>
 			<version>0.6.3</version>
