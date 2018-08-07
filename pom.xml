@@ -89,7 +89,6 @@
 		</plugins>
 	</build>
 
-
 	<dependencies>
 		<dependency>
 			<groupId>org.thema</groupId>
