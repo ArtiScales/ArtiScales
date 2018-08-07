@@ -6,6 +6,17 @@
 	<version>0.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
+	<properties>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<mupcity.version>1.2.4-COGIT-SNAPSHOT</mupcity.version>
+		<geotools.version>19.1</geotools.version>
+		<fracgis.version>0.7.2-COGIT-SNAPSHOT</fracgis.version>
+		<mupcity-openMole.version>0.0.2-SNAPSHOT</mupcity-openMole.version>
+		<simplu3d.version>1.2-SNAPSHOT</simplu3d.version>
+	</properties>
+
 	<name>ArtiScales</name>
 	<description></description>
 	<url>/</url>
@@ -77,50 +88,36 @@
 			</plugin>
 		</plugins>
 	</build>
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.compiler.source>1.8</maven.compiler.source>
-		<maven.compiler.target>1.8</maven.compiler.target>
-	</properties>
+
 
 	<dependencies>
 		<dependency>
 			<groupId>org.thema</groupId>
 			<artifactId>mupcity</artifactId>
-			<version>1.2.2</version>
+			<version>${mupcity.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>fr.ign.cogit</groupId>
 			<artifactId>simplu3d</artifactId>
-			<version>1.2-SNAPSHOT</version>
+			<version>${simplu3d.version}</version>
 		</dependency>
 				<dependency>
 			<groupId>org.geotools</groupId>
 			<artifactId>gt-grid</artifactId>
-			<version>19.1</version>
+			<version>${geotools.version}</version>
 </dependency>
 		<dependency>
 			<groupId>org.thema</groupId>
 			<artifactId>fracgis</artifactId>
-			<version>0.6.3</version>
+			<version>${fracgis.version}</version>
 </dependency>
 		<dependency>
 			<groupId>fr.ign</groupId>
 			<artifactId>mupcity-openMole</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>${mupcity-openMole.version}</version>
 </dependency>
 	</dependencies>
 	<repositories>
-     <repository>
-		<id>mupcity</id>
-            <name>ThéMA libs Repository</name>
-            <url>http://sourcesup.renater.fr/nexus/content/repositories/mupcity-releases/</url>
-        </repository> 
-     <repository>
-			<id>thema-sf</id>
-			<name>ThéMA libs Repository</name>
-			<url>http://themalibs.sourceforge.net/repository/</url>
-		</repository>
 		<repository>
 			<id>maven2-repository.dev.java.net</id>
 			<name>Java.net repository</name>
@@ -135,25 +132,22 @@
 			<id>ign-snapshots</id>
 			<name>Cogit Snapshots Repository</name>
 			<url>https://forge-cogit.ign.fr/nexus/content/repositories/snapshots/</url>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
 		</repository>
 		<repository>
 			<id>ign-releases</id>
 			<name>Cogit Releases Repository</name>
 			<url>https://forge-cogit.ign.fr/nexus/content/repositories/releases/</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
 		</repository>
-
+	    	 <repository>
+			<id>thema-sf</id>
+			<name>ThéMA libs Repository</name>
+			<url>http://themalibs.sourceforge.net/repository/</url>
+		</repository>
+     <repository>
+		<id>mupcity</id>
+            <name>ThéMA libs Repository</name>
+            <url>http://sourcesup.renater.fr/nexus/content/repositories/mupcity-releases/</url>
+        </repository>
 	</repositories>
 	<reporting>
 		<plugins>
@@ -177,5 +171,16 @@
 			</plugin>
 		</plugins>
 	</reporting>
-
+	<distributionManagement>
+		<repository>
+			<id>ign-releases</id>
+			<name>Nexus Releases Repository</name>
+			<url>https://forge-cogit.ign.fr/nexus/content/repositories/releases</url>
+		</repository>
+		<snapshotRepository>
+			<id>ign-snapshots</id>
+			<name>Nexus Snapshots Repository</name>
+			<url>https://forge-cogit.ign.fr/nexus/content/repositories/snapshots/</url>
+		</snapshotRepository>
+</distributionManagement>
 </project>
