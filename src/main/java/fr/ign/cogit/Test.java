@@ -20,6 +20,8 @@ import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 
+import fr.ign.cogit.GTFunctions.Vectors;
+
 public class Test {
 
 	public static void main(String[] args) throws IOException, NoSuchAuthorityCodeException, FactoryException, ParseException {
@@ -32,7 +34,7 @@ public class Test {
 			villeColl.add(feat);
 		}
 
-		Geometry geo = SelectParcels.unionSFC(villeColl);
+		Geometry geo = Vectors.unionSFC(villeColl);
 		WKTReader wktReader = new WKTReader();
 		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
 		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
@@ -46,7 +48,7 @@ public class Test {
 		SimpleFeature feature = sfBuilder.buildFeature("0");
 		emprise.add(feature);
 
-		SelectParcels.exportSFC(emprise.collection(), new File("/home/mcolomb/workspace/mupcity-openMole/data/nonUrbaSys2.shp"));
+		Vectors.exportSFC(emprise.collection(), new File("/home/mcolomb/workspace/mupcity-openMole/data/nonUrbaSys2.shp"));
 
 	}
 }

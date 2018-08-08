@@ -2,7 +2,75 @@
 <parameters>
 
 	<!-- Nom du scénario -->
-	<param key="nom" value="sprawl" />
+	<param key="nom" value="sprawltarace" />
+
+	<!-- Configuration générales des simulations ArtiScales -->
+	<param key="seed" value="42"/>
+	
+	<!-- Fichiers (les fichiers doivent être dans le rootFile) -->
+	<param key="rootFile" value="/home/mcolomb/informatique/ArtiScales/"/>
+		
+	<!-- PARAMETRES DE MUP-CITY -->
+	<!-- paramètres scénarios-->
+	<param key="N" value="5"/>
+	<param key="strict" value="false" />
+	<param key="mean" value="true" />
+	
+
+	<param key="ahp8" value="0.083"/>
+	<param key="ahp7" value="0.083"/>
+	<param key="ahp6" value="0.083"/>
+	<param key="ahp5" value="0.04"/>
+	<param key="ahp4" value="0.218"/>
+	<param key="ahp3" value="0.218"/>
+	<param key="ahp2" value="0.218"/>
+	<param key="ahp1" value="0.03"/>
+	<param key="ahp0" value="0.0027"/>
+	<!-- paramètres techniques -->
+	
+	<param key = "nivCellUtilise" value="1"/>
+	<param key="emprise" value="915948;6677337;26590;26590"/>
+	<param key ="cm" value="20"/>
+	<param key="seuil" value="0"/>
+
+	<!-- PARAMÈTRES ARTISCALES -->
+	
+	<!-- Types de sélections -->
+	<!-- Sélection Typique -->
+	<param key="Ubuilt" value="true" />
+	<param key="UnotBuilt" value="true" />
+	<param key="AUnotBuilt" value="true" />
+	<param key="ALLnotBuilt" value="false" />
+	<!-- Sélection ordonnée selon l'éval -->
+	<param key="JustEval" value="false" />
+	<!-- Sélection aléatoire (sans Mup-City) -->
+	<param key="Anarchie" value="false" />
+
+	
+	<!-- Taille des parcelles lors de la décomposition! -->
+
+	<!-- info selection -->
+	<!--  On construit sur la parcelles non construites uniquement -->
+	<param key="notBuilt" value="true" />
+	<!--  On décompose les parcelles -->
+	<param key="splitParcel" value="false" />
+	<!--   -->
+	<param key="singleParcel" value="true" />
+	
+	<!--  Aire maximale splittée -->
+	<param key="maximalAreaSplitParcel" value="500" />
+	<!--  Largeur minimum d'une parcelle donnant sur la voirie -->
+	<param key="maximalWidthSplitParcel" value="20" />
+	
+	<!-- On ne construit qu'un seul bâtiment sur la parcelle-->
+	<param key="singleBuild" value="true" />
+
+	<!-- Taille moyenne d'un logement -->
+	<param key="HousingUnitSize" value="100" />
+
+
+	<!-- PARAMETRES DE SIMPLU3D -->
+
 
 	<!-- paramètre conduisant au scénario d'étalement urbain -->
 	<!-- Paramètres relatifs à l'énergie -->
@@ -68,29 +136,7 @@
 
 	<param key="poisson" value="20" />
 
-	<!-- PARAMÈTRES PLUCITIES -->
-	<!-- Taille des parcelles lors de la décomposition! -->
 
-	<!-- scenarios MUP-City -->
-	<param key="N" value="5" />
-	<param key="strict" value="false" />
-	<param key="mean" value="true" />
-
-	<param key="MupOutPath" value="N5_Ba_Moy_ahpx_seed_42-eval_anal-20.0.tif" />
-
-	<!-- info selection -->
-	<param key="notBuilt" value="true" />
-	<param key="splitParcel" value="false" />
-
-	<param key="singleParcel" value="true" />
-	<param key="maximalAreaSplitParcel" value="500" />
-	<param key="maximalWidthSplitParcel" value="20" />
-
-	<!-- info SimPLU -->
-	<param key="singleBuild" value="true" />
-
-	<!-- info buildingToHousehold -->
-	<param key="HousingUnitSize" value="100" />
 
 
 	<!-- Paramètres relatifs aux visiteur! -->

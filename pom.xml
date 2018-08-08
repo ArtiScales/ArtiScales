@@ -15,6 +15,7 @@
 		<fracgis.version>0.7.2-COGIT-SNAPSHOT</fracgis.version>
 		<mupcity-openMole.version>0.0.2-SNAPSHOT</mupcity-openMole.version>
 		<simplu3d.version>1.2-SNAPSHOT</simplu3d.version>
+		<artiscales.tools.version>0.1-SNAPSHOT</artiscales.tools.version>
 	</properties>
 
 	<name>ArtiScales</name>
@@ -104,17 +105,22 @@
 			<groupId>org.geotools</groupId>
 			<artifactId>gt-grid</artifactId>
 			<version>${geotools.version}</version>
-</dependency>
+		</dependency>
 		<dependency>
 			<groupId>org.thema</groupId>
 			<artifactId>fracgis</artifactId>
 			<version>${fracgis.version}</version>
-</dependency>
+		</dependency>
 		<dependency>
 			<groupId>fr.ign</groupId>
 			<artifactId>mupcity-openMole</artifactId>
 			<version>${mupcity-openMole.version}</version>
-</dependency>
+		</dependency>
+		<dependency>
+			<groupId>fr.ign.cogit</groupId>
+			<artifactId>ArtiScales-tools</artifactId>
+			<version>${artiscales.tools.version}</version>
+		</dependency>
 	</dependencies>
 	<repositories>
 		<repository>

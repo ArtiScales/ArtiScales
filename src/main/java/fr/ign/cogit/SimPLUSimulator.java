@@ -1,25 +1,19 @@
 package fr.ign.cogit;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
-import org.geotools.factory.CommonFactoryFinder;
-import org.geotools.factory.GeoTools;
+import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.filter.Filter;
-import org.opengis.filter.FilterFactory2;
 
-import com.vividsolutions.jts.geom.Geometry;
-
+import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.Indicators.BuildingToHousehold;
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
@@ -27,10 +21,8 @@ import fr.ign.cogit.geoxygene.feature.DefaultFeature;
 import fr.ign.cogit.geoxygene.feature.FT_FeatureCollection;
 import fr.ign.cogit.geoxygene.util.attribute.AttributeManager;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileWriter;
-import fr.ign.cogit.simplu3d.experiments.PLUCities.PredicatePLUCities;
 import fr.ign.cogit.simplu3d.experiments.iauidf.predicate.PredicateIAUIDF;
 import fr.ign.cogit.simplu3d.experiments.iauidf.regulation.Regulation;
-import fr.ign.cogit.simplu3d.experiments.mupcity.util.PredicateDensification;
 import fr.ign.cogit.simplu3d.io.nonStructDatabase.shp.LoaderSHP;
 import fr.ign.cogit.simplu3d.model.BasicPropertyUnit;
 import fr.ign.cogit.simplu3d.model.CadastralParcel;
@@ -42,6 +34,8 @@ import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.loader.LoaderCuboid;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.optimizer.cuboid.OptimisedBuildingsCuboidFinalDirectRejection;
 import fr.ign.cogit.simplu3d.rjmcmc.generic.predicate.SamplePredicate;
 import fr.ign.cogit.simplu3d.util.SDPCalc;
+import fr.ign.cogit.util.GetFromGeom;
+import fr.ign.cogit.util.VectorFct;
 import fr.ign.mpp.configuration.BirthDeathModification;
 import fr.ign.mpp.configuration.GraphConfiguration;
 import fr.ign.mpp.configuration.GraphVertex;
@@ -50,9 +44,12 @@ import fr.ign.parameters.Parameters;
 public class SimPLUSimulator {
 
 	String zipCode;
-	// String scenarName;
-	File parcelFile;
-	SimpleFeature feature;
+	// parcel
+	File parcelsFile;
+	
+	//one single parcel to study (exported as temp)
+	File featFile;
+	
 	File buildFile;
 	File roadFile;
 	File paramFile = new File("donnee/couplage/pluZoning/codes/");
@@ -68,67 +65,54 @@ public class SimPLUSimulator {
 	File filePrescSurf;
 	File rootFile;
 
-	Parameters p = null;
+	Parameters p;
 
-	public SimPLUSimulator(File rootfile, File simufile, SimpleFeature feat, String zipcode, File snapfile, Parameters pa) throws Exception {
-		this(rootfile, simufile.getParentFile(), zipcode, pa);
-		DefaultFeatureCollection tempShp = new DefaultFeatureCollection();
-		tempShp.add(feat);
-		simuFile = simufile;
-		parcelFile = new File(rootfile, "tmp.shp");
-		SelectParcels.exportSFC(tempShp, parcelFile);
-	}
-
-	public SimPLUSimulator(File rootfile, File parcelfile, String zipcode) throws Exception {
-		this(rootfile, parcelfile, zipcode, null);
-	}
-
-	public SimPLUSimulator(File rootfile, File parcelfile, String zipcode, Parameters pa) throws Exception {
+	public SimPLUSimulator(File rootfile, File selectedParcels, SimpleFeature feat, String zipcode, Parameters pa) throws Exception {
 
 		p = pa;
 		rootFile = rootfile;
 		zipCode = zipcode;
-		zoningFile = selecZoningFile();
+		zoningFile = GetFromGeom.getZoning(rootFile, zipcode);
+		parcelsFile = selectedParcels;
 
-		parcelFile = parcelfile;
+		
+		simuFile = new File(parcelsFile.getParentFile(), "simu0");
+		simuFile.mkdir();
 
-		// if the parameter file is not in a given file
-		if (parcelFile.exists()) {
-			if (p == null) {
-				for (File pFile : paramFile.listFiles()) {
-					if (pFile.toString().endsWith(".xml")) {
-						System.out.println("found paramter file : " + pFile);
-						p = Parameters.unmarshall(pFile);
-						int numSimu = Integer.parseInt(pFile.getName().substring(5, 6));
-						simuFile = new File(parcelFile, "simu" + numSimu);
-					}
-				}
-			} else {
-				simuFile = new File(parcelFile, "simu0");
-			}
-		}
+		//export as temp the single parcel to study
+		DefaultFeatureCollection tempShp = new DefaultFeatureCollection();
+		tempShp.add(feat);
+		featFile = new File(simuFile, "tmp.shp");
+		Vectors.exportSFC(tempShp, featFile);
+		
 		if (!(new File(simuFile.getParentFile(), "/snap/route.shp")).exists()) {
-			buildFile = snapDatas(new File(rootFile, "donneeGeographiques/batiment.shp"), selecZoningFile(), new File(simuFile.getParentFile(), "/snap/batiment.shp"));
-			roadFile = snapDatas(new File(rootFile, "donneeGeographiques/route.shp"), selecZoningFile(), new File(simuFile.getParentFile(), "/snap/route.shp"));
+			System.out.println("in snapDatas" + GetFromGeom.getBati(new File(rootfile, "donneeGeographiques")));
+			File snapFile = new File(simuFile.getParentFile(), "/snap/");
+			snapFile.mkdir();
+			buildFile = Vectors.snapDatas(GetFromGeom.getBati(new File(rootfile, "donneeGeographiques")), zoningFile, new File(simuFile.getParentFile(), "/snap/batiment.shp"));
+			roadFile = Vectors.snapDatas(GetFromGeom.getRoute(new File(rootfile, "donneeGeographiques")), zoningFile, new File(simuFile.getParentFile(), "/snap/route.shp"));
 		} else {
 			buildFile = new File(simuFile.getParentFile(), "/snap/batiment.shp");
 			roadFile = new File(simuFile.getParentFile(), "/snap/route.shp");
 		}
-		// doc urba :: à quoi ça sert?
-		codeFile = new File(rootFile, "pluZoning/codes/DOC_URBA.shp");
-		filePrescPonct = new File(rootFile, "pluZoning/codes/PRESCRIPTION_PONCT.shp");
-		filePrescLin = new File(rootFile, "pluZoning/codes/PRESCRIPTION_LIN.shp");
-		filePrescSurf = new File(rootFile, "pluZoning/codes/PRESCRIPTION_SURF.shp");
 
+		codeFile = new File(rootFile, "donneeGeographiques/PLU/codes/DOC_URBA.shp");
+		filePrescPonct = new File(rootFile, "donneeGeographiques/PLU/codes/PRESCRIPTION_PONCT.shp");
+		filePrescLin = new File(rootFile, "donneeGeographiques/PLU/codes/PRESCRIPTION_LIN.shp");
+		filePrescSurf = new File(rootFile, "donneeGeographiques/PLU/codes/PRESCRIPTION_SURF.shp");
+
+		
 	}
 
 	public static void main(String[] args) throws Exception {
-		run(new File("/home/mcolomb/donnee/couplage"), new File("/home/mcolomb/workspace/PLUCities/donnee/couplage/output/N6_St_Moy_ahpx_seed42-eval_anal-20.0/25495/built-Split"),
-				"25495");
+
+		// run(new File("/home/mcolomb/donnee/couplage"), new
+		// File("/home/mcolomb/workspace/PLUCities/donnee/couplage/output/N6_St_Moy_ahpx_seed42-eval_anal-20.0/25495/built-Split"),
+		// "25495");
 	}
 
-	public static List<File> run(File rootFile, File parcelfiles, String zipcode) throws Exception {
-		SimPLUSimulator SPLUS = new SimPLUSimulator(rootFile, parcelfiles, zipcode, null);
+	public static List<File> run(File rootFile, File parcelfiles, String zipcode, Parameters p) throws Exception {
+		SimPLUSimulator SPLUS = new SimPLUSimulator(rootFile, parcelfiles, null, zipcode, p);
 		return SPLUS.run();
 	}
 
@@ -142,13 +126,7 @@ public class SimPLUSimulator {
 	 * @throws Exception
 	 */
 	public int runOneSim() throws Exception {
-		if (p == null) {
-			int numSimu = Integer.parseInt(parcelFile.getName().replace("simu", ""));
-			p = Parameters.unmarshall(new File(paramFile, "param" + numSimu + ".xml"));
-		}
-		System.out.println("roadFile    " + roadFile);
-		Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile, parcelFile, roadFile, buildFile, filePrescPonct, filePrescLin, filePrescSurf, null);
-
+		Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile, featFile , roadFile, buildFile, filePrescPonct, filePrescLin, filePrescSurf, null);
 		File yoy = runSimulation(env, 0, p);
 		BuildingToHousehold building = new BuildingToHousehold(yoy, p.getInteger("HousingUnitSize"));
 		return building.simpleEstimate(yoy);
@@ -161,7 +139,7 @@ public class SimPLUSimulator {
 
 		List<File> listBatiSimu = new ArrayList<File>();
 
-		Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile, new File(parcelFile, "parcelSelected.shp"), roadFile, buildFile, filePrescPonct, filePrescLin,
+		Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile, new File(parcelsFile, "parcelSelected.shp"), roadFile, buildFile, filePrescPonct, filePrescLin,
 				filePrescSurf, null);
 		for (int i = 0; i < env.getBpU().size(); i++) {
 			runSimulation(env, i, p);
@@ -228,10 +206,9 @@ public class SimPLUSimulator {
 		double maximalhauteur = regle.getArt_10_m();
 		IFeatureCollection<Prescription> presc = null;
 		// Instantiation of the rule checker
-//		PredicatePLUCities<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = new PredicatePLUCities<>(bPU, distReculVoirie, distReculFond, distReculLat,
-//				distanceInterBati, maximalCES, maximalhauteur);
-		PredicateIAUIDF<Cuboid, GraphConfiguration<Cuboid>,
-		 BirthDeathModification<Cuboid>> pred = new PredicateIAUIDF(bPU,regle,regle);
+		// PredicatePLUCities<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = new PredicatePLUCities<>(bPU, distReculVoirie, distReculFond, distReculLat,
+		// distanceInterBati, maximalCES, maximalhauteur);
+		PredicateIAUIDF<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = new PredicateIAUIDF(bPU, regle, regle);
 		Double areaParcels = 0.0;
 		for (CadastralParcel yo : bPU.getCadastralParcels()) {
 			areaParcels = areaParcels + yo.getArea();
@@ -296,50 +273,45 @@ public class SimPLUSimulator {
 		ShapefileWriter.write(iFeatGenC, shpGen.toString());
 	}
 
-	public File selecZoningFile() throws FileNotFoundException {
-		File zoningsFile = new File(rootFile, "pluZoning");
-		for (File f : zoningsFile.listFiles()) {
-			Pattern insee = Pattern.compile("INSEE_");
-			String[] list = insee.split(f.toString());
-			if (list.length > 1 && list[1].equals(zipCode + ".shp")) {
-				return f;
-			}
-		}
-		throw new FileNotFoundException("Zoning file not found");
-	}
-
 	public File putNewBatiInBati() throws IOException {
 		// TODO when a new building is created with the fill method, add it to
 		// the building file
 		ShapefileDataStore builsSnapSDS = new ShapefileDataStore(buildFile.toURI().toURL());
 		SimpleFeatureCollection newBuild = builsSnapSDS.getFeatureSource().getFeatures();
 		return buildFile;
-
 	}
 
-	public static File snapDatas(File fileIn, File bBoxFile, File fileOut) throws Exception {
+	protected static int fillSelectedParcels(File selectedParcels, int missingHousingUnits, File rootFile, String zipcode, Parameters p, String action) throws Exception {
+		// Itérateurs sur les parcelles où l'on peut construire
+		ShapefileDataStore parcelDS = new ShapefileDataStore(selectedParcels.toURI().toURL());
+		SimpleFeatureIterator iterator = parcelDS.getFeatureSource().getFeatures().features();
 
-		// load the input from the general folder
-		ShapefileDataStore shpDSIn = new ShapefileDataStore(fileIn.toURI().toURL());
-		SimpleFeatureCollection inCollection = shpDSIn.getFeatureSource().getFeatures();
+		File simuFile = selectedParcels.getParentFile();
 
-		// load the file to make the bbox and selectin with
-		ShapefileDataStore shpDSZone = new ShapefileDataStore(bBoxFile.toURI().toURL());
-		SimpleFeatureCollection zoneCollection = shpDSZone.getFeatureSource().getFeatures();
-		Geometry bBox = SelectParcels.unionSFC(zoneCollection);
+		try {
+			// Tant qu'il y a de logements
+			while (missingHousingUnits > 0 && iterator.hasNext()) {
+				// On créer un nouveau simulateur
+				SimPLUSimulator simPLUsimu = new SimPLUSimulator(rootFile, selectedParcels, iterator.next(), zipcode, p);
+				int fill = simPLUsimu.runOneSim();
+				// On met à jour le compteur du nombre de logements
+				missingHousingUnits = missingHousingUnits - fill;
+				System.out.println("missing housing units : " + missingHousingUnits);
+				if (!iterator.hasNext()) {
+					System.out.println(" MISSING ROOM FOR NEW HOUSING in the greyfield : " + missingHousingUnits + " HOUSING UNITS MISSING");
+				}
+			}
+		} finally {
+			iterator.close();
+		}
 
-		return SelectParcels.exportSFC(snapDatas(inCollection, bBox), fileOut);
-	}
-
-	public static SimpleFeatureCollection snapDatas(SimpleFeatureCollection SFCIn, Geometry bBox) throws Exception {
-
-		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
-		String geometryInPropertyName = SFCIn.getSchema().getGeometryDescriptor().getLocalName();
-		Filter filterIn = ff.intersects(ff.property(geometryInPropertyName), ff.literal(bBox));
-		SimpleFeatureCollection inTown = SFCIn.subCollection(filterIn);
-
-		return inTown;
-
+		// On convertit les surface bâties en nombre de logements
+		BuildingToHousehold bhtU = new BuildingToHousehold(simuFile, p.getInteger("HousingUnitSize"));
+		bhtU.run();
+		// On fusionne les sorties des simulations
+		VectorFct.mergeBatis(simuFile);
+		parcelDS.dispose();
+		return missingHousingUnits;
 	}
 
 }

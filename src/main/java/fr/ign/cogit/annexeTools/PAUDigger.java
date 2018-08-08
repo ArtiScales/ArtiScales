@@ -1,4 +1,4 @@
-package fr.ign.cogit.util;
+package fr.ign.cogit.annexeTools;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,12 +25,10 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryCollection;
-import com.vividsolutions.jts.geom.LineSegment;
-import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.MultiLineString;
 import com.vividsolutions.jts.geom.MultiPolygon;
 
-import fr.ign.cogit.SelectParcels;
+import fr.ign.cogit.GTFunctions.Vectors;
 
 public class PAUDigger {
 //cut cluster polygons with limits
@@ -57,7 +55,7 @@ splitLimClus();
 	ShapefileDataStore dSLimit = new ShapefileDataStore(limit.toURI().toURL());
 	SimpleFeatureCollection limitsSFC = dSLimit.getFeatureSource().getFeatures();
 
-	Geometry limite = SelectParcels.unionSFC(limitsSFC);
+	Geometry limite = Vectors.unionSFC(limitsSFC);
 	
 	DefaultFeatureCollection limDF = new DefaultFeatureCollection();
 	
@@ -73,7 +71,7 @@ splitLimClus();
 	lFeatureBuilder.add(limite);
 	SimpleFeature limF = lFeatureBuilder.buildFeature("1");
 	limDF.add(limF);
-	SelectParcels.exportSFC(limDF.collection(), new File("/home/mcolomb/tmp/testlim.shp"));
+	Vectors.exportSFC(limDF.collection(), new File("/home/mcolomb/tmp/testlim.shp"));
 	
 	ShapefileDataStore dSCluster = new ShapefileDataStore(cluster.toURI().toURL());
 	SimpleFeatureCollection clusterSFC = dSLimit.getFeatureSource().getFeatures();
@@ -128,7 +126,7 @@ splitLimClus();
 	} finally {
 		clusIt.close();
 	}
-	SelectParcels.exportSFC(cutedCluster.collection(),new File("/home/mcolomb/tmp/test.shp"));
+	Vectors.exportSFC(cutedCluster.collection(),new File("/home/mcolomb/tmp/test.shp"));
 	
 	dSLimit.dispose();
 	dSCluster.dispose();
