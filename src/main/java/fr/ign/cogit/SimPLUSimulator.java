@@ -80,7 +80,7 @@ public class SimPLUSimulator {
 	    Parameters p = Parameters.unmarshall(new File(paramFile));
 
 
-		int missingHousingUnits = SimPLUSimulator.fillSelectedParcels(new File(selectedParcels), 50, new File(rootFolder), "25084", p, "2");
+		 SimPLUSimulator.fillSelectedParcels(new File(selectedParcels), 50, new File(rootFolder), "25084", p, "2");
 
 	}
 
