@@ -66,6 +66,23 @@ public class SimPLUSimulator {
 	File rootFile;
 
 	Parameters p;
+	
+	
+
+	public static void main(String[] args) throws Exception {
+		
+		//Method  to only test the SimPLU3D simulation
+		String rootFolder = "/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales/";
+		String selectedParcels = rootFolder+ "donneeGeographiques/parcelle.shp";
+		
+		String paramFile = "/home/mbrasebin/Documents/Code/ArtiScales/ArtiScales/src/main/resources/paramSet/param0.xml";
+		
+	    Parameters p = Parameters.unmarshall(new File(paramFile));
+
+
+		int missingHousingUnits = SimPLUSimulator.fillSelectedParcels(new File(selectedParcels), 50, new File(rootFolder), "25084", p, "2");
+
+	}
 
 	public SimPLUSimulator(File rootfile, File selectedParcels, SimpleFeature feat, String zipcode, Parameters pa) throws Exception {
 
@@ -104,12 +121,6 @@ public class SimPLUSimulator {
 		
 	}
 
-	public static void main(String[] args) throws Exception {
-
-		// run(new File("/home/mcolomb/donnee/couplage"), new
-		// File("/home/mcolomb/workspace/PLUCities/donnee/couplage/output/N6_St_Moy_ahpx_seed42-eval_anal-20.0/25495/built-Split"),
-		// "25495");
-	}
 
 	public static List<File> run(File rootFile, File parcelfiles, String zipcode, Parameters p) throws Exception {
 		SimPLUSimulator SPLUS = new SimPLUSimulator(rootFile, parcelfiles, null, zipcode, p);
