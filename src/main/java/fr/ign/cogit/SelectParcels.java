@@ -2,9 +2,6 @@ package fr.ign.cogit;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.data.shapefile.ShapefileDataStore;
@@ -33,7 +30,6 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKTReader;
 
 import fr.ign.cogit.GTFunctions.Rasters;
 import fr.ign.cogit.GTFunctions.Vectors;
@@ -64,26 +60,26 @@ public class SelectParcels {
 	// }
 
 	File rootFile;
+	File geoFile;
 	File parcelFile;
 	File spatialConfiguration;
 	File zoningFile;
-	File geoFile;
 	String zipCode;
 	String action;
 	boolean splitParcel;
 	Parameters p = null;
 
-	public SelectParcels(File rootfile, File spatialconfiguration, String zipcode, boolean splitparcel) throws Exception {
-		this(rootfile, spatialconfiguration, zipcode, splitparcel, null);
+	public SelectParcels(File rootfile, File geoFile,File pluFile, File spatialconfiguration, String zipcode, boolean splitparcel) throws Exception {
+		this(rootfile, geoFile,pluFile, spatialconfiguration, zipcode, splitparcel, null);
 	}
 
-	public SelectParcels(File rootfile, File spatialconfiguration, String zipcode, boolean splitparcel, Parameters pa) throws Exception {
+	public SelectParcels(File rootfile, File geofile,File pluFile, File spatialconfiguration, String zipcode, boolean splitparcel, Parameters pa) throws Exception {
 		// objet contenant les paramètres
 		p = pa;
 		// where everything's happends
 		rootFile = rootfile;
 		// where the geographic data are stored
-		geoFile = new File(rootfile, "donneeGeographiques");
+		geoFile =geofile;
 		// Liste des sorties de MupCity
 		spatialConfiguration = spatialconfiguration;
 		// Code postal de la commune étudié
@@ -91,7 +87,7 @@ public class SelectParcels {
 		// Paramètre si l'on découpe les parcelles ou non
 		splitParcel = splitparcel;
 		parcelFile = GetFromGeom.getParcels(geoFile);
-		zoningFile = GetFromGeom.getZoning(rootFile, zipCode);
+		zoningFile = GetFromGeom.getZoning(pluFile, zipCode);
 	}
 
 	// public static File run(File rootfile, File testFile, String zipcode, boolean notbuilt, boolean splitparcel) throws Exception {
@@ -177,7 +173,8 @@ public class SelectParcels {
 	public File runAll() throws Exception {
 		File simuFile = makeDirSelection("ALLnotBuilt");
 		SimpleFeatureCollection parcelAU = GetFromGeom.selecParcelZonePLU("AU", zipCode, parcelFile, zoningFile);
-		return geoFile;
+		
+		return null;
 	}
 
 	public SimpleFeatureCollection selecMultipleParcelInCell(SimpleFeatureCollection parcelIn) throws IOException {
@@ -185,10 +182,13 @@ public class SelectParcels {
 		// import of the MUP-City outputs
 		ShapefileDataStore shpDSCells = new ShapefileDataStore((new File(spatialConfiguration, spatialConfiguration.getName() + "-vectorized.shp")).toURI().toURL());
 		SimpleFeatureCollection cellsCollection = shpDSCells.getFeatureSource().getFeatures();
+		
+		// 
 		Geometry cellsUnion = Vectors.unionSFC(cellsCollection);
 		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
 		String geometryParcelPropertyName = parcelIn.getSchema().getGeometryDescriptor().getLocalName();
 		Filter inter = ff.intersects(ff.property(geometryParcelPropertyName), ff.literal(cellsUnion));
+		
 		SimpleFeatureCollection parcelSelected = parcelIn.subCollection(inter);
 
 		System.out.println("parcelSelected with cells: " + parcelSelected.size());
@@ -210,7 +210,6 @@ public class SelectParcels {
 		}
 
 		// putting the need of splitting into attribute
-		WKTReader wktReader = new WKTReader();
 		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
 		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
 		sfTypeBuilder.setName("testType");
@@ -234,7 +233,7 @@ public class SelectParcels {
 					attr[0] = 1;
 				}
 				attr[1] = feat.getAttribute("NUMERO");
-				sfBuilder.add(wktReader.read(feat.getDefaultGeometry().toString()));
+				sfBuilder.add(feat.getDefaultGeometry());
 				SimpleFeature feature = sfBuilder.buildFeature(String.valueOf(i), attr);
 				toSplit.add(feature);
 				i = i + 1;
@@ -419,7 +418,6 @@ public class SelectParcels {
 				.println("est ce qu c'est bon?? : depotConfigSpat/" + spatialConfiguration.getName().substring(0, spatialConfiguration.getName().length() - 14) + "eval-20.0.tif");
 		GridCoverage2D rasterEvalGrid = Rasters
 				.importRaster(new File(rootFile, "depotConfigSpat/" + spatialConfiguration.getName().substring(0, spatialConfiguration.getName().length() - 14) + "eval-20.0.tif"));
-		WKTReader wktReader = new WKTReader();
 		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
 
 		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
@@ -445,7 +443,7 @@ public class SelectParcels {
 				DirectPosition2D pt = new DirectPosition2D(yo.getX(), yo.getY());
 				double[] yooo = (double[]) rasterEvalGrid.evaluate(pt);
 				Object[] attr = { yooo[0] };
-				sfBuilder.add(wktReader.read(feat.getDefaultGeometry().toString()));
+				sfBuilder.add(feat.getDefaultGeometry());
 				SimpleFeature feature = sfBuilder.buildFeature(String.valueOf(i), attr);
 				newParcel.add(feature);
 				i = i + 1;

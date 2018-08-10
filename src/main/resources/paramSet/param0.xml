@@ -2,14 +2,16 @@
 <parameters>
 
 	<!-- Nom du scénario -->
-	<param key="nom" value="sprawltarace" />
+	<param key="nom" value="sprawl" />
 
 	<!-- Configuration générales des simulations ArtiScales -->
 	<param key="seed" value="42"/>
 	
-	<!-- Fichiers (les fichiers doivent être dans le rootFile) -->
+	<!-- Fichiers  -->
 	<param key="rootFile" value="/home/mcolomb/informatique/ArtiScales/"/>
-		
+	<param key="geoFile" value="/home/mcolomb/informatique/ArtiScales/donneeGeographiques"/>
+	<param key="pluFile" value="/home/mcolomb/informatique/ArtiScales/donneeGeographiques/PLU"/>
+	
 	<!-- PARAMETRES DE MUP-CITY -->
 	<!-- paramètres scénarios-->
 	<param key="N" value="5"/>
@@ -50,8 +52,6 @@
 	<!-- Taille des parcelles lors de la décomposition! -->
 
 	<!-- info selection -->
-	<!--  On construit sur la parcelles non construites uniquement -->
-	<param key="notBuilt" value="true" />
 	<!--  On décompose les parcelles -->
 	<param key="splitParcel" value="false" />
 	<!--   -->

@@ -45,7 +45,7 @@ public class GetFromGeom {
 		throw new FileNotFoundException("Building file not found");
 	}
 
-	// TODO préciser quelle couche de batiment on utilise (si l'on explore plein de jeux de données)
+	// TODO préciser quelle couche de route on utilise (si l'on explore plein de jeux de données)
 	public static File getRoute(File geoFile) throws FileNotFoundException {
 		for (File f : geoFile.listFiles()) {
 			if (f.getName().startsWith("route") && f.getName().endsWith(".shp")) {
@@ -54,21 +54,9 @@ public class GetFromGeom {
 		}
 		throw new FileNotFoundException("Building file not found");
 	}
-	
-	public static File getZoning(File rootFile, String zipCode) throws FileNotFoundException {
-		File zoningsFile = new File(rootFile, "/donneeGeographiques/PLU/");
-		for (File f : zoningsFile.listFiles()) {
-			Pattern insee = Pattern.compile("INSEE_");
-			String[] list = insee.split(f.toString());
-			if (list.length > 1 && list[1].equals(zipCode + ".shp")) {
-				return f;
-			}
-		}
-		throw new FileNotFoundException("Zoning file not found");
-	}
 
-	public static int getHousingUnitsGoals(File rootFile, String zipCode) throws IOException {
-		File donneGen = new File(rootFile, "donneeGeographiques/donnecommune.csv"); // A mettre dans le fichier de paramètres
+	public static int getHousingUnitsGoals(File geoFile, String zipCode) throws IOException {
+		File donneGen = new File(geoFile, "donnecommune.csv"); // A mettre dans le fichier de paramètres?
 		CSVReader csvReader = new CSVReader(new FileReader(donneGen));
 		List<String[]> content = csvReader.readAll();
 		int ColLog = 0;
@@ -95,8 +83,20 @@ public class GetFromGeom {
 		throw new FileNotFoundException("Housing units objectives not found");
 	}
 
+	public static File getZoning(File pluFile, String zipCode) throws FileNotFoundException {
+		for (File f : pluFile.listFiles()) {
+			Pattern insee = Pattern.compile("INSEE_");
+			String[] list = insee.split(f.toString());
+			if (list.length > 1 && list[1].equals(zipCode + ".shp")) {
+				return f;
+			}
+		}
+		throw new FileNotFoundException("Zoning file not found");
+	}
+	
+	
 	/**
-	 * 
+	 * Choppe les parcelles d'une certaine zone du PLU
 	 * @param typeZone
 	 *            the code of the zone willed to be selected. In a french context, it can either be (A, N, U, AU) or one of its subsection
 	 * @param zipCode
@@ -109,7 +109,6 @@ public class GetFromGeom {
 	 * @throws TransformException
 	 * @throws MismatchedDimensionException
 	 */
-
 	public static SimpleFeatureCollection selecParcelZonePLU(String typeZone, String zipcode, File parcelFile, File zoningFile) throws Exception {
 		// import of the parcel file
 		ShapefileDataStore shpDSParcel = new ShapefileDataStore(parcelFile.toURI().toURL());
@@ -148,6 +147,8 @@ public class GetFromGeom {
 
 		System.out.println("parcelSelected : " + parcelSelected.size());
 		shpDSZone.dispose();
+		shpDSParcel.dispose();
+		
 		return parcelSelected;
 	}
 }

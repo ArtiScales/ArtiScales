@@ -46,10 +46,10 @@ public class SimPLUSimulator {
 	String zipCode;
 	// parcel
 	File parcelsFile;
-	
-	//one single parcel to study (exported as temp)
+
+	// one single parcel to study (exported as temp)
 	File featFile;
-	
+
 	File buildFile;
 	File roadFile;
 	File paramFile = new File("donnee/couplage/pluZoning/codes/");
@@ -66,42 +66,39 @@ public class SimPLUSimulator {
 	File rootFile;
 
 	Parameters p;
-	
-	
 
 	public static void main(String[] args) throws Exception {
-		
-		//Method  to only test the SimPLU3D simulation
+
+		// Method to only test the SimPLU3D simulation
 		String rootFolder = "/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales/";
-		String selectedParcels = rootFolder+ "donneeGeographiques/parcelle.shp";
-		
+		String selectedParcels = rootFolder + "donneeGeographiques/parcelle.shp";
+		File pluFile = new File("/home/mcolomb/informatique/ArtiScales/donneeGeographiques/PLU");
+		File geoFile = new File("/home/mcolomb/informatique/ArtiScales/donneeGeographiques");
 		String paramFile = "/home/mbrasebin/Documents/Code/ArtiScales/ArtiScales/src/main/resources/paramSet/param0.xml";
-		
-	    Parameters p = Parameters.unmarshall(new File(paramFile));
 
+		Parameters p = Parameters.unmarshall(new File(paramFile));
 
-		 SimPLUSimulator.fillSelectedParcels(new File(selectedParcels), 50, new File(rootFolder), "25084", p, "2");
+		SimPLUSimulator.fillSelectedParcels(new File(rootFolder), geoFile, pluFile, new File(selectedParcels), 50, "25084", p);
 
 	}
 
-	public SimPLUSimulator(File rootfile, File selectedParcels, SimpleFeature feat, String zipcode, Parameters pa) throws Exception {
+	public SimPLUSimulator(File rootfile, File geoFile, File pluFile, File selectedParcels, SimpleFeature feat, String zipcode, Parameters pa) throws Exception {
 
 		p = pa;
 		rootFile = rootfile;
 		zipCode = zipcode;
-		zoningFile = GetFromGeom.getZoning(rootFile, zipcode);
+		zoningFile = GetFromGeom.getZoning(pluFile, zipcode);
 		parcelsFile = selectedParcels;
 
-		
 		simuFile = new File(parcelsFile.getParentFile(), "simu0");
 		simuFile.mkdir();
 
-		//export as temp the single parcel to study
+		// export as temp the single parcel to study
 		DefaultFeatureCollection tempShp = new DefaultFeatureCollection();
 		tempShp.add(feat);
 		featFile = new File(simuFile, "tmp.shp");
 		Vectors.exportSFC(tempShp, featFile);
-		
+
 		if (!(new File(simuFile.getParentFile(), "/snap/route.shp")).exists()) {
 			System.out.println("in snapDatas" + GetFromGeom.getBati(new File(rootfile, "donneeGeographiques")));
 			File snapFile = new File(simuFile.getParentFile(), "/snap/");
@@ -118,12 +115,10 @@ public class SimPLUSimulator {
 		filePrescLin = new File(rootFile, "donneeGeographiques/PLU/codes/PRESCRIPTION_LIN.shp");
 		filePrescSurf = new File(rootFile, "donneeGeographiques/PLU/codes/PRESCRIPTION_SURF.shp");
 
-		
 	}
 
-
-	public static List<File> run(File rootFile, File parcelfiles, String zipcode, Parameters p) throws Exception {
-		SimPLUSimulator SPLUS = new SimPLUSimulator(rootFile, parcelfiles, null, zipcode, p);
+	public static List<File> run(File rootFile, File geoFile, File pluFile, File parcelfiles, String zipcode, Parameters p) throws Exception {
+		SimPLUSimulator SPLUS = new SimPLUSimulator(rootFile, geoFile, pluFile, parcelfiles, null, zipcode, p);
 		return SPLUS.run();
 	}
 
@@ -137,7 +132,7 @@ public class SimPLUSimulator {
 	 * @throws Exception
 	 */
 	public int runOneSim() throws Exception {
-		Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile, featFile , roadFile, buildFile, filePrescPonct, filePrescLin, filePrescSurf, null);
+		Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile, featFile, roadFile, buildFile, filePrescPonct, filePrescLin, filePrescSurf, null);
 		File yoy = runSimulation(env, 0, p);
 		BuildingToHousehold building = new BuildingToHousehold(yoy, p.getInteger("HousingUnitSize"));
 		return building.simpleEstimate(yoy);
@@ -292,7 +287,8 @@ public class SimPLUSimulator {
 		return buildFile;
 	}
 
-	protected static int fillSelectedParcels(File selectedParcels, int missingHousingUnits, File rootFile, String zipcode, Parameters p, String action) throws Exception {
+	protected static int fillSelectedParcels(File rootFile, File geoFile, File pluFile, File selectedParcels, int missingHousingUnits, String zipcode, Parameters p)
+			throws Exception {
 		// Itérateurs sur les parcelles où l'on peut construire
 		ShapefileDataStore parcelDS = new ShapefileDataStore(selectedParcels.toURI().toURL());
 		SimpleFeatureIterator iterator = parcelDS.getFeatureSource().getFeatures().features();
@@ -303,7 +299,7 @@ public class SimPLUSimulator {
 			// Tant qu'il y a de logements
 			while (missingHousingUnits > 0 && iterator.hasNext()) {
 				// On créer un nouveau simulateur
-				SimPLUSimulator simPLUsimu = new SimPLUSimulator(rootFile, selectedParcels, iterator.next(), zipcode, p);
+				SimPLUSimulator simPLUsimu = new SimPLUSimulator(rootFile, geoFile, pluFile, selectedParcels, iterator.next(), zipcode, p);
 				int fill = simPLUsimu.runOneSim();
 				// On met à jour le compteur du nombre de logements
 				missingHousingUnits = missingHousingUnits - fill;
