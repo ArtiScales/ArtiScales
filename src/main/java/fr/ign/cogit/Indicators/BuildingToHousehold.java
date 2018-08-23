@@ -4,93 +4,128 @@ import java.io.File;
 import java.io.IOException;
 
 import org.geotools.data.shapefile.ShapefileDataStore;
-import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.data.simple.SimpleFeatureIterator;
 import org.opengis.feature.simple.SimpleFeature;
 
-public class BuildingToHousehold extends indicators {
-	File fileBatis;
-	double surfaceLog;
+import fr.ign.cogit.util.VectorFct;
+import fr.ign.parameters.Parameters;
 
-	public BuildingToHousehold(File filebatis, double surfacelog) {
-		fileBatis = filebatis;
-		surfaceLog = surfacelog;
-		putSimuNames(filebatis);
+public class BuildingToHousehold extends indicators {
+	// infos from the Artiscales simulations
+	File fileBati;
+	double surfaceLogDefault;
+
+	// infos about the buildings
+	String numeroParcel;
+	double surfaceParcel;
+	int nbLogements;
+	double surfaceLogements; // c'est une moyenne
+	int nbStairs;
+	double densite;
+	String particularFirstLine ;
+	
+	public BuildingToHousehold(File filebati, Parameters par) {
+		fileBati = filebati;
+		p = par;
+		simuFile = filebati.getParentFile().getParentFile(); 
+		zipCode = simuFile.getParentFile().getName();
+		rootFile = new File(p.getString("rootFile"));
+		surfaceLogDefault = p.getInteger("HousingUnitSize");
+		particularFirstLine = "Numero Parcelle,Nombre de logements,moyenne de surface par logements, densite batie";
 	}
 
 	public static void main(String[] args) throws Exception {
+		String paramFile = "/home/yo/workspace/ArtiScales/src/main/resources/paramSet/param0.xml";
+		Parameters par = Parameters.unmarshall(new File(paramFile));
 
-		File f = new File(
-				"/home/mcolomb/donnee/couplage/output/N6_St_Moy_ahpx_seed42-eval_anal-20.0/25245/notBuilt/simu0");
-		run(f, 100);
+		BuildingToHousehold bhtU = new BuildingToHousehold(new File(
+				"/home/yo/Documents/these/ArtiScales/output/Stability-dataAutomPhy-CM20.0-S0.0-GP_915948.0_6677337.0--N6_St_Moy_ahpx_seed_9015629222324914404-evalAnal-20.0/25495/ZoningAllowed/simu0"),
+				par);
+		bhtU.run();
 	}
 
-	public static void run(File filebatis, double surfacelog) throws IOException {
-		BuildingToHousehold bth = new BuildingToHousehold(filebatis, surfacelog);
+	public static void run(File filebati, Parameters p) throws IOException {
+		BuildingToHousehold bth = new BuildingToHousehold(filebati, p);
 		bth.run();
 	}
 
-	public int run() throws IOException {
-		System.out.println(fileBatis);
-		System.out.println(
-				"la simu est " + simPLUSimu + " avec le code zip " + zipCode + " from the Mupsimu: " + mUPSimu);
-		int totLgt = 0;
-		firstLine = true;
-		for (File batiFile : fileBatis.listFiles()) {
-			if (batiFile.toString().endsWith(".shp")) {
-				System.out.println("bati file : " + batiFile);
-				int lgt = simpleEstimate(batiFile);
-				totLgt = totLgt + lgt;
-			}
-		}
-		if (filling) {
-			// toGenCSVFill();
-		} else {
-			toGenCSV(getInfoSimuCsv() + totLgt);
-		}
-		return totLgt;
+	/**
+	 * Surcharge des fonction de générations de csv
+	 */
+	public String getFirstlineCsv() {
+		return super.getFirstlineCsv()
+				+ particularFirstLine ;
 	}
 
-	public int simpleEstimate(File f) throws IOException {
-		double surface = 0;
-		double hauteur = 0;
-		int num = 0;
-		long etage;
-		int logements = 0;
-		Double totParcelArea = 0.0;
+	public int run() throws IOException {
+		System.out.println("pour " + getnameScenar() + ", la simu selectionnant like " + getSelection()
+				+ " avec le code zip " + zipCode);
+		// si on pointe vers un directory contenant tous les batiments
+		if (fileBati.isDirectory()) {
+			for (File singleBatiFile : fileBati.listFiles()) {
+				if (singleBatiFile.getName().endsWith(".shp") && singleBatiFile.getName().startsWith("out")) {
+					simpleEstimate(singleBatiFile);
+				}
+			}
+		}
+		// Si l'on pointe directement vers le shp
+		else {
+			simpleEstimate(fileBati);
+		}
+		toGenCSV(numeroParcel + "," +String.valueOf(nbLogements) + "," + String.valueOf(surfaceLogements) + "," + String.valueOf(densite),getFirstlineCsv());
+		System.out.println("");
+		
+		return nbLogements;
+	}
+
+	/**
+	 * Basic method to estimate the number of households that can fit into a set of
+	 * cuboid known as a building The total area of ground is predefined in the
+	 * class SimPLUSimulator and calculated with the object SDPCalc. This
+	 * calculation estimates 3meters needed for one floor. It's the same for all the
+	 * boxes; so it should be taken only once.
+	 * 
+	 * @param f : direction to the shapefile of the building
+	 * @return : number of households
+	 * @throws IOException
+	 */
+	public void simpleEstimate(File f) throws IOException {
 
 		if (!f.exists()) {
-			return 0;
+			System.out.println("pas de batiments..."); // bof, c'est un peu logique mais bon..
 		} else {
 			ShapefileDataStore shpDSBuilding = new ShapefileDataStore(f.toURI().toURL());
-			SimpleFeatureCollection buildingCollection = shpDSBuilding.getFeatureSource().getFeatures();
+			SimpleFeatureIterator buildingCollectionIt = shpDSBuilding.getFeatureSource().getFeatures().features();
+			int i = 0;
+			try {
+				while (i < 1) {
+					SimpleFeature build = buildingCollectionIt.next();
+					double surfaceLgt = (double) build.getAttribute("SurfaceTot");
+					numeroParcel = String.valueOf(build.getAttribute("num"));
+					System.out.println("le batiment de la parcelle " + numeroParcel + " fait " + surfaceLgt
+							+ " mcarré ");
+					nbLogements = (int) Math.round((surfaceLgt / surfaceLogDefault));
 
-			// on ne prends que le premier objet pour faire le calcul de l'air
-			// total des batiments
-			Object feature = buildingCollection.toArray()[0];
+					surfaceLogements = surfaceLgt / nbLogements;
 
-			SimpleFeature feat = (SimpleFeature) feature;
-			surface = (double) feat.getAttribute("SurfaceTot");
-			hauteur = (double) feat.getAttribute("Hauteur");
-			num = (int) feat.getAttribute("num");
-			System.out.println(
-					"le batiment de la parcelle " + num + " fait " + surface + " mcarré et " + hauteur + "m de haut");
-			etage = Math.round((hauteur / 2.5));
-			int logement = (int) Math.round((surface * etage) / surfaceLog);
-			logements = logements + logement;
-			double areaParcel = (double) feat.getAttribute("areaParcel");
-			totParcelArea = totParcelArea + areaParcel;
-			System.out.println("on peux ici construire " + logement + " logements de " + etage
-					+ " étages à une densité de " + (logement / (areaParcel / 10000)));
-			String firstline = new String(
-					"numParce, building surface, building height, number of stairs, number of households, housing units per hectare \n");
-			toCSV(f.getParentFile(), "housingUnits.csv", firstline,
-					f.toString().substring(f.toString().length() - 6, f.toString().length() - 4) + "," + surface + ","
-							+ hauteur + "," + etage + "," + logement + "," + (logement / (areaParcel / 10000)));
+					surfaceParcel = (double) build.getAttribute("areaParcel");
+					densite = nbLogements / (surfaceParcel / 10000);
 
+					System.out.println(
+							"on peux ici construire " + nbLogements + " logements à une densité de " + densite);
+
+					toCSV(f.getParentFile(), "housingUnits.csv", particularFirstLine,
+							numeroParcel + "," + String.valueOf(nbLogements) + "," + String.valueOf(surfaceLogements)
+									+ "," + String.valueOf(densite));
+					i = 1;
+				}
+
+			} catch (Exception problem) {
+				problem.printStackTrace();
+			} finally {
+				buildingCollectionIt.close();
+			}
+			shpDSBuilding.dispose();
 		}
-		System.out.println("construction totale de " + logements + " logements pour une densité de "
-				+ (logements / (totParcelArea / 10000)));
-
-		return logements;
 	}
 }

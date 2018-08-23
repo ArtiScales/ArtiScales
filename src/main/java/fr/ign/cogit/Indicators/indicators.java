@@ -8,137 +8,102 @@ import java.util.List;
 
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
+import fr.ign.parameters.Parameters;
 
 public abstract class indicators {
-	String mUPSimu;
 	String zipCode;
-	String selection;
-	String simPLUSimu;
+	Parameters p;
 	File rootFile;
-	boolean filling = false;
-	boolean firstLine = true;
+	File simuFile;
+	boolean firstLineGen = true;
+	boolean firstLineIndic = true;
 
 	/**
-	 * getters of the simulation's characteristics
+	 * getter of the scenar's name
 	 * 
-	 * @param fileRef
-	 *            a building file to get the general informations of
-	 * @return the name of the MUP-City's output
 	 */
-	public String getMupSimu(File fileRef) {
-		mUPSimu = fileRef.getParentFile().getParentFile().getParentFile().getName();
-		return mUPSimu;
+	public String getnameScenar() {
+		return p.getString("nom");
 	}
 
 	/**
-	 * getters of the simulation's characteristics
+	 * getters of the MUP-City's scenario name
 	 * 
-	 * @param fileRef
-	 *            a building file to get the general informations of
-	 * @return the name of the SimPLU's simulation
+	 * @return the name of the MUP-City's scenario used
 	 */
-	public String getsimPLUSimu(File fileRef) {
-		simPLUSimu = fileRef.getName();
-		return simPLUSimu;
+	public String getMupScenario() {
+		return p.getString("nameScenarMup");
 	}
 
 	/**
-	 * getters of the simulation's characteristics
+	 * getters of the MUP-City's techical parameters informations
 	 * 
-	 * @param fileRef
-	 *            a building file to get the general informations of
+	 * @return the name of the MUP-City's scenario used
+	 */
+	public String getMupTech() {
+		return p.getString("nameTechMup");
+	}
+
+	/**
+	 * getters of the simulation's selections stuff TODO a faire
+	 * 
+	 * @param fileRef a building file to get the general informations of
 	 * @return the name of the selection's methods
 	 */
-	public String getSelection(File fileRef) {
-		selection = fileRef.getParentFile().getName();
-		return selection;
+	public String getSelection() {
+		
+		return simuFile.getName();
 	}
 
 	/**
 	 * getters of the simulation's characteristics
 	 * 
-	 * @param fileRef
-	 *            a building file to get the general informations of
+	 * @param fileRef a building file to get the general informations of
 	 * @return the zipCode number
 	 */
 	public String getZipCode(File fileRef) {
-		zipCode = fileRef.getParentFile().getParentFile().getName();
-		return zipCode;
+		return fileRef.getParentFile().getParentFile().getName();
 	}
 
 	/**
-	 * automatically put all the simu chararcteristic's names into the state
-	 * variables
-	 * 
-	 * @param listFile
+	 * pré-format de la première ligne des tableaux. à vocation à être surchargé pour s'adapter aux indicateurs
+	 * @return
 	 */
-	protected void putSimuNames(File f) {
-		if (f.toString().contains("fillingBuildings")) {
-			boolean filling = true;
-			simPLUSimu = f.getParentFile().getName();
-			selection = f.getParentFile().getParentFile().getName();
-			zipCode = f.getParentFile().getParentFile().getParentFile().getName();
-			mUPSimu = f.getParentFile().getParentFile().getParentFile().getParentFile().getName();
-			rootFile = f.getParentFile().getParentFile().getParentFile().getParentFile().getParentFile();
-		} else {
-			simPLUSimu = f.getName();
-			selection = f.getParentFile().getName();
-			zipCode = f.getParentFile().getParentFile().getName();
-			mUPSimu = f.getParentFile().getParentFile().getParentFile().getName();
-			rootFile = f.getParentFile().getParentFile().getParentFile().getParentFile();
-		}
+	protected String getFirstlineCsv() {
+		return (getnameScenar() + ", paramètres techniques MUP-City,ZipCode,type de sélection,");
 	}
 
-	protected String getInfoSimuCsv() {
-		return (mUPSimu + "," + zipCode + "," + selection + "," + simPLUSimu + ",");
-	}
-
-	public void toGenCSV(String line) throws IOException {
+	/**
+	 * Writing on the general .csv situated on the rootFile
+	 * @param line : the line to be writted
+	 * @param firstline : the first line (can be empty)
+	 * @throws IOException
+	 */
+	public void toGenCSV(String line, String firstline) throws IOException {
 		File fileName = new File(rootFile, "results.csv");
-
 		FileWriter writer = new FileWriter(fileName, true);
-
+		// si l'on a pas encore insrit la premiere ligne
+		if (firstLineGen) {
+			writer.append(firstline);
+			writer.append("\n");
+			firstLineGen = false;
+		}
+		
+		//on cole les infos du scénario à la première ligne
+		line = getnameScenar() + "--" + getMupScenario() + "," + getMupTech() + "," + zipCode + "," + getSelection()
+		+ ","+line;
 		writer.append(line);
 		writer.append("\n");
 		writer.close();
 	}
 
-	// TODO automatiser la mise des infos fill dans le csv general
-	public void toGenCSVFill(String toAdd) throws IOException {
-		File fileName = new File(rootFile, "results.csv");
-		CSVReader csvReader = new CSVReader(new FileReader(fileName));
-		CSVWriter csvWriter = new CSVWriter(new FileWriter(fileName, true));
-
-		List content = csvReader.readAll();
-		String[] newRow;
-		for (Object object : content) {
-			String[] row = (String[]) object;
-			for (String s : row) {
-				if (row[0].equals(mUPSimu)) {
-					if (row[1].equals(zipCode)) {
-						if (row[2].equals(selection)) {
-							if (row[3].equals(simPLUSimu)) {
-
-							}
-						}
-					}
-				}
-			}
-		}
-		for (Object object : content) {
-			String[] row = (String[]) object;
-		}
-
-		csvWriter.close();
-
-	}
-
 	public void toCSV(File f, String name, String fLine, String line) throws IOException {
 		File fileName = new File(f, name);
-		FileWriter writer = new FileWriter(fileName, !firstLine);
-		if (firstLine == true) {
+		FileWriter writer = new FileWriter(fileName, !firstLineIndic);
+		if (firstLineIndic == true) {
 			writer.append(fLine);
-			firstLine = false;
+			writer.append("\n");
+			firstLineIndic = false;
 		}
 		writer.append(line);
 		writer.append("\n");

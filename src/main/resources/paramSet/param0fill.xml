@@ -3,16 +3,12 @@
 
 <!-- new parameters (before a potential reorgaization -->
 
-	<param key="fill" value="false" />
+	<param key="fill" value="true" />
 		<!-- si est ce que le modèle doit respecter le zonage ou non -->
 		<param key="respectZoning" value="true" />
 
-
 	<!-- Nom du scénario -->
 	<param key="nom" value="uncontroled sprawl" />
-
-	<!-- Liste des villes à prendre en compte dans la simulation (séparer les codes postaux par des virgules -->
-	<param key="listZipCode" value="25495" />
 
 	<!-- Configuration générales des simulations ArtiScales -->
 	<param key="seed" value="42"/>

@@ -17,8 +17,6 @@ import fr.ign.tools.OutputTools;
 public class SelecMUPOutput {
 	//root where everything's happenning
 	File rootFile;
-	//size of the analyzed cells
-	double sizeCell;
 	//list of input to analyse
 	List<File> rasterMupOutputList;
 
@@ -48,27 +46,23 @@ public class SelecMUPOutput {
 		File output = new File(rootFile, "output");
 		output.mkdirs();
 
-		ArrayList<File> listMupOutput = new ArrayList<File>();
-		// get the cells size
-
+		List<File> listMupOutput = new ArrayList<File>();
+		
 		for (File rasterMupOutput : rasterMupOutputList) {
-			String rasterOutputString = rasterMupOutput.getName().replace(".tif", "");
-			Pattern ech = Pattern.compile("-");
-
-			String[] list = ech.split(rasterOutputString);
-			sizeCell = Double.parseDouble(list[2].replace("CM", "").replace(".0",""));
-
-			File outputMup = new File(output, rasterOutputString);
+			// get the size of the cell form the file's folder
+			double sizeCell = Double.parseDouble(Pattern.compile("-").split(rasterMupOutput.getName().replace(".tif", ""))[2].replace("CM", "").replace(".0",""));
+			
+			
+			File outputMup = new File(output, rasterMupOutput.getName().replace(".tif", ""));
 			outputMup.mkdirs();
 
 			listMupOutput.add(outputMup);
-			File outputMupRaster = new File(outputMup, rasterMupOutput.getName());
-
-			Files.copy(rasterMupOutput.toPath(), new FileOutputStream(outputMupRaster));
+		
+			Files.copy(rasterMupOutput.toPath(), new FileOutputStream(new File(outputMup, rasterMupOutput.getName())));
 			File vectFile = new File(outputMup, outputMup.getName() + "-vectorized.shp");
 			// avoid alreadymade operation
 			if (!vectFile.exists()) {
-				OutputTools.VectorizeMupOutput(Rasters.importRaster(outputMupRaster), vectFile, sizeCell);
+				OutputTools.VectorizeMupOutput(Rasters.importRaster(new File(outputMup, rasterMupOutput.getName())), vectFile,sizeCell) ;
 			}
 		}
 
