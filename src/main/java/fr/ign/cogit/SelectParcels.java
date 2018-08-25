@@ -257,7 +257,6 @@ public class SelectParcels {
 		File newParcelSelection = new File(simuFile + "/parcelSelected.shp");
 		if (splitParcel) {
 			SimpleFeatureCollection parcelBrownSplited = generateSplitedParcels(parcelGen);
-			Vectors.exportSFC(parcelBrownSplited, new File("/home/yo/tmp/split.shp"));
 			SimpleFeatureCollection parcelInCell = selecMultipleParcelInCell(parcelBrownSplited);
 			SimpleFeatureCollection collectOut = putEvalInParcel(parcelInCell);
 			Vectors.exportSFC(collectOut, newParcelSelection);
@@ -282,10 +281,7 @@ public class SelectParcels {
 		String geometryParcelPropertyName = parcelIn.getSchema().getGeometryDescriptor().getLocalName();
 		Filter inter = ff.intersects(ff.property(geometryParcelPropertyName), ff.literal(cellsUnion));
 
-		Vectors.exportGeom(cellsUnion, new File("/home/yo/tmp/geocon"));
-
 		SimpleFeatureCollection parcelSelected = parcelIn.subCollection(inter);
-		Vectors.exportSFC(parcelIn, new File("/home/yo/tmp/lastchanceParcel.shp"));
 		if (parcelSelected.isEmpty()) {
 			System.out.println("selection is empty");
 		} else {
