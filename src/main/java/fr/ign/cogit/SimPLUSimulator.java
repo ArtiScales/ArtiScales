@@ -48,10 +48,13 @@ public class SimPLUSimulator {
 	SimpleFeature singleFeat;
 	boolean isSingleFeat = false;
 
+	Parameters p;
+	
 	File buildFile;
 	File roadFile;
 	File paramFile = new File("donnee/couplage/pluZoning/codes/");
-	File codeFile;
+	File codeFile ;
+	File predicateFile = new File(p.getString("pluPredicate"));
 	File zoningFile;
 	File simuFile;
 	int compteurOutput = 0;
@@ -62,8 +65,6 @@ public class SimPLUSimulator {
 	File filePrescLin;
 	File filePrescSurf;
 	File rootFile;
-
-	Parameters p;
 
 	public static void main(String[] args) throws Exception {
 
@@ -120,6 +121,7 @@ public class SimPLUSimulator {
 		}
 
 		codeFile = new File(pluFile, "/codes/DOC_URBA.shp");
+//TODO snap ça quand il y aura quelque chose dans ces couches
 		filePrescPonct = new File(pluFile, "/codes/PRESCRIPTION_PONCT.shp");
 		filePrescLin = new File(pluFile, "/codes/PRESCRIPTION_LIN.shp");
 		filePrescSurf = new File(pluFile, "/codes/PRESCRIPTION_SURF.shp");
@@ -216,8 +218,17 @@ public class SimPLUSimulator {
 		List<File> listBatiSimu = new ArrayList<File>();
 
 		for (int i = 0; i < env.getBpU().size(); i++) {
-			listBatiSimu.add(runSimulation(env, i, p));
+			File file = runSimulation(env, i, p);
+			if (file != null) {
+				listBatiSimu.add(file);
+			}
 		}
+		// Si la simu n'est pas trop inspirée
+		if (listBatiSimu.isEmpty()) {
+			System.out.println("&&&&&&&&&&&&&& Aucun bâtiments n'ont été simulés pour la commune "+ zipCode + " &&&&&&&&&&&&&&");
+			System.exit(1);
+		}
+		
 		return listBatiSimu;
 	}
 
@@ -239,7 +250,7 @@ public class SimPLUSimulator {
 		// Rules parameters
 
 		Regulation regle = null;
-		Map<Integer, List<Regulation>> regles = Regulation.loadRegulationSet(codeFile.getParent() + "/predicate.csv");
+		Map<Integer, List<Regulation>> regles = Regulation.loadRegulationSet(predicateFile.getAbsolutePath());
 		for (UrbaZone zone : env.getUrbaZones()) {
 			if (zone.getGeom().contains(bPU.getGeom())) {
 				typez = zone.getLibelle();
@@ -331,7 +342,9 @@ public class SimPLUSimulator {
 //
 //System.out.println("---------------------SUFRACE DE BLOC "+formTot);
 
-		// TODO méthode de calcul d'air simpliste
+		//TODO Prendre la shon (calcul dans simplu3d.experiments.openmole.diversity ? non, c'est la shob et pas la shon !! je suis ingénieur en génie civil que diable. Je ne peux pas me permettre de ne pas prendre en compte un des seuls trucs que je peux sortir de mes quatre ans d'étude pour cette these..!)
+		
+		// méthode de calcul d'air simpliste
 		double aireTemp = 0;
 		for (IFeature feat : iFeatCtemp) {
 			aireTemp = aireTemp + ((double) feat.getAttribute("SurfaceBox"));
@@ -355,6 +368,10 @@ public class SimPLUSimulator {
 		// TODO merge of the iFeatC objects
 
 		ShapefileWriter.write(iFeatC, output.toString(), CRS.decode("EPSG:2154"));
+
+		if (!output.exists()) {
+			output = null;
+		}
 
 		return output;
 	}

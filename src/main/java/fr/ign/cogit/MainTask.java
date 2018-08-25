@@ -30,8 +30,13 @@ public class MainTask {
 	private static void runScenar() throws Exception {
 
 		// Le fichier de configuration
-//		File paramFile = new File(MainTask.class.getClassLoader().getResource("paramSet/").getPath() + "param0.xml");
-		File paramFile = new File("/home/yo/workspace/ArtiScales/src/main/resources/paramSet/param0.xml");
+		File paramFile = new File(MainTask.class.getClassLoader().getResource("paramSet/").getPath() + "param0.xml");
+
+		//TODO faire les changements pour surcharger l'import de deux .xml dans le même fichier paramètre lorsque j'aurais accès au source de Geox (essayer de faire ça propre, si par ex valeur est la même dans les deux xml, le signaler blabla)
+//		File paramFileScenar = new File("/home/yo/workspace/ArtiScales/src/main/resources/paramSet/scenar0/parametreScenario.xml");
+//		File paramFileTech = new File("/home/yo/workspace/ArtiScales/src/main/resources/paramSet/scenar0/parametreTechnique.xml");
+//
+//		Parameters p = Parameters.unmarshall(paramFileScenar,paramFileTech);
 		Parameters p = Parameters.unmarshall(paramFile);
 
 		// Dossiers de projet
@@ -128,8 +133,23 @@ public class MainTask {
 				List<String> listeAction = selectionType(p);
 				SelectParcels selectParcels = new SelectParcels(rootFile, geoFile, pluFile, outMup, zipCode,
 						p.getBoolean("splitParcel"));
-				//mode fill : on va chercher à remplir les communes avec l'objectif de logement fixé dans le scot
-				if (p.getBoolean("fill")) {
+
+				// mode normal -- on construit tout ce que l'on peut. On peut peut-être ajouter un seuil d'évaluation?
+				if (!p.getBoolean("fill")) {
+					if (p.getBoolean("respectZoning")) {
+						File parcelSelected = selectParcels.runZoningAllowed();
+						SimPLUSimulator simPLUsimu = new SimPLUSimulator(rootFile, geoFile, pluFile, parcelSelected,
+								zipCode, p);
+						// On lance la simulation
+						List<File> batisSimulatedFile = simPLUsimu.run();
+						File mergedBatiFile = VectorFct.mergeBatis(batisSimulatedFile);
+						BuildingToHousehold bTH = new BuildingToHousehold(mergedBatiFile, p);
+						bTH.run();
+					}
+				}
+				// mode fill : on va chercher à remplir les communes avec l'objectif de logement
+				// fixé dans le scot
+				else {
 					int missingHousingUnits = GetFromGeom.getHousingUnitsGoals(geoFile, zipCode);
 					System.out.println("il manque " + missingHousingUnits + " logements pour cette commune");
 					for (String action : listeAction) {
@@ -160,20 +180,6 @@ public class MainTask {
 						if (missingHousingUnits == 0) {
 							break;
 						}
-					}
-
-				} 
-				//pas le mode fill -- on construit tout ce que l'on peut. On peut peut-être ajouter un seuil d'évaluation?
-				else {
-					if (p.getBoolean("respectZoning")) {
-						File parcelSelected = selectParcels.runZoningAllowed();
-						SimPLUSimulator simPLUsimu = new SimPLUSimulator(rootFile, geoFile, pluFile, parcelSelected,zipCode, p);
-						// On lance la simulation
-						List<File> batisSimulatedFile = simPLUsimu.run();
-	//TODO a partir de là, l'enchainement est pas bon
-						File mergedBatiFile = VectorFct.mergeBatis(batisSimulatedFile);
-						BuildingToHousehold bTH = new BuildingToHousehold(mergedBatiFile, p);
-						bTH.run();
 					}
 				}
 			}

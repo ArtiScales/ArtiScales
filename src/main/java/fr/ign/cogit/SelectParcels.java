@@ -256,8 +256,9 @@ public class SelectParcels {
 		SimpleFeatureCollection parcelGen = GetFromGeom.selecParcelZonePLU(zones, zipCode, parcelFile, zoningFile);
 		File newParcelSelection = new File(simuFile + "/parcelSelected.shp");
 		if (splitParcel) {
-			SimpleFeatureCollection parcelBrownConstructedSplited = generateSplitedParcels(parcelGen);
-			SimpleFeatureCollection parcelInCell = selecMultipleParcelInCell(parcelBrownConstructedSplited);
+			SimpleFeatureCollection parcelBrownSplited = generateSplitedParcels(parcelGen);
+			Vectors.exportSFC(parcelBrownSplited, new File("/home/yo/tmp/split.shp"));
+			SimpleFeatureCollection parcelInCell = selecMultipleParcelInCell(parcelBrownSplited);
 			SimpleFeatureCollection collectOut = putEvalInParcel(parcelInCell);
 			Vectors.exportSFC(collectOut, newParcelSelection);
 		} else {

@@ -1,19 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <parameters>
 
-<!-- new parameters (before a potential reorgaization -->
+<!-- Paramètres techniques de MUP-City -->
 
-	<param key="fill" value="false" />
-		<!-- si est ce que le modèle doit respecter le zonage ou non -->
-		<param key="respectZoning" value="true" />
-
-
-	<!-- Nom du scénario -->
-	<param key="nom" value="uncontroled sprawl" />
-
-	<!-- Liste des villes à prendre en compte dans la simulation (séparer les codes postaux par des virgules -->
-	<param key="listZipCode" value="25542" />
-
+	<!-- Paramètres généraux pour la simulation -->
 	<!-- Configuration générales des simulations ArtiScales -->
 	<param key="seed" value="42"/>
 	
@@ -23,73 +13,15 @@
 	<param key="pluFile" value="/home/yo/Documents/these/ArtiScales/donneeGeographiques/PLU"/>
 	
 	<!-- PARAMETRES DE MUP-CITY -->
-	<!-- paramètres scénarios-->
-	<param key="N" value="5"/>
-	<param key="strict" value="false" />
-	<param key="mean" value="true" />
-	
-	<param key="nameScenarMup" value ="N6_St_Moy_ahpx_seed_9015629222324914404"/>
-	
-
-<param key="ahpName" value="ahpx"/> 
-	<param key="ahp8" value="0.083"/>
-	<param key="ahp7" value="0.083"/>
-	<param key="ahp6" value="0.083"/>
-	<param key="ahp5" value="0.04"/>
-	<param key="ahp4" value="0.218"/>
-	<param key="ahp3" value="0.218"/>
-	<param key="ahp2" value="0.218"/>
-	<param key="ahp1" value="0.03"/>
-	<param key="ahp0" value="0.0027"/>
-
-	
-
 	<!-- paramètres techniques -->	
 	
-	<param key = "nameTechMup" value="basique"/>
 	<param key="emprise" value="915948;6677337;26590;26590"/>
 	<param key ="cm" value="20"/>
 	<param key="seuil" value="0"/>
-<param key="data" value="dataManu" />
-
+	<param key="data" value="dataManu" />
 	<param key = "nivCellUtilise" value="1"/>
 
-	<!-- PARAMÈTRES ARTISCALES -->
-	
-	<!-- Types de sélections -->
-	<!-- Sélection Typique -->
-	<param key="Ubuilt" value="true" />
-	<param key="UnotBuilt" value="true" />
-	<param key="AUnotBuilt" value="true" />
-	<param key="ALLnotBuilt" value="true" />
-	<!-- Sélection de toutes les parcelles ordonnée selon l'éval -->
-	<param key="JustEval" value="false" />
-	<!-- Sélection aléatoire (sans Mup-City) -->
-	<param key="Anarchie" value="false" />
-
-	
-	<!-- Taille des parcelles lors de la décomposition! -->
-
-	<!-- info selection -->
-	<!--  On décompose les parcelles -->
-	<param key="splitParcel" value="true" />
-	<!--  je ne crois pas que celui là soit utilisé 
-	<param key="singleParcel" value="true" />-->
-	
-	<!--  Aire maximale splittée -->
-	<param key="maximalAreaSplitParcel" value="500" />
-	<!--  Largeur minimum d'une parcelle donnant sur la voirie -->
-	<param key="maximalWidthSplitParcel" value="20" />
-	
-	<!-- On ne construit qu'un seul bâtiment sur la parcelle-->
-	<param key="singleBuild" value="true" />
-
-	<!-- Taille moyenne d'un logement -->
-	<param key="HousingUnitSize" value="120" />
-
-
 	<!-- PARAMETRES DE SIMPLU3D -->
-
 
 	<!-- paramètre conduisant au scénario d'étalement urbain -->
 	<!-- Paramètres relatifs à l'énergie -->
@@ -100,23 +32,8 @@
 	<!-- Pondération négative du volume dépassant de la parcelle -->
 	<param key="ponderation_difference_ext" value="5" />
 	<!-- Pondération négative d'une boîte en intersectant une autre -->
+<!-- pas sur que ce soit un par tech -->
 	<param key="ponderation_volume_inter" value="50" />
-
-
-	<!--Distribution (équiprobable) des dimensions des boîtes -->
-	<!-- Largeur et longueur ! -->
-	<param key="minlen" value="7" />
-	<param key="maxlen" value="15" />
-
-	<param key="minwid" value="5" />
-	<param key="maxwid" value="15" />
-	<!-- Hauteur ! -->
-	<param key="minheight" value="3" />
-	<param key="maxheight" value="10" />
-
-	<!-- Nombre de cuboïde maximal -->
-	<param key="nbCuboid" value="2" />
-
 
 	<!-- Probabilités ! -->
 	<!-- Création/destruction d'une boîte ! -->

@@ -8,6 +8,8 @@ import java.util.List;
 
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
+import fr.ign.analyse.obj.ProjetAnalyse;
+import fr.ign.analyse.obj.ScenarAnalyse;
 import fr.ign.parameters.Parameters;
 
 public abstract class indicators {
@@ -17,6 +19,9 @@ public abstract class indicators {
 	File simuFile;
 	boolean firstLineGen = true;
 	boolean firstLineIndic = true;
+	// lazy way to get MUP-City's informations
+	ScenarAnalyse sA = new ScenarAnalyse(p.getString("cm"),p.getString("emprise"),p.getString("seuil"),p.getString("data"),p.getString("N"),p.getString("ahpName"),p.getString("strict"),p.getString("mean"),p.getString("seed"));
+
 
 	/**
 	 * getter of the scenar's name
@@ -31,8 +36,8 @@ public abstract class indicators {
 	 * 
 	 * @return the name of the MUP-City's scenario used
 	 */
-	public String getMupScenario() {
-		return p.getString("nameScenarMup");
+	public String getMupScenario() {		
+		return sA.getNiceName();
 	}
 
 	/**
@@ -41,7 +46,7 @@ public abstract class indicators {
 	 * @return the name of the MUP-City's scenario used
 	 */
 	public String getMupTech() {
-		return p.getString("nameTechMup");
+		return ((ProjetAnalyse)sA).getNiceName();
 	}
 
 	/**
