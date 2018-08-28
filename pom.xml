@@ -10,9 +10,7 @@
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<mupcity.version>1.2.4-COGIT-SNAPSHOT</mupcity.version>
-		<geotools.version>19.1</geotools.version>
-		<fracgis.version>0.7.2-COGIT-SNAPSHOT</fracgis.version>
+		<geotools.version>18.4</geotools.version>
 		<mupcity-openMole.version>0.0.2-SNAPSHOT</mupcity-openMole.version>
 		<simplu3d.version>1.2-SNAPSHOT</simplu3d.version>
 		<artiscales.tools.version>0.1-SNAPSHOT</artiscales.tools.version>
@@ -92,11 +90,6 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>org.thema</groupId>
-			<artifactId>mupcity</artifactId>
-			<version>${mupcity.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>fr.ign.cogit</groupId>
 			<artifactId>simplu3d</artifactId>
 			<version>${simplu3d.version}</version>
@@ -105,11 +98,6 @@
 			<groupId>org.geotools</groupId>
 			<artifactId>gt-grid</artifactId>
 			<version>${geotools.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.thema</groupId>
-			<artifactId>fracgis</artifactId>
-			<version>${fracgis.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>fr.ign</groupId>

@@ -12,17 +12,17 @@
 		<param key="fill" value="false" />
 
 	<!-- Liste des villes à prendre en compte dans la simulation (séparer les codes postaux par des virgules) -->
-	<param key="listZipCode" value="25542" />
+	<param key="listZipCode" value="25495" />
 	
 	<!-- Dossiers et fichiers nécessaires à la simulation -->
 		<!-- Emplacement des résultats de simulation (intermédiaires et finaux) -->
-		<param key="rootFile" value="/home/yo/Documents/these/ArtiScales/"/>
+	<param key="rootFile" value="/home/mcolomb/informatique/ArtiScales/"/>
 		<!-- Emplacement des données géographiques générales -->
-		<param key="geoFile" value="/home/yo/Documents/these/ArtiScales/donneeGeographiques"/>
+	<param key="geoFile" value="/home/mcolomb/informatique/ArtiScales/donneeGeographiques"/>
 		<!-- Emplacement des données géographiques concernant les PLU -->
-		<param key="pluFile" value="/home/yo/Documents/these/ArtiScales/donneeGeographiques/PLU"/>
+		<param key="pluFile" value="/home/mcolomb/informatique/ArtiScales/donneeGeographiques/PLU"/>
 		<!-- Nom du fichier contenant la modélisation du règlement des PLU -->
-		<param key="pluPredicate" value="/home/yo/Documents/these/ArtiScales/donneeGeographiques/PLU/codes/predicate.csv"/>
+		<param key="pluPredicate" value="/home/mcolomb/informatique/ArtiScales/donneeGeographiques/PLU/codes/predicate.csv"/>
 		
 	<!-- PARAMETRES DU MODULE MUP-CITY -->
 			
@@ -37,6 +37,7 @@
 	
 		<!-- Paramètre concernant la pondération des règles d'aménagement -->
 		<!-- Ces pondérations sont calculées au moyens de matrice d'aide à la décision (Analytic Hierarchical Process, voir (Saaty, 1977) -->
+
 			<!-- Nom générique pour le jeu de pondération -->
 			<param key="ahpName" value="ahpx"/> 
 			<!-- Pondération de la règle d'accessibilité aux espaces naturels et de loisirs de fréquentation potentielle mensuelle -->
@@ -120,7 +121,7 @@
 		<param key="fctOpt" value="" />
 
 		<!-- Si "true", l'intersection entre les cuboïdes est permise -->
-		<param key="intersection" value="" />
+		<param key="intersection" value="false" />
 
 		<!-- Nombre de cuboïde maximal -->
 		<param key="nbCuboid" value="2" />

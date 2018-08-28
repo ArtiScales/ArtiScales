@@ -32,12 +32,13 @@ public class MainTask {
 		// Le fichier de configuration
 		File paramFile = new File(MainTask.class.getClassLoader().getResource("paramSet/").getPath() + "param0.xml");
 
-		//TODO faire les changements pour surcharger l'import de deux .xml dans le même fichier paramètre lorsque j'aurais accès au source de Geox (essayer de faire ça propre, si par ex valeur est la même dans les deux xml, le signaler blabla)
-//		File paramFileScenar = new File("/home/yo/workspace/ArtiScales/src/main/resources/paramSet/scenar0/parametreScenario.xml");
-//		File paramFileTech = new File("/home/yo/workspace/ArtiScales/src/main/resources/paramSet/scenar0/parametreTechnique.xml");
-//
-//		Parameters p = Parameters.unmarshall(paramFileScenar,paramFileTech);
-		Parameters p = Parameters.unmarshall(paramFile);
+		// TODO faire les changements pour surcharger l'import de deux .xml dans le même fichier paramètre lorsque j'aurais accès au source de Geox (essayer de faire ça propre, si
+		// par ex valeur est la même dans les deux xml, le signaler blabla)
+		File paramFileScenar = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/scenar0/parametreScenario.xml");
+		File paramFileTech = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/scenar0/parametreTechnique.xml");
+
+		Parameters p = Parameters.unmarshall(paramFileScenar, paramFileTech);
+		// Parameters p = Parameters.unmarshall(paramFile);
 
 		// Dossiers de projet
 		rootFile = new File(p.getString("rootFile"));
@@ -60,59 +61,57 @@ public class MainTask {
 		File outputMup = new File(rootFile, "depotConfigSpatMUP/simu");
 		List<File> listOutputMupToTest = new ArrayList<File>();
 
-//		/// Étape 1 : simulation de MupCity
-//		String empriseStr = p.getString("emprise");
-//		Pattern ptVir = Pattern.compile(";");
-//		String[] emprise = ptVir.split(empriseStr);
-//		double xmin = Double.valueOf(emprise[0]);
-//		double ymin = Double.valueOf(emprise[1]);
-//		double width = Double.valueOf(emprise[2]);
-//		double height = Double.valueOf(emprise[3]);
-//
-//		// Mettre ça dans le fichier paramètre?
-//		Map<String, String> dataHT = new Hashtable<String, String>();
-//		// Data1.1
-//		dataHT.put("name", "DataSys");
-//		dataHT.put("build", "batimentSys.shp");
-//		dataHT.put("road", "routeSys.shp");
-//		dataHT.put("fac", "serviceSys.shp");
-//		dataHT.put("lei", "loisirSys.shp");
-//		dataHT.put("ptTram", "tramSys.shp");
-//		dataHT.put("ptTrain", "trainSys.shp");
-//		dataHT.put("nU", "nonUrbaSys.shp");
-//
-//		System.out.println("----------Project creation and decomp----------");
-//		File projectFile = ProjectCreationDecompTask.run(name, geoFile, outputMup, xmin, ymin, width, height, 0, 0,
-//				dataHT, p.getDouble("cm"), 14580, p.getDouble("seuil"));
-//		System.out.println("----------Simulation task----------");
-//		File result = SimulTask.run(projectFile, name, p.getInteger("N"), p.getBoolean("strict"), p.getDouble("ahp0"),
-//				p.getDouble("ahp1"), p.getDouble("ahp2"), p.getDouble("ahp3"), p.getDouble("ahp4"), p.getDouble("ahp5"),
-//				p.getDouble("ahp6"), p.getDouble("ahp7"), p.getDouble("ahp8"), p.getBoolean("mean"),
-//				p.getInteger("seed"), false);
-//		System.out.println("result : " + result);
-//		System.out.println("----------End task----------");
-//
-//		// Recherche des sorties de MUP-City que l'on va vouloir simuler (shortcut)
-//		double nivObs = p.getDouble("cm") * p.getDouble("nivCellUtilise");
-//		for (File f : result.listFiles()) {
-//			if (f.getName().contains("evalAnal") && f.getName().contains(String.valueOf(nivObs))) {
-//				FileOutputStream flow = new FileOutputStream(new File(outputMup.getParentFile(), f.getName()));
-//				Files.copy(f.toPath(), flow);
-//				listOutputMupToTest.add(f);
-//				flow.close();
-//			}
-//		}
+		/// Étape 1 : simulation de MupCity
+		String empriseStr = p.getString("emprise");
+		Pattern ptVir = Pattern.compile(";");
+		String[] emprise = ptVir.split(empriseStr);
+		double xmin = Double.valueOf(emprise[0]);
+		double ymin = Double.valueOf(emprise[1]);
+		double width = Double.valueOf(emprise[2]);
+		double height = Double.valueOf(emprise[3]);
 
-		// Si l'on met directement les simu MUP
+		// Mettre ça dans le fichier paramètre?
+		Map<String, String> dataHT = new Hashtable<String, String>();
+		// Data1.1
+		dataHT.put("name", "DataSys");
+		dataHT.put("build", "batimentSys.shp");
+		dataHT.put("road", "routeSys.shp");
+		dataHT.put("fac", "serviceSys.shp");
+		dataHT.put("lei", "loisirSys.shp");
+		dataHT.put("ptTram", "tramSys.shp");
+		dataHT.put("ptTrain", "trainSys.shp");
+		dataHT.put("nU", "nonUrbaSys.shp");
+
+		System.out.println("----------Project creation and decomp----------");
+		File projectFile = ProjectCreationDecompTask.run(name, geoFile, outputMup, xmin, ymin, width, height, 0, 0, dataHT, p.getDouble("cm"), 14580, p.getDouble("seuil"));
+		System.out.println("----------Simulation task----------");
+		File result = SimulTask.run(projectFile, name, p.getInteger("N"), p.getBoolean("strict"), p.getDouble("ahp0"), p.getDouble("ahp1"), p.getDouble("ahp2"),
+				p.getDouble("ahp3"), p.getDouble("ahp4"), p.getDouble("ahp5"), p.getDouble("ahp6"), p.getDouble("ahp7"), p.getDouble("ahp8"), p.getBoolean("mean"),
+				p.getInteger("seed"), false);
+		System.out.println("result : " + result);
+		System.out.println("----------End task----------");
+
+		// Recherche des sorties de MUP-City que l'on va vouloir simuler (shortcut)
 		double nivObs = p.getDouble("cm") * p.getDouble("nivCellUtilise");
-		System.out.println();
-		for (File f : outputMup.getParentFile().listFiles()) {
-			if (f.getName().contains("evalAnal") && f.getName().contains(String.valueOf(nivObs))
-					&& f.getName().endsWith(".tif")) {
+		for (File f : result.listFiles()) {
+			if (f.getName().contains("evalAnal") && f.getName().contains(String.valueOf(nivObs))) {
+				FileOutputStream flow = new FileOutputStream(new File(outputMup.getParentFile(), f.getName()));
+				Files.copy(f.toPath(), flow);
 				listOutputMupToTest.add(f);
-				System.out.println("MUP-City's output in the machine : " + f);
+				flow.close();
 			}
 		}
+
+		// // Si l'on met directement les simu MUP
+		// double nivObs = p.getDouble("cm") * p.getDouble("nivCellUtilise");
+		// System.out.println();
+		// for (File f : outputMup.getParentFile().listFiles()) {
+		// if (f.getName().contains("evalAnal") && f.getName().contains(String.valueOf(nivObs))
+		// && f.getName().endsWith(".tif")) {
+		// listOutputMupToTest.add(f);
+		// System.out.println("MUP-City's output in the machine : " + f);
+		// }
+		// }
 
 		/// Étape 2 : étape de couplage (très imbriqué..)
 
@@ -131,15 +130,13 @@ public class MainTask {
 				// Liste de types de sélection à partir du phasage définis dans le fichier de
 				// paramètre
 				List<String> listeAction = selectionType(p);
-				SelectParcels selectParcels = new SelectParcels(rootFile, geoFile, pluFile, outMup, zipCode,
-						p.getBoolean("splitParcel"));
+				SelectParcels selectParcels = new SelectParcels(rootFile, geoFile, pluFile, outMup, zipCode, p.getBoolean("splitParcel"));
 
 				// mode normal -- on construit tout ce que l'on peut. On peut peut-être ajouter un seuil d'évaluation?
 				if (!p.getBoolean("fill")) {
 					if (p.getBoolean("respectZoning")) {
 						File parcelSelected = selectParcels.runZoningAllowed();
-						SimPLUSimulator simPLUsimu = new SimPLUSimulator(rootFile, geoFile, pluFile, parcelSelected,
-								zipCode, p);
+						SimPLUSimulator simPLUsimu = new SimPLUSimulator(rootFile, geoFile, pluFile, parcelSelected, zipCode, p);
 						// On lance la simulation
 						List<File> batisSimulatedFile = simPLUsimu.run();
 						File mergedBatiFile = VectorFct.mergeBatis(batisSimulatedFile);
@@ -174,8 +171,7 @@ public class MainTask {
 								ParcelToTest = selectParcels.runAll();
 							}
 							// on calcule directement le nombre de logements par simulations de SimPLU
-							missingHousingUnits = SimPLUSimulator.fillSelectedParcels(rootFile, geoFile, pluFile,
-									ParcelToTest, missingHousingUnits, zipCode, p);
+							missingHousingUnits = SimPLUSimulator.fillSelectedParcels(rootFile, geoFile, pluFile, ParcelToTest, missingHousingUnits, zipCode, p);
 						}
 						if (missingHousingUnits == 0) {
 							break;

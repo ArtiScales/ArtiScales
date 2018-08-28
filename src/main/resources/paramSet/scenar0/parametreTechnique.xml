@@ -7,11 +7,6 @@
 	<!-- Configuration générales des simulations ArtiScales -->
 	<param key="seed" value="42"/>
 	
-	<!-- Fichiers  -->
-	<param key="rootFile" value="/home/yo/Documents/these/ArtiScales/"/>
-	<param key="geoFile" value="/home/yo/Documents/these/ArtiScales/donneeGeographiques"/>
-	<param key="pluFile" value="/home/yo/Documents/these/ArtiScales/donneeGeographiques/PLU"/>
-	
 	<!-- PARAMETRES DE MUP-CITY -->
 	<!-- paramètres techniques -->	
 	
@@ -71,7 +66,7 @@
 		relatif à la non amélioration de la configuration -->
 	<param key="end_test_type" value="relative" />
 	<param key="absolute_nb_iter" value="800000" />
-	<param key="relative_nb_iter" value="6666" />
+	<param key="relative_nb_iter" value="16666" />
 	<param key="delta" value="5" />
 
 	<param key="poisson" value="20" />
