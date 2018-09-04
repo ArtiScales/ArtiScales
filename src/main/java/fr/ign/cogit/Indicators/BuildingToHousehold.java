@@ -100,7 +100,7 @@ public class BuildingToHousehold extends indicators {
 			try {
 				while (i < 1) {
 					SimpleFeature build = buildingCollectionIt.next();
-					double surfaceLgt = (double) build.getAttribute("SurfaceTot");
+					double surfaceLgt = (double) build.getAttribute("SDPShon");
 					numeroParcel = String.valueOf(build.getAttribute("num"));
 					System.out.println("le batiment de la parcelle " + numeroParcel + " fait " + surfaceLgt
 							+ " mcarré ");

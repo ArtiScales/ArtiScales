@@ -30,6 +30,7 @@ import fr.ign.cogit.simplu3d.model.UrbaZone;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.Cuboid;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.loader.LoaderCuboid;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.optimizer.cuboid.OptimisedBuildingsCuboidFinalDirectRejection;
+import fr.ign.cogit.simplu3d.rjmcmc.cuboid.optimizer.mix.MultipleBuildingsCuboid;
 import fr.ign.cogit.simplu3d.util.SDPCalc;
 import fr.ign.cogit.util.GetFromGeom;
 import fr.ign.cogit.util.VectorFct;
@@ -41,7 +42,7 @@ import fr.ign.parameters.Parameters;
 public class SimPLUSimulator {
 
 	String zipCode;
-	// parcel
+	// parcels containing all of em
 	File parcelsFile;
 
 	// one single parcel to study
@@ -70,11 +71,13 @@ public class SimPLUSimulator {
 		// Method to only test the SimPLU3D simulation
 		File rootFolder = new File("/home/mcolomb/informatique/ArtiScales/");
 		File selectedParcels = new File(
-				"/home/mcolomb/informatique/ArtiScales/output/Stability-dataAutomPhy-CM20.0-S0.0-GP_915948.0_6677337.0--N6_St_Moy_ahpx_seed_9015629222324914404-evalAnal-20.0/25495/ZoningAllowed/parcelSelected.shp");
+				"/home/mcolomb/tmp/parce.shp");
 		File pluFile = new File(rootFolder, "/donneeGeographiques/PLU");
 		File geoFile = new File(rootFolder, "/donneeGeographiques");
-		Parameters p = Parameters.unmarshall(new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/scenar0/parametreTechnique.xml"),
-				new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/scenar0/parametreScenario.xml"));
+		List<File> lF = new ArrayList<>();
+		lF.add(new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/scenar0/parametreTechnique.xml"));
+		lF.add(new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/scenar0/parametreScenario.xml"));
+		Parameters p = Parameters.unmarshall(lF);
 		System.out.println(p.getString(""));
 		SimPLUSimulator simplu = new SimPLUSimulator(rootFolder, geoFile, pluFile, selectedParcels, p.getString("listZipCode"), p);
 		simplu.run();
@@ -287,9 +290,10 @@ public class SimPLUSimulator {
 		double distReculLat = regle.getArt_72();
 
 		double distanceInterBati = regle.getArt_8();
-		if (regle.getArt_8() == 99) {
-			distanceInterBati = 0;
+		if (distanceInterBati == 88.0 || distanceInterBati == 99.0) {
+			distanceInterBati = 50; // quelle valeur faut il mettre ??
 		}
+		MultipleBuildingsCuboid.ALLOW_INTERSECTING_CUBOID = p.getBoolean("intersection");
 
 		double maximalCES = regle.getArt_9();
 		if (regle.getArt_8() == 99) {
@@ -310,9 +314,17 @@ public class SimPLUSimulator {
 		// Run of the optimisation on a parcel with the predicate
 		GraphConfiguration<Cuboid> cc = oCB.process(bPU, p, env, 1, pred);
 
+		IFeatureCollection<IFeature> iFeat3D = new FT_FeatureCollection<>();
+		for (GraphVertex<Cuboid> v : cc.getGraph().vertexSet()) {
+			IFeature feat = new DefaultFeature(v.getValue().generated3DGeom());
+			iFeat3D.add(feat);
+		}
+		List<Cuboid> cubes = LoaderCuboid.loadFromCollection(iFeat3D);
+		SDPCalc surfGen = new SDPCalc();
+		double formTot = surfGen.process(cubes);
+
 		// Witting the output
 		IFeatureCollection<IFeature> iFeatC = new FT_FeatureCollection<>();
-		IFeatureCollection<IFeature> iFeatCtemp = new FT_FeatureCollection<>();
 
 		// For all generated boxes
 		for (GraphVertex<Cuboid> v : cc.getGraph().vertexSet()) {
@@ -329,37 +341,16 @@ public class SimPLUSimulator {
 			AttributeManager.addAttribute(feat, "Hauteur", v.getValue().height, "Double");
 			AttributeManager.addAttribute(feat, "Rotation", v.getValue().orientation, "Double");
 			AttributeManager.addAttribute(feat, "SurfaceBox", feat.getGeom().area(), "Double");
+			AttributeManager.addAttribute(feat, "SDPShon", formTot * 0.8, "Double");
 			AttributeManager.addAttribute(feat, "areaParcel", areaParcels, "Double");
 			AttributeManager.addAttribute(feat, "num", i, "Integer");
-			iFeatCtemp.add(feat);
+			iFeatC.add(feat);
 		}
-		// TODO réparer ça. Je ne comprends pas pourquoi toutes les hauteur des cuboïdes sont nulles, ce qui fait que la surface qui suit est nulle aussi. Pour l'instant, j'utilise
-		// donc une suface comprennant les intersections
-		List<Cuboid> cubes = LoaderCuboid.loadFromCollection(iFeatCtemp);
-		if (!cubes.isEmpty()) {
-			System.out.println("èèèèèèèèèèèèèèè__hauteuuur du cube " + cubes.get(0).height);
-		}
-		SDPCalc surfGen = new SDPCalc();
-		double formTot = surfGen.process(cubes);
-
-		System.out.println("---------------------SUFRACE DE BLOC " + formTot);
 
 		// TODO Prendre la shon (calcul dans simplu3d.experiments.openmole.diversity ? non, c'est la shob et pas la shon !! je suis ingénieur en génie civil que diable. Je ne peux
 		// pas me permettre de ne pas prendre en compte un des seuls trucs que je peux sortir de mes quatre ans d'étude pour cette these..!)
 
 		// méthode de calcul d'air simpliste
-		double aireTemp = 0;
-		for (IFeature feat : iFeatCtemp) {
-			aireTemp = aireTemp + ((double) feat.getAttribute("SurfaceBox"));
-		}
-		for (IFeature feat : iFeatCtemp) {
-			AttributeManager.addAttribute(feat, "SurfaceTot", aireTemp, "Double");
-			iFeatC.add(feat);
-			// iFeatGenC.add(feat);
-		}
-		// A shapefile is written as output
-		// WARNING : 'out' parameter from configuration file have to be
-		// change
 
 		File output = new File(simuFile, "out-parcelle_" + i + ".shp");
 
