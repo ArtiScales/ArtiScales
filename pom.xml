@@ -142,6 +142,12 @@
             <url>http://sourcesup.renater.fr/nexus/content/repositories/mupcity-releases/</url>
         </repository>
 	</repositories>
+    <developers>
+        <developer>
+            <id>maxcolomb</id>
+            <name>Maxime Colomb</name>
+        </developer>
+    </developers>
 	<reporting>
 		<plugins>
 			<plugin>
