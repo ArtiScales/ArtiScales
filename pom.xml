@@ -18,7 +18,7 @@
 
 	<name>ArtiScales</name>
 	<description></description>
-	<url>/</url>
+	<url>https://github.com/ArtiScales/ArtiScales</url>
 	<build>
 		<finalName>ArtiScales${project.version}</finalName>
 		<sourceDirectory>src/main/java</sourceDirectory>
