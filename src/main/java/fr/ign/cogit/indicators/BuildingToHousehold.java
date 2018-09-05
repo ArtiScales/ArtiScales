@@ -1,4 +1,4 @@
-package fr.ign.cogit.Indicators;
+package fr.ign.cogit.indicators;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,7 +10,7 @@ import org.opengis.feature.simple.SimpleFeature;
 import fr.ign.cogit.util.VectorFct;
 import fr.ign.parameters.Parameters;
 
-public class BuildingToHousehold extends indicators {
+public class BuildingToHousehold extends Indicators {
 	// infos from the Artiscales simulations
 	File fileBati;
 	double surfaceLogDefault;

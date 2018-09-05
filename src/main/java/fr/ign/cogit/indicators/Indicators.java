@@ -1,4 +1,4 @@
-package fr.ign.cogit.Indicators;
+package fr.ign.cogit.indicators;
 
 import java.io.File;
 import java.io.FileReader;
@@ -12,7 +12,7 @@ import fr.ign.analyse.obj.ProjetAnalyse;
 import fr.ign.analyse.obj.ScenarAnalyse;
 import fr.ign.parameters.Parameters;
 
-public abstract class indicators {
+public abstract class Indicators {
 	String zipCode;
 	Parameters p;
 	File rootFile;
