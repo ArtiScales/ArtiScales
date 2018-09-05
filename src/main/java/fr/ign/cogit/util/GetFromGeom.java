@@ -53,7 +53,7 @@ public class GetFromGeom {
 				return f;
 			}
 		}
-		throw new FileNotFoundException("Building file not found");
+		throw new FileNotFoundException("Route file not found");
 	}
 
 	public static int getHousingUnitsGoals(File geoFile, String zipCode) throws IOException {
