@@ -79,8 +79,8 @@ public class SimPLUSimulator {
 
 		// Rappel de la construction du code :
 		// codeDep + codeCom + comAbs + section + numero
-
 		ID_PARCELLE_TO_SIMULATE.add("25495000AO0045");
+
 		//ID_PARCELLE_TO_SIMULATE.add("25495000AE0036");
 		
 		// RootFolder
@@ -233,6 +233,37 @@ public class SimPLUSimulator {
 		System.out.println(filePrescLin);
 		Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile, parcelsFile, roadFile, buildFile,
 				filePrescPonct, filePrescLin, filePrescSurf, null);
+		//We associate regulation to UrbanZone
+		
+		// Rules parameters
+		ArtiScalesRegulation regle = null;
+		Map<String, ArtiScalesRegulation> regles = ArtiScalesRegulation.loadRegulationSet(predicateFile.getAbsolutePath());
+
+		if (regles == null || regles.isEmpty()) {
+			System.out.println("Missing predicate file");
+			return null;
+		}
+		
+		
+		//For each zone we associate a regulation to the zone
+		for (UrbaZone zone : env.getUrbaZones()) {
+			
+		 regle = regles.get(zone.getLibelle());
+		 
+		 if(regle != null){
+			 zone.setZoneRegulation(regle); 
+		 }else{
+			 System.out.println("Missing regulation for zone : " + zone.getLibelle());
+			 System.out.println("We associate the default regulation");
+			 
+			 if(regles.get(999) == null){
+				 System.out.println("Default regulation does not exist");
+			 }
+			 
+			 zone.setZoneRegulation(regles.get(999));
+		 }
+		
+		}
 
 		List<File> listBatiSimu = new ArrayList<File>();
 
@@ -281,24 +312,9 @@ public class SimPLUSimulator {
 
 		// Instantiation of the sampler
 		OptimisedBuildingsCuboidFinalDirectRejection oCB = new OptimisedBuildingsCuboidFinalDirectRejection();
-		String typez = new String();
+	
 
-		// Rules parameters
-		ArtiScalesRegulation regle = null;
-		Map<String, List<ArtiScalesRegulation>> regles = ArtiScalesRegulation.loadRegulationSet(predicateFile.getAbsolutePath());
 
-		if (regles == null || regles.isEmpty()) {
-			System.out.println("Missing predicate file");
-			return null;
-		}
-
-		for (UrbaZone zone : env.getUrbaZones()) {
-			if (zone.getGeom().intersects(bPU.getGeom())) {
-				typez = zone.getLibelle();
-				System.out.println("TypeZone : " + typez + " for parcelle " + bPU.getCadastralParcels().get(0).getCode());
-
-			}
-		}
 
 		// Prescription setting
 		IFeatureCollection<Prescription> prescriptions = env.getPrescriptions();
@@ -354,6 +370,8 @@ public class SimPLUSimulator {
 			}
 		}
 
+		
+		/*
 		for (String imu : regles.keySet()) {
 			for (ArtiScalesRegulation reg : regles.get(imu)) {
 				if (reg.getLibelle_de_dul().equals(typez) && Integer.valueOf(zipCode) == reg.getInsee()) {
@@ -374,7 +392,10 @@ public class SimPLUSimulator {
 				return null;
 			}
 
-		}
+		}*/
+		
+		ArtiScalesRegulation regle =(ArtiScalesRegulation) bPU.getCadastralParcels().get(0).getSubParcels().get(0).getUrbaZone().getZoneRegulation();
+		
 
 		double distReculVoirie = regle.getArt_6();
 		if (distReculVoirie == 77) {
