@@ -68,24 +68,29 @@ public class SimPLUSimulator {
 
 	public static void main(String[] args) throws Exception {
 
+
 		// Method to only test the SimPLU3D simulation
-		File rootFolder = new File("/home/mcolomb/informatique/ArtiScales/");
-		//File rootFolder = new File("/home/mickael/data/mbrasebin/donnees/Maxime/couplage/");
-		
-		//File selectedParcels = new File("/home/mickael/data/mbrasebin/donnees/Maxime/couplage/parcelles/test.shp");
-		File selectedParcels = new File(
-				"/home/mcolomb/tmp/parce.shp");
-		File pluFile = new File(rootFolder, "/donneeGeographiques/PLU");
-		File geoFile = new File(rootFolder, "/donneeGeographiques");
-		
 		
 		List<File> lF = new ArrayList<>();
-		String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenar0/").getPath();
-		//String rootParam = "/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/scenar0/";
+		//Line to change to select the right scenario
+		String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenar0MKIGN/").getPath();
 		lF.add(new File(rootParam+"parametreTechnique.xml"));
 		lF.add(new File(rootParam+"parametreScenario.xml"));
 		Parameters p = Parameters.unmarshall(lF);
-		System.out.println(p.getString(""));
+		
+		
+		
+		//RootFolder
+		File rootFolder = new File(p.getString("rootFile"));
+		//Selected parcels shapefile
+		File selectedParcels = new File(p.getString("selectedParcelFile"));
+		//GeographicData folder
+		File geoFile =new File(p.getString("geoFile"));
+		//PLU Folder		
+		File pluFile =  new File(p.getString("pluFile"));
+
+		
+	
 		SimPLUSimulator simplu = new SimPLUSimulator(rootFolder, geoFile, pluFile, selectedParcels, p.getString("listZipCode"), p);
 		simplu.run();
 		// SimPLUSimulator.fillSelectedParcels(new File(rootFolder), geoFile, pluFile, selectedParcels, 50, "25495", p);
@@ -266,6 +271,13 @@ public class SimPLUSimulator {
 		// Rules parameters
 		Regulation regle = null;
 		Map<Integer, List<Regulation>> regles = Regulation.loadRegulationSet(predicateFile.getAbsolutePath());
+		
+		if(regles == null|| regles.isEmpty())
+		{
+			System.out.println("Missing predicate file");
+			return null;
+		}
+		
 		for (UrbaZone zone : env.getUrbaZones()) {
 			if (zone.getGeom().contains(bPU.getGeom())) {
 				typez = zone.getLibelle();
@@ -282,8 +294,16 @@ public class SimPLUSimulator {
 		}
 
 		if (regle == null) {
-			System.out.println("iz null");
-			regle = regles.get(999).get(0);
+		
+			List<Regulation> lR =  regles.get(999);
+			if(lR == null|| lR.isEmpty()){
+				regle =lR.get(0);
+				System.out.println("Rule is null. Default ruleset is applied");
+			}else{
+				System.out.println("Rule is null. Default ruleset is missing, stopping simulation.");
+				return null;
+			}
+			
 		}
 
 		double distReculVoirie = regle.getArt_6();
