@@ -84,7 +84,7 @@ public class SimPLUSimulator {
 
 		// Rappel de la construction du code : 
 		// codeDep + codeCom + comAbs + section + numero
-		ID_PARCELLE_TO_SIMULATE.add("277");
+	//	ID_PARCELLE_TO_SIMULATE.add("277");
 
 		// RootFolder
 		File rootFolder = new File(p.getString("rootFile"));
