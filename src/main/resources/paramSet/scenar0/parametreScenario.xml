@@ -107,6 +107,19 @@
 
 	<!-- PARAMETRES DE SIMPLU3D -->
 
+		<!-- prise en compte des préscriptions graphiques -->
+			
+			<param key="ESPACE_BOISE" value="true" />
+			<param key="NUISSANCES_RISQUE" value="true"/>
+			<!-- quel niveau de nuissance/risque retirons nous de l'urbanisation? -->
+				<!-- uniquement les zones les plus graves (dont le libelle contiens les mots-clefs suivant : grave,fort , 					Maximal, rouge -->
+				<param key="NUISSANCES_RISQUE-MAX" value="true"/>
+			<param key="EMPLACEMENT_RESERVE" value="true"/>
+			<param key="ELEMENT_PAYSAGE" value="true"/>
+			<param key="RECOIL" value="false"/>
+			<param key="TVB" value="true"/>
+			
+
 		<!--Bornes des dimensions des cuboïdes simulées -->
 		<!-- Largeur -->
 		<param key="minlen" value="7" />
