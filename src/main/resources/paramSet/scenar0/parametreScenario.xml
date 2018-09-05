@@ -32,7 +32,7 @@
 	<!-- Nom du fichier contenant les parcelles sélectionnées (si elles existent 
 		au préalable) -->
 	<param key="selectedParcelFile"
-		value="/home/mcolomb/tmp/parce.shp" />
+		value="//home/mcolomb/informatique/ArtiScales/output/Stability-dataAutomPhy-CM20.0-S0.0-GP_915948.0_6677337.0--N6_St_Moy_ahpx_seed_9015629222324914404-evalAnal-20.0/25495/ZoningAllowed/parcelSelected.shp" />
 		
 	<!-- PARAMETRES DU MODULE MUP-CITY -->
 
@@ -139,7 +139,7 @@
 			<param key="NUISSANCES_RISQUE" value="true"/>
 			<!-- quel niveau de nuissance/risque retirons nous de l'urbanisation? -->
 				<!-- uniquement les zones les plus graves (dont le libelle contiens les mots-clefs suivant : grave,fort , 					Maximal, rouge -->
-				<param key="NUISSANCES_RISQUE-MAX" value="true"/>
+			<param key="NUISSANCES_RISQUE-MAX" value="true"/>
 			<param key="EMPLACEMENT_RESERVE" value="true"/>
 			<param key="ELEMENT_PAYSAGE" value="true"/>
 			<param key="RECOIL" value="false"/>

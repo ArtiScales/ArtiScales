@@ -19,8 +19,9 @@ import fr.ign.cogit.geoxygene.feature.DefaultFeature;
 import fr.ign.cogit.geoxygene.feature.FT_FeatureCollection;
 import fr.ign.cogit.geoxygene.util.attribute.AttributeManager;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileWriter;
-import fr.ign.cogit.simplu3d.experiments.PLUCities.PredicatePLUCities;
+import fr.ign.cogit.simplu3d.experiments.artiscales.PredicatePLUCities;
 import fr.ign.cogit.simplu3d.experiments.iauidf.regulation.Regulation;
+import fr.ign.cogit.simplu3d.io.feature.AttribNames;
 import fr.ign.cogit.simplu3d.io.nonStructDatabase.shp.LoaderSHP;
 import fr.ign.cogit.simplu3d.model.BasicPropertyUnit;
 import fr.ign.cogit.simplu3d.model.CadastralParcel;
@@ -71,18 +72,19 @@ public class SimPLUSimulator {
 	public static void main(String[] args) throws Exception {
 
 		// Method to only test the SimPLU3D simulation
-
+		AttribNames.setATT_CODE_PARC("num");
+		
 
 		List<File> lF = new ArrayList<>();
 		// Line to change to select the right scenario
-		String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenar0MKIGN/").getPath();
+		String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenar0/").getPath();
 		lF.add(new File(rootParam + "parametreTechnique.xml"));
 		lF.add(new File(rootParam + "parametreScenario.xml"));
 		Parameters p = Parameters.unmarshall(lF);
 
-		// Rappel de la construction du code : codeDep + codeCom + comAbs +
-		// section + numero
-		ID_PARCELLE_TO_SIMULATE.add("25495000AD0721");
+		// Rappel de la construction du code : 
+		// codeDep + codeCom + comAbs + section + numero
+		ID_PARCELLE_TO_SIMULATE.add("277");
 
 		// RootFolder
 		File rootFolder = new File(p.getString("rootFile"));
@@ -397,8 +399,13 @@ public class SimPLUSimulator {
 		// Instantiation of the rule checker
 
 		PredicatePLUCities<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = new PredicatePLUCities<>(
-				bPU, distReculVoirie, distReculFond, distReculLat, distanceInterBati, maximalCES, maximalhauteur,
-				p.getInteger("nbCuboid"), false);
+				bPU, true, distReculVoirie, distReculFond, distReculLat, distanceInterBati, maximalCES, maximalhauteur,
+				p.getInteger("nbCuboid"), false , prescriptionUse);
+		
+		if(! pred.isCanBeSimulated()) {
+			System.out.println("Parcel is overlapped by graphical prescriptions");
+			return null;
+		}
 
 
 		Double areaParcels = 0.0;
