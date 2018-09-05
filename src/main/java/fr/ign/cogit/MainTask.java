@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import fr.ign.cogit.Indicators.BuildingToHousehold;
+import fr.ign.cogit.indicators.BuildingToHousehold;
 import fr.ign.cogit.util.GetFromGeom;
 import fr.ign.cogit.util.StatStuff;
 import fr.ign.cogit.util.VectorFct;
