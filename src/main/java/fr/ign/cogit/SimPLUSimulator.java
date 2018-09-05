@@ -70,13 +70,20 @@ public class SimPLUSimulator {
 
 		// Method to only test the SimPLU3D simulation
 		File rootFolder = new File("/home/mcolomb/informatique/ArtiScales/");
+		//File rootFolder = new File("/home/mickael/data/mbrasebin/donnees/Maxime/couplage/");
+		
+		//File selectedParcels = new File("/home/mickael/data/mbrasebin/donnees/Maxime/couplage/parcelles/test.shp");
 		File selectedParcels = new File(
 				"/home/mcolomb/tmp/parce.shp");
 		File pluFile = new File(rootFolder, "/donneeGeographiques/PLU");
 		File geoFile = new File(rootFolder, "/donneeGeographiques");
+		
+		
 		List<File> lF = new ArrayList<>();
-		lF.add(new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/scenar0/parametreTechnique.xml"));
-		lF.add(new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/scenar0/parametreScenario.xml"));
+		String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenar0/").getPath();
+		//String rootParam = "/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/scenar0/";
+		lF.add(new File(rootParam+"parametreTechnique.xml"));
+		lF.add(new File(rootParam+"parametreScenario.xml"));
 		Parameters p = Parameters.unmarshall(lF);
 		System.out.println(p.getString(""));
 		SimPLUSimulator simplu = new SimPLUSimulator(rootFolder, geoFile, pluFile, selectedParcels, p.getString("listZipCode"), p);
