@@ -40,6 +40,7 @@ import fr.ign.mpp.configuration.BirthDeathModification;
 import fr.ign.mpp.configuration.GraphConfiguration;
 import fr.ign.mpp.configuration.GraphVertex;
 import fr.ign.parameters.Parameters;
+import fr.ign.rjmcmc.configuration.ConfigurationModificationPredicate;
 
 public class SimPLUSimulator {
 
@@ -376,23 +377,25 @@ public class SimPLUSimulator {
 			}
 		}
 
-		PredicatePLUCities<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = null;
+		ConfigurationModificationPredicate<GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = null;
 		
 		
 		
 		if(! USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL|| bPU.getCadastralParcels().get(0).getSubParcels().size() < 2) {
 			//In this mod there is only one regulation for the entire BPU
 			 pred = preparePredicateOneRegulation(bPU, p, prescriptionUse);
+			 
+				if (!((PredicatePLUCities<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>>)pred).isCanBeSimulated()) {
+					System.out.println("Parcel is overlapped by graphical prescriptions");
+					return null;
+				}
 		}else {
 			
 		}
 
 
 
-		if (!pred.isCanBeSimulated()) {
-			System.out.println("Parcel is overlapped by graphical prescriptions");
-			return null;
-		}
+	
 
 		Double areaParcels = 0.0;
 		for (CadastralParcel yo : bPU.getCadastralParcels()) {
