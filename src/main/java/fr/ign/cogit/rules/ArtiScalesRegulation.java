@@ -257,7 +257,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	}
 
 	// ART_71 Implantation en limite séparative 0 : non, retrait imposé (cf.72)
-	// // 1 : Oui // 2 : Oui, mais sur un côté seulement
+	// // 1 : Oui // 2 : Oui, mais sur un côté seulement //TODO 
 	public int getArt_71() {
 		return art_71;
 	}
@@ -302,8 +302,10 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 
 	// ART_10_TOP Indicateur de l'unité de mesure de la hauteur du batiment
 	// 1_niveaux ; 2_metres du sol au point le plus haut du batiment ; 3_hauteur
-	// plafond ; 4_ point le plus haut ; 5_Hauteur de façade à l'égout, 88= non
-	// renseignable ; 99= non règlementé
+	// plafond ; 4_ point le plus haut ; 5_Hauteur de façade à l'égout, TODO 6 a ne pas dépasser les batiments des parcelles adjacentes, sinon hauteur à l'égout
+	// TODO 7 a ne pas dépasser les batiments des parcelles adjacentes, sinon hauteur entre les points 
+	//TODO 20: spécial si sur limites séparatives : 20-v6-a4,5 signifie qu'elle ne deva pas dépasser 6m du point le plus bas au point le plus haut en limite de voirie, et 4,5m en limite séparative
+	//88= non renseignable ; 99= non règlementé
 	public int getArt_10_top() {
 		return art_10_top;
 	}
