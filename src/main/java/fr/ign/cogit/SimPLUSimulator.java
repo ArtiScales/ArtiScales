@@ -2,6 +2,7 @@ package fr.ign.cogit;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -26,6 +27,7 @@ import fr.ign.cogit.simplu3d.model.BasicPropertyUnit;
 import fr.ign.cogit.simplu3d.model.CadastralParcel;
 import fr.ign.cogit.simplu3d.model.Environnement;
 import fr.ign.cogit.simplu3d.model.Prescription;
+import fr.ign.cogit.simplu3d.model.SubParcel;
 import fr.ign.cogit.simplu3d.model.UrbaZone;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.Cuboid;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.loader.LoaderCuboid;
@@ -373,30 +375,21 @@ public class SimPLUSimulator {
 		}
 
 		
-		/*
-		for (String imu : regles.keySet()) {
-			for (ArtiScalesRegulation reg : regles.get(imu)) {
-				if (reg.getLibelle_de_dul().equals(typez) && Integer.valueOf(zipCode) == reg.getInsee()) {
-					regle = reg;
-					System.out.println("J'ai bien retrouvé la ligne. son type est " + typez);
-				}
-			}
-		}
-
-		if (regle == null) {
-
-			List<ArtiScalesRegulation> lR = regles.get(999);
-			if (lR != null && !lR.isEmpty()) {
-				regle = lR.get(0);
-				System.out.println("Rule is null. Default ruleset is applied");
-			} else {
-				System.out.println("Rule is null. Default ruleset is missing, stopping simulation.");
-				return null;
-			}
-
-		}*/
 		
-		ArtiScalesRegulation regle =(ArtiScalesRegulation) bPU.getCadastralParcels().get(0).getSubParcels().get(0).getUrbaZone().getZoneRegulation();
+		List<SubParcel> sP =  bPU.getCadastralParcels().get(0).getSubParcels();
+		//We sort the parcel
+		sP.sort(new Comparator<SubParcel>() {
+			@Override
+			public int compare(SubParcel o1, SubParcel o2) {
+				return Double.compare(o1.getArea(), o2.getArea());
+			}
+		});
+		SubParcel sPBiggest = sP.get(sP.size() -1);
+	
+		ArtiScalesRegulation regle =(ArtiScalesRegulation) sPBiggest.getUrbaZone().getZoneRegulation();
+		
+		
+		
 		
 
 		double distReculVoirie = regle.getArt_6();
