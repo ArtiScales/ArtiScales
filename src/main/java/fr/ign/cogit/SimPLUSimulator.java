@@ -72,14 +72,14 @@ public class SimPLUSimulator {
 
 		List<File> lF = new ArrayList<>();
 		// Line to change to select the right scenario
-		String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenar0MKIGN/").getPath();
+		String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenar0MKDom/").getPath();
 		lF.add(new File(rootParam + "parametreTechnique.xml"));
 		lF.add(new File(rootParam + "parametreScenario.xml"));
 		Parameters p = Parameters.unmarshall(lF);
 
 		// Rappel de la construction du code :
 		// codeDep + codeCom + comAbs + section + numero
-		ID_PARCELLE_TO_SIMULATE.add("25495000AP0004");
+		ID_PARCELLE_TO_SIMULATE.add("25495000AK0005");
 		//ID_PARCELLE_TO_SIMULATE.add("25495000AE0036");
 
 		
@@ -256,11 +256,13 @@ public class SimPLUSimulator {
 			 System.out.println("Missing regulation for zone : " + zone.getLibelle());
 			 System.out.println("We associate the default regulation");
 			 
-			 if(regles.get(999) == null){
+			 if(regles.get("999") == null){
 				 System.out.println("Default regulation does not exist");
+			 }else {
+				 zone.setZoneRegulation(regles.get("999")); 
 			 }
 			 
-			 zone.setZoneRegulation(regles.get(999));
+			
 		 }
 		
 		}
