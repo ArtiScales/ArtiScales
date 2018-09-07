@@ -380,12 +380,9 @@ public class SimPLUSimulator {
 		
 		if(! USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL) {
 			 pred = preparePredicateOneRegulation(bPU, p, prescriptionUse);
+		}else {
+			
 		}
-
-		
-		
-		
-		
 
 
 
@@ -478,35 +475,11 @@ public class SimPLUSimulator {
 	
 		ArtiScalesRegulation regle =(ArtiScalesRegulation) sPBiggest.getUrbaZone().getZoneRegulation();
 		
-		double distReculVoirie = regle.getArt_6();
-		if (distReculVoirie == 77) {
-			distReculVoirie = 0;
-
-		}
-		double distReculFond = regle.getArt_73();
-		// regle.getArt_74()) devrait prendre le minimum de la valeur fixe et du
-		// rapport
-		// à la hauteur du batiment à coté
-		double distReculLat = regle.getArt_72();
-
-		double distanceInterBati = regle.getArt_8();
-		if (distanceInterBati == 88.0 || distanceInterBati == 99.0) {
-			distanceInterBati = 50; // quelle valeur faut il mettre ??
-		}
-		MultipleBuildingsCuboid.ALLOW_INTERSECTING_CUBOID = p.getBoolean("intersection");
-
-		double maximalCES = regle.getArt_9();
-		if (regle.getArt_8() == 99) {
-			maximalCES = 0;
-		}
-
-		double maximalhauteur = regle.getArt_10_m();
+	
 
 		// Instantiation of the rule checker
 
-		PredicatePLUCities<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = new PredicatePLUCities<>(
-				bPU, true, distReculVoirie, distReculFond, distReculLat, distanceInterBati, maximalCES, maximalhauteur,
-				p.getInteger("nbCuboid"), false, prescriptionUse);
+		PredicatePLUCities<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = new PredicatePLUCities<>(bPU,true, regle,p, prescriptionUse);
 		
 		
 		return pred;

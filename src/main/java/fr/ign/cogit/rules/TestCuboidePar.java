@@ -2,21 +2,14 @@ package fr.ign.cogit.rules;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.opengis.feature.simple.SimpleFeature;
 
-import com.vividsolutions.jts.geom.CoordinateSequence;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.LineString;
-
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
-import fr.ign.cogit.geoxygene.api.spatial.coordgeom.IDirectPosition;
-import fr.ign.cogit.geoxygene.api.spatial.coordgeom.ILineString;
 import fr.ign.cogit.geoxygene.api.spatial.geomprim.IOrientableCurve;
 import fr.ign.cogit.geoxygene.api.spatial.geomroot.IGeometry;
 import fr.ign.cogit.geoxygene.convert.FromGeomToLineString;
@@ -25,7 +18,6 @@ import fr.ign.cogit.geoxygene.feature.FT_FeatureCollection;
 import fr.ign.cogit.geoxygene.util.attribute.AttributeManager;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileWriter;
 import fr.ign.cogit.simplu3d.experiments.iauidf.regulation.Regulation;
-import fr.ign.cogit.simplu3d.io.feature.PrescriptionReader;
 import fr.ign.cogit.simplu3d.io.nonStructDatabase.shp.LoaderSHP;
 import fr.ign.cogit.simplu3d.model.BasicPropertyUnit;
 import fr.ign.cogit.simplu3d.model.CadastralParcel;
@@ -173,11 +165,10 @@ public class TestCuboidePar {
 		// TODO utiliser cette hauteur
 		double maximalhauteur = regle.getArt_10_m();
 
-			
 		// Instantiation of the rule checker
 		PredicatePLUCities<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = new PredicatePLUCities<>(
-				bPU,  align, distReculVoirie, distReculFond, distReculLat, distanceInterBati, maximalCES, maximalhauteur,
-				 p.getInteger("nbCuboid"), true, presc);
+				bPU, align, distReculVoirie, distReculFond, distReculLat, distanceInterBati, maximalCES, maximalhauteur,
+				p.getInteger("nbCuboid"), true, presc);
 		// PredicateDensification<Cuboid, GraphConfiguration<Cuboid>,
 		// BirthDeathModification<Cuboid>> pred = new PredicateIAUIDF();
 		Double areaParcels = 0.0;
