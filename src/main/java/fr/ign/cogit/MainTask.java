@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import fr.ign.cogit.indicators.BuildingToHousehold;
+import fr.ign.cogit.outputs.XmlGen;
 import fr.ign.cogit.util.GetFromGeom;
 import fr.ign.cogit.util.StatStuff;
 import fr.ign.cogit.util.VectorFct;
@@ -39,7 +40,7 @@ public class MainTask {
 		List<File> listParameters = new ArrayList<File>();
 		listParameters.add(paramFileTech);
 		listParameters.add(paramFileScenar);
-		Parameters p = Parameters.unmarshall(listParameters); 
+		Parameters p = Parameters.unmarshall(listParameters);
 		// Parameters p = Parameters.unmarshall(paramFile);
 
 		// Dossiers de projet
@@ -63,87 +64,96 @@ public class MainTask {
 		File outputMup = new File(rootFile, "depotConfigSpatMUP/simu");
 		List<File> listOutputMupToTest = new ArrayList<File>();
 
-//		/// Étape 1 : simulation de MupCity
-//		String empriseStr = p.getString("emprise");
-//		Pattern ptVir = Pattern.compile(";");
-//		String[] emprise = ptVir.split(empriseStr);
-//		double xmin = Double.valueOf(emprise[0]);
-//		double ymin = Double.valueOf(emprise[1]);
-//		double width = Double.valueOf(emprise[2]);
-//		double height = Double.valueOf(emprise[3]);
-//
-//		// Mettre ça dans le fichier paramètre?
-//		Map<String, String> dataHT = new Hashtable<String, String>();
-//		// Data1.1
-//		dataHT.put("name", "DataSys");
-//		dataHT.put("build", "batimentSys.shp");
-//		dataHT.put("road", "routeSys.shp");
-//		dataHT.put("fac", "serviceSys.shp");
-//		dataHT.put("lei", "loisirSys.shp");
-//		dataHT.put("ptTram", "tramSys.shp");
-//		dataHT.put("ptTrain", "trainSys.shp");
-//		dataHT.put("nU", "nonUrbaSys.shp");
-//
-//		System.out.println("----------Project creation and decomp----------");
-//		File projectFile = ProjectCreationDecompTask.run(name, geoFile, outputMup, xmin, ymin, width, height, 0, 0, dataHT, p.getDouble("cm"), 14580, p.getDouble("seuil"));
-//		System.out.println("----------Simulation task----------");
-//		File result = SimulTask.run(projectFile, name, p.getInteger("N"), p.getBoolean("strict"), p.getDouble("ahp0"), p.getDouble("ahp1"), p.getDouble("ahp2"),
-//				p.getDouble("ahp3"), p.getDouble("ahp4"), p.getDouble("ahp5"), p.getDouble("ahp6"), p.getDouble("ahp7"), p.getDouble("ahp8"), p.getBoolean("mean"),
-//				p.getInteger("seed"), false);
-//		System.out.println("result : " + result);
-//		System.out.println("----------End task----------");
-//
-//		// Recherche des sorties de MUP-City que l'on va vouloir simuler (shortcut)
-//		double nivObs = p.getDouble("cm") * p.getDouble("nivCellUtilise");
-//		for (File f : result.listFiles()) {
-//			if (f.getName().contains("evalAnal") && f.getName().contains(String.valueOf(nivObs))) {
-//				FileOutputStream flow = new FileOutputStream(new File(outputMup.getParentFile(), f.getName()));
-//				Files.copy(f.toPath(), flow);
-//				listOutputMupToTest.add(f);
-//				flow.close();
-//			}
-//		}
+		// /// Étape 1 : simulation de MupCity
+		// String empriseStr = p.getString("emprise");
+		// Pattern ptVir = Pattern.compile(";");
+		// String[] emprise = ptVir.split(empriseStr);
+		// double xmin = Double.valueOf(emprise[0]);
+		// double ymin = Double.valueOf(emprise[1]);
+		// double width = Double.valueOf(emprise[2]);
+		// double height = Double.valueOf(emprise[3]);
+		//
+		// // Mettre ça dans le fichier paramètre?
+		// Map<String, String> dataHT = new Hashtable<String, String>();
+		// // Data1.1
+		// dataHT.put("name", "DataSys");
+		// dataHT.put("build", "batimentSys.shp");
+		// dataHT.put("road", "routeSys.shp");
+		// dataHT.put("fac", "serviceSys.shp");
+		// dataHT.put("lei", "loisirSys.shp");
+		// dataHT.put("ptTram", "tramSys.shp");
+		// dataHT.put("ptTrain", "trainSys.shp");
+		// dataHT.put("nU", "nonUrbaSys.shp");
+		//
+		// System.out.println("----------Project creation and decomp----------");
+		// File projectFile = ProjectCreationDecompTask.run(name, geoFile, outputMup, xmin, ymin, width, height, 0, 0, dataHT, p.getDouble("cm"), 14580, p.getDouble("seuil"));
+		// System.out.println("----------Simulation task----------");
+		// File result = SimulTask.run(projectFile, name, p.getInteger("N"), p.getBoolean("strict"), p.getDouble("ahp0"), p.getDouble("ahp1"), p.getDouble("ahp2"),
+		// p.getDouble("ahp3"), p.getDouble("ahp4"), p.getDouble("ahp5"), p.getDouble("ahp6"), p.getDouble("ahp7"), p.getDouble("ahp8"), p.getBoolean("mean"),
+		// p.getInteger("seed"), false);
+		// System.out.println("result : " + result);
+		// System.out.println("----------End task----------");
+		//
+		// // Recherche des sorties de MUP-City que l'on va vouloir simuler (shortcut)
+		// double nivObs = p.getDouble("cm") * p.getDouble("nivCellUtilise");
+		// for (File f : result.listFiles()) {
+		// if (f.getName().contains("evalAnal") && f.getName().contains(String.valueOf(nivObs))) {
+		// FileOutputStream flow = new FileOutputStream(new File(outputMup.getParentFile(), f.getName()));
+		// Files.copy(f.toPath(), flow);
+		// listOutputMupToTest.add(f);
+		// flow.close();
+		// }
+		// }
 
-		 // Si l'on met directement les simu MUP
-		 double nivObs = p.getDouble("cm") * p.getDouble("nivCellUtilise");
-		 System.out.println();
-		 for (File f : outputMup.getParentFile().listFiles()) {
-		 if (f.getName().contains("evalAnal") && f.getName().contains(String.valueOf(nivObs))
-		 && f.getName().endsWith(".tif")) {
-		 listOutputMupToTest.add(f);
-		 System.out.println("MUP-City's output in the machine : " + f);
-		 }
-		 }
+		// Si l'on met directement les simu MUP
+		double nivObs = p.getDouble("cm") * p.getDouble("nivCellUtilise");
+		System.out.println();
+		for (File f : outputMup.getParentFile().listFiles()) {
+			if (f.getName().contains("evalAnal") && f.getName().contains(String.valueOf(nivObs)) && f.getName().endsWith(".tif")) {
+				listOutputMupToTest.add(f);
+				System.out.println("MUP-City's output in the machine : " + f);
+			}
+		}
 
 		/// Étape 2 : étape de couplage (très imbriqué..)
 
 		// Vectorisation des sorties de MupCity
 		List<File> outMupList = (new SelecMUPOutput(rootFile, listOutputMupToTest)).run();
 
-		// set the main statistic file
+		// set the main statistic file => a terme, remplacé
 		StatStuff.setGenStat(rootFile);
+
+		// Xml files containing results infos and a log about what went on
+		XmlGen resultXml = new XmlGen(new File(rootFile, "output/result-scenar_" + p.getString("nom") + ".xml"), p.getString("nom"));
+		XmlGen logXml = new XmlGen(new File(rootFile, "output/log-scenar_" + p.getString("nom") + ".xml"), p.getString("nom"));
 
 		// pour toutes les sorties
 		for (File outMup : outMupList) {
+			resultXml.beginBalise(outMup.getName());
 			System.out.println("----------==+Pour la sortie " + outMup.getName() + "+==----------");
 			// pour toutes les communes
 			for (String zipCode : zipCodes) {
+				resultXml.beginBalise(zipCode);
 				System.out.println("------=+Pour la commune " + zipCode + "+=------");
 				// Liste de types de sélection à partir du phasage définis dans le fichier de
 				// paramètre
 				List<String> listeAction = selectionType(p);
-				SelectParcels selectParcels = new SelectParcels(rootFile, geoFile, pluFile, outMup, zipCode, p.getBoolean("splitParcel"));
+				SelectParcels selectParcels = new SelectParcels(rootFile, geoFile, pluFile, outMup, zipCode, p.getBoolean("splitParcel"), p);
 
 				// mode normal -- on construit tout ce que l'on peut. On peut peut-être ajouter un seuil d'évaluation?
 				if (!p.getBoolean("fill")) {
 					if (p.getBoolean("respectZoning")) {
+						resultXml.beginBalise("respectZoning");
 						File parcelSelected = selectParcels.runZoningAllowed();
-						SimPLUSimulator simPLUsimu = new SimPLUSimulator(rootFile, geoFile, pluFile, parcelSelected, zipCode, p);
-						// On lance la simulation
-						List<File> batisSimulatedFile = simPLUsimu.run();
-						File mergedBatiFile = VectorFct.mergeBatis(batisSimulatedFile);
-						BuildingToHousehold bTH = new BuildingToHousehold(mergedBatiFile, p);
-						bTH.run();
+						// SimPLUSimulator simPLUsimu = new SimPLUSimulator(rootFile, geoFile, pluFile, parcelSelected, zipCode, p);
+						// // On lance la simulation
+						// List<File> batisSimulatedFile = simPLUsimu.run();
+						// File mergedBatiFile = VectorFct.mergeBatis(batisSimulatedFile);
+						// BuildingToHousehold bTH = new BuildingToHousehold(mergedBatiFile, p);
+						// bTH.run();
+
+						selectParcels.writeXMLResult(resultXml);
+						resultXml.endBalise("respectZoning");
 					}
 				}
 				// mode fill : on va chercher à remplir les communes avec l'objectif de logement
@@ -180,8 +190,12 @@ public class MainTask {
 						}
 					}
 				}
+				resultXml.endBalise(zipCode);
 			}
+			resultXml.endBalise(outMup.getName());
 		}
+		resultXml.endBalise(p.getString("nom"));
+		logXml.endBalise(p.getString("nom"));
 	}
 
 	/**
