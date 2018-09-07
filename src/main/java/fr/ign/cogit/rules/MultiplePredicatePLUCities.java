@@ -266,6 +266,8 @@ implements ConfigurationModificationPredicate<C, M> {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		
 
 		// Pour vérifier que le CES (surface bâti) est respecté
 		if (!respectMaximalBuiltArea(c, m)) {
@@ -379,6 +381,9 @@ implements ConfigurationModificationPredicate<C, M> {
 		 }
 		 return lRegulation;
 	}
+	
+	
+	
 	
 
 
