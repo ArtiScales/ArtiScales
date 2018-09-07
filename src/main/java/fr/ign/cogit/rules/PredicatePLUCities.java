@@ -329,16 +329,6 @@ public class PredicatePLUCities<O extends AbstractSimpleBuilding, C extends Abst
 
 			// On vérifie la contrainte de recul par rapport au prescriptions graphiques
 
-			if ((!MultipleBuildingsCuboid.ALLOW_INTERSECTING_CUBOID)
-					&& (!checkDistanceInterBuildings(c, m, distanceInterBati))) {
-				return false;
-			}
-
-			if (MultipleBuildingsCuboid.ALLOW_INTERSECTING_CUBOID) {
-				if (!testWidthBuilding(c, m, 7.5, distanceInterBati)) {
-					return false;
-				}
-			}
 
 			// Distance between existig building and cuboid
 			for (Building b : currentBPU.getBuildings()) {
@@ -388,6 +378,18 @@ public class PredicatePLUCities<O extends AbstractSimpleBuilding, C extends Abst
 		// Pour vérifier que le CES (surface bâti) est respecté
 		if (!respectMaximalBuiltArea(c, m)) {
 			return false;
+		}
+		
+
+		if ((!MultipleBuildingsCuboid.ALLOW_INTERSECTING_CUBOID)
+				&& (!checkDistanceInterBuildings(c, m, distanceInterBati))) {
+			return false;
+		}
+
+		if (MultipleBuildingsCuboid.ALLOW_INTERSECTING_CUBOID) {
+			if (!testWidthBuilding(c, m, 7.5, distanceInterBati)) {
+				return false;
+			}
 		}
 
 		// On a réussi tous les tests, on renvoie vrai

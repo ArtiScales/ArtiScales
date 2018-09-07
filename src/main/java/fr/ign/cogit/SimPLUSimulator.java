@@ -378,7 +378,10 @@ public class SimPLUSimulator {
 
 		PredicatePLUCities<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = null;
 		
-		if(! USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL) {
+		
+		
+		if(! USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL|| bPU.getCadastralParcels().get(0).getSubParcels().size() < 2) {
+			//In this mod there is only one regulation for the entire BPU
 			 pred = preparePredicateOneRegulation(bPU, p, prescriptionUse);
 		}else {
 			
