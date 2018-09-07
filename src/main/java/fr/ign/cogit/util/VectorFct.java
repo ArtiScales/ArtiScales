@@ -8,9 +8,29 @@ import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.feature.DefaultFeatureCollection;
+import org.geotools.feature.simple.SimpleFeatureBuilder;
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
+import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.Polygon;
 
 import fr.ign.cogit.GTFunctions.Vectors;
+import fr.ign.cogit.geoxygene.api.feature.IFeature;
+import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
+import fr.ign.cogit.geoxygene.api.feature.type.GF_AttributeType;
+import fr.ign.cogit.geoxygene.api.spatial.coordgeom.IPolygon;
+import fr.ign.cogit.geoxygene.convert.FromGeomToSurface;
+import fr.ign.cogit.geoxygene.feature.DefaultFeature;
+import fr.ign.cogit.geoxygene.feature.FT_FeatureCollection;
+import fr.ign.cogit.geoxygene.sig3d.calculation.parcelDecomposition.OBBBlockDecomposition;
+import fr.ign.cogit.geoxygene.util.attribute.AttributeManager;
+import fr.ign.cogit.geoxygene.util.conversion.ShapefileReader;
+import fr.ign.cogit.geoxygene.util.conversion.ShapefileWriter;
+import fr.ign.parameters.Parameters;
+import fr.ign.random.Random;
 
 public class VectorFct {
 	
@@ -20,6 +40,151 @@ public class VectorFct {
 		
 	}
 
+	/**
+	 * Determine if the parcels need to be splited or not, based on their area. This area is either determined by a param file, or taken as a default value of 1200 square meters
+	 * 
+	 * @param parcelIn
+	 *            : Parcels collection of simple features
+	 * @return
+	 * @throws Exception
+	 */
+	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeatureCollection parcelIn, Parameters p) throws Exception {
+
+		// splitting method option
+
+		double roadEpsilon = 0.5;
+		double noise = 10;
+		double maximalArea = 1200;
+		double maximalWidth = 50;
+		if (!(p == null)) {
+			maximalArea = p.getDouble("maximalAreaSplitParcel");
+			maximalWidth = p.getDouble("maximalWidthSplitParcel");
+		}
+
+		// putting the need of splitting into attribute
+		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
+		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
+		sfTypeBuilder.setName("testType");
+		sfTypeBuilder.setCRS(sourceCRS);
+		sfTypeBuilder.add("the_geom", Polygon.class);
+		sfTypeBuilder.setDefaultGeometry("the_geom");
+		sfTypeBuilder.add("SPLIT", Integer.class);
+		sfTypeBuilder.add("num", Integer.class);
+
+		SimpleFeatureBuilder sfBuilder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
+
+		DefaultFeatureCollection toSplit = new DefaultFeatureCollection();
+		int i = 0;
+		SimpleFeatureIterator parcelIt = parcelIn.features();
+		try {
+			while (parcelIt.hasNext()) {
+				SimpleFeature feat = parcelIt.next();
+				Object[] attr = { 0, feat.getAttribute("NUMERO") };
+				if (((Geometry) feat.getDefaultGeometry()).getArea() > maximalArea) {
+					attr[0] = 1;
+				}
+				sfBuilder.add(feat.getDefaultGeometry());
+				toSplit.add(sfBuilder.buildFeature(String.valueOf(i), attr));
+				i = i + 1;
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			parcelIt.close();
+		}
+
+		return splitParcels(toSplit, maximalArea, maximalWidth, roadEpsilon, noise,p);
+
+	}
+
+	/**
+	 * largely inspired from the simPLU. ParcelSplitting class but rewrote to work with geotools SimpleFeatureCollection objects
+	 * 
+	 * @param toSplit
+	 * @param maximalArea
+	 * @param maximalWidth
+	 * @param roadEpsilon
+	 * @param noise
+	 * @return
+	 * @throws Exception
+	 */
+	public static SimpleFeatureCollection splitParcels(SimpleFeatureCollection toSplit, double maximalArea, double maximalWidth, double roadEpsilon, double noise,Parameters p) throws Exception {
+		// TODO un truc fait bugger la sortie dans cette classe..
+
+		// TODO classe po bô du tout: faire une vraie conversion entre les types
+		// geotools et geox (passer par des shp a été le seul moyen que j'ai
+		// trouvé pour que ça fonctionne)
+		String attNameToTransform = "SPLIT";
+
+		// IFeatureCollection<?> ifeatColl =
+		// GeOxygeneGeoToolsTypes.convert2IFeatureCollection(toSplit);
+File tmpFile= new File(p.getString("rootFile"), "/temp/");
+tmpFile.mkdir();
+		File shpIn = new File(tmpFile,"temp-In.shp");
+	
+		Vectors.exportSFC(toSplit, shpIn);
+		IFeatureCollection<?> ifeatColl = ShapefileReader.read(shpIn.toString());
+		IFeatureCollection<IFeature> ifeatCollOut = new FT_FeatureCollection<IFeature>();
+		for (IFeature feat : ifeatColl) {
+			Object o = feat.getAttribute(attNameToTransform);
+			if (o == null) {
+				ifeatCollOut.add(feat);
+				continue;
+			}
+			if (Integer.parseInt(o.toString()) != 1) {
+				ifeatCollOut.add(feat);
+				continue;
+			}
+			IPolygon pol = (IPolygon) FromGeomToSurface.convertGeom(feat.getGeom()).get(0);
+
+			int num = (int) feat.getAttribute("num");
+			int numParcelle = 1;
+			OBBBlockDecomposition obb = new OBBBlockDecomposition(pol, maximalArea, maximalWidth, Random.random(), roadEpsilon, noise);
+			// TODO erreures récurentes sur le split
+			try {
+				IFeatureCollection<IFeature> featCollDecomp = obb.decompParcel();
+				// recup du GF_AttributeType des numeros
+				GF_AttributeType attribute = null;
+				for (GF_AttributeType att : ifeatColl.getFeatureType().getFeatureAttributes()) {
+					if (att.toString().contains("num")) {
+						attribute = att;
+					}
+				}
+				for (IFeature featDecomp : featCollDecomp) {
+					// MAJ du numéro de la parcelle
+					int newNum = Integer.parseInt(String.valueOf(num) + "000" + String.valueOf(numParcelle));
+					numParcelle = numParcelle + 1;
+					IFeature newFeat = new DefaultFeature(featDecomp.getGeom());
+					AttributeManager.addAttribute(newFeat, "num", newNum, "Integer");
+					ifeatCollOut.add(newFeat);
+				}
+			} catch (NullPointerException n) {
+				System.out.println("erreur sur le split pour la parcelle " + num);
+				IFeature featTemp = feat.cloneGeom();
+				ifeatCollOut.add(featTemp);
+			}
+		}
+
+		File fileOut = new File(tmpFile, "tmp.shp");
+		ShapefileWriter.write(ifeatCollOut, fileOut.toString(), CRS.decode("EPSG:2154"));
+		// nouvelle sélection en fonction de la zone pour patir à la faible
+		// qualité de la sélection spatiale quand les polygones touchent les
+		// zones (oui je sais, pas bô encore une fois..)
+
+		ShapefileDataStore SSD = new ShapefileDataStore(fileOut.toURI().toURL());
+		SimpleFeatureCollection splitedSFC = SSD.getFeatureSource().getFeatures();
+
+		// splitedSFC = selecParcelZonePLU(typeZone, splitedSFC, SSD);
+
+		// pareil, il serait peut être mieux d'échanger des shp?!
+		// SSD.dispose();
+		// return
+		// GeOxygeneGeoToolsTypes.convert2FeatureCollection(ifeatCollOut);
+		return splitedSFC;
+	}
+
+	
+	
 	/**
 	 * Merge all the shapefile of a folder (made for simPLU buildings) into one shapefile
 	 * @param file2MergeIn : list of files containing the shapefiles
