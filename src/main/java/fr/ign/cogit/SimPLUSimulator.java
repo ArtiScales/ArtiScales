@@ -69,6 +69,8 @@ public class SimPLUSimulator {
 	File rootFile;
 
 	private static List<String> ID_PARCELLE_TO_SIMULATE = new ArrayList<>();
+	
+	public static boolean USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
 
 	public static void main(String[] args) throws Exception {
 
@@ -374,53 +376,18 @@ public class SimPLUSimulator {
 			}
 		}
 
+		PredicatePLUCities<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = null;
 		
-		
-		List<SubParcel> sP =  bPU.getCadastralParcels().get(0).getSubParcels();
-		//We sort the parcel
-		sP.sort(new Comparator<SubParcel>() {
-			@Override
-			public int compare(SubParcel o1, SubParcel o2) {
-				return Double.compare(o1.getArea(), o2.getArea());
-			}
-		});
-		SubParcel sPBiggest = sP.get(sP.size() -1);
-	
-		ArtiScalesRegulation regle =(ArtiScalesRegulation) sPBiggest.getUrbaZone().getZoneRegulation();
-		
-		
-		
-		
-
-		double distReculVoirie = regle.getArt_6();
-		if (distReculVoirie == 77) {
-			distReculVoirie = 0;
-
-		}
-		double distReculFond = regle.getArt_73();
-		// regle.getArt_74()) devrait prendre le minimum de la valeur fixe et du
-		// rapport
-		// à la hauteur du batiment à coté
-		double distReculLat = regle.getArt_72();
-
-		double distanceInterBati = regle.getArt_8();
-		if (distanceInterBati == 88.0 || distanceInterBati == 99.0) {
-			distanceInterBati = 50; // quelle valeur faut il mettre ??
-		}
-		MultipleBuildingsCuboid.ALLOW_INTERSECTING_CUBOID = p.getBoolean("intersection");
-
-		double maximalCES = regle.getArt_9();
-		if (regle.getArt_8() == 99) {
-			maximalCES = 0;
+		if(! USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL) {
+			 pred = preparePredicateOneRegulation(bPU, p, prescriptionUse);
 		}
 
-		double maximalhauteur = regle.getArt_10_m();
+		
+		
+		
+		
 
-		// Instantiation of the rule checker
 
-		PredicatePLUCities<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = new PredicatePLUCities<>(
-				bPU, true, distReculVoirie, distReculFond, distReculLat, distanceInterBati, maximalCES, maximalhauteur,
-				p.getInteger("nbCuboid"), false, prescriptionUse);
 
 		if (!pred.isCanBeSimulated()) {
 			System.out.println("Parcel is overlapped by graphical prescriptions");
@@ -495,6 +462,54 @@ public class SimPLUSimulator {
 		}
 
 		return output;
+	}
+	
+	private static PredicatePLUCities<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> preparePredicateOneRegulation(BasicPropertyUnit bPU, Parameters p, IFeatureCollection<Prescription>  prescriptionUse) throws Exception
+	{
+		List<SubParcel> sP =  bPU.getCadastralParcels().get(0).getSubParcels();
+		//We sort the parcel
+		sP.sort(new Comparator<SubParcel>() {
+			@Override
+			public int compare(SubParcel o1, SubParcel o2) {
+				return Double.compare(o1.getArea(), o2.getArea());
+			}
+		});
+		SubParcel sPBiggest = sP.get(sP.size() -1);
+	
+		ArtiScalesRegulation regle =(ArtiScalesRegulation) sPBiggest.getUrbaZone().getZoneRegulation();
+		
+		double distReculVoirie = regle.getArt_6();
+		if (distReculVoirie == 77) {
+			distReculVoirie = 0;
+
+		}
+		double distReculFond = regle.getArt_73();
+		// regle.getArt_74()) devrait prendre le minimum de la valeur fixe et du
+		// rapport
+		// à la hauteur du batiment à coté
+		double distReculLat = regle.getArt_72();
+
+		double distanceInterBati = regle.getArt_8();
+		if (distanceInterBati == 88.0 || distanceInterBati == 99.0) {
+			distanceInterBati = 50; // quelle valeur faut il mettre ??
+		}
+		MultipleBuildingsCuboid.ALLOW_INTERSECTING_CUBOID = p.getBoolean("intersection");
+
+		double maximalCES = regle.getArt_9();
+		if (regle.getArt_8() == 99) {
+			maximalCES = 0;
+		}
+
+		double maximalhauteur = regle.getArt_10_m();
+
+		// Instantiation of the rule checker
+
+		PredicatePLUCities<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = new PredicatePLUCities<>(
+				bPU, true, distReculVoirie, distReculFond, distReculLat, distanceInterBati, maximalCES, maximalhauteur,
+				p.getInteger("nbCuboid"), false, prescriptionUse);
+		
+		
+		return pred;
 	}
 
 	/**
