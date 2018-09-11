@@ -47,7 +47,6 @@ public class PredicatePLUCities<O extends AbstractSimpleBuilding, C extends Abst
 	private double distanceInterBati = 0.0;
 	private double maximalCES = 0.0;
 	private double maximalHauteur = 0.0;
-	private boolean singleBuild = false;
 	private int nbCuboid = 0;
 	private Parameters p;
 	private IFeatureCollection<Prescription> prescriptions;
@@ -67,7 +66,7 @@ public class PredicatePLUCities<O extends AbstractSimpleBuilding, C extends Abst
 		this(currentBPU);
 
 		p = pA;
-		
+
 		this.distReculVoirie = regle.getArt_6();
 		if (this.distReculVoirie == 77) {
 			this.distReculVoirie = 0;
@@ -261,124 +260,75 @@ public class PredicatePLUCities<O extends AbstractSimpleBuilding, C extends Abst
 	public boolean check(C c, M m) {
 
 		// Il s'agit des objets de la classe Cuboid
-		List<O> lO = m.getBirth();
-		
-		if(lO.isEmpty()) {
+
+		// NewCuboids
+		List<O> lONewCuboids = m.getBirth();
+
+		if (lONewCuboids.isEmpty()) {
 			return true;
 		}
+		// All current cuboids
+		List<O> lAllCuboids = listAllCuboids(c, m);
 
-		// On vérifie les règles sur tous les pavés droits, dès qu'il y en a un qui ne
-		// respecte pas une règle, on rejette
-		// On traite les contraintes qui ne concernent que les nouveux bâtiments
+		CommonRulesOperator<O> cRO = new CommonRulesOperator<O>();
 
-		int nbAdded = m.getBirth().size() - m.getDeath().size();
-
-		// System.out.println("taille présumé de notre collec "+c.size());
-
-		if (c.size() + nbAdded > nbCuboid) {
+		// We check if the number of cuboids does not exceed the max
+		if (!cRO.checkNumberOfBuildings(lAllCuboids, nbCuboid)) {
 			return false;
 		}
 
-		for (O cuboid : lO) {
+		// Checking only for new cuboids
+		for (O cuboid : lONewCuboids) {
 
-			// On vérifie que le batiment est compris dans la zone d'alignement (surfacique)
-			// TODO a expérimenter (trouver une autre manière de le faire) (snapper aux limites ou faire un buffer)
-			if (prescriptions != null && align == true) {
-				for (Prescription prescription : prescriptions) {
-					if (prescription.type == PrescriptionType.FACADE_ALIGNMENT) {
-						if (prescription.getGeom().isMultiSurface()
-								&& !cuboid.toGeometry().touches(jtsCurveLimiteFrontParcel)) {
-							return false;
-						}
-
-					}
-				}
+			if (!cRO.checkAlignementPrescription(cuboid, prescriptions, align, jtsCurveLimiteFrontParcel)) {
+				return false;
 			}
 
-			// On vérifie la contrainte de recul par rapport au fond de parcelle
-			// Existe t il ?
-			if (jtsCurveLimiteFondParcel != null) {
-				Geometry geom = cuboid.toGeometry();
-				if (geom == null) {
-					System.out.println("Nullll");
-				}
-				// On vérifie la distance (on récupère le foot
-				if (this.jtsCurveLimiteFondParcel.distance(geom) < this.distReculFond) {
-					// elle n'est pas respectée, on retourne faux
-					return false;
-
-				}
-
-			}
-			// On vérifie la contrainte de recul par rapport au front de parcelle (voirie).
-			// Existe t il ?
-			if (this.jtsCurveLimiteFrontParcel != null) {
-				// On vérifie la distance
-				if (this.jtsCurveLimiteFrontParcel.distance(cuboid.toGeometry()) < this.distReculVoirie) {
-					// elle n'est pas respectée, on retourne faux
-					return false;
-				}
+			// Distance to the bottom of the parcel
+			if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFondParcel, this.distReculFond)) {
+				return false;
 			}
 
-			// On vérifie la contrainte de recul par rapport aux bordures de la parcelle
-			// Existe t il ?
-			if (jtsCurveLimiteLatParcel != null) {
-				// On vérifie la distance
-				if (this.jtsCurveLimiteLatParcel.distance(cuboid.toGeometry()) < this.distReculLat) {
-					// elle n'est pas respectée, on retourne faux
-					return false;
+			// Distance to the front of the parcel
+			if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, this.distReculVoirie)) {
+				return false;
+			}
 
-				}
-
+			// Distance to the front of the parcel
+			if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteLatParcel, this.distReculLat)) {
+				return false;
 			}
 
 			// On vérifie la contrainte de recul par rapport au prescriptions graphiques
-
-
-			// Distance between existig building and cuboid
-			for (Building b : currentBPU.getBuildings()) {
-				if (b.getFootprint().distance(cuboid.getFootprint()) <= distanceInterBati) {
-					return false;
-				}
+			if (!cRO.checkDistanceBetweenCuboidandBuildings(cuboid, this.currentBPU, this.distanceInterBati)) {
+				return false;
 			}
 
-			if (forbiddenZone != null) {
-				if (cuboid.toGeometry().intersects(forbiddenZone)) {
-					return false;
-				}
+			// On vérifie que le cuboid n'intersecte pas de zone issues de prescriptions
+			// ATTENTION : Ons renvoie faux lorsque l'intersection a lieu
+			if (cRO.checkIfIntersectsGeometry(cuboid, this.forbiddenZone)) {
+				return false;
 			}
 
-			// Autres règles :
-
-			// Pour la hauteur => c'est plutôt dans le fichier de configuration.
-			// sinon on peut la mesurer comme ça : cuboid.height(1, 2) => mais
-			// c'est
-			// plus performant dans le fichier de configuration
-
-			// Pour les bandes de constructibilité : on imaginera qu'il y a un
-			// polygone ou un multisurface mp
-
-			// IMultiSurface<IOrientableSurface> mS = null; // à définir
-			// mS.contains(cuboid.footprint);
-
-			if (cuboid.getHeight() > maximalHauteur) {
+			// Checking the height of the cuboid
+			if (cRO.checkHeight(cuboid, this.maximalHauteur)) {
 				return false;
 			}
 
 		}
 
-		// Pour vérifier que le CES (surface bâti) est respecté
-		if (!respectMaximalBuiltArea(c, m)) {
-			return false;
-		}
-		
-		if ((!p.getBoolean("intersection"))
-				&& (!checkDistanceInterBuildings(c, m, distanceInterBati))) {
+		// Checking the builtRatio
+		if (!cRO.checkBuiltRatio(lAllCuboids, currentBPU, maximalCES)) {
 			return false;
 		}
 
 		if (p.getBoolean("intersection")) {
-			if (!testWidthBuilding(c, m, 7.5, distanceInterBati)) {
+			// If intersection is allowed, we check the width of the building
+			if (!cRO.checkBuildingWidth(lAllCuboids, 7.5, distanceInterBati))
+				return false;
+
+		} else {
+			if (!cRO.checkDistanceInterCuboids(lAllCuboids, distanceInterBati)) {
 				return false;
 			}
 		}
@@ -388,102 +338,14 @@ public class PredicatePLUCities<O extends AbstractSimpleBuilding, C extends Abst
 
 	}
 
-	private boolean checkDistanceInterGroups(List<List<AbstractSimpleBuilding>> lGroupes, double distanceInterBati) {
-		// si un seul groupe
-		if (lGroupes.size() < 2)
-			return true;
-		// on va stocker les hauteurs pour pas les recalculer
-		double[] heights = new double[lGroupes.size()];
-		for (int i = 0; i < lGroupes.size(); ++i) {
-			heights[i] = getGroupeHeight(lGroupes.get(i));
-		}
-		for (int i = 0; i < lGroupes.size() - 1; ++i) {
-			for (int j = i + 1; j < lGroupes.size(); ++j) {
-				double distanceGroupes = getGroupGeom(lGroupes.get(i)).distance(getGroupGeom(lGroupes.get(j)));
-				double d = Math.min(Math.max(heights[i], heights[j]) * 0.5, distanceInterBati);
-				// System.out.println("max(dist groupes, heights) : " + d
-				// + "---- dit inter bati : " + distanceInterBati);
-				if (distanceGroupes < d)
-					return false;
-			}
-		}
-		return true;
-	}
-
-	private double getGroupeHeight(List<AbstractSimpleBuilding> g) {
-		double max = -1;
-		for (AbstractBuilding b : g) {
-			if (((O) b).getHeight() > max)
-				max = ((O) b).getHeight();
-		}
-		return max;
-	}
-
-	private boolean checkDistanceInterBuildings(C c, M m) throws Exception {
-		GeometryFactory gf = new GeometryFactory();
-		// On récupère les objets ajoutées lors de la proposition
-		List<O> lO = m.getBirth();
-
-		// On récupère la boîte (si elle existe) que l'on supprime lors de la
-		// modification
-		O batDeath = null;
-
-		if (!m.getDeath().isEmpty()) {
-			batDeath = m.getDeath().get(0);
-		}
-
-		// On regarde la distance entre les bâtiments existants
-		// et les boîtes que l'on ajoute
-		for (Building b : currentBPU.getBuildings()) {
-			for (O ab : lO) {
-				Geometry geomBat = AdapterFactory.toGeometry(gf, b.getFootprint());
-				if (geomBat.distance(ab.toGeometry()) < distanceInterBati) {
-					return false;
-				}
-			}
-		}
-
-		// On parcourt les boîtes existantes dans la configuration courante
-		// (avant
-		// d'appliquer la modification)
-		Iterator<O> iTBat = c.iterator();
-		while (iTBat.hasNext()) {
-
-			O batTemp = iTBat.next();
-
-			// Si c'est une boîte qui est amenée à disparaître après
-			// modification,
-			// elle n'entre pas en jeu dans les vérifications
-			if (batTemp == batDeath) {
-				continue;
-			}
-
-			// On parcourt les boîtes que l'on ajoute
-			for (O ab : lO) {
-
-				// On regarde si la distance entre les boîtes qui restent et
-				// celles que
-				// l'on ajoute
-				// respecte la distance entre boîtes
-				if (batTemp.toGeometry().distance(ab.toGeometry()) < distanceInterBati) {
-					return false;
-				}
-
-			}
-
-		}
-		return true;
-
-	}
-
+	
 	/**
-	 * Vérification du nom dépassement du CES
-	 * 
+	 * List all the current cuboids of the configuration
 	 * @param c
 	 * @param m
 	 * @return
 	 */
-	private boolean respectMaximalBuiltArea(C c, M m) {
+	private List<O> listAllCuboids(C c, M m) {
 		// On fait la liste de tous les objets après modification
 		List<O> lCuboid = new ArrayList<>();
 
@@ -515,228 +377,9 @@ public class PredicatePLUCities<O extends AbstractSimpleBuilding, C extends Abst
 
 		}
 
-		// C'est vide la règle est respectée
-		if (lCuboid.isEmpty()) {
-			return true;
-		}
-
-		// On calcule la surface couverte par l'ensemble des cuboid
-		int nbElem = lCuboid.size();
-
-		Geometry geom = lCuboid.get(0).toGeometry();
-
-		for (int i = 1; i < nbElem; i++) {
-
-			geom = geom.union(lCuboid.get(i).toGeometry());
-
-		}
-
-		List<AbstractSimpleBuilding> lBatIni = new ArrayList<>();
-		for (ISimPLU3DPrimitive s : lCuboid) {
-			lBatIni.add((AbstractSimpleBuilding) s);
-		}
-
-		/*
-		 * List<List<AbstractSimpleBuilding>> groupes =
-		 * CuboidGroupCreation.createGroup(lBatIni, 0.5);
-		 * 
-		 * if (groupes.size() > 1) { return false; }
-		 */
-
-		// On récupère la superficie de la basic propertyUnit
-		double airePAr = 0;
-		for (CadastralParcel cP : currentBPU.getCadastralParcels()) {
-			airePAr = airePAr + cP.getArea();
-		}
-
-		return ((geom.getArea() / airePAr) <= maximalCES);
-	}
-
-	private boolean testWidthBuilding(C c, M m, double widthBuffer, double distanceInterBati) {
-		// On fait la liste de tous les objets après modification
-		List<O> lO = new ArrayList<>();
-
-		// On récupère la boîte (si elle existe) que l'on supprime lors de la
-		// modification
-		O cuboidDead = null;
-
-		if (!m.getDeath().isEmpty()) {
-			cuboidDead = m.getDeath().get(0);
-		}
-
-		Iterator<O> iTBat = c.iterator();
-
-		while (iTBat.hasNext()) {
-
-			O batTemp = iTBat.next();
-
-			if (batTemp == cuboidDead) {
-				continue;
-			}
-
-			lO.add(batTemp);
-
-		}
-
-		// On ajoute tous les nouveaux objets
-		lO.addAll(m.getBirth());
-
-		List<List<AbstractSimpleBuilding>> lGroupes = CuboidGroupCreation.createGroup(lO, 0);
-
-		// System.out.println("nb groupes " + lGroupes.size());
-		for (List<AbstractSimpleBuilding> lAb : lGroupes) {
-			// System.out.println("groupe x : " + lAb.size() + " batiments");
-			if (!checkWidth(lAb, widthBuffer)) {
-				return false;
-			}
-
-		}
-
-		// Calculer la distance entre groupes
-		// 1 - par rapport à distanceInterBati
-		// 2 - par rapport à la moitié de la hauteur du plus haut cuboid
-		if (!checkDistanceInterGroups(lGroupes, distanceInterBati))
-			return false;
-
-		// System.out.println("-------------------nb groupes " +
-		// lGroupes.size());
-		return true;
-	}
-
-	private Geometry getGroupGeom(List<AbstractSimpleBuilding> g) {
-		Collection<Geometry> collGeom = new ArrayList<>();
-		for (AbstractSimpleBuilding o : g) {
-			collGeom.add(o.toGeometry()/* .buffer(0.4) */);
-		}
-		Geometry union = null;
-		try {
-			union = CascadedPolygonUnion.union(collGeom);
-		} catch (Exception e) {
-			return null;
-		}
-		/* union = TopologyPreservingSimplifier.simplify(union, 0.4); */
-		return union;
+		return lCuboid;
 	}
 
 	private GeometryFactory gf = new GeometryFactory();
-	private long c = 0;
 
-	private boolean checkWidth(List<AbstractSimpleBuilding> lO, double widthBuffer) {
-
-		if (lO.size() < 2)
-			return true;
-		Geometry union = getGroupGeom(lO);
-		if (union == null)
-			return false;
-		// Récupérer le polygone sans le trou
-		// will that do it ?
-		// System.out.println(union.getClass());
-		if (union instanceof Polygon) {
-			// union = gf
-			// .createPolygon(((Polygon)
-			// union).getExteriorRing().getCoordinates())
-			// .buffer(5).buffer(-5);
-			union = union.buffer(5).buffer(-5);
-		}
-		boolean multi = false;
-		if (union instanceof MultiPolygon) {
-			// System.out.println("multi " + union);
-			return false;
-			// System.out.println("multi " + union);
-			// union = union.buffer(5).buffer(-5);
-			// // if it is still a multipolygon we test if we can remove too
-			// small
-			// ones!
-			// if (union instanceof MultiPolygon) {
-			// MultiPolygon mp = ((MultiPolygon) union);
-			// int nbOfSmallOnes = 0;
-			// int bigOneindice = -1;
-			// for (int i = 0; i < mp.getNumGeometries(); ++i) {
-			// if (mp.getGeometryN(i).getArea() < 5)
-			// nbOfSmallOnes++;
-			// else
-			// bigOneindice = i;
-			// }
-			// if (mp.getNumGeometries() - nbOfSmallOnes > 1)
-			// return false;
-			// union = mp.getGeometryN(bigOneindice);
-			// }
-			// union = gf
-			// .createPolygon(((Polygon)
-			// union).getExteriorRing().getCoordinates());
-			// System.out.println("multibuffered " + union);
-			// multi = true;
-			// au final on peut court circuiter ?
-			// return false;
-		}
-
-		Geometry negativeBuffer = union.buffer(-widthBuffer);
-
-		if (negativeBuffer.isEmpty() || negativeBuffer.getArea() < 0.001) {
-			++c;
-			if (c % 10000 == 0 || multi) {
-				// System.out.println("**** " + multi);
-				// System.out.println("**** " + union);
-				// System.out.println("good width "
-				// + (negativeBuffer.isEmpty() ? "empty" : negativeBuffer));
-				// System.out.println("group size " + lO.size());
-			}
-			return true;
-		}
-		// System.out.println("too big");
-		// System.out.println(union);
-		// System.out.println(negativeBuffer);
-		// System.out.println("---------------------");
-		return false;
-
-	}
-
-	private boolean checkDistanceInterBuildings(C c, M m, double distanceInterBati) {
-
-		// On fait la liste de tous les objets après modification
-		List<O> lO = new ArrayList<>();
-
-		// On récupère la boîte (si elle existe) que l'on supprime lors de la
-		// modification
-		O cuboidDead = null;
-
-		if (!m.getDeath().isEmpty()) {
-			cuboidDead = m.getDeath().get(0);
-		}
-
-		Iterator<O> iTBat = c.iterator();
-
-		while (iTBat.hasNext()) {
-
-			O batTemp = iTBat.next();
-
-			if (batTemp == cuboidDead) {
-				continue;
-			}
-
-			lO.add(batTemp);
-
-		}
-
-		// On ajoute tous les nouveaux objets
-		lO.addAll(m.getBirth());
-
-		for (int i = 0; i < nbCuboid; i++) {
-			AbstractSimpleBuilding cI = lO.get(i);
-
-			for (int j = i + 1; j < nbCuboid; j++) {
-				AbstractSimpleBuilding cJ = lO.get(j);
-
-				double distance = cI.getFootprint().distance(cJ.getFootprint());
-
-				if (distance < distanceInterBati) {
-					return false;
-				}
-
-			}
-		}
-
-		return true;
-
-	}
 }
