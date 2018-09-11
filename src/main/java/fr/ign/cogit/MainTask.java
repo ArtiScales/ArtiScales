@@ -145,12 +145,12 @@ public class MainTask {
 					if (p.getBoolean("respectZoning")) {
 						resultXml.beginBalise("respectZoning");
 						File parcelSelected = selectParcels.runZoningAllowed();
-						// SimPLUSimulator simPLUsimu = new SimPLUSimulator(rootFile, geoFile, pluFile, parcelSelected, zipCode, p);
-						// // On lance la simulation
-						// List<File> batisSimulatedFile = simPLUsimu.run();
-						// File mergedBatiFile = VectorFct.mergeBatis(batisSimulatedFile);
-						// BuildingToHousehold bTH = new BuildingToHousehold(mergedBatiFile, p);
-						// bTH.run();
+						 SimPLUSimulator simPLUsimu = new SimPLUSimulator(rootFile, geoFile, pluFile, parcelSelected, zipCode, p);
+						 // On lance la simulation
+						 List<File> batisSimulatedFile = simPLUsimu.run();
+						 File mergedBatiFile = VectorFct.mergeBatis(batisSimulatedFile);
+						 BuildingToHousehold bTH = new BuildingToHousehold(mergedBatiFile, p);
+						 bTH.run();
 
 						selectParcels.writeXMLResult(resultXml);
 						resultXml.endBalise("respectZoning");
