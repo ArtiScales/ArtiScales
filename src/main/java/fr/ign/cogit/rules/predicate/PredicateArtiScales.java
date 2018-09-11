@@ -27,6 +27,8 @@ import fr.ign.mpp.configuration.AbstractGraphConfiguration;
 import fr.ign.parameters.Parameters;
 import fr.ign.rjmcmc.configuration.ConfigurationModificationPredicate;
 
+
+// @TODO : Mickaël : créer une classe abstraite pour mettre en commun les codes de PRedicateArtiScalse et MultiplePredicateArtiscales. Faire que dans cette classes les accseseurs à ArtiScalesRegulation soit utilisés plutôt que de passer par des objets intérmédiaires
 public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends AbstractGraphConfiguration<O, C, M>, M extends AbstractBirthDeathModification<O, C, M>>
 		implements ConfigurationModificationPredicate<C, M> {
 

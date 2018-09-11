@@ -18,12 +18,10 @@ import fr.ign.cogit.geoxygene.util.conversion.AdapterFactory;
 import fr.ign.cogit.rules.regulation.ArtiScalesRegulation;
 import fr.ign.cogit.simplu3d.analysis.ForbiddenZoneGenerator;
 import fr.ign.cogit.simplu3d.model.BasicPropertyUnit;
-import fr.ign.cogit.simplu3d.model.Building;
 import fr.ign.cogit.simplu3d.model.CadastralParcel;
 import fr.ign.cogit.simplu3d.model.ParcelBoundary;
 import fr.ign.cogit.simplu3d.model.ParcelBoundaryType;
 import fr.ign.cogit.simplu3d.model.Prescription;
-import fr.ign.cogit.simplu3d.model.PrescriptionType;
 import fr.ign.cogit.simplu3d.model.SubParcel;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.AbstractSimpleBuilding;
 import fr.ign.mpp.configuration.AbstractBirthDeathModification;
@@ -35,20 +33,26 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 		implements ConfigurationModificationPredicate<C, M> {
 
 	BasicPropertyUnit currentBPU;
+
 	private IFeatureCollection<Prescription> prescriptions;
+
 	private boolean align;
+
 	private Parameters p;
-	private boolean singleBuild = false;
+
 	private int nbCuboid = 0;
+
 	Geometry forbiddenZone = null;
 
 	Geometry jtsCurveLimiteFondParcel = null;
 	Geometry jtsCurveLimiteFrontParcel = null;
 	Geometry jtsCurveLimiteLatParcel = null;
 
-	private GeometryFactory gf = new GeometryFactory();
 
 	Map<Geometry, ArtiScalesRegulation> mapGeomRegulation = new HashMap<>();
+	
+	
+	Geometry bPUGeom = null;
 
 	private boolean canBeSimulated = true;
 
@@ -66,7 +70,12 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 	 */
 	private MultiplePredicateArtiScales(BasicPropertyUnit bPU) throws Exception {
 		super();
+		
+	
+	
+	
 		this.currentBPU = bPU;
+
 
 		// Pour simplifier la vérification, on extrait les différentes bordures de
 		// parcelles
@@ -131,6 +140,10 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 		if (!curveLimiteLatParcel.isEmpty()) {
 			this.jtsCurveLimiteLatParcel = AdapterFactory.toGeometry(gf, curveLimiteLatParcel);
 		}
+		
+		
+		this.bPUGeom = AdapterFactory.toGeometry(gf,bPU.getGeom());
+
 	}
 
 	public MultiplePredicateArtiScales(BasicPropertyUnit currentBPU, boolean align, Parameters p,
@@ -140,13 +153,20 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 		this.align = align;
 		this.p = p;
 		this.prescriptions = presc;
-
+		this.nbCuboid = p.getInteger("nbCuboid");
+		
 		for (SubParcel sp : currentBPU.getCadastralParcels().get(0).getSubParcels()) {
 
 			mapGeomRegulation.put(AdapterFactory.toGeometry(gf, sp.getGeom()),
 					(ArtiScalesRegulation) sp.getUrbaZone().getZoneRegulation());
 
 		}
+		
+		//We clean all regulation
+		mapGeomRegulation.values().stream().forEach(x -> x.clean());
+	
+		
+		
 
 		ForbiddenZoneGenerator fZG = new ForbiddenZoneGenerator();
 		IGeometry geomForbidden = fZG.generateUnionGeometry(prescriptions, currentBPU);
@@ -161,12 +181,26 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 
 		this.align = align;
 		this.nbCuboid = p.getInteger("nbCuboid");
-		this.singleBuild = p.getBoolean("intersection");
 
 		if (geomForbidden != null && geomForbidden.contains(currentBPU.getGeom())) {
 			canBeSimulated = false;
 		}
+		
+		
+		////Determine the maximalCES according to all subparcel contribution
+		double totalSubParcelArea = mapGeomRegulation.keySet().stream().mapToDouble(x -> x.getArea()).sum();
+		double maxBuiltArea = 0;
+		
+		for(Geometry geom : mapGeomRegulation.keySet()) {
+			maxBuiltArea = maxBuiltArea + geom.getArea() * mapGeomRegulation.get(geom).getArt_9();
+		}
+		
+	
+		maxCES = maxBuiltArea / totalSubParcelArea;
 	}
+	
+	
+	private double maxCES = 1;
 
 	/**
 	 * Cette méthode est executée à chaque fois que le système suggère une nouvelle
@@ -187,6 +221,11 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 		if (lONewCuboids.isEmpty()) {
 			return true;
 		}
+		
+		
+		///////////Generic regulation that concerns all subparcels indepentendely from its subparcel
+		
+		
 		// All current cuboids
 		List<O> lAllCuboids = listAllCuboids(c, m);
 
@@ -196,56 +235,97 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 		if (!cRO.checkNumberOfBuildings(lAllCuboids, nbCuboid)) {
 			return false;
 		}
+		
+		
+		// Checking only for new cuboids
+		for (O cuboid : lONewCuboids) {
+
+			if (!cRO.checkIfContainsGeometry(cuboid, bPUGeom)) {
+				return false;
+			}
+			
+		}
+		
 
 		// Checking only for new cuboids
 		for (O cuboid : lONewCuboids) {
-			
-			if(! cRO.checkIfContainsGeometry(cuboid, bPUGeom)) {
+
+			if (!cRO.checkIfContainsGeometry(cuboid, bPUGeom)) {
 				return false;
 			}
-
+			
 			if (!cRO.checkAlignementPrescription(cuboid, prescriptions, align, jtsCurveLimiteFrontParcel)) {
 				return false;
 			}
-
-			// Distance to the bottom of the parcel
-			if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFondParcel, this.distReculFond)) {
-				return false;
-			}
-
-			// Distance to the front of the parcel
-			if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, this.distReculVoirie)) {
-				return false;
-			}
-
-			// Distance to the front of the parcel
-			if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteLatParcel, this.distReculLat)) {
-				return false;
-			}
-
-			// On vérifie la contrainte de recul par rapport au prescriptions graphiques
-			if (!cRO.checkDistanceBetweenCuboidandBuildings(cuboid, this.currentBPU, this.distanceInterBati)) {
-				return false;
-			}
-
+			
+			
 			// On vérifie que le cuboid n'intersecte pas de zone issues de prescriptions
 			// ATTENTION : Ons renvoie faux lorsque l'intersection a lieu
 			if (cRO.checkIfIntersectsGeometry(cuboid, this.forbiddenZone)) {
 				return false;
 			}
+			
+		}	
+			
+		
+		///////////Regulation that depends from the SubParcel regulation
+		
+		
+		for (O cuboid : lONewCuboids) {
+			
+			//Determine the relevant regulation :
+			
+			for(Geometry sP : this.mapGeomRegulation.keySet()) {
+				
+			if(! sP.intersects(cuboid.toGeometry())) {
+				continue;
+			}
+			
+			ArtiScalesRegulation regle = mapGeomRegulation.get(sP);
 
-			// Checking the height of the cuboid
-			if (cRO.checkHeight(cuboid, this.maximalHauteur)) {
+			// Distance to the bottom of the parcel
+			if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFondParcel, regle.getArt_73())) {
 				return false;
 			}
 
+			// Distance to the front of the parcel
+			if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, regle.getArt_6())) {
+				return false;
+			}
+
+			// Distance to the front of the parcel
+			if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteLatParcel, regle.getArt_72())) {
+				return false;
+			}
+
+			// On vérifie la contrainte de recul par rapport au prescriptions graphiques
+			if (!cRO.checkDistanceBetweenCuboidandBuildings(cuboid, this.currentBPU,  regle.getArt_8())) {
+				return false;
+			}
+
+
+			// Checking the height of the cuboid
+			if (cRO.checkHeight(cuboid, regle.getArt_10_m())) {
+				return false;
+			}
+			
+			
+			}
+			
+
 		}
 
+		
+	
+		
+		
 		// Checking the builtRatio
-		if (!cRO.checkBuiltRatio(lAllCuboids, currentBPU, maximalCES)) {
+		if (!cRO.checkBuiltRatio(lAllCuboids, currentBPU, maxCES)) {
 			return false;
 		}
 
+		//@TODO : Implement these fonction because distance depends on the subParcel
+		/*
 		if (p.getBoolean("intersection")) {
 			// If intersection is allowed, we check the width of the building
 			if (!cRO.checkBuildingWidth(lAllCuboids, 7.5, distanceInterBati))
@@ -255,7 +335,9 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 			if (!cRO.checkDistanceInterCuboids(lAllCuboids, distanceInterBati)) {
 				return false;
 			}
-		}
+		}*/
+		
+
 
 		// On a réussi tous les tests, on renvoie vrai
 		return true;
