@@ -1,4 +1,4 @@
-package fr.ign.cogit.rules;
+package fr.ign.cogit.rules.predicate;
 
 import java.io.BufferedReader;
 import java.io.File;

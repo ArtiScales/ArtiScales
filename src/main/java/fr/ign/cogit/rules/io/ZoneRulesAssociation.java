@@ -1,9 +1,10 @@
-package fr.ign.cogit.rules;
+package fr.ign.cogit.rules.io;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
+import fr.ign.cogit.rules.predicate.ArtiScalesRegulation;
 import fr.ign.cogit.simplu3d.model.Environnement;
 import fr.ign.cogit.simplu3d.model.UrbaZone;
 

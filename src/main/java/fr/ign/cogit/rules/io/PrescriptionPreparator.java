@@ -1,4 +1,4 @@
-package fr.ign.cogit.rules;
+package fr.ign.cogit.rules.io;
 
 import fr.ign.cogit.SimPLUSimulator;
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
