@@ -36,7 +36,7 @@ import fr.ign.mpp.configuration.AbstractGraphConfiguration;
 import fr.ign.parameters.Parameters;
 import fr.ign.rjmcmc.configuration.ConfigurationModificationPredicate;
 
-public class PredicatePLUCities<O extends AbstractSimpleBuilding, C extends AbstractGraphConfiguration<O, C, M>, M extends AbstractBirthDeathModification<O, C, M>>
+public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends AbstractGraphConfiguration<O, C, M>, M extends AbstractBirthDeathModification<O, C, M>>
 		implements ConfigurationModificationPredicate<C, M> {
 
 	// Des valeurs pour les différentes contraintes
@@ -60,7 +60,7 @@ public class PredicatePLUCities<O extends AbstractSimpleBuilding, C extends Abst
 		return canBeSimulated;
 	}
 
-	public PredicatePLUCities(BasicPropertyUnit currentBPU, boolean align, ArtiScalesRegulation regle, Parameters pA,
+	public PredicateArtiScales(BasicPropertyUnit currentBPU, boolean align, ArtiScalesRegulation regle, Parameters pA,
 			IFeatureCollection<Prescription> presc) throws Exception {
 
 		this(currentBPU);
@@ -130,7 +130,7 @@ public class PredicatePLUCities<O extends AbstractSimpleBuilding, C extends Abst
 	 * @param maximalCES        : CES maximum
 	 * @throws Exception
 	 */
-	public PredicatePLUCities(BasicPropertyUnit currentBPU, boolean align, double distReculVoirie, double distReculFond,
+	public PredicateArtiScales(BasicPropertyUnit currentBPU, boolean align, double distReculVoirie, double distReculFond,
 			double distReculLat, double distanceInterBati, double maximalCES, double maximalhauteur, int nbcuboid,
 			boolean singleBuild, IFeatureCollection<Prescription> presc) throws Exception {
 		// On appelle l'autre constructeur qui renseigne un certain nombre de
@@ -179,7 +179,7 @@ public class PredicatePLUCities<O extends AbstractSimpleBuilding, C extends Abst
 	 * @param bPU
 	 * @throws Exception
 	 */
-	private PredicatePLUCities(BasicPropertyUnit bPU) throws Exception {
+	private PredicateArtiScales(BasicPropertyUnit bPU) throws Exception {
 		super();
 		this.currentBPU = bPU;
 

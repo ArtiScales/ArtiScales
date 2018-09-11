@@ -30,7 +30,7 @@ import fr.ign.mpp.configuration.AbstractGraphConfiguration;
 import fr.ign.parameters.Parameters;
 import fr.ign.rjmcmc.configuration.ConfigurationModificationPredicate;
 
-public class MultiplePredicatePLUCities<O extends AbstractSimpleBuilding, C extends AbstractGraphConfiguration<O, C, M>, M extends AbstractBirthDeathModification<O, C, M>>
+public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C extends AbstractGraphConfiguration<O, C, M>, M extends AbstractBirthDeathModification<O, C, M>>
 		implements ConfigurationModificationPredicate<C, M> {
 
 	BasicPropertyUnit currentBPU;
@@ -63,7 +63,7 @@ public class MultiplePredicatePLUCities<O extends AbstractSimpleBuilding, C exte
 	 * @param bPU
 	 * @throws Exception
 	 */
-	private MultiplePredicatePLUCities(BasicPropertyUnit bPU) throws Exception {
+	private MultiplePredicateArtiScales(BasicPropertyUnit bPU) throws Exception {
 		super();
 		this.currentBPU = bPU;
 
@@ -132,7 +132,7 @@ public class MultiplePredicatePLUCities<O extends AbstractSimpleBuilding, C exte
 		}
 	}
 
-	public MultiplePredicatePLUCities(BasicPropertyUnit currentBPU, boolean align, Parameters p,
+	public MultiplePredicateArtiScales(BasicPropertyUnit currentBPU, boolean align, Parameters p,
 			IFeatureCollection<Prescription> presc) throws Exception {
 		this(currentBPU);
 		this.currentBPU = currentBPU;

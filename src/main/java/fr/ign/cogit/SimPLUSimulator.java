@@ -21,7 +21,7 @@ import fr.ign.cogit.geoxygene.util.conversion.ShapefileWriter;
 import fr.ign.cogit.indicators.BuildingToHousehold;
 import fr.ign.cogit.rules.io.PrescriptionPreparator;
 import fr.ign.cogit.rules.io.ZoneRulesAssociation;
-import fr.ign.cogit.rules.predicate.PredicatePLUCities;
+import fr.ign.cogit.rules.predicate.PredicateArtiScales;
 import fr.ign.cogit.rules.regulation.ArtiScalesRegulation;
 import fr.ign.cogit.simplu3d.io.feature.AttribNames;
 import fr.ign.cogit.simplu3d.io.nonStructDatabase.shp.LoaderSHP;
@@ -336,7 +336,7 @@ public class SimPLUSimulator {
 			// In this mod there is only one regulation for the entire BPU
 			pred = preparePredicateOneRegulation(bPU, p, prescriptionUse);
 
-			if (!((PredicatePLUCities<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>>) pred)
+			if (!((PredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>>) pred)
 					.isCanBeSimulated()) {
 				System.out.println("Parcel is overlapped by graphical prescriptions");
 				return null;
@@ -415,7 +415,7 @@ public class SimPLUSimulator {
 		return output;
 	}
 
-	private static PredicatePLUCities<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> preparePredicateOneRegulation(
+	private static PredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> preparePredicateOneRegulation(
 			BasicPropertyUnit bPU, Parameters p, IFeatureCollection<Prescription> prescriptionUse) throws Exception {
 		List<SubParcel> sP = bPU.getCadastralParcels().get(0).getSubParcels();
 		// We sort the parcel
@@ -433,7 +433,7 @@ public class SimPLUSimulator {
 
 		// Instantiation of the rule checker
 
-		PredicatePLUCities<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = new PredicatePLUCities<>(
+		PredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = new PredicateArtiScales<>(
 				bPU, true, regle, p, prescriptionUse);
 
 		return pred;
