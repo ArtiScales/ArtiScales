@@ -60,13 +60,12 @@ public class PredicatePLUCities<O extends AbstractSimpleBuilding, C extends Abst
 		return canBeSimulated;
 	}
 
-	public PredicatePLUCities(BasicPropertyUnit currentBPU, boolean align, ArtiScalesRegulation regle, Parameters pA,
-			IFeatureCollection<Prescription> presc) throws Exception {
+	public PredicatePLUCities(BasicPropertyUnit currentBPU, boolean align, ArtiScalesRegulation regle, Parameters pA, IFeatureCollection<Prescription> presc) throws Exception {
 
 		this(currentBPU);
 
 		p = pA;
-		
+
 		this.distReculVoirie = regle.getArt_6();
 		if (this.distReculVoirie == 77) {
 			this.distReculVoirie = 0;
@@ -115,24 +114,22 @@ public class PredicatePLUCities<O extends AbstractSimpleBuilding, C extends Abst
 	/**
 	 * Constructeur de la classe
 	 * 
-	 * @param currentBPU        : l'unité foncière sur laquelle on construit
-	 *                          (généralement : 1 parcelle, ça peut être utile pour
-	 *                          accélérer les traitements, mais ce n'est pas fait
-	 *                          ici)
-	 * @param distReculVoirie   : distance de recul par rapport à la voirie (la
-	 *                          référence ici est la limite séparative donnant sur
-	 *                          la rue annotée comme ROAD)
-	 * @param distReculFond     : distance de recul par rapport aux bordures
-	 *                          annotées comme fond de parcelle annotée comme BOT
-	 * @param distReculLat      : distance de recul par rapport aux bordures annotée
-	 *                          comme LAT
-	 * @param distanceInterBati : distance entre 2 boîtes
-	 * @param maximalCES        : CES maximum
+	 * @param currentBPU
+	 *            : l'unité foncière sur laquelle on construit (généralement : 1 parcelle, ça peut être utile pour accélérer les traitements, mais ce n'est pas fait ici)
+	 * @param distReculVoirie
+	 *            : distance de recul par rapport à la voirie (la référence ici est la limite séparative donnant sur la rue annotée comme ROAD)
+	 * @param distReculFond
+	 *            : distance de recul par rapport aux bordures annotées comme fond de parcelle annotée comme BOT
+	 * @param distReculLat
+	 *            : distance de recul par rapport aux bordures annotée comme LAT
+	 * @param distanceInterBati
+	 *            : distance entre 2 boîtes
+	 * @param maximalCES
+	 *            : CES maximum
 	 * @throws Exception
 	 */
-	public PredicatePLUCities(BasicPropertyUnit currentBPU, boolean align, double distReculVoirie, double distReculFond,
-			double distReculLat, double distanceInterBati, double maximalCES, double maximalhauteur, int nbcuboid,
-			boolean singleBuild, IFeatureCollection<Prescription> presc) throws Exception {
+	public PredicatePLUCities(BasicPropertyUnit currentBPU, boolean align, double distReculVoirie, double distReculFond, double distReculLat, double distanceInterBati,
+			double maximalCES, double maximalhauteur, int nbcuboid, boolean singleBuild, IFeatureCollection<Prescription> presc) throws Exception {
 		// On appelle l'autre constructeur qui renseigne un certain nombre de
 		// géométries
 		this(currentBPU);
@@ -172,9 +169,7 @@ public class PredicatePLUCities<O extends AbstractSimpleBuilding, C extends Abst
 	Geometry forbiddenZone = null;
 
 	/**
-	 * Ce constructeur initialise les géométries curveLimiteFondParcel,
-	 * curveLimiteFrontParcel & curveLimiteLatParcel car elles seront utilisées pour
-	 * exprimer certaines contraintes
+	 * Ce constructeur initialise les géométries curveLimiteFondParcel, curveLimiteFrontParcel & curveLimiteLatParcel car elles seront utilisées pour exprimer certaines contraintes
 	 * 
 	 * @param bPU
 	 * @throws Exception
@@ -208,8 +203,7 @@ public class PredicatePLUCities<O extends AbstractSimpleBuilding, C extends Abst
 					if (geom instanceof IOrientableCurve) {
 						curveLimiteFondParcel.add((IOrientableCurve) geom);
 					} else {
-						System.out.println(
-								"Classe SamplePredicate : quelque chose n'est pas un ICurve : " + geom.getClass());
+						System.out.println("Classe SamplePredicate : quelque chose n'est pas un ICurve : " + geom.getClass());
 					}
 				}
 				// Limite latérale
@@ -218,8 +212,7 @@ public class PredicatePLUCities<O extends AbstractSimpleBuilding, C extends Abst
 					if (geom instanceof IOrientableCurve) {
 						curveLimiteLatParcel.add((IOrientableCurve) geom);
 					} else {
-						System.out.println(
-								"Classe SamplePredicate : quelque chose n'est pas un ICurve : " + geom.getClass());
+						System.out.println("Classe SamplePredicate : quelque chose n'est pas un ICurve : " + geom.getClass());
 					}
 				}
 				// Limite front
@@ -228,8 +221,7 @@ public class PredicatePLUCities<O extends AbstractSimpleBuilding, C extends Abst
 					if (geom instanceof IOrientableCurve) {
 						curveLimiteFrontParcel.add((IOrientableCurve) geom);
 					} else {
-						System.out.println(
-								"Classe SamplePredicate : quelque chose n'est pas un ICurve : " + geom.getClass());
+						System.out.println("Classe SamplePredicate : quelque chose n'est pas un ICurve : " + geom.getClass());
 					}
 				}
 			}
@@ -249,20 +241,17 @@ public class PredicatePLUCities<O extends AbstractSimpleBuilding, C extends Abst
 	}
 
 	/**
-	 * Cette méthode est executée à chaque fois que le système suggère une nouvelle
-	 * proposition. C => contient la configuration courante (en termes de cuboids
-	 * proposés) M => les modifications que l'on souhaite apporter à la
-	 * configuration courante. Normalement, il n'y a jamais plus d'une naissance ou
-	 * d'une mort dans M, mais là dans le code on fait comme si c'était possible,
-	 * mais ça peut être simplifié
+	 * Cette méthode est executée à chaque fois que le système suggère une nouvelle proposition. C => contient la configuration courante (en termes de cuboids proposés) M => les
+	 * modifications que l'on souhaite apporter à la configuration courante. Normalement, il n'y a jamais plus d'une naissance ou d'une mort dans M, mais là dans le code on fait
+	 * comme si c'était possible, mais ça peut être simplifié
 	 */
 	@Override
 	public boolean check(C c, M m) {
 
 		// Il s'agit des objets de la classe Cuboid
 		List<O> lO = m.getBirth();
-		
-		if(lO.isEmpty()) {
+
+		if (lO.isEmpty()) {
 			return true;
 		}
 
@@ -285,8 +274,7 @@ public class PredicatePLUCities<O extends AbstractSimpleBuilding, C extends Abst
 			if (prescriptions != null && align == true) {
 				for (Prescription prescription : prescriptions) {
 					if (prescription.type == PrescriptionType.FACADE_ALIGNMENT) {
-						if (prescription.getGeom().isMultiSurface()
-								&& !cuboid.toGeometry().touches(jtsCurveLimiteFrontParcel)) {
+						if (prescription.getGeom().isMultiSurface() && !cuboid.toGeometry().touches(jtsCurveLimiteFrontParcel)) {
 							return false;
 						}
 
@@ -333,7 +321,6 @@ public class PredicatePLUCities<O extends AbstractSimpleBuilding, C extends Abst
 
 			// On vérifie la contrainte de recul par rapport au prescriptions graphiques
 
-
 			// Distance between existig building and cuboid
 			for (Building b : currentBPU.getBuildings()) {
 				if (b.getFootprint().distance(cuboid.getFootprint()) <= distanceInterBati) {
@@ -370,9 +357,8 @@ public class PredicatePLUCities<O extends AbstractSimpleBuilding, C extends Abst
 		if (!respectMaximalBuiltArea(c, m)) {
 			return false;
 		}
-		
-		if ((!p.getBoolean("intersection"))
-				&& (!checkDistanceInterBuildings(c, m, distanceInterBati))) {
+
+		if ((!p.getBoolean("intersection")) && (!checkDistanceInterBuildings(c, m, distanceInterBati))) {
 			return false;
 		}
 
@@ -536,8 +522,7 @@ public class PredicatePLUCities<O extends AbstractSimpleBuilding, C extends Abst
 		}
 
 		/*
-		 * List<List<AbstractSimpleBuilding>> groupes =
-		 * CuboidGroupCreation.createGroup(lBatIni, 0.5);
+		 * List<List<AbstractSimpleBuilding>> groupes = CuboidGroupCreation.createGroup(lBatIni, 0.5);
 		 * 
 		 * if (groupes.size() > 1) { return false; }
 		 */
@@ -625,6 +610,7 @@ public class PredicatePLUCities<O extends AbstractSimpleBuilding, C extends Abst
 		if (lO.size() < 2)
 			return true;
 		Geometry union = getGroupGeom(lO);
+
 		if (union == null)
 			return false;
 		// Récupérer le polygone sans le trou
@@ -639,32 +625,26 @@ public class PredicatePLUCities<O extends AbstractSimpleBuilding, C extends Abst
 		}
 		boolean multi = false;
 		if (union instanceof MultiPolygon) {
-			// System.out.println("multi " + union);
-			return false;
-			// System.out.println("multi " + union);
-			// union = union.buffer(5).buffer(-5);
-			// // if it is still a multipolygon we test if we can remove too
-			// small
-			// ones!
-			// if (union instanceof MultiPolygon) {
-			// MultiPolygon mp = ((MultiPolygon) union);
-			// int nbOfSmallOnes = 0;
-			// int bigOneindice = -1;
-			// for (int i = 0; i < mp.getNumGeometries(); ++i) {
-			// if (mp.getGeometryN(i).getArea() < 5)
-			// nbOfSmallOnes++;
-			// else
-			// bigOneindice = i;
-			// }
-			// if (mp.getNumGeometries() - nbOfSmallOnes > 1)
-			// return false;
-			// union = mp.getGeometryN(bigOneindice);
-			// }
-			// union = gf
-			// .createPolygon(((Polygon)
-			// union).getExteriorRing().getCoordinates());
-			// System.out.println("multibuffered " + union);
-			// multi = true;
+			System.out.println("multi " + union);
+			union = union.buffer(5).buffer(-5);
+			// if it is still a multipolygon we test if we can remove too small ones!
+
+			MultiPolygon mp = ((MultiPolygon) union);
+			int nbOfSmallOnes = 0;
+			int bigOneindice = -1;
+			for (int i = 0; i < mp.getNumGeometries(); ++i) {
+				if (mp.getGeometryN(i).getArea() < 5)
+					nbOfSmallOnes++;
+				else
+					bigOneindice = i;
+			}
+			if (mp.getNumGeometries() - nbOfSmallOnes > 1)
+				return false;
+			union = mp.getGeometryN(bigOneindice);
+
+			union = gf.createPolygon(((Polygon) union).getExteriorRing().getCoordinates());
+			System.out.println("multibuffered " + union);
+			multi = true;
 			// au final on peut court circuiter ?
 			// return false;
 		}

@@ -4,7 +4,7 @@
 	<!--PARAMÈTRES SCÉNARISTIQUES POUR LES SIMULATIONS AVEC ARTISCALES -->
 
 	<!-- Nom du scénario -->
-	<param key="nom" value="uncontroled-sprawl" />
+	<param key="nom" value="uncontroled-sprawlZOB" />
 
 	<!-- Mode de fonctionnement d'ArtiScales -->
 	<!-- Si true, le modèle s'arrête quand les objectifs de création de logement 
@@ -149,10 +149,10 @@
 		<!--Bornes des dimensions des cuboïdes simulées -->
 		<!-- Largeur -->
 		<param key="minlen" value="7" />
-		<param key="maxlen" value="15" />
+		<param key="maxlen" value="30" />
 		<!-- Longueur -->
 		<param key="minwid" value="5" />
-		<param key="maxwid" value="15" />
+		<param key="maxwid" value="30" />
 		<!-- Hauteur -->
 		<param key="minheight" value="3" />
 		<param key="maxheight" value="10" />
@@ -164,7 +164,7 @@
 		<param key="intersection" value="true" />
 
 		<!-- Nombre de cuboïde maximal -->
-		<param key="nbCuboid" value="7" />
+		<param key="nbCuboid" value="20" />
 
 </parameters>
 
