@@ -23,6 +23,7 @@ import fr.ign.cogit.geoxygene.util.conversion.ShapefileWriter;
 import fr.ign.cogit.indicators.BuildingToHousehold;
 import fr.ign.cogit.rules.ArtiScalesRegulation;
 import fr.ign.cogit.rules.PredicatePLUCities;
+import fr.ign.cogit.simplu3d.io.feature.AttribNames;
 import fr.ign.cogit.simplu3d.io.nonStructDatabase.shp.LoaderSHP;
 import fr.ign.cogit.simplu3d.model.BasicPropertyUnit;
 import fr.ign.cogit.simplu3d.model.CadastralParcel;
@@ -79,18 +80,24 @@ public class SimPLUSimulator {
 		List<File> lF = new ArrayList<>();
 		// Line to change to select the right scenario
 
-		//String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenar0MKDom/").getPath();
+		String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenar0MKDom/").getPath();
 
-		String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenar0/").getPath();
+		//String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenar0/").getPath();
 
 		lF.add(new File(rootParam + "parametreTechnique.xml"));
 		lF.add(new File(rootParam + "parametreScenario.xml"));
 		Parameters p = Parameters.unmarshall(lF);
 
 		// Rappel de la construction du code :
+		
+		//1/ Basically the parcels are filtered on the code with the following attributes
 		// codeDep + codeCom + comAbs + section + numero
+		
+		//2/ Alternatively we can decided to active an attribute (Here id)
+		AttribNames.setATT_CODE_PARC("Id");
+		
 
-	//	ID_PARCELLE_TO_SIMULATE.add("25495000AI0033");
+	    ID_PARCELLE_TO_SIMULATE.add("25495000AE0103");
 
 		// RootFolder
 		File rootFolder = new File(p.getString("rootFile"));
@@ -373,6 +380,7 @@ public class SimPLUSimulator {
 					System.out.println("Parcel is overlapped by graphical prescriptions");
 					return null;
 				}
+		
 		}else {
 			
 		}
@@ -460,7 +468,8 @@ public class SimPLUSimulator {
 			}
 		});
 		SubParcel sPBiggest = sP.get(sP.size() -1);
-	
+		System.out.println("Regulation code : " + sPBiggest.getUrbaZone().getLibelle());
+
 	//	if(sPBiggest.getUrbaZone().getZoneRegulation(). != null) {
 		ArtiScalesRegulation regle =(ArtiScalesRegulation) sPBiggest.getUrbaZone().getZoneRegulation();
 

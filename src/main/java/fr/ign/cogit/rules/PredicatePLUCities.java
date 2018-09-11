@@ -261,6 +261,10 @@ public class PredicatePLUCities<O extends AbstractSimpleBuilding, C extends Abst
 
 		// Il s'agit des objets de la classe Cuboid
 		List<O> lO = m.getBirth();
+		
+		if(lO.isEmpty()) {
+			return true;
+		}
 
 		// On vérifie les règles sur tous les pavés droits, dès qu'il y en a un qui ne
 		// respecte pas une règle, on rejette
