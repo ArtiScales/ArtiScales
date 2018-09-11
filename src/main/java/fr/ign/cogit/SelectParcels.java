@@ -310,7 +310,7 @@ Vectors.exportSFC(salut, new File("/home/mcolomb/tmp/abitch.shp"));
 			}
 
 			SimpleFeatureCollection parcelGen = toSplit.collection();
-			Vectors.exportSFC(parcelGen, new File("/home/mcolomb/tmp/out.shp"));
+Vectors.exportSFC(parcelGen, new File("/home/mcolomb/tmp/out.shp"));
 			// split of parcels
 			SimpleFeatureCollection parcelAllowedSplited = VectorFct.generateSplitedParcels(parcelGen, p);
 			// reselection by the zoning
@@ -404,7 +404,7 @@ Vectors.exportSFC(salut, new File("/home/mcolomb/tmp/abitch.shp"));
 		sfTypeBuilder.add("the_geom", Polygon.class);
 		sfTypeBuilder.setDefaultGeometry("the_geom");
 		sfTypeBuilder.add("eval", Float.class);
-		sfTypeBuilder.add("num", Integer.class);
+		sfTypeBuilder.add("NUMERO", String.class);
 
 		SimpleFeatureBuilder sfBuilder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
 
@@ -437,7 +437,9 @@ Vectors.exportSFC(salut, new File("/home/mcolomb/tmp/abitch.shp"));
 						onlyCellIt.close();
 					}
 				}
-				Object[] attr = { bestEval, i };
+				String numero = ((String) feat.getAttribute("CODE_DEP"))+((String) feat.getAttribute("CODE_COM"))+((String) feat.getAttribute("COM_ABS"))+((String) feat.getAttribute("SECTION"))+((String) feat.getAttribute("NUMERO"));
+				System.out.println("numero de parcelle "+ numero);
+				Object[] attr = { bestEval, numero };
 				sfBuilder.add(feat.getDefaultGeometry());
 
 				SimpleFeature feature = sfBuilder.buildFeature(String.valueOf(i), attr);

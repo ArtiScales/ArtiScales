@@ -48,6 +48,7 @@ public class PredicatePLUCities<O extends AbstractSimpleBuilding, C extends Abst
 	private double maximalHauteur = 0.0;
 	private boolean singleBuild = false;
 	private int nbCuboid = 0;
+	private Parameters p;
 	private IFeatureCollection<Prescription> prescriptions;
 
 	// BasicPropertyUnit utilisée
@@ -59,11 +60,13 @@ public class PredicatePLUCities<O extends AbstractSimpleBuilding, C extends Abst
 		return canBeSimulated;
 	}
 
-	public PredicatePLUCities(BasicPropertyUnit currentBPU, boolean align, ArtiScalesRegulation regle, Parameters p,
+	public PredicatePLUCities(BasicPropertyUnit currentBPU, boolean align, ArtiScalesRegulation regle, Parameters pA,
 			IFeatureCollection<Prescription> presc) throws Exception {
 
 		this(currentBPU);
 
+		p = pA;
+		
 		this.distReculVoirie = regle.getArt_6();
 		if (this.distReculVoirie == 77) {
 			this.distReculVoirie = 0;
@@ -264,9 +267,6 @@ public class PredicatePLUCities<O extends AbstractSimpleBuilding, C extends Abst
 		// On traite les contraintes qui ne concernent que les nouveux bâtiments
 
 		int nbAdded = m.getBirth().size() - m.getDeath().size();
-		if (c.size() + nbAdded > 1 && singleBuild) {
-			return false;
-		}
 
 		// System.out.println("taille présumé de notre collec "+c.size());
 
@@ -277,7 +277,7 @@ public class PredicatePLUCities<O extends AbstractSimpleBuilding, C extends Abst
 		for (O cuboid : lO) {
 
 			// On vérifie que le batiment est compris dans la zone d'alignement (surfacique)
-
+			// TODO a expérimenter (trouver une autre manière de le faire) (snapper aux limites ou faire un buffer)
 			if (prescriptions != null && align == true) {
 				for (Prescription prescription : prescriptions) {
 					if (prescription.type == PrescriptionType.FACADE_ALIGNMENT) {
@@ -332,11 +332,9 @@ public class PredicatePLUCities<O extends AbstractSimpleBuilding, C extends Abst
 
 			// Distance between existig building and cuboid
 			for (Building b : currentBPU.getBuildings()) {
-
 				if (b.getFootprint().distance(cuboid.getFootprint()) <= distanceInterBati) {
 					return false;
 				}
-
 			}
 
 			if (forbiddenZone != null) {
@@ -364,29 +362,17 @@ public class PredicatePLUCities<O extends AbstractSimpleBuilding, C extends Abst
 
 		}
 
-		// Pour produire des boîtes séparées et vérifier que la distance inter
-		// bâtiment est respectée
-		try {
-			if (!checkDistanceInterBuildings(c, m)) {
-				return false;
-			}
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
 		// Pour vérifier que le CES (surface bâti) est respecté
 		if (!respectMaximalBuiltArea(c, m)) {
 			return false;
 		}
 		
-
-		if ((!MultipleBuildingsCuboid.ALLOW_INTERSECTING_CUBOID)
+		if ((!p.getBoolean("intersection"))
 				&& (!checkDistanceInterBuildings(c, m, distanceInterBati))) {
 			return false;
 		}
 
-		if (MultipleBuildingsCuboid.ALLOW_INTERSECTING_CUBOID) {
+		if (p.getBoolean("intersection")) {
 			if (!testWidthBuilding(c, m, 7.5, distanceInterBati)) {
 				return false;
 			}
@@ -730,20 +716,6 @@ public class PredicatePLUCities<O extends AbstractSimpleBuilding, C extends Abst
 		// On ajoute tous les nouveaux objets
 		lO.addAll(m.getBirth());
 
-		// EXTRA RULE : la distance entre deux bâtiments sur une même parcelle
-		// est égale à la hauteur divisée par deux du bâtiment le plus haut
-
-		int nbCuboid = lO.size();
-
-		double hMax = -1;
-
-		for (O o : lO) {
-			hMax = Math.max(hMax, o.getHeight());
-		}
-
-		// on divise par 2 le hMax
-		hMax = hMax * 0.5;
-
 		for (int i = 0; i < nbCuboid; i++) {
 			AbstractSimpleBuilding cI = lO.get(i);
 
@@ -752,7 +724,7 @@ public class PredicatePLUCities<O extends AbstractSimpleBuilding, C extends Abst
 
 				double distance = cI.getFootprint().distance(cJ.getFootprint());
 
-				if (distance < Math.min(hMax, distanceInterBati)) {
+				if (distance < distanceInterBati) {
 					return false;
 				}
 

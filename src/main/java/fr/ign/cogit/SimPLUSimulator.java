@@ -1,6 +1,7 @@
 package fr.ign.cogit;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -89,10 +90,7 @@ public class SimPLUSimulator {
 		// Rappel de la construction du code :
 		// codeDep + codeCom + comAbs + section + numero
 
-		ID_PARCELLE_TO_SIMULATE.add("25495000AK0005");
-//		ID_PARCELLE_TO_SIMULATE.add("25495000AP0004");
-
-		// ID_PARCELLE_TO_SIMULATE.add("25495000AE0036");
+	//	ID_PARCELLE_TO_SIMULATE.add("25495000AI0033");
 
 		// RootFolder
 		File rootFolder = new File(p.getString("rootFile"));
@@ -463,16 +461,16 @@ public class SimPLUSimulator {
 		});
 		SubParcel sPBiggest = sP.get(sP.size() -1);
 	
+	//	if(sPBiggest.getUrbaZone().getZoneRegulation(). != null) {
 		ArtiScalesRegulation regle =(ArtiScalesRegulation) sPBiggest.getUrbaZone().getZoneRegulation();
-		
-	
 
 		// Instantiation of the rule checker
 
 		PredicatePLUCities<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = new PredicatePLUCities<>(bPU,true, regle,p, prescriptionUse);
 		
-		
 		return pred;
+//		}
+//		throw new FileNotFoundException();
 	}
 
 	/**

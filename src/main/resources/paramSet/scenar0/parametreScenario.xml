@@ -32,7 +32,7 @@
 	<!-- Nom du fichier contenant les parcelles sélectionnées (si elles existent 
 		au préalable) -->
 	<param key="selectedParcelFile"
-		value="//home/mcolomb/informatique/ArtiScales/output/Stability-dataAutomPhy-CM20.0-S0.0-GP_915948.0_6677337.0--N6_St_Moy_ahpx_seed_9015629222324914404-evalAnal-20.0/25495/ZoningAllowed/parcelSelected.shp" />
+		value="/home/mcolomb/informatique/ArtiScales/output/Stability-dataAutomPhy-CM20.0-S0.0-GP_915948.0_6677337.0--N6_St_Moy_ahpx_seed_9015629222324914404-evalAnal-20.0/25495/ZoningAllowed/parcelSelected.shp" />
 		
 	<!-- PARAMETRES DU MODULE MUP-CITY -->
 
@@ -117,7 +117,7 @@
 		toutes fondues puis décomposés -->
 	<!-- Si "AU", les parcelles situées dans les zones AU sont décomposées -->
 	<!-- Si "false", aucune parcelle ne sera décomposé -->
-	<param key="splitParcel" value="true" />
+	<param key="splitParcel" value="false" />
 	<!-- Aire moyenne des parcelles découpées -->
 	<param key="maximalAreaSplitParcel" value="500" />
 	<!-- Largeur minimum de la limite parcellaire donnant sur la voirie -->
