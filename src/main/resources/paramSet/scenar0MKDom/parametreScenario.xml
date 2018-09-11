@@ -24,7 +24,7 @@
 		<!-- Nom du fichier contenant la modélisation du règlement des PLU -->
 		<param key="pluPredicate" value="/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales/donneeGeographiques/PLU/codes/predicate.csv"/>
 		<!-- Nom du fichier contenant les parcelles sélectionnées (si elles existent au préalable) -->
-		<param key="selectedParcelFile" value="/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales/donneeGeographiques/parcelle/parcelles_to_simulate.shp"/>
+		<param key="selectedParcelFile" value="/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales/donneeGeographiques/parcelle/parcelSelected.shp"/>
 	<!-- PARAMETRES DU MODULE MUP-CITY -->
 			
 		<!-- Densité du développement résidentiel -->
