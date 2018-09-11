@@ -1,4 +1,4 @@
-package fr.ign.cogit.rules;
+package fr.ign.cogit.rules.regulation;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -136,9 +136,9 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	}
 
 	/**
-	 * Charge les règlements et les stockes dans une Map avec Integer = Code_Imu
-	 * et List<Regulation> = la liste des règlements (= lignes du tableau) pour
-	 * un code IMU donné
+	 * Charge les règlements et les stockes dans une Map avec Integer = Code_Imu et
+	 * List<Regulation> = la liste des règlements (= lignes du tableau) pour un code
+	 * IMU donné
 	 * 
 	 * @param file
 	 * @return
@@ -257,7 +257,8 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	}
 
 	// ART_71 Implantation en limite séparative 0 : non, retrait imposé (cf.72)
-	// // 1 : Oui // 2 : Oui, mais sur un côté seulement //TODO 3 : si un bâtiment est déjà en limite de propriété
+	// // 1 : Oui // 2 : Oui, mais sur un côté seulement //TODO 3 : si un bâtiment
+	// est déjà en limite de propriété
 	public int getArt_71() {
 		return art_71;
 	}
@@ -302,10 +303,15 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 
 	// ART_10_TOP Indicateur de l'unité de mesure de la hauteur du batiment
 	// 1_niveaux ; 2_metres du sol au point le plus haut du batiment ; 3_hauteur
-	// plafond ; 4_ point le plus haut ; 5_Hauteur de façade à l'égout, TODO 6 a ne pas dépasser les batiments des parcelles adjacentes, sinon hauteur à l'égout
-	// TODO 7 a ne pas dépasser les batiments des parcelles adjacentes, sinon hauteur entre les points //TODO 8 doit être de la hauteur des batiments des parcelles adjacentes : 
-	//TODO 20: spécial si sur limites séparatives : 20-v6-a4,5 signifie qu'elle ne deva pas dépasser 6m du point le plus bas au point le plus haut en limite de voirie, et 4,5m en limite séparative
-	//88= non renseignable ; 99= non règlementé
+	// plafond ; 4_ point le plus haut ; 5_Hauteur de façade à l'égout, TODO 6 a ne
+	// pas dépasser les batiments des parcelles adjacentes, sinon hauteur à l'égout
+	// TODO 7 a ne pas dépasser les batiments des parcelles adjacentes, sinon
+	// hauteur entre les points //TODO 8 doit être de la hauteur des batiments des
+	// parcelles adjacentes :
+	// TODO 20: spécial si sur limites séparatives : 20-v6-a4,5 signifie qu'elle ne
+	// deva pas dépasser 6m du point le plus bas au point le plus haut en limite de
+	// voirie, et 4,5m en limite séparative
+	// 88= non renseignable ; 99= non règlementé
 	public int getArt_10_top() {
 		return art_10_top;
 	}
@@ -378,8 +384,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	Geometry epsilonBuffer = null;
 
 	/**
-	 * @param geomBande
-	 *            the geomBande to set
+	 * @param geomBande the geomBande to set
 	 */
 	public void setGeomBande(IMultiSurface<IOrientableSurface> geomBande) {
 		this.geomBande = geomBande;
@@ -421,6 +426,25 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	public String toText() {
 		// TODO Auto-generated method stub
 		return this.toString();
+	}
+
+	/**
+	 * Replace some fake value by value used in simulator
+	 */
+	public void clean() {
+
+		if (this.getArt_6() == 77) {
+			this.art_6 = 0;
+
+		}
+
+		if (this.getArt_8() == 88.0 || this.getArt_8() == 99.0) {
+			this.art_8 = 50; // quelle valeur faut il mettre ??
+		}
+
+		if (this.art_9 == 99) {
+			this.art_9 = 0;
+		}
 	}
 
 }

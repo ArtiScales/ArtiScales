@@ -21,14 +21,14 @@
 	<!-- paramètre conduisant au scénario d'étalement urbain -->
 	<!-- Paramètres relatifs à l'énergie -->
 	<!-- Énergie de création d'un cube dans une configuration m^3 -->
-	<param key="energy" value="50" />
+	<param key="energy" value="2" />
 	<!-- Pondération du critère de volume -->
 	<param key="ponderation_volume" value="1" />
 	<!-- Pondération négative du volume dépassant de la parcelle -->
 	<param key="ponderation_difference_ext" value="5" />
 	<!-- Pondération négative d'une boîte en intersectant une autre -->
 <!-- pas sur que ce soit un par tech -->
-	<param key="ponderation_volume_inter" value="50" />
+	<param key="ponderation_volume_inter" value="1" />
 
 	<!-- Probabilités ! -->
 	<!-- Création/destruction d'une boîte ! -->
@@ -64,7 +64,7 @@
 	<!-- Nombre d'itération! -->
 	<!-- Indique si il s'agit d'un nombre absolu d'itérations true ou un nombre 
 		relatif à la non amélioration de la configuration -->
-	<param key="end_test_type" value="absolute" />
+	<param key="end_test_type" value="relative" />
 	<param key="absolute_nb_iter" value="800000" />
 	<param key="relative_nb_iter" value="16666" />
 	<param key="delta" value="5" />
