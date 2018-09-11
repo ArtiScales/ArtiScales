@@ -128,6 +128,24 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 
 		return false;
 	}
+	
+	
+	/**
+	 * Indicates if a geometry intersects a zone
+	 * 
+	 * @param cuboid
+	 * @param geometry
+	 * @return
+	 */
+	public boolean checkIfContainsGeometry(O cuboid, Geometry geometry) {
+		if (geometry != null) {
+			if (geometry.contains(cuboid.toGeometry())) {
+				return true;
+			}
+		}
+
+		return false;
+	}
 
 	/**
 	 * Check if the height of a cuboid is lesser than a given value

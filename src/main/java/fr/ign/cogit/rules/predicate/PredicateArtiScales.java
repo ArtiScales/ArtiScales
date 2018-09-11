@@ -1,15 +1,11 @@
 package fr.ign.cogit.rules.predicate;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.MultiPolygon;
-import com.vividsolutions.jts.geom.Polygon;
-import com.vividsolutions.jts.operation.union.CascadedPolygonUnion;
 
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
 import fr.ign.cogit.geoxygene.api.spatial.geomaggr.IMultiCurve;
@@ -19,18 +15,13 @@ import fr.ign.cogit.geoxygene.spatial.geomaggr.GM_MultiCurve;
 import fr.ign.cogit.geoxygene.util.conversion.AdapterFactory;
 import fr.ign.cogit.rules.regulation.ArtiScalesRegulation;
 import fr.ign.cogit.simplu3d.analysis.ForbiddenZoneGenerator;
-import fr.ign.cogit.simplu3d.model.AbstractBuilding;
 import fr.ign.cogit.simplu3d.model.BasicPropertyUnit;
-import fr.ign.cogit.simplu3d.model.Building;
 import fr.ign.cogit.simplu3d.model.CadastralParcel;
 import fr.ign.cogit.simplu3d.model.ParcelBoundary;
 import fr.ign.cogit.simplu3d.model.ParcelBoundaryType;
 import fr.ign.cogit.simplu3d.model.Prescription;
-import fr.ign.cogit.simplu3d.model.PrescriptionType;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.AbstractSimpleBuilding;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.optimizer.mix.MultipleBuildingsCuboid;
-import fr.ign.cogit.simplu3d.rjmcmc.generic.object.ISimPLU3DPrimitive;
-import fr.ign.cogit.simplu3d.util.CuboidGroupCreation;
 import fr.ign.mpp.configuration.AbstractBirthDeathModification;
 import fr.ign.mpp.configuration.AbstractGraphConfiguration;
 import fr.ign.parameters.Parameters;
@@ -89,7 +80,6 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 			this.maximalCES = 0;
 		}
 
-		this.singleBuild = p.getBoolean("intersection");
 		this.prescriptions = presc;
 		this.maximalHauteur = regle.getArt_10_m();
 
@@ -130,9 +120,9 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 	 * @param maximalCES        : CES maximum
 	 * @throws Exception
 	 */
-	public PredicateArtiScales(BasicPropertyUnit currentBPU, boolean align, double distReculVoirie, double distReculFond,
-			double distReculLat, double distanceInterBati, double maximalCES, double maximalhauteur, int nbcuboid,
-			boolean singleBuild, IFeatureCollection<Prescription> presc) throws Exception {
+	public PredicateArtiScales(BasicPropertyUnit currentBPU, boolean align, double distReculVoirie,
+			double distReculFond, double distReculLat, double distanceInterBati, double maximalCES,
+			double maximalhauteur, int nbcuboid, IFeatureCollection<Prescription> presc) throws Exception {
 		// On appelle l'autre constructeur qui renseigne un certain nombre de
 		// géométries
 		this(currentBPU);
@@ -142,7 +132,7 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 		this.distanceInterBati = distanceInterBati;
 		this.maximalCES = maximalCES;
 		this.maximalHauteur = maximalhauteur;
-		this.singleBuild = singleBuild;
+
 		this.prescriptions = presc;
 		ForbiddenZoneGenerator fZG = new ForbiddenZoneGenerator();
 		IGeometry geomForbidden = fZG.generateUnionGeometry(prescriptions, currentBPU);
@@ -171,6 +161,8 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 
 	Geometry forbiddenZone = null;
 
+	
+	Geometry bPUGeom = null;
 	/**
 	 * Ce constructeur initialise les géométries curveLimiteFondParcel,
 	 * curveLimiteFrontParcel & curveLimiteLatParcel car elles seront utilisées pour
@@ -246,6 +238,9 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 		if (!curveLimiteLatParcel.isEmpty()) {
 			this.jtsCurveLimiteLatParcel = AdapterFactory.toGeometry(gf, curveLimiteLatParcel);
 		}
+		
+		
+		this.bPUGeom = AdapterFactory.toGeometry(gf,bPU.getGeom());
 	}
 
 	/**
@@ -279,6 +274,10 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 
 		// Checking only for new cuboids
 		for (O cuboid : lONewCuboids) {
+			
+			if(! cRO.checkIfContainsGeometry(cuboid, bPUGeom)) {
+				return false;
+			}
 
 			if (!cRO.checkAlignementPrescription(cuboid, prescriptions, align, jtsCurveLimiteFrontParcel)) {
 				return false;
@@ -338,9 +337,9 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 
 	}
 
-	
 	/**
 	 * List all the current cuboids of the configuration
+	 * 
 	 * @param c
 	 * @param m
 	 * @return
