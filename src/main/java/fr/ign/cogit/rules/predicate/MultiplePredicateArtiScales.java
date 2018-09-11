@@ -2,6 +2,7 @@ package fr.ign.cogit.rules.predicate;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -167,181 +168,141 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 		}
 	}
 
+	/**
+	 * Cette méthode est executée à chaque fois que le système suggère une nouvelle
+	 * proposition. C => contient la configuration courante (en termes de cuboids
+	 * proposés) M => les modifications que l'on souhaite apporter à la
+	 * configuration courante. Normalement, il n'y a jamais plus d'une naissance ou
+	 * d'une mort dans M, mais là dans le code on fait comme si c'était possible,
+	 * mais ça peut être simplifié
+	 */
 	@Override
 	public boolean check(C c, M m) {
 
 		// Il s'agit des objets de la classe Cuboid
-		List<O> lO = m.getBirth();
 
-		// On vérifie les règles sur tous les pavés droits, dès qu'il y en a un qui ne
-		// respecte pas une règle, on rejette
-		// On traite les contraintes qui ne concernent que les nouveux bâtiments
+		// NewCuboids
+		List<O> lONewCuboids = m.getBirth();
 
-		/////////////// Contraintes concernant les bPU dans leur ensemble :
+		if (lONewCuboids.isEmpty()) {
+			return true;
+		}
+		// All current cuboids
+		List<O> lAllCuboids = listAllCuboids(c, m);
 
-		int nbAdded = m.getBirth().size() - m.getDeath().size();
-		if (c.size() + nbAdded > 1 && singleBuild) {
+		CommonRulesOperator<O> cRO = new CommonRulesOperator<O>();
+
+		// We check if the number of cuboids does not exceed the max
+		if (!cRO.checkNumberOfBuildings(lAllCuboids, nbCuboid)) {
 			return false;
 		}
 
-		// System.out.println("taille présumé de notre collec "+c.size());
+		// Checking only for new cuboids
+		for (O cuboid : lONewCuboids) {
+			
+			if(! cRO.checkIfContainsGeometry(cuboid, bPUGeom)) {
+				return false;
+			}
 
-		if (c.size() + nbAdded > nbCuboid) {
+			if (!cRO.checkAlignementPrescription(cuboid, prescriptions, align, jtsCurveLimiteFrontParcel)) {
+				return false;
+			}
+
+			// Distance to the bottom of the parcel
+			if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFondParcel, this.distReculFond)) {
+				return false;
+			}
+
+			// Distance to the front of the parcel
+			if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, this.distReculVoirie)) {
+				return false;
+			}
+
+			// Distance to the front of the parcel
+			if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteLatParcel, this.distReculLat)) {
+				return false;
+			}
+
+			// On vérifie la contrainte de recul par rapport au prescriptions graphiques
+			if (!cRO.checkDistanceBetweenCuboidandBuildings(cuboid, this.currentBPU, this.distanceInterBati)) {
+				return false;
+			}
+
+			// On vérifie que le cuboid n'intersecte pas de zone issues de prescriptions
+			// ATTENTION : Ons renvoie faux lorsque l'intersection a lieu
+			if (cRO.checkIfIntersectsGeometry(cuboid, this.forbiddenZone)) {
+				return false;
+			}
+
+			// Checking the height of the cuboid
+			if (cRO.checkHeight(cuboid, this.maximalHauteur)) {
+				return false;
+			}
+
+		}
+
+		// Checking the builtRatio
+		if (!cRO.checkBuiltRatio(lAllCuboids, currentBPU, maximalCES)) {
 			return false;
 		}
 
-		/*
-		 * 
-		 * // On vérifie la contrainte de recul par rapport au prescriptions graphiques
-		 * 
-		 * if ((!MultipleBuildingsCuboid.ALLOW_INTERSECTING_CUBOID) &&
-		 * (!checkDistanceInterBuildings(c, m, distanceInterBati))) { return false; }
-		 * 
-		 * if (MultipleBuildingsCuboid.ALLOW_INTERSECTING_CUBOID) { if
-		 * (!testWidthBuilding(c, m, 7.5, distanceInterBati)) { return false; } }
-		 */
-
-		for (O cuboid : lO) {
-
-			if (!this.currentBPU.getGeom().contains(cuboid.getGeom())) {
-				return false;
-			}
-
-			// On vérifie que le batiment est compris dans la zone d'alignement (surfacique)
-
-			if (prescriptions != null && align == true) {
-				for (Prescription prescription : prescriptions) {
-					if (prescription.type == PrescriptionType.FACADE_ALIGNMENT) {
-						if (prescription.getGeom().isMultiSurface()
-								&& !cuboid.toGeometry().touches(jtsCurveLimiteFrontParcel)) {
-							return false;
-						}
-
-					}
-				}
-			}
-
-			List<ArtiScalesRegulation> lR = this.getAssociatedRegulation(cuboid);
-
-			for (ArtiScalesRegulation r : lR) {
-				checkRegulationBySubParcel(cuboid, r);
-			}
-
-		}
-
-		// Pour produire des boîtes séparées et vérifier que la distance inter
-		// bâtiment est respectée
-
-		/*
-		 * try { if (!checkDistanceInterBuildings(c, m)) { return false; } } catch
-		 * (Exception e) { // TODO Auto-generated catch block e.printStackTrace(); }
-		 * 
-		 * 
-		 * 
-		 * // Pour vérifier que le CES (surface bâti) est respecté if
-		 * (!respectMaximalBuiltArea(c, m)) { return false; }
-		 */
-
-		return false;
-	}
-
-	private boolean checkRegulationBySubParcel(O cuboid, ArtiScalesRegulation regle) {
-		double distReculVoirie = regle.getArt_6();
-		if (distReculVoirie == 77) {
-			distReculVoirie = 0;
-
-		}
-		double distReculFond = regle.getArt_73();
-		// regle.getArt_74()) devrait prendre le minimum de la valeur fixe et du
-		// rapport
-		// à la hauteur du batiment à coté
-		double distReculLat = regle.getArt_72();
-
-		double distanceInterBati = regle.getArt_8();
-		if (distanceInterBati == 88.0 || distanceInterBati == 99.0) {
-			distanceInterBati = 50; // quelle valeur faut il mettre ??
-		}
-
-		if (jtsCurveLimiteFondParcel != null) {
-			Geometry geom = cuboid.toGeometry();
-			if (geom == null) {
-				System.out.println("Nullll");
-			}
-			// On vérifie la distance (on récupère le foot
-			if (this.jtsCurveLimiteFondParcel.distance(geom) < distReculFond) {
-				// elle n'est pas respectée, on retourne faux
+		if (p.getBoolean("intersection")) {
+			// If intersection is allowed, we check the width of the building
+			if (!cRO.checkBuildingWidth(lAllCuboids, 7.5, distanceInterBati))
 				return false;
 
-			}
-
-		}
-		// On vérifie la contrainte de recul par rapport au front de parcelle (voirie).
-		// Existe t il ?
-		if (this.jtsCurveLimiteFrontParcel != null) {
-			// On vérifie la distance
-			if (this.jtsCurveLimiteFrontParcel.distance(cuboid.toGeometry()) < distReculVoirie) {
-				// elle n'est pas respectée, on retourne faux
+		} else {
+			if (!cRO.checkDistanceInterCuboids(lAllCuboids, distanceInterBati)) {
 				return false;
 			}
 		}
 
-		// On vérifie la contrainte de recul par rapport aux bordures de la parcelle
-		// Existe t il ?
-		if (jtsCurveLimiteLatParcel != null) {
-			// On vérifie la distance
-			if (this.jtsCurveLimiteLatParcel.distance(cuboid.toGeometry()) < distReculLat) {
-				// elle n'est pas respectée, on retourne faux
-				return false;
-
-			}
-
-		}
-
-		// Distance between existig building and cuboid
-		for (Building b : currentBPU.getBuildings()) {
-
-			if (b.getFootprint().distance(cuboid.getFootprint()) <= distanceInterBati) {
-				return false;
-			}
-
-		}
-
-		if (forbiddenZone != null) {
-			if (cuboid.toGeometry().intersects(forbiddenZone)) {
-				return false;
-			}
-		}
-
-		double maximalHauteur = regle.getArt_10_m();
-		// Autres règles :
-
-		// Pour la hauteur => c'est plutôt dans le fichier de configuration.
-		// sinon on peut la mesurer comme ça : cuboid.height(1, 2) => mais
-		// c'est
-		// plus performant dans le fichier de configuration
-
-		// Pour les bandes de constructibilité : on imaginera qu'il y a un
-		// polygone ou un multisurface mp
-
-		// IMultiSurface<IOrientableSurface> mS = null; // à définir
-		// mS.contains(cuboid.footprint);
-
-		if (cuboid.getHeight() > maximalHauteur) {
-			return false;
-		}
-
+		// On a réussi tous les tests, on renvoie vrai
 		return true;
 
 	}
 
-	private List<ArtiScalesRegulation> getAssociatedRegulation(O cuboid) {
-		List<ArtiScalesRegulation> lRegulation = new ArrayList<>();
-		for (Geometry g : this.mapGeomRegulation.keySet()) {
-			if (g.intersects(cuboid.toGeometry())) {
-				lRegulation.add(this.mapGeomRegulation.get(g));
-			}
+	/**
+	 * List all the current cuboids of the configuration
+	 * 
+	 * @param c
+	 * @param m
+	 * @return
+	 */
+	private List<O> listAllCuboids(C c, M m) {
+		// On fait la liste de tous les objets après modification
+		List<O> lCuboid = new ArrayList<>();
+
+		// On ajoute tous les nouveaux objets
+		lCuboid.addAll(m.getBirth());
+
+		// On récupère la boîte (si elle existe) que l'on supprime lors de la
+		// modification
+		O cuboidDead = null;
+
+		if (!m.getDeath().isEmpty()) {
+			cuboidDead = m.getDeath().get(0);
 		}
-		return lRegulation;
+
+		// On parcourt les objets existants moins celui qu'on supprime
+		Iterator<O> iTBat = c.iterator();
+		while (iTBat.hasNext()) {
+
+			O cuboidTemp = iTBat.next();
+
+			// Si c'est une boîte qui est amenée à disparaître après
+			// modification,
+			// elle n'entre pas en jeu dans les vérifications
+			if (cuboidTemp == cuboidDead) {
+				continue;
+			}
+
+			lCuboid.add(cuboidTemp);
+
+		}
+
+		return lCuboid;
 	}
 
+	private GeometryFactory gf = new GeometryFactory();
 }

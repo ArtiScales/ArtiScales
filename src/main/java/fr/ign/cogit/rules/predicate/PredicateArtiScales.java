@@ -55,14 +55,14 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 			IFeatureCollection<Prescription> presc) throws Exception {
 
 		this(currentBPU);
+		
+		//Replace fake parameters by real parameters
+		regle.clean();
 
 		p = pA;
 
 		this.distReculVoirie = regle.getArt_6();
-		if (this.distReculVoirie == 77) {
-			this.distReculVoirie = 0;
 
-		}
 		this.distReculFond = regle.getArt_73();
 		// regle.getArt_74()) devrait prendre le minimum de la valeur fixe et du
 		// rapport
@@ -70,15 +70,10 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 		this.distReculLat = regle.getArt_72();
 
 		this.distanceInterBati = regle.getArt_8();
-		if (this.distanceInterBati == 88.0 || distanceInterBati == 99.0) {
-			this.distanceInterBati = 50; // quelle valeur faut il mettre ??
-		}
+
 		MultipleBuildingsCuboid.ALLOW_INTERSECTING_CUBOID = p.getBoolean("intersection");
 
 		this.maximalCES = regle.getArt_9();
-		if (regle.getArt_8() == 99) {
-			this.maximalCES = 0;
-		}
 
 		this.prescriptions = presc;
 		this.maximalHauteur = regle.getArt_10_m();

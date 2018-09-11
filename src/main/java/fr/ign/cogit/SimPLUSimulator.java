@@ -106,7 +106,7 @@ public class SimPLUSimulator {
 		// 2/ Alternatively we can decided to active an attribute (Here id)
 		AttribNames.setATT_CODE_PARC("Id");
 
-		ID_PARCELLE_TO_SIMULATE.add("25495000AE0103");
+		ID_PARCELLE_TO_SIMULATE.add("25495000AE0102");
 
 		// RootFolder
 		File rootFolder = new File(p.getString("rootFile"));
