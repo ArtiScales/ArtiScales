@@ -204,14 +204,33 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	 * @param distanceInterBati
 	 * @return
 	 */
-	public boolean checkBuildingWidth(List<O> lCuboid, double widthBuffer, double distanceInterBati) {
+	public boolean checkBuildingWidth(List<List<O>> lGroupes, double widthBuffer, double distanceInterBati) {
+		List<Double> distances = new ArrayList<>();
+		
+		distances.add(distanceInterBati);
+		
+		
+		return this.checkBuildingWidth(lGroupes,  widthBuffer, distances);
+		
+}
+	
+	
+	/**
+	 * Check the distance between the cuboids and the existing buildings
+	 * 
+	 * @param lCuboid
+	 * @param widthBuffer
+	 * @param distanceInterBati
+	 * @return
+	 */
+	public boolean checkBuildingWidth(List<List<O>> lGroupes, double widthBuffer, List<Double> distanceInterBati) {
 
-		List<List<AbstractSimpleBuilding>> lGroupes = CuboidGroupCreation.createGroup(lCuboid, 0);
+		CuboidGroupCreation<O> cGC = new CuboidGroupCreation<O>();
 
 		// System.out.println("nb groupes " + lGroupes.size());
-		for (List<AbstractSimpleBuilding> groupe : lGroupes) {
+		for (List<O> groupe : lGroupes) {
 			// System.out.println("groupe x : " + lAb.size() + " batiments");
-			if (!CuboidGroupCreation.checkWidth(groupe, widthBuffer)) {
+			if (!cGC.checkWidth(groupe, widthBuffer)) {
 				return false;
 			}
 
@@ -220,12 +239,19 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		// Calculer la distance entre groupes
 		// 1 - par rapport à distanceInterBati
 		// 2 - par rapport à la moitié de la hauteur du plus haut cuboid
-		if (!CuboidGroupCreation.checkDistanceInterGroups(lGroupes, distanceInterBati))
+		if (!cGC.checkDistanceInterGroups(lGroupes, distanceInterBati))
 			return false;
 
 		// System.out.println("-------------------nb groupes " +
 		// lGroupes.size());
 		return true;
+	}
+	
+	
+	public boolean checkDistanceInterCuboids(List<? extends AbstractSimpleBuilding> lO, Double distanceInterBati) {
+		List<Double>  doubles = new ArrayList<>();
+		doubles.add(distanceInterBati);
+		return checkDistanceInterCuboids(lO, doubles);
 	}
 
 	/**
@@ -235,7 +261,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	 * @param distanceInterBati
 	 * @return
 	 */
-	public boolean checkDistanceInterCuboids(List<? extends AbstractSimpleBuilding> lO, double distanceInterBati) {
+	public boolean checkDistanceInterCuboids(List<? extends AbstractSimpleBuilding> lO, List<Double> distanceInterBati) {
 
 		int nbCuboid = lO.size();
 
@@ -246,8 +272,13 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 				AbstractSimpleBuilding cJ = lO.get(j);
 
 				double distance = cI.getFootprint().distance(cJ.getFootprint());
+				
+				// If there is only one distance we use it or we use the max of the distance
+				// constraints of the groups
+				double distInterBatiCalculated = (distanceInterBati.size() == 1) ? distanceInterBati.get(0)
+						: Math.min(distanceInterBati.get(i), distanceInterBati.get(j));
 
-				if (distance < distanceInterBati) {
+				if (distance < distInterBatiCalculated) {
 					return false;
 				}
 

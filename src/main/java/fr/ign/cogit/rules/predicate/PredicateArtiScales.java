@@ -22,6 +22,7 @@ import fr.ign.cogit.simplu3d.model.ParcelBoundaryType;
 import fr.ign.cogit.simplu3d.model.Prescription;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.AbstractSimpleBuilding;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.optimizer.mix.MultipleBuildingsCuboid;
+import fr.ign.cogit.simplu3d.util.CuboidGroupCreation;
 import fr.ign.mpp.configuration.AbstractBirthDeathModification;
 import fr.ign.mpp.configuration.AbstractGraphConfiguration;
 import fr.ign.parameters.Parameters;
@@ -317,10 +318,13 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 		if (!cRO.checkBuiltRatio(lAllCuboids, currentBPU, maximalCES)) {
 			return false;
 		}
-
+		
+		 CuboidGroupCreation<O>  groupeCreator = new  CuboidGroupCreation<O> (); 
+		List<List<O>> cuboidGroups = groupeCreator.createGroup(lAllCuboids, 0.1);
+		
 		if (p.getBoolean("intersection")) {
 			// If intersection is allowed, we check the width of the building
-			if (!cRO.checkBuildingWidth(lAllCuboids, 7.5, distanceInterBati))
+			if (!cRO.checkBuildingWidth(cuboidGroups, 7.5, distanceInterBati))
 				return false;
 
 		} else {
