@@ -83,8 +83,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 	 */
 	protected CommonPredicateArtiScales(BasicPropertyUnit currentBPU, boolean align, Parameters pA,
 			IFeatureCollection<Prescription> presc) throws Exception {
-		//This prepare the geoemtries
-		this.preapreCachedGeoemtries(currentBPU);
+
 		//Set the different initial values
 		p = pA;
 		intersection = p.getBoolean("intersection");
@@ -93,7 +92,8 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 		this.align = align;
 		this.nbCuboid = p.getInteger("nbCuboid");
 		this.currentBPU = currentBPU;
-
+		//This prepare the geoemtries
+		this.preapreCachedGeoemtries(currentBPU);
 
 	}
 

@@ -8,11 +8,13 @@ import java.util.Map;
 import com.vividsolutions.jts.geom.Geometry;
 
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
+import fr.ign.cogit.geoxygene.api.spatial.geomroot.IGeometry;
 import fr.ign.cogit.geoxygene.util.conversion.AdapterFactory;
 import fr.ign.cogit.rules.regulation.ArtiScalesRegulation;
 import fr.ign.cogit.simplu3d.model.BasicPropertyUnit;
 import fr.ign.cogit.simplu3d.model.Prescription;
 import fr.ign.cogit.simplu3d.model.SubParcel;
+import fr.ign.cogit.simplu3d.model.UrbaZone;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.AbstractSimpleBuilding;
 import fr.ign.mpp.configuration.AbstractBirthDeathModification;
 import fr.ign.mpp.configuration.AbstractGraphConfiguration;
@@ -42,9 +44,10 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 		//We create the map 
 		// for each  subparcel we add both object
 		for (SubParcel sp : currentBPU.getCadastralParcels().get(0).getSubParcels()) {
-
-			mapGeomRegulation.put(AdapterFactory.toGeometry(gf, sp.getGeom()),
-					(ArtiScalesRegulation) sp.getUrbaZone().getZoneRegulation());
+			IGeometry subParcelGeometry = sp.getGeom();
+			UrbaZone uZ =  sp.getUrbaZone();
+			mapGeomRegulation.put(AdapterFactory.toGeometry(gf,subParcelGeometry),
+					(ArtiScalesRegulation) uZ.getZoneRegulation());
 
 		}
 
