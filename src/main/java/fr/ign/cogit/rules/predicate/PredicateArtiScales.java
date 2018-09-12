@@ -49,8 +49,9 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 		if (!super.check(c, m)) {
 			return false;
 		}
+
 		//Implement some special function
-		return true;
+
 
 	}
 	*/

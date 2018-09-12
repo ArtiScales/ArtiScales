@@ -108,10 +108,12 @@ public class SimPLUSimulator {
 		// 2/ Alternatively we can decided to active an attribute (Here id)
 		AttribNames.setATT_CODE_PARC("Id");
 
+
 		// ID_PARCELLE_TO_SIMULATE.add("25495000AE0102"); //Test for a simulation with 1 regulation
 		
 		USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = true;
 		ID_PARCELLE_TO_SIMULATE.add("25495000AK0005"); //Test for a simulation with 3 regulations on 3 sub parcels
+
 
 
 		// RootFolder
