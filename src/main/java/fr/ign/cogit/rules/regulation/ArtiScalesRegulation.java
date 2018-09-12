@@ -413,18 +413,15 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 
 	@Override
 	public UrbaZone getUrbaZone() {
-		// TODO Auto-generated method stub
 		return zone;
 	}
 
 	public void setUrbaZone(UrbaZone zone) {
-		// TODO Auto-generated method stub
 		this.zone = zone;
 	}
 
 	@Override
 	public String toText() {
-		// TODO Auto-generated method stub
 		return this.toString();
 	}
 
@@ -435,15 +432,14 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 
 		if (this.getArt_6() == 77) {
 			this.art_6 = 0;
-
 		}
 
 		if (this.getArt_8() == 88.0 || this.getArt_8() == 99.0) {
-			this.art_8 = 50; // quelle valeur faut il mettre ??
+			this.art_8 = 50; 
 		}
 
 		if (this.art_9 == 99) {
-			this.art_9 = 0;
+			this.art_9 = 1;
 		}
 	}
 

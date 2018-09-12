@@ -319,7 +319,7 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 		}
 
 		if (p.getBoolean("intersection")) {
-			// If intersection is allowed, we check the width of the building
+			// If intersection is allowed, we check the width of the building to make sure sun can come in
 			if (!cRO.checkBuildingWidth(lAllCuboids, 7.5, distanceInterBati))
 				return false;
 
