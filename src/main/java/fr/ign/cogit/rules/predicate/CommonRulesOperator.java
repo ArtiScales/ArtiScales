@@ -248,6 +248,12 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	}
 	
 	
+	/**
+	 * Check distance between cuboids with a same distance
+	 * @param lO
+	 * @param distanceInterBati
+	 * @return
+	 */
 	public boolean checkDistanceInterCuboids(List<? extends AbstractSimpleBuilding> lO, Double distanceInterBati) {
 		List<Double>  doubles = new ArrayList<>();
 		doubles.add(distanceInterBati);
@@ -255,7 +261,8 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	}
 
 	/**
-	 * Check the distance between the cuboids
+	 * Check the distance between the cuboids with differenciated distance
+	 * WARNING : The size of both list have to be the same
 	 * 
 	 * @param lO
 	 * @param distanceInterBati

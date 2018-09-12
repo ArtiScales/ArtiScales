@@ -88,12 +88,16 @@ public class SimPLUSimulator {
 		List<File> lF = new ArrayList<>();
 		// Line to change to select the right scenario
 
-		String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenar0/").getPath();
-System.out.println(rootParam);
+		String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenar0MKDom/").getPath();
+		
+		System.out.println(rootParam);
+		
 		lF.add(new File(rootParam + "parametreTechnique.xml"));
 		lF.add(new File(rootParam + "parametreScenario.xml"));
+		
 		Parameters p = Parameters.unmarshall(lF);
-System.out.println(p.getString("nom"));
+		
+		System.out.println(p.getString("nom"));
 		// Rappel de la construction du code :
 
 		// 1/ Basically the parcels are filtered on the code with the following

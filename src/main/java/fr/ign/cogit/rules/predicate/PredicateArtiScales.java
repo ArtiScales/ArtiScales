@@ -29,127 +29,53 @@ import fr.ign.parameters.Parameters;
 import fr.ign.rjmcmc.configuration.ConfigurationModificationPredicate;
 
 
-// @TODO : Mickaël : créer une classe abstraite pour mettre en commun les codes de PRedicateArtiScalse et MultiplePredicateArtiscales. Faire que dans cette classes les accseseurs à ArtiScalesRegulation soit utilisés plutôt que de passer par des objets intérmédiaires
+// @TODO : Mickaël : créer une classe abstraite pour mettre en commun les codes de PRedicateArtiScalse et MultiplePredicateArtiscales. 
 public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends AbstractGraphConfiguration<O, C, M>, M extends AbstractBirthDeathModification<O, C, M>>
 		implements ConfigurationModificationPredicate<C, M> {
 
 	// Des valeurs pour les différentes contraintes
-	private double distReculVoirie = 0.0;
+	
 	private boolean align = false;
-	private double distReculFond = 0.0;
-	private double distReculLat = 0.0;
-	private double distanceInterBati = 0.0;
-	private double maximalCES = 0.0;
-	private double maximalHauteur = 0.0;
 	private int nbCuboid = 0;
 	private Parameters p;
 	private IFeatureCollection<Prescription> prescriptions;
-
-	// BasicPropertyUnit utilisée
+	ArtiScalesRegulation regles;
 	private BasicPropertyUnit currentBPU;
+	
+	//The JTS factory for geometry transformation
+	private GeometryFactory gf = new GeometryFactory();
 
 	private boolean canBeSimulated = true;
 
-	public boolean isCanBeSimulated() {
-		return canBeSimulated;
-	}
-
 	public PredicateArtiScales(BasicPropertyUnit currentBPU, boolean align, ArtiScalesRegulation regle, Parameters pA,
 			IFeatureCollection<Prescription> presc) throws Exception {
-
+		//Caching interesting object
 		this(currentBPU);
-		
-		//Replace fake parameters by real parameters
+		//Removing fake values from regulation object
 		regle.clean();
-
 		p = pA;
-
-		this.distReculVoirie = regle.getArt_6();
-
-		this.distReculFond = regle.getArt_73();
-		// regle.getArt_74()) devrait prendre le minimum de la valeur fixe et du
-		// rapport
-		// à la hauteur du batiment à coté
-		this.distReculLat = regle.getArt_72();
-
-		this.distanceInterBati = regle.getArt_8();
-
+		//The rules
+		this.regles = regle;
 		MultipleBuildingsCuboid.ALLOW_INTERSECTING_CUBOID = p.getBoolean("intersection");
-
-		this.maximalCES = regle.getArt_9();
-
 		this.prescriptions = presc;
-		this.maximalHauteur = regle.getArt_10_m();
-
-		ForbiddenZoneGenerator fZG = new ForbiddenZoneGenerator();
-		IGeometry geomForbidden = fZG.generateUnionGeometry(prescriptions, currentBPU);
-
-		GeometryFactory gf = new GeometryFactory();
-
-		// adapt geometries
-
-		if (geomForbidden != null && !geomForbidden.isEmpty()) {
-			this.forbiddenZone = AdapterFactory.toGeometry(gf, geomForbidden);
-		}
-
 		this.align = align;
 		this.nbCuboid = p.getInteger("nbCuboid");
-
-		if (geomForbidden != null && geomForbidden.contains(currentBPU.getGeom())) {
-			canBeSimulated = false;
-		}
-	}
-
-	/**
-	 * Constructeur de la classe
-	 * 
-	 * @param currentBPU        : l'unité foncière sur laquelle on construit
-	 *                          (généralement : 1 parcelle, ça peut être utile pour
-	 *                          accélérer les traitements, mais ce n'est pas fait
-	 *                          ici)
-	 * @param distReculVoirie   : distance de recul par rapport à la voirie (la
-	 *                          référence ici est la limite séparative donnant sur
-	 *                          la rue annotée comme ROAD)
-	 * @param distReculFond     : distance de recul par rapport aux bordures
-	 *                          annotées comme fond de parcelle annotée comme BOT
-	 * @param distReculLat      : distance de recul par rapport aux bordures annotée
-	 *                          comme LAT
-	 * @param distanceInterBati : distance entre 2 boîtes
-	 * @param maximalCES        : CES maximum
-	 * @throws Exception
-	 */
-	public PredicateArtiScales(BasicPropertyUnit currentBPU, boolean align, double distReculVoirie,
-			double distReculFond, double distReculLat, double distanceInterBati, double maximalCES,
-			double maximalhauteur, int nbcuboid, IFeatureCollection<Prescription> presc) throws Exception {
-		// On appelle l'autre constructeur qui renseigne un certain nombre de
-		// géométries
-		this(currentBPU);
-		this.distReculVoirie = distReculVoirie;
-		this.distReculFond = distReculFond;
-		this.distReculLat = distReculLat;
-		this.distanceInterBati = distanceInterBati;
-		this.maximalCES = maximalCES;
-		this.maximalHauteur = maximalhauteur;
-
-		this.prescriptions = presc;
+		
+		//Prepare the forbidden geometry from prescription
 		ForbiddenZoneGenerator fZG = new ForbiddenZoneGenerator();
 		IGeometry geomForbidden = fZG.generateUnionGeometry(prescriptions, currentBPU);
-
-		GeometryFactory gf = new GeometryFactory();
-
-		// adapt geometries
 
 		if (geomForbidden != null && !geomForbidden.isEmpty()) {
 			this.forbiddenZone = AdapterFactory.toGeometry(gf, geomForbidden);
 		}
 
-		this.align = align;
-		this.nbCuboid = nbcuboid;
-
+		//If the forbidden geometry overlaps the parcel we cannot proceed to the simulation
 		if (geomForbidden != null && geomForbidden.contains(currentBPU.getGeom())) {
 			canBeSimulated = false;
 		}
 	}
+
+	
 
 	// On stocke la géométrie des différentes bordures de la parcelle courante
 	// Elles servent de référence pour un certain nombre de contraintes
@@ -241,6 +167,8 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 		this.bPUGeom = AdapterFactory.toGeometry(gf,bPU.getGeom());
 	}
 
+
+
 	/**
 	 * Cette méthode est executée à chaque fois que le système suggère une nouvelle
 	 * proposition. C => contient la configuration courante (en termes de cuboids
@@ -282,22 +210,22 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 			}
 
 			// Distance to the bottom of the parcel
-			if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFondParcel, this.distReculFond)) {
+			if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFondParcel, this.regles.getArt_73())) {
 				return false;
 			}
 
 			// Distance to the front of the parcel
-			if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, this.distReculVoirie)) {
+			if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, this.regles.getArt_6())) {
 				return false;
 			}
 
 			// Distance to the front of the parcel
-			if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteLatParcel, this.distReculLat)) {
+			if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteLatParcel, this.regles.getArt_72())) {
 				return false;
 			}
 
 			// On vérifie la contrainte de recul par rapport au prescriptions graphiques
-			if (!cRO.checkDistanceBetweenCuboidandBuildings(cuboid, this.currentBPU, this.distanceInterBati)) {
+			if (!cRO.checkDistanceBetweenCuboidandBuildings(cuboid, this.currentBPU, this.regles.getArt_8())) {
 				return false;
 			}
 
@@ -308,14 +236,14 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 			}
 
 			// Checking the height of the cuboid
-			if (cRO.checkHeight(cuboid, this.maximalHauteur)) {
+			if (cRO.checkHeight(cuboid, this.regles.getArt_10_m())) {
 				return false;
 			}
 
 		}
 
 		// Checking the builtRatio
-		if (!cRO.checkBuiltRatio(lAllCuboids, currentBPU, maximalCES)) {
+		if (!cRO.checkBuiltRatio(lAllCuboids, currentBPU, this.regles.getArt_9())) {
 			return false;
 		}
 		
@@ -324,11 +252,11 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 		
 		if (p.getBoolean("intersection")) {
 			// If intersection is allowed, we check the width of the building
-			if (!cRO.checkBuildingWidth(cuboidGroups, 7.5, distanceInterBati))
+			if (!cRO.checkBuildingWidth(cuboidGroups, 7.5,  this.regles.getArt_8()))
 				return false;
 
 		} else {
-			if (!cRO.checkDistanceInterCuboids(lAllCuboids, distanceInterBati)) {
+			if (!cRO.checkDistanceInterCuboids(lAllCuboids,  this.regles.getArt_8())) {
 				return false;
 			}
 		}
@@ -380,6 +308,9 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 		return lCuboid;
 	}
 
-	private GeometryFactory gf = new GeometryFactory();
+
+	public boolean isCanBeSimulated() {
+		return canBeSimulated;
+	}
 
 }
