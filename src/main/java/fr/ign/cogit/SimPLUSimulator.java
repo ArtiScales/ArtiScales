@@ -21,6 +21,8 @@ import fr.ign.cogit.geoxygene.util.conversion.ShapefileWriter;
 import fr.ign.cogit.indicators.BuildingToHousehold;
 import fr.ign.cogit.rules.io.PrescriptionPreparator;
 import fr.ign.cogit.rules.io.ZoneRulesAssociation;
+import fr.ign.cogit.rules.predicate.CommonPredicateArtiScales;
+import fr.ign.cogit.rules.predicate.MultiplePredicateArtiScales;
 import fr.ign.cogit.rules.predicate.PredicateArtiScales;
 import fr.ign.cogit.rules.regulation.ArtiScalesRegulation;
 import fr.ign.cogit.simplu3d.io.feature.AttribNames;
@@ -39,7 +41,6 @@ import fr.ign.mpp.configuration.BirthDeathModification;
 import fr.ign.mpp.configuration.GraphConfiguration;
 import fr.ign.mpp.configuration.GraphVertex;
 import fr.ign.parameters.Parameters;
-import fr.ign.rjmcmc.configuration.ConfigurationModificationPredicate;
 
 public class SimPLUSimulator {
 
@@ -89,14 +90,14 @@ public class SimPLUSimulator {
 		// Line to change to select the right scenario
 
 		String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenar0MKDom/").getPath();
-		
+
 		System.out.println(rootParam);
-		
+
 		lF.add(new File(rootParam + "parametreTechnique.xml"));
 		lF.add(new File(rootParam + "parametreScenario.xml"));
-		
+
 		Parameters p = Parameters.unmarshall(lF);
-		
+
 		System.out.println(p.getString("nom"));
 		// Rappel de la construction du code :
 
@@ -329,7 +330,7 @@ public class SimPLUSimulator {
 		// Instantiation of the sampler
 		OptimisedBuildingsCuboidFinalDirectRejection oCB = new OptimisedBuildingsCuboidFinalDirectRejection();
 
-		ConfigurationModificationPredicate<GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = null;
+		CommonPredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = null;
 
 		// According to the case, different prediactes may be used
 		// Do we consider 1 regualtion by parcel or one by subParcel ?
@@ -337,14 +338,13 @@ public class SimPLUSimulator {
 			// In this mod there is only one regulation for the entire BPU
 			pred = preparePredicateOneRegulation(bPU, p, prescriptionUse);
 
-			if (!((PredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>>) pred)
-					.isCanBeSimulated()) {
-				System.out.println("Parcel is overlapped by graphical prescriptions");
-				return null;
-			}
-
 		} else {
+			pred = preparePredicateOneRegulationBySubParcel(bPU, p, prescriptionUse);
+		}
 
+		if (!(pred.isCanBeSimulated())) {
+			System.out.println("Parcel is overlapped by graphical prescriptions");
+			return null;
 		}
 
 		// We compute the parcel area
@@ -416,10 +416,20 @@ public class SimPLUSimulator {
 		return output;
 	}
 
+	private CommonPredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> preparePredicateOneRegulationBySubParcel(
+			BasicPropertyUnit bPU, Parameters p2, IFeatureCollection<Prescription> prescriptionUse) throws Exception {
+		// Instantiation of the rule checker
+		// @TODO : ou est-ce qu'on paramétrise le aligne ?
+		MultiplePredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = new MultiplePredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>>(
+				bPU, true, p2, prescriptionUse);
+
+		return pred;
+	}
+
 	private static PredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> preparePredicateOneRegulation(
 			BasicPropertyUnit bPU, Parameters p, IFeatureCollection<Prescription> prescriptionUse) throws Exception {
 		List<SubParcel> sP = bPU.getCadastralParcels().get(0).getSubParcels();
-		// We sort the parcel
+		// We sort the subparcel to get the biffests
 		sP.sort(new Comparator<SubParcel>() {
 			@Override
 			public int compare(SubParcel o1, SubParcel o2) {
@@ -429,17 +439,15 @@ public class SimPLUSimulator {
 		SubParcel sPBiggest = sP.get(sP.size() - 1);
 		System.out.println("Regulation code : " + sPBiggest.getUrbaZone().getLibelle());
 
-		// if(sPBiggest.getUrbaZone().getZoneRegulation(). != null) {
 		ArtiScalesRegulation regle = (ArtiScalesRegulation) sPBiggest.getUrbaZone().getZoneRegulation();
 
 		// Instantiation of the rule checker
-
+		// @TODO : ou est-ce qu'on paramétrise le aligne ?
 		PredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = new PredicateArtiScales<>(
 				bPU, true, regle, p, prescriptionUse);
 
 		return pred;
-//		}
-//		throw new FileNotFoundException();
+
 	}
 
 	/**
