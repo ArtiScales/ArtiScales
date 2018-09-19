@@ -33,8 +33,6 @@ public class MainTask {
 		// Le fichier de configuration
 		File paramFile = new File(MainTask.class.getClassLoader().getResource("paramSet/").getPath() + "param0.xml");
 
-		// TODO faire les changements pour surcharger l'import de deux .xml dans le même fichier paramètre lorsque j'aurais accès au source de Geox (essayer de faire ça propre, si
-		// par ex valeur est la même dans les deux xml, le signaler blabla)
 		File paramFileScenar = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/scenar0/parametreScenario.xml");
 		File paramFileTech = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/scenar0/parametreTechnique.xml");
 		List<File> listParameters = new ArrayList<File>();
@@ -86,19 +84,28 @@ public class MainTask {
 		// dataHT.put("nU", "nonUrbaSys.shp");
 		//
 		// System.out.println("----------Project creation and decomp----------");
-		// File projectFile = ProjectCreationDecompTask.run(name, geoFile, outputMup, xmin, ymin, width, height, 0, 0, dataHT, p.getDouble("cm"), 14580, p.getDouble("seuil"));
+		// File projectFile = ProjectCreationDecompTask.run(name, geoFile,
+		// outputMup, xmin, ymin, width, height, 0, 0, dataHT, p.getDouble("cm"),
+		// 14580, p.getDouble("seuil"));
 		// System.out.println("----------Simulation task----------");
-		// File result = SimulTask.run(projectFile, name, p.getInteger("N"), p.getBoolean("strict"), p.getDouble("ahp0"), p.getDouble("ahp1"), p.getDouble("ahp2"),
-		// p.getDouble("ahp3"), p.getDouble("ahp4"), p.getDouble("ahp5"), p.getDouble("ahp6"), p.getDouble("ahp7"), p.getDouble("ahp8"), p.getBoolean("mean"),
+		// File result = SimulTask.run(projectFile, name, p.getInteger("N"),
+		// p.getBoolean("strict"), p.getDouble("ahp0"), p.getDouble("ahp1"),
+		// p.getDouble("ahp2"),
+		// p.getDouble("ahp3"), p.getDouble("ahp4"), p.getDouble("ahp5"),
+		// p.getDouble("ahp6"), p.getDouble("ahp7"), p.getDouble("ahp8"),
+		// p.getBoolean("mean"),
 		// p.getInteger("seed"), false);
 		// System.out.println("result : " + result);
 		// System.out.println("----------End task----------");
 		//
-		// // Recherche des sorties de MUP-City que l'on va vouloir simuler (shortcut)
+		// // Recherche des sorties de MUP-City que l'on va vouloir simuler
+		// (shortcut)
 		// double nivObs = p.getDouble("cm") * p.getDouble("nivCellUtilise");
 		// for (File f : result.listFiles()) {
-		// if (f.getName().contains("evalAnal") && f.getName().contains(String.valueOf(nivObs))) {
-		// FileOutputStream flow = new FileOutputStream(new File(outputMup.getParentFile(), f.getName()));
+		// if (f.getName().contains("evalAnal") &&
+		// f.getName().contains(String.valueOf(nivObs))) {
+		// FileOutputStream flow = new FileOutputStream(new
+		// File(outputMup.getParentFile(), f.getName()));
 		// Files.copy(f.toPath(), flow);
 		// listOutputMupToTest.add(f);
 		// flow.close();
@@ -133,10 +140,12 @@ public class MainTask {
 			System.out.println("----------==+Pour la sortie " + outMup.getName() + "+==----------");
 			// pour toutes les communes
 			for (String zipCode : zipCodes) {
+				// write onto the .xml
 				resultXml.beginBalise(zipCode);
+
+
 				System.out.println("------=+Pour la commune " + zipCode + "+=------");
-				// Liste de types de sélection à partir du phasage définis dans le fichier de
-				// paramètre
+				// Liste de types de sélection à partir du phasage définis dans le fichier de paramètre
 				List<String> listeAction = selectionType(p);
 				SelectParcels selectParcels = new SelectParcels(rootFile, geoFile, pluFile, outMup, zipCode, p.getBoolean("splitParcel"), p);
 
@@ -145,19 +154,18 @@ public class MainTask {
 					if (p.getBoolean("respectZoning")) {
 						resultXml.beginBalise("respectZoning");
 						File parcelSelected = selectParcels.runZoningAllowed();
-						 SimPLUSimulator simPLUsimu = new SimPLUSimulator(rootFile, geoFile, pluFile, parcelSelected, zipCode, p);
-						 // On lance la simulation
-						 List<File> batisSimulatedFile = simPLUsimu.run();
-						 File mergedBatiFile = VectorFct.mergeBatis(batisSimulatedFile);
-						 BuildingToHousehold bTH = new BuildingToHousehold(mergedBatiFile, p);
-						 bTH.run();
+						SimPLUSimulator simPLUsimu = new SimPLUSimulator(rootFile, geoFile, pluFile, parcelSelected, zipCode, p, listParameters);
+						// On lance la simulation
+						List<File> batisSimulatedFile = simPLUsimu.run();
+						File mergedBatiFile = VectorFct.mergeBatis(batisSimulatedFile);
+						BuildingToHousehold bTH = new BuildingToHousehold(mergedBatiFile, p);
+						bTH.run();
 
 						selectParcels.writeXMLResult(resultXml);
 						resultXml.endBalise("respectZoning");
 					}
 				}
-				// mode fill : on va chercher à remplir les communes avec l'objectif de logement
-				// fixé dans le scot
+				// mode fill : on va chercher à remplir les communes avec l'objectif de logement fixé dans le scot
 				else {
 					int missingHousingUnits = GetFromGeom.getHousingUnitsGoals(geoFile, zipCode);
 					System.out.println("il manque " + missingHousingUnits + " logements pour cette commune");
@@ -183,7 +191,7 @@ public class MainTask {
 								ParcelToTest = selectParcels.runAll();
 							}
 							// on calcule directement le nombre de logements par simulations de SimPLU
-							missingHousingUnits = SimPLUSimulator.fillSelectedParcels(rootFile, geoFile, pluFile, ParcelToTest, missingHousingUnits, zipCode, p);
+							missingHousingUnits = SimPLUSimulator.fillSelectedParcels(rootFile, geoFile, pluFile, ParcelToTest, missingHousingUnits, zipCode, p, listParameters);
 						}
 						if (missingHousingUnits == 0) {
 							break;

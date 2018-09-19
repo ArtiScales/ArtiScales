@@ -1,6 +1,7 @@
 package fr.ign.cogit.rules.predicate;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -16,8 +17,10 @@ import fr.ign.cogit.geoxygene.spatial.geomaggr.GM_MultiCurve;
 import fr.ign.cogit.geoxygene.util.conversion.AdapterFactory;
 import fr.ign.cogit.rules.regulation.ArtiScalesRegulation;
 import fr.ign.cogit.simplu3d.analysis.ForbiddenZoneGenerator;
+import fr.ign.cogit.simplu3d.model.AbstractBuilding;
 import fr.ign.cogit.simplu3d.model.BasicPropertyUnit;
 import fr.ign.cogit.simplu3d.model.CadastralParcel;
+import fr.ign.cogit.simplu3d.model.Environnement;
 import fr.ign.cogit.simplu3d.model.ParcelBoundary;
 import fr.ign.cogit.simplu3d.model.ParcelBoundaryType;
 import fr.ign.cogit.simplu3d.model.Prescription;
@@ -30,9 +33,8 @@ import fr.ign.parameters.Parameters;
 import fr.ign.rjmcmc.configuration.ConfigurationModificationPredicate;
 
 /**
- * This abstract class contains generics methods to have only one implementation
- * of regulation if we considere a parcel with one regulation or several
- * subparcels in a parcel with their own regulations
+ * This abstract class contains generics methods to have only one implementation of regulation if we considere a parcel with one regulation or several subparcels in a parcel with
+ * their own regulations
  *
  * @param <O>
  * @param <C>
@@ -41,79 +43,86 @@ import fr.ign.rjmcmc.configuration.ConfigurationModificationPredicate;
 public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding, C extends AbstractGraphConfiguration<O, C, M>, M extends AbstractBirthDeathModification<O, C, M>>
 		implements ConfigurationModificationPredicate<C, M> {
 
-	//Indicate if we can simulate on a parcel
+	//environnement 
+	protected Environnement env;
+	// Indicate if we can simulate on a parcel
 	protected boolean canBeSimulated = true;
-	//Indicate if alignement option is activated
+	// Indicate if alignement option is activated
 	protected boolean align = false;
-	//Maxmimal number of cuboids
+	// Maxmimal number of cuboids
 	protected int nbCuboid = 0;
-	//Technical and scenario parameters
-	private Parameters p;
-	//Selected prescriptinons
+	// Technical and scenario parameters
+	protected Parameters p;
+	// Selected prescriptinons
 	protected IFeatureCollection<Prescription> prescriptions;
-	//Is intersection between cuboids allowed ?
+	// Is intersection between cuboids allowed ?
 	protected boolean intersection = false;
 
-	//The geometry factory for jts operations
+	// The geometry factory for jts operations
 	protected GeometryFactory gf = new GeometryFactory();
 
-	//The property unit on which we make the simulation and its JTS geometry
+	// The property unit on which we make the simulation and its JTS geometry
 	protected BasicPropertyUnit currentBPU;
 	protected Geometry bPUGeom = null;
-	
+
 	// Cached geometries according to the different limits categories
 	protected Geometry jtsCurveLimiteFondParcel = null;
 	protected Geometry jtsCurveLimiteFrontParcel = null;
 	protected Geometry jtsCurveLimiteLatParcel = null;
 
-	//A geometry that store a forbidden zone (where buildings cannot be built)
-	//According to the selected prescriptions
+	// A geometry that store a forbidden zone (where buildings cannot be built)
+	// According to the selected prescriptions
 	protected Geometry forbiddenZone = null;
 
+	// Bâtiments dans les parcelles de l'autre côté de la route
+	protected Geometry jtsCurveOppositeLimit = null;
 
-
-
+	//hauteur des batiments environnants
+	Double heighSurroundingBuildings = null;
+	
+	public static double distanceHeightBuildings = 50;
+	
 	/**
 	 * The default constructor with a considered BasicPropertyUnit, technical and scenario parameters and a set of selected prescriptions
+	 * 
 	 * @param currentBPU
 	 * @param align
 	 * @param pA
 	 * @param presc
-	 * @throws Exception
+	 * @throws Exceptiondistance
 	 */
-	protected CommonPredicateArtiScales(BasicPropertyUnit currentBPU, boolean align, Parameters pA,
-			IFeatureCollection<Prescription> presc) throws Exception {
+	protected CommonPredicateArtiScales(BasicPropertyUnit currentBPU, boolean align, Parameters pA, IFeatureCollection<Prescription> presc, Environnement env) throws Exception {
 
-		//Set the different initial values
-		p = pA;
+		// Set the different initial values
+		this.env = env;
+		this.p = pA;
+	
+		
 		intersection = p.getBoolean("intersection");
 		MultipleBuildingsCuboid.ALLOW_INTERSECTING_CUBOID = p.getBoolean("intersection");
 		this.prescriptions = presc;
 		this.align = align;
 		this.nbCuboid = p.getInteger("nbCuboid");
 		this.currentBPU = currentBPU;
-		//This prepare the geoemtries
-		this.preapreCachedGeoemtries(currentBPU);
+		// This prepare the geoemtries
+		this.preapreCachedGeoemtries(currentBPU,env);
 
 	}
 
 	/**
-	 * Ce constructeur initialise les géométries curveLimiteFondParcel,
-	 * curveLimiteFrontParcel & curveLimiteLatParcel car elles seront utilisées pour
-	 * exprimer certaines contraintes
+	 * Ce constructeur initialise les géométries curveLimiteFondParcel, curveLimiteFrontParcel & curveLimiteLatParcel car elles seront utilisées pour exprimer certaines contraintes
 	 * 
 	 * @param bPU
 	 * @throws Exception
 	 */
-	protected void preapreCachedGeoemtries(BasicPropertyUnit bPU) throws Exception {
-	
-	
+	protected void preapreCachedGeoemtries(BasicPropertyUnit bPU, Environnement env) throws Exception {
 
 		// Pour simplifier la vérification, on extrait les différentes bordures de
 		// parcelles
 		IMultiCurve<IOrientableCurve> curveLimiteFondParcel = new GM_MultiCurve<>();
 		IMultiCurve<IOrientableCurve> curveLimiteFrontParcel = new GM_MultiCurve<>();
 		IMultiCurve<IOrientableCurve> curveLimiteLatParcel = new GM_MultiCurve<>();
+		IMultiCurve<IOrientableCurve> curveOppositeLimit = new GM_MultiCurve<>();
 
 		// On parcourt les parcelles du BasicPropertyUnit (un propriétaire peut
 		// avoir plusieurs parcelles)
@@ -134,8 +143,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 					if (geom instanceof IOrientableCurve) {
 						curveLimiteFondParcel.add((IOrientableCurve) geom);
 					} else {
-						System.out.println(
-								"Classe SamplePredicate : quelque chose n'est pas un ICurve : " + geom.getClass());
+						System.out.println("Classe SamplePredicate : quelque chose n'est pas un ICurve : " + geom.getClass());
 					}
 				}
 				// Limite latérale
@@ -144,8 +152,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 					if (geom instanceof IOrientableCurve) {
 						curveLimiteLatParcel.add((IOrientableCurve) geom);
 					} else {
-						System.out.println(
-								"Classe SamplePredicate : quelque chose n'est pas un ICurve : " + geom.getClass());
+						System.out.println("Classe SamplePredicate : quelque chose n'est pas un ICurve : " + geom.getClass());
 					}
 				}
 				// Limite front
@@ -154,11 +161,41 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 					if (geom instanceof IOrientableCurve) {
 						curveLimiteFrontParcel.add((IOrientableCurve) geom);
 					} else {
-						System.out.println(
-								"Classe SamplePredicate : quelque chose n'est pas un ICurve : " + geom.getClass());
+						System.out.println("Classe SamplePredicate : quelque chose n'est pas un ICurve : " + geom.getClass());
 					}
 				}
 			}
+		}
+
+		// Limit Opposite
+		for (ParcelBoundary salut : bPU.getCadastralParcels().get(0).getBoundariesByType(ParcelBoundaryType.ROAD)) {
+			IGeometry geom = salut.getOppositeBoundary().getGeom();
+			if (geom instanceof IOrientableCurve) {
+				curveOppositeLimit.add((IOrientableCurve) geom);
+			} else {
+				System.out.println("Classe SamplePredicate : quelque chose n'est pas un ICurve : " + geom.getClass());
+			}
+		}
+		
+		//height of the surrounding buildings
+		
+		Collection<AbstractBuilding> buildingsHeightCol = env.getBuildings().select(bPU.getGeom().buffer(distanceHeightBuildings));
+		
+		if (!buildingsHeightCol.isEmpty()) {
+			heighSurroundingBuildings = buildingsHeightCol.stream().mapToDouble(x -> x.height(0, 1)).sum()/buildingsHeightCol.size();
+		}
+		
+		
+		//Code determining max height
+		
+		this.p.set("maxheight", this.getMaxHeight());
+		this.p.set("minheight", this.getMinHeight());
+		//this.p.set("maxheight", heighSurroundingBuildings * 1.1);
+		//this.p.set("minheight", heighSurroundingBuildings * 0.9);
+		
+		
+		if (!jtsCurveOppositeLimit.isEmpty()) {
+			this.jtsCurveOppositeLimit = AdapterFactory.toGeometry(gf, curveOppositeLimit);
 		}
 
 		if (!curveLimiteFondParcel.isEmpty()) {
@@ -174,7 +211,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 		}
 
 		this.bPUGeom = AdapterFactory.toGeometry(gf, bPU.getGeom());
-		
+
 		// Prepare the forbidden geometry from prescription
 		ForbiddenZoneGenerator fZG = new ForbiddenZoneGenerator();
 		IGeometry geomForbidden = fZG.generateUnionGeometry(prescriptions, currentBPU);
@@ -191,34 +228,29 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 	}
 
-
-
 	/**
-	 * This method is executed every time the simulator suggest a new proposition
-	 * C => current configuration composed of cuboids
-	 * M => modification the simulator tries to applied
+	 * This method is executed every time the simulator suggest a new proposition C => current configuration composed of cuboids M => modification the simulator tries to applied
 	 * 
 	 * Normally there is a maximum of 1 birth and/or 1 death
 	 */
 	@Override
 	public boolean check(C c, M m) {
 
-
 		// NewCuboids
 		List<O> lONewCuboids = m.getBirth();
 
-		//No new cuboids, we do not have to checked
-		//Warning only works with certain rules
+		// No new cuboids, we do not have to checked
+		// Warning only works with certain rules
 		if (lONewCuboids.isEmpty()) {
 			return true;
 		}
-		
+
 		// All current cuboids
 		List<O> lAllCuboids = listAllCuboids(c, m);
 
-		//The operators to check the rules
+		// The operators to check the rules
 		CommonRulesOperator<O> cRO = new CommonRulesOperator<O>();
-		
+
 		/////////// General constraints that is always checked
 
 		// We check if the number of cuboids does not exceed the max
@@ -228,12 +260,12 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 		// Checking only for new cuboids
 		for (O cuboid : lONewCuboids) {
-			//Does the cuboid lays inside the basic property unit
+			// Does the cuboid lays inside the basic property unit
 			if (!cRO.checkIfContainsGeometry(cuboid, bPUGeom)) {
 				return false;
 			}
-			
-			//Checking prescriptions alignement
+
+			// Checking prescriptions alignement
 			if (!cRO.checkAlignementPrescription(cuboid, prescriptions, align, jtsCurveLimiteFrontParcel)) {
 				return false;
 			}
@@ -251,16 +283,28 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 			// Determine the relevant regulations to apply :
 			List<ArtiScalesRegulation> lRegles = this.getRegulationToApply(cuboid);
-			
+
 			for (ArtiScalesRegulation regle : lRegles) {
+
+				// type of distance to the parcel limits
+				switch (regle.getArt_71()) {
+				// alignement interdit
+				case 0:
+					if (cRO.checkAlignement(cuboid, jtsCurveLimiteFondParcel)) {
+						return false;
+					}
+					if (cRO.checkAlignement(cuboid, jtsCurveLimiteLatParcel)) {
+						return false;
+					}
+					break;
+				case 1:
+
+					break;
+
+				}
 
 				// Distance to the bottom of the parcel
 				if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFondParcel, regle.getArt_73())) {
-					return false;
-				}
-
-				// Distance to the front of the parcel
-				if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, regle.getArt_6())) {
 					return false;
 				}
 
@@ -269,31 +313,44 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 					return false;
 				}
 
+				//////// Distance to the front of the parcel
+				// multiple cases of Art_6 rules
+				if (regle.getArt_6() == 55) {
+					if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, regle.getArt_6_optD()) || cRO.checkAlignement(cuboid, jtsCurveLimiteFrontParcel)) {
+						return false;
+					}
+				}
+				// the prospect of slope 1 ruel (usde in the RNU)
+				else if (regle.getArt_6() == 44) {
+					if (!cRO.checkProspectRNU(cuboid, jtsCurveOppositeLimit)) {
+						return false;
+					}
+				}
+				// regular rules
+				else if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, regle.getArt_6())) {
+					return false;
+				}
+
+				
 				// We check the constrain distance according to existing buildings
 				if (!cRO.checkDistanceBetweenCuboidandBuildings(cuboid, this.currentBPU, regle.getArt_8())) {
 					return false;
 				}
 
-				// Checking the height of the cuboid
-				if (cRO.checkHeight(cuboid, regle.getArt_10_m())) {
-					return false;
-				}
-
 			}
-			
+
 			/////////// Groups or whole configuration constraints
-			
-			
-			//Getting the maxCES according to the implementation
-			
+
+			// Getting the maxCES according to the implementation
+
 			double maxCES = this.getMaxCES();
 			// Checking the builtRatio
 			if (!cRO.checkBuiltRatio(lAllCuboids, currentBPU, maxCES)) {
 				return false;
 			}
 
-			//Width and distance between buildings constraints
-			
+			// Width and distance between buildings constraints
+
 			CuboidGroupCreation<O> groupCreator = new CuboidGroupCreation<O>();
 
 			List<List<O>> groupList = groupCreator.createGroup(lAllCuboids, 0.1);
@@ -383,13 +440,16 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 	// Determine for a cuboid the list of constraints that has to be ckecked
 	protected abstract List<ArtiScalesRegulation> getRegulationToApply(O cuboid);
 
-	//Determine the maximal CES
+	// Determine the maximal CES
 	protected abstract double getMaxCES();
 	
-	//Determine the recoils applied to a list of cuboids
+	// Determine the min and max
+	protected abstract double getMaxHeight();
+	protected abstract double getMinHeight();
+	
+	// Determine the recoils applied to a list of cuboids
 	protected abstract List<Double> determineDoubleDistanceForList(List<O> lCuboids);
-	
-	
+
 	public boolean isCanBeSimulated() {
 		return canBeSimulated;
 	}

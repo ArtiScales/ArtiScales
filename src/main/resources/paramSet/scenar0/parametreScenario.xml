@@ -4,7 +4,7 @@
 	<!--PARAMÈTRES SCÉNARISTIQUES POUR LES SIMULATIONS AVEC ARTISCALES -->
 
 	<!-- Nom du scénario -->
-	<param key="nom" value="uncontroled-sprawlZOB" />
+	<param key="nom" value="uncontroled-sprawl" />
 
 	<!-- Mode de fonctionnement d'ArtiScales -->
 	<!-- Si true, le modèle s'arrête quand les objectifs de création de logement 
@@ -15,7 +15,7 @@
 
 	<!-- Liste des villes à prendre en compte dans la simulation (séparer les 
 		codes postaux par des virgules) -->
-	<param key="listZipCode" value="25495" />
+	<param key="listZipCode" value="25265" />
 
 	<!-- Dossiers et fichiers nécessaires à la simulation -->
 	<!-- Emplacement des résultats de simulation (intermédiaires et finaux) -->
@@ -129,6 +129,7 @@
 
 	<!-- Taille moyenne d'un logement -->
 	<param key="HousingUnitSize" value="120" />
+	<param key="heightStair" value="3" />
 
 
 	<!-- PARAMETRES DE SIMPLU3D -->

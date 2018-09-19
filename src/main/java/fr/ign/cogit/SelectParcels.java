@@ -2,6 +2,7 @@ package fr.ign.cogit;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.zone.ZoneRulesException;
 
 import org.geolatte.geom.Simple;
 import org.geotools.coverage.grid.GridCoverage2D;
@@ -48,6 +49,7 @@ import fr.ign.cogit.geoxygene.util.conversion.ShapefileReader;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileWriter;
 import fr.ign.cogit.outputs.XmlGen;
 import fr.ign.cogit.util.GetFromGeom;
+import fr.ign.cogit.util.StatStuff;
 import fr.ign.cogit.util.VectorFct;
 import fr.ign.parameters.Parameters;
 import fr.ign.random.Random;
@@ -78,6 +80,8 @@ public class SelectParcels {
 	boolean splitParcel;
 	Parameters p = null;
 
+	boolean rNU =false;
+	
 	// result parameters
 	int nbParcels;
 	float moyEval;
@@ -100,7 +104,22 @@ public class SelectParcels {
 		// Paramètre si l'on découpe les parcelles ou non
 		splitParcel = splitparcel;
 		parcelFile = GetFromGeom.getParcels(geoFile);
-		zoningFile = GetFromGeom.getZoning(pluFile, zipCode);
+
+		// Si les communes sont au RNU :
+		String[] communesRNU = StatStuff.makeZipTab(p.getString("RNUCommunes"));
+		// si la commune est uniquement soumise au RNU
+		for (String comm : communesRNU) {
+			if (comm.equals(zipCode)) {
+				rNU = true;
+				break;
+			}
+		}
+
+		if (rNU) {
+			zoningFile = GetFromGeom.getPAU(pluFile, geofile, new File(rootfile, "tmp"), zipCode);
+		} else {
+			zoningFile = GetFromGeom.getZoning(pluFile, zipCode);
+		}
 	}
 
 	// public static File run(File rootfile, File testFile, String zipcode, boolean
@@ -289,8 +308,13 @@ public class SelectParcels {
 	public File runZoningAllowed() throws Exception {
 		File simuFile = makeDirSelection("ZoningAllowed");
 		File newParcelSelection = new File(simuFile + "/parcelSelected.shp");
+		
 		String[] zones = { "U", "AU" };
-
+		if (rNU) {
+		zones = new String[1];	
+		zones[0] = "ZC";
+		}
+		
 		if (splitParcel) {
 			DefaultFeatureCollection toSplit = new DefaultFeatureCollection();
 
@@ -301,16 +325,16 @@ public class SelectParcels {
 				if (zone.equals("AU")) {
 					SimpleFeatureCollection salut = GetFromGeom.selecParcelZonePLUmergeAU(parcelFile, zipCode, zoningFile, p);
 					toSplit.addAll(salut);
-Vectors.exportSFC(salut, new File("/home/mcolomb/tmp/sonof.shp"));
+					Vectors.exportSFC(salut, new File("/home/mcolomb/tmp/sonof.shp"));
 				} else {
 					SimpleFeatureCollection salut = GetFromGeom.selecParcelZonePLU("U", zipCode, parcelFile, zoningFile);
 					toSplit.addAll(salut);
-Vectors.exportSFC(salut, new File("/home/mcolomb/tmp/abitch.shp"));
+					Vectors.exportSFC(salut, new File("/home/mcolomb/tmp/abitch.shp"));
 				}
 			}
 
 			SimpleFeatureCollection parcelGen = toSplit.collection();
-Vectors.exportSFC(parcelGen, new File("/home/mcolomb/tmp/out.shp"));
+			Vectors.exportSFC(parcelGen, new File("/home/mcolomb/tmp/out.shp"));
 			// split of parcels
 			SimpleFeatureCollection parcelAllowedSplited = VectorFct.generateSplitedParcels(parcelGen, p);
 			// reselection by the zoning
@@ -325,16 +349,35 @@ Vectors.exportSFC(parcelGen, new File("/home/mcolomb/tmp/out.shp"));
 			// export tout ça
 			Vectors.exportSFC(collectOut, newParcelSelection);
 		} else {
-
+			
+			if (!rNU) {
 			// select grom zoning
 			SimpleFeatureCollection parcelGen = GetFromGeom.selecParcelZonePLU(zones, zipCode, parcelFile, zoningFile);
+			
 			// selection by the MUP-City's cells
 			SimpleFeatureCollection parcelInCell = selecMultipleParcelInCell(parcelGen);
+			
 			// put evals in cells
 			SimpleFeatureCollection collectOut = putEvalInParcel(parcelInCell);
 
 			// export tout ça
 			Vectors.exportSFC(collectOut, newParcelSelection);
+			}
+			else {
+				
+				ShapefileDataStore pauSDS  = new ShapefileDataStore(zoningFile.toURI().toURL());
+				SimpleFeatureCollection pauCollection = pauSDS.getFeatureSource().getFeatures();
+				
+				// selection by the MUP-City's cells
+				SimpleFeatureCollection parcelInCell = selecMultipleParcelInCell(pauCollection);
+				Vectors.exportSFC(parcelInCell, new File("/home/mcolomb/informatique/ArtiScales/tmp/zob.shp"));
+				// put evals in cells
+				SimpleFeatureCollection collectOut = putEvalInParcel(parcelInCell);
+
+				// export tout ça
+				Vectors.exportSFC(collectOut, newParcelSelection);
+				pauSDS.dispose();
+			}
 		}
 		return newParcelSelection;
 	}
@@ -352,7 +395,7 @@ Vectors.exportSFC(parcelGen, new File("/home/mcolomb/tmp/out.shp"));
 
 		SimpleFeatureCollection parcelSelected = parcelIn.subCollection(inter);
 		if (parcelSelected.isEmpty()) {
-			System.out.println("selection is empty");
+			System.out.println("selection is empty, no MUP-City's output crossed");
 		} else {
 			System.out.println("parcelSelected with cells: " + parcelSelected.size());
 		}
@@ -437,8 +480,9 @@ Vectors.exportSFC(parcelGen, new File("/home/mcolomb/tmp/out.shp"));
 						onlyCellIt.close();
 					}
 				}
-				String numero = ((String) feat.getAttribute("CODE_DEP"))+((String) feat.getAttribute("CODE_COM"))+((String) feat.getAttribute("COM_ABS"))+((String) feat.getAttribute("SECTION"))+((String) feat.getAttribute("NUMERO"));
-				System.out.println("numero de parcelle "+ numero);
+				String numero = ((String) feat.getAttribute("CODE_DEP")) + ((String) feat.getAttribute("CODE_COM")) + ((String) feat.getAttribute("COM_ABS"))
+						+ ((String) feat.getAttribute("SECTION")) + ((String) feat.getAttribute("NUMERO"));
+				System.out.println("numero de parcelle " + numero);
 				Object[] attr = { bestEval, numero };
 				sfBuilder.add(feat.getDefaultGeometry());
 
