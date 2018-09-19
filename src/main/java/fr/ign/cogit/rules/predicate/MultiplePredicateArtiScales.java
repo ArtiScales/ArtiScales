@@ -150,10 +150,10 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 	}
 
 	@Override
-	protected double getMaxHeight(O cuboids) {
-		List<ArtiScalesRegulation> rules = getRegulationToApply(cuboids);
+	protected double getMaxHeight() {
+		
 		Double maxVal=0.0;
-		for (ArtiScalesRegulation rule :rules ) {
+		for (ArtiScalesRegulation rule : mapGeomRegulation.values()) {
 			Double tmpH = cRO.hauteur(super.p, rule, heighSurroundingBuildings)[1];
 			if (maxVal<tmpH) {
 				maxVal = tmpH;
@@ -163,9 +163,8 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 	}
 
 	@Override
-	protected double getMinHeight(O cuboids) {
-		List<ArtiScalesRegulation> rules = getRegulationToApply(cuboids);
-		return rules.stream().mapToDouble(x -> cRO.hauteur(p, x, heighSurroundingBuildings)[1]).max().getAsDouble();
+	protected double getMinHeight() {
+		return mapGeomRegulation.values().stream().mapToDouble(x -> cRO.hauteur(p, x, heighSurroundingBuildings)[1]).max().getAsDouble();
 	}
 
 }
