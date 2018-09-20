@@ -151,6 +151,7 @@ public class MainTask {
 
 				// mode normal -- on construit tout ce que l'on peut. On peut peut-être ajouter un seuil d'évaluation?
 				if (!p.getBoolean("fill")) {
+					//on ne va simuler que sur des emplacements permis par le zonage 
 					if (p.getBoolean("respectZoning")) {
 						resultXml.beginBalise("respectZoning");
 						File parcelSelected = selectParcels.runZoningAllowed();

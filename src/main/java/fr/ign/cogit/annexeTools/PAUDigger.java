@@ -2,6 +2,7 @@ package fr.ign.cogit.annexeTools;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,6 +19,7 @@ import org.geotools.resources.coverage.IntersectUtils;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.filter.FilterFactory2;
+import org.opengis.filter.expression.NilExpression;
 import org.opengis.filter.spatial.BBOX;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
@@ -27,108 +29,185 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryCollection;
 import com.vividsolutions.jts.geom.MultiLineString;
 import com.vividsolutions.jts.geom.MultiPolygon;
+import com.vividsolutions.jts.geom.Polygon;
 
 import fr.ign.cogit.GTFunctions.Vectors;
 
 public class PAUDigger {
-//cut cluster polygons with limits
-	
+	// cut cluster polygons with limits
+	public static File tmpFile = new File("/home/mcolomb/tmp/pau/");
+
 	public static void main(String[] args) throws Exception {
-splitLimClus();
+		File buildFile = new File("/home/mcolomb/informatique/ArtiScales/donneeGeographiques/batimentPro.shp");
+		File parcelFile = new File("/home/mcolomb/informatique/ArtiScales/donneeGeographiques/parcelle.shp");
+		File morphoLimFile = new File("/home/mcolomb/informatique/ArtiScales/depotConfigSpatMUP/PAU-morpholimEnv.shp");
+
+		File roadFile = new File("/home/mcolomb/informatique/ArtiScales/donneeGeographiques/rroute.shp");
+		File riverFile = new File("/home/mcolomb/informatique/ArtiScales/donneeGeographiques/eau.shp");
+		File railFile = new File("/media/mcolomb/Data_2/donnee/autom/besancon/dataIn/train/TRONCON_VOIE_FERREE.shp");
+
+		File buildAllegeCluster= prepareClusterBuild(buildFile);
+		File limit = prepareLimit(roadFile, riverFile, railFile);
+		File splitedCluster = splitLimClus(limit,buildAllegeCluster);
+	
+		countBuildInCluster(buildAllege, splitedCluster );
 	}
-	
-	public static void splitLimClus() throws IOException, NoSuchAuthorityCodeException, FactoryException{
-	File limit = new File("/home/mcolomb/doc_de_travail/PAU/snap/snapLim.shp");
-	File cluster = new File("/home/mcolomb/doc_de_travail/PAU/snap/snapCluster.shp");
-	
-	DefaultFeatureCollection cutedCluster = new DefaultFeatureCollection();
-	
-	SimpleFeatureTypeBuilder finalBuilder = new SimpleFeatureTypeBuilder();
-	CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
-	finalBuilder.setName("cutedCluster");
-	finalBuilder.setCRS(sourceCRS);
-	finalBuilder.add("the_geom", MultiPolygon.class);
-	finalBuilder.setDefaultGeometry("the_geom");
-	SimpleFeatureType featureFinalType = finalBuilder.buildFeatureType();
-	SimpleFeatureBuilder finalFeatureBuilder = new SimpleFeatureBuilder(featureFinalType);
-	
-	ShapefileDataStore dSLimit = new ShapefileDataStore(limit.toURI().toURL());
-	SimpleFeatureCollection limitsSFC = dSLimit.getFeatureSource().getFeatures();
 
-	Geometry limite = Vectors.unionSFC(limitsSFC);
-	
-	DefaultFeatureCollection limDF = new DefaultFeatureCollection();
-	
-	SimpleFeatureTypeBuilder lBuilder = new SimpleFeatureTypeBuilder();
-	lBuilder.setName("limit");
-	lBuilder.setCRS(sourceCRS);
-	lBuilder.add("the_geom", MultiLineString.class);
-	lBuilder.setDefaultGeometry("the_geom");
+	private static File prepareLimit(File roadFile, File riverFile, File railFile) throws IOException, NoSuchAuthorityCodeException, FactoryException {
 
-	SimpleFeatureType featurelType = lBuilder.buildFeatureType();
-	SimpleFeatureBuilder lFeatureBuilder = new SimpleFeatureBuilder(featurelType);
-	
-	lFeatureBuilder.add(limite);
-	SimpleFeature limF = lFeatureBuilder.buildFeature("1");
-	limDF.add(limF);
-	Vectors.exportSFC(limDF.collection(), new File("/home/mcolomb/tmp/testlim.shp"));
-	
-	ShapefileDataStore dSCluster = new ShapefileDataStore(cluster.toURI().toURL());
-	SimpleFeatureCollection clusterSFC = dSLimit.getFeatureSource().getFeatures();
-	
-	SimpleFeatureIterator clusIt = clusterSFC.features();
-	FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
-	SpatialIndexFeatureCollection sifc = new SpatialIndexFeatureCollection(clusterSFC);
-	int finalId = 0;
-	try {
-		while (clusIt.hasNext()) {
-			SimpleFeature feat = clusIt.next();
-			Geometry clusterGeom = ((Geometry) feat.getDefaultGeometry());
+		DefaultFeatureCollection collecLimit = new DefaultFeatureCollection();
 
-			BBOX boundsCheck = ff.bbox(ff.property("the_geom"), limitsSFC.getBounds());
-			SimpleFeatureIterator chosenFeatIterator = sifc.subCollection(boundsCheck).features();
-			Geometry unionGeom = null;
-			List<Geometry> list = new ArrayList<>();
-			while (chosenFeatIterator.hasNext()) {
-				SimpleFeature f = chosenFeatIterator.next();
-				Geometry g = (Geometry) f.getDefaultGeometry();
+		ShapefileDataStore roadSDS = new ShapefileDataStore(roadFile.toURI().toURL());
+		SimpleFeatureCollection roadSFC = roadSDS.getFeatureSource().getFeatures();
+		SimpleFeatureIterator roadIt = roadSFC.features();
 
-				if (g.intersects(limite)) {
+		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
+		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
+		sfTypeBuilder.setName("limit");
+		sfTypeBuilder.setCRS(sourceCRS);
+		sfTypeBuilder.add("the_geom", MultiLineString.class);
+		sfTypeBuilder.setDefaultGeometry("the_geom");
+		SimpleFeatureBuilder sfBuilder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
 
-					list.add(g);
+		int i = 1;
+
+		try {
+			while (roadIt.hasNext()) {
+				SimpleFeature build = roadIt.next();
+				if (((String) build.getAttribute("IMPORTANCE")).equals("4") || ((String) build.getAttribute("IMPORTANCE")).equals("3")
+						|| ((String) build.getAttribute("IMPORTANCE")).equals("2") || ((String) build.getAttribute("IMPORTANCE")).equals("1")) {
+					sfBuilder.add(((Geometry) build.getDefaultGeometry()));
+					collecLimit.add(sfBuilder.buildFeature(String.valueOf(i)));
+					i++;
 				}
 			}
-			GeometryCollection coll = limite.getFactory().createGeometryCollection(list.toArray(new Geometry[list.size()]));
-			try {
-				Geometry y = coll.union();
-				if (y.isValid()){
-		//			coll = y;
-				}
-			} catch (Exception e) {
-			}
-			unionGeom = IntersectUtils.intersection(clusterGeom,coll);
-			try {
-				Geometry y = unionGeom.buffer(0);
-				if (y.isValid()) {
-					unionGeom = y;
-				}
-			} catch (Exception e) {
-			}
-			
-			if (unionGeom != null) {
-				finalFeatureBuilder.add(unionGeom);
-				SimpleFeature feature = finalFeatureBuilder.buildFeature(String.valueOf(finalId++));
-				cutedCluster.add(feature);
-			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			roadIt.close();
 		}
-	} catch (Exception problem) {
-		problem.printStackTrace();
-	} finally {
-		clusIt.close();
+
+		ShapefileDataStore trainSDS = new ShapefileDataStore(railFile.toURI().toURL());
+		SimpleFeatureCollection trainSFC = trainSDS.getFeatureSource().getFeatures();
+
+		SimpleFeatureIterator trainIt = trainSFC.features();
+
+		try {
+			while (trainIt.hasNext()) {
+				sfBuilder.add(((Geometry) trainIt.next().getDefaultGeometry()));
+				collecLimit.add(sfBuilder.buildFeature(String.valueOf(i)));
+				i++;
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			trainIt.close();
+		}
+
+		ShapefileDataStore riverSDS = new ShapefileDataStore(riverFile.toURI().toURL());
+		SimpleFeatureCollection riverSFC = riverSDS.getFeatureSource().getFeatures();
+		SimpleFeatureIterator riverIt = riverSFC.features();
+
+		try {
+			while (riverIt.hasNext()) {
+				SimpleFeature river = riverIt.next();
+				if (((String) river.getAttribute("REGIME")).equals("Permanent")) {
+					sfBuilder.add(((Geometry) river.getDefaultGeometry()));
+					collecLimit.add(sfBuilder.buildFeature(String.valueOf(i)));
+					i++;
+				}
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			riverIt.close();
+		}
+
+		roadSDS.dispose();
+		trainSDS.dispose();
+		riverSDS.dispose();
+
+		return Vectors.exportSFC(collecLimit.collection(), new File(tmpFile, "limit.shp"));
+		
 	}
-	Vectors.exportSFC(cutedCluster.collection(),new File("/home/mcolomb/tmp/test.shp"));
+
+	public static File prepareClusterBuild(File fBuild) throws IOException, NoSuchAuthorityCodeException, FactoryException {
+		ShapefileDataStore buildSDS = new ShapefileDataStore(fBuild.toURI().toURL());
+		SimpleFeatureCollection buildSFC = buildSDS.getFeatureSource().getFeatures();
+		SimpleFeatureIterator bIt = buildSFC.features();
+
+		DefaultFeatureCollection collecBuild = new DefaultFeatureCollection();
+		DefaultFeatureCollection bufferBuild = new DefaultFeatureCollection();
+
+		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
+		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
+		sfTypeBuilder.setName("buildBuffer");
+		sfTypeBuilder.setCRS(sourceCRS);
+		sfTypeBuilder.add("the_geom", Polygon.class);
+		sfTypeBuilder.setDefaultGeometry("the_geom");
+		SimpleFeatureBuilder sfBuilder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
+
+		int i = 0;
+		try {
+			while (bIt.hasNext()) {
+				SimpleFeature build = bIt.next();
+				if (!(((String) build.getAttribute("NATURE")).equals("Bâtiment agricole") || ((String) build.getAttribute("NATURE")).equals("Silo")
+						|| ((String) build.getAttribute("NATURE")).equals("Bâtiment industriel") || ((Geometry) build.getDefaultGeometry()).getArea() < 20.0)) {
+					collecBuild.add(build);
+					sfBuilder.add(((Geometry) build.getDefaultGeometry()).buffer(25));
+					bufferBuild.add(sfBuilder.buildFeature(String.valueOf(i)));
+					i++;
+				}
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			bIt.close();
+		}
+		buildSDS.dispose();
+		Vectors.exportSFC(collecBuild.collection(), new File(tmpFile, "batiAllege.shp"));
+		return Vectors.exportSFC(bufferBuild.collection(), new File(tmpFile, "batiAllegeBuffer.shp"));
+
+	}
+
+	/**
+	 * Cut the cluster regarding the important limits limits TODO doesnt work from now
+	 * @return 
+	 * 
+	 * @throws IOException
+	 * @throws NoSuchAuthorityCodeException
+	 * @throws FactoryException
+	 */
+	public static File splitLimClus(File fLimit, File fCluster) throws IOException, NoSuchAuthorityCodeException, FactoryException {
+
+		DefaultFeatureCollection cutedCluster = new DefaultFeatureCollection();
+
+		SimpleFeatureTypeBuilder finalClusterBuilder = new SimpleFeatureTypeBuilder();
+		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
+		finalClusterBuilder.setName("cutedCluster");
+		finalClusterBuilder.setCRS(sourceCRS);
+		finalClusterBuilder.add("the_geom", MultiPolygon.class);
+		finalClusterBuilder.setDefaultGeometry("the_geom");
+		SimpleFeatureType featureFinalType = finalClusterBuilder.buildFeatureType();
+		SimpleFeatureBuilder finalFeatureBuilder = new SimpleFeatureBuilder(featureFinalType);
+
+		ShapefileDataStore dSLimit = new ShapefileDataStore(fLimit.toURI().toURL());
+		SimpleFeatureCollection limitsSFC = dSLimit.getFeatureSource().getFeatures();
+
+
+		DefaultFeatureCollection limDF = new DefaultFeatureCollection();
+
+
+		ShapefileDataStore dSCluster = new ShapefileDataStore(fCluster.toURI().toURL());
+		SimpleFeatureCollection clusterSFC = dSLimit.getFeatureSource().getFeatures();
+
 	
-	dSLimit.dispose();
-	dSCluster.dispose();
-}
+		
+		File outFile = new File("/home/mcolomb/tmp/test.shp");
+		Vectors.exportSFC(cutedCluster.collection(), outFile);
+
+		dSLimit.dispose();
+		dSCluster.dispose();
+		return outFile;
 	}
+}
