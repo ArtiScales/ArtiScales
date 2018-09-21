@@ -22,7 +22,6 @@ import fr.ign.cogit.simplu3d.model.ParcelBoundary;
 import fr.ign.cogit.simplu3d.model.ParcelBoundaryType;
 import fr.ign.cogit.simplu3d.model.Prescription;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.AbstractSimpleBuilding;
-import fr.ign.cogit.simplu3d.rjmcmc.cuboid.optimizer.mix.MultipleBuildingsCuboid;
 import fr.ign.cogit.simplu3d.util.CuboidGroupCreation;
 import fr.ign.mpp.configuration.AbstractBirthDeathModification;
 import fr.ign.mpp.configuration.AbstractGraphConfiguration;
@@ -87,7 +86,6 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 		//Set the different initial values
 		p = pA;
 		intersection = p.getBoolean("intersection");
-		MultipleBuildingsCuboid.ALLOW_INTERSECTING_CUBOID = p.getBoolean("intersection");
 		this.prescriptions = presc;
 		this.align = align;
 		this.nbCuboid = p.getInteger("nbCuboid");
