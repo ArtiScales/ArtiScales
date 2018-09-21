@@ -3,17 +3,22 @@ package fr.ign.cogit.rules.predicate;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.introspect.TypeResolutionContext.Basic;
 import com.vividsolutions.jts.geom.Geometry;
 
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
+import fr.ign.cogit.rules.regulation.ArtiScalesRegulation;
 import fr.ign.cogit.simplu3d.model.BasicPropertyUnit;
 import fr.ign.cogit.simplu3d.model.Building;
 import fr.ign.cogit.simplu3d.model.CadastralParcel;
+import fr.ign.cogit.simplu3d.model.ParcelBoundary;
+import fr.ign.cogit.simplu3d.model.ParcelBoundaryType;
 import fr.ign.cogit.simplu3d.model.Prescription;
 import fr.ign.cogit.simplu3d.model.PrescriptionType;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.AbstractSimpleBuilding;
 import fr.ign.cogit.simplu3d.rjmcmc.generic.object.ISimPLU3DPrimitive;
 import fr.ign.cogit.simplu3d.util.CuboidGroupCreation;
+import fr.ign.parameters.Parameters;
 
 public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 
@@ -65,9 +70,17 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 
 	// TODO a expérimenter (trouver une autre manière de le faire) (snapper aux
 	// limites ou faire un buffer)
+	public boolean checkAlignement(O cuboid, Geometry jtsCurveLimiteFrontParcel) {
+		// On vérifie que le batiment est compris dans la zone d'alignement (surfacique)
+		if (!cuboid.toGeometry().touches(jtsCurveLimiteFrontParcel)) {
+			return false;
+		}
+
+		return true;
+	}
+
 	/**
-	 * Check if an alignment constraint is respected between a cuboid and the public
-	 * road
+	 * Check if an alignment constraint is respected between a cuboid and the public road
 	 * 
 	 * @param cuboid
 	 * @param prescriptions
@@ -75,18 +88,15 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	 * @param jtsCurveLimiteFrontParcel
 	 * @return
 	 */
-	public boolean checkAlignementPrescription(O cuboid, IFeatureCollection<Prescription> prescriptions, boolean align,
-			Geometry jtsCurveLimiteFrontParcel) {
+	public boolean checkAlignementPrescription(O cuboid, IFeatureCollection<Prescription> prescriptions, boolean align, Geometry jtsCurveLimiteFrontParcel) {
 		// On vérifie que le batiment est compris dans la zone d'alignement (surfacique)
 
 		if (prescriptions != null && align) {
 			for (Prescription prescription : prescriptions) {
 				if (prescription.type == PrescriptionType.FACADE_ALIGNMENT) {
-					if (prescription.getGeom().isMultiSurface()
-							&& !cuboid.toGeometry().touches(jtsCurveLimiteFrontParcel)) {
-						return false;
+					if (prescription.getGeom().isMultiSurface()) {
+						checkAlignement(cuboid, jtsCurveLimiteFrontParcel);
 					}
-
 				}
 			}
 		}
@@ -128,8 +138,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 
 		return false;
 	}
-	
-	
+
 	/**
 	 * Indicates if a geometry intersects a zone
 	 * 
@@ -148,13 +157,27 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	}
 
 	/**
-	 * Check if the height of a cuboid is lesser than a given value
+	 * Check if the height of a cuboid is lesser than a given number of stairs
 	 * 
 	 * @param cuboid
 	 * @param heightMax
 	 * @return
 	 */
-	public boolean checkHeight(O cuboid, double heightMax) {
+	public boolean checkHeightStairs(O cuboid, int nbStairs, double stairsHeight) {
+		if (cuboid.getHeight() > nbStairs * stairsHeight) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Check if the height of a cuboid is lesser than a given height in meters
+	 * 
+	 * @param cuboid
+	 * @param heightMax
+	 * @return
+	 */
+	public boolean checkHeightMeters(O cuboid, double heightMax) {
 		if (cuboid.getHeight() > heightMax) {
 			return false;
 		}
@@ -206,15 +229,13 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	 */
 	public boolean checkBuildingWidth(List<List<O>> lGroupes, double widthBuffer, double distanceInterBati) {
 		List<Double> distances = new ArrayList<>();
-		
+
 		distances.add(distanceInterBati);
-		
-		
-		return this.checkBuildingWidth(lGroupes,  widthBuffer, distances);
-		
-}
-	
-	
+
+		return this.checkBuildingWidth(lGroupes, widthBuffer, distances);
+
+	}
+
 	/**
 	 * Check the distance between the cuboids and the existing buildings
 	 * 
@@ -246,23 +267,22 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		// lGroupes.size());
 		return true;
 	}
-	
-	
+
 	/**
 	 * Check distance between cuboids with a same distance
+	 * 
 	 * @param lO
 	 * @param distanceInterBati
 	 * @return
 	 */
 	public boolean checkDistanceInterCuboids(List<? extends AbstractSimpleBuilding> lO, Double distanceInterBati) {
-		List<Double>  doubles = new ArrayList<>();
+		List<Double> doubles = new ArrayList<>();
 		doubles.add(distanceInterBati);
 		return checkDistanceInterCuboids(lO, doubles);
 	}
 
 	/**
-	 * Check the distance between the cuboids with differenciated distance
-	 * WARNING : The size of both list have to be the same
+	 * Check the distance between the cuboids with differenciated distance WARNING : The size of both list have to be the same
 	 * 
 	 * @param lO
 	 * @param distanceInterBati
@@ -279,11 +299,10 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 				AbstractSimpleBuilding cJ = lO.get(j);
 
 				double distance = cI.getFootprint().distance(cJ.getFootprint());
-				
+
 				// If there is only one distance we use it or we use the max of the distance
 				// constraints of the groups
-				double distInterBatiCalculated = (distanceInterBati.size() == 1) ? distanceInterBati.get(0)
-						: Math.min(distanceInterBati.get(i), distanceInterBati.get(j));
+				double distInterBatiCalculated = (distanceInterBati.size() == 1) ? distanceInterBati.get(0) : Math.min(distanceInterBati.get(i), distanceInterBati.get(j));
 
 				if (distance < distInterBatiCalculated) {
 					return false;
@@ -294,6 +313,56 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 
 		return true;
 
+	}
+
+	public boolean checkProspectRNU(O cuboid, Geometry jtsCurveOppositeLimit) {
+		return cuboid.prospectJTS(jtsCurveOppositeLimit, 1, 0);
+	}
+
+	/**
+	 * get authorized height
+	 * 
+	 * @return
+	 */
+	public Double[] hauteur(Parameters p, ArtiScalesRegulation regle, Double heighSurroundingBuildings) {
+		//////// Checking the height of the cuboid
+		double min = p.getDouble("heightStair");
+		double max = 0;
+
+		switch (regle.getArt_10_top()) {
+
+		// 1 hauteur à l'étage
+		// 5 hauteur à l'égout (pour l'instant la même que le 1 vu que l'on ne prends pas en compte les toits)
+		case 1:
+		case 5:
+			max = regle.getArt_10() * p.getDouble("heightStair");
+			break;
+		// hauteur en
+		case 2:
+			max = regle.getArt_10_m();
+			break;
+
+		// hauteur harmonisé avec les batiments des alentours (+/- 10 %)
+		case 6:
+		case 7:
+		case 8:
+			// si il y a des batiments
+			if (heighSurroundingBuildings != null) {
+				min = heighSurroundingBuildings * 0.9;
+				max = heighSurroundingBuildings * 1.1;
+			}
+			// si pas de batiments aux alentours, on se rabat sur différentes options
+			else {
+				if (regle.getArt_10_top() == 6) {
+					max = regle.getArt_10() * p.getDouble("heightStair");
+				}
+				if (regle.getArt_10_top() == 7) {
+					max = regle.getArt_10_m();
+				}
+			}
+		}
+		Double[] result = { min, max };
+		return result;
 	}
 
 }

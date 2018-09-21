@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.OptionalDouble;
 
 import com.vividsolutions.jts.geom.Geometry;
 
@@ -12,6 +13,7 @@ import fr.ign.cogit.geoxygene.api.spatial.geomroot.IGeometry;
 import fr.ign.cogit.geoxygene.util.conversion.AdapterFactory;
 import fr.ign.cogit.rules.regulation.ArtiScalesRegulation;
 import fr.ign.cogit.simplu3d.model.BasicPropertyUnit;
+import fr.ign.cogit.simplu3d.model.Environnement;
 import fr.ign.cogit.simplu3d.model.Prescription;
 import fr.ign.cogit.simplu3d.model.SubParcel;
 import fr.ign.cogit.simplu3d.model.UrbaZone;
@@ -25,21 +27,23 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 
 	//This map store the geometries of supercel relatively to the underlying regulation
 	Map<Geometry, ArtiScalesRegulation> mapGeomRegulation = new HashMap<>();
-
+	CommonRulesOperator<O> cRO = new CommonRulesOperator<O>();
+	
 	/**
 	 * 
 	 * @param currentBPU current bPU
 	 * @param align Alignement to prescription
 	 * @param p Parametrs
 	 * @param presc Considered prescription
+	 * @param env 
 	 * @throws Exception
 	 */
 	public MultiplePredicateArtiScales(BasicPropertyUnit currentBPU, boolean align, Parameters p,
-			IFeatureCollection<Prescription> presc) throws Exception {
+			IFeatureCollection<Prescription> presc, Environnement env) throws Exception {
 		/*
 		 * All the job is done in the abstract class
 		 */
-		super(currentBPU, align, p, presc);
+		super(currentBPU, align, p, presc, env);
 
 		//We create the map 
 		// for each  subparcel we add both object
@@ -143,6 +147,24 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 		}
 
 		return maxCES;
+	}
+
+	@Override
+	protected double getMaxHeight() {
+		
+		Double maxVal=0.0;
+		for (ArtiScalesRegulation rule : mapGeomRegulation.values()) {
+			Double tmpH = cRO.hauteur(super.p, rule, heighSurroundingBuildings)[1];
+			if (maxVal<tmpH) {
+				maxVal = tmpH;
+			}
+		}
+		return maxVal;
+	}
+
+	@Override
+	protected double getMinHeight() {
+		return mapGeomRegulation.values().stream().mapToDouble(x -> cRO.hauteur(p, x, heighSurroundingBuildings)[1]).max().getAsDouble();
 	}
 
 }

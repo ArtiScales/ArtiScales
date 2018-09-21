@@ -6,6 +6,9 @@
 	<!-- Paramètres généraux pour la simulation -->
 	<!-- Configuration générales des simulations ArtiScales -->
 	<param key="seed" value="42"/>
+	<!-- Liste des villes soumises uniquement au RNU -->
+	<param key="RNUCommunes" value="25034,25035,25058,25078,25107,25111,25115,25116,25117,25119,25132,25133,25162,25163,25164,25186,25225,25242,25257,25265,25269,25152,25332,25430,25439,25455,25482,25490,25491,25536,25538,25564,25587,25631,25437"/>
+
 	
 	<!-- PARAMETRES DE MUP-CITY -->
 	<!-- paramètres techniques -->	
