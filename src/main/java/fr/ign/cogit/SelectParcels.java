@@ -2,9 +2,7 @@ package fr.ign.cogit;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.zone.ZoneRulesException;
 
-import org.geolatte.geom.Simple;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
@@ -17,7 +15,6 @@ import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.filter.SortByImpl;
 import org.geotools.geometry.DirectPosition2D;
-import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
@@ -36,23 +33,11 @@ import com.vividsolutions.jts.io.ParseException;
 
 import fr.ign.cogit.GTFunctions.Rasters;
 import fr.ign.cogit.GTFunctions.Vectors;
-import fr.ign.cogit.geoxygene.api.feature.IFeature;
-import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
-import fr.ign.cogit.geoxygene.api.feature.type.GF_AttributeType;
-import fr.ign.cogit.geoxygene.api.spatial.coordgeom.IPolygon;
-import fr.ign.cogit.geoxygene.convert.FromGeomToSurface;
-import fr.ign.cogit.geoxygene.feature.DefaultFeature;
-import fr.ign.cogit.geoxygene.feature.FT_FeatureCollection;
-import fr.ign.cogit.geoxygene.sig3d.calculation.parcelDecomposition.OBBBlockDecomposition;
-import fr.ign.cogit.geoxygene.util.attribute.AttributeManager;
-import fr.ign.cogit.geoxygene.util.conversion.ShapefileReader;
-import fr.ign.cogit.geoxygene.util.conversion.ShapefileWriter;
 import fr.ign.cogit.outputs.XmlGen;
 import fr.ign.cogit.util.GetFromGeom;
 import fr.ign.cogit.util.StatStuff;
 import fr.ign.cogit.util.VectorFct;
 import fr.ign.parameters.Parameters;
-import fr.ign.random.Random;
 
 public class SelectParcels {
 

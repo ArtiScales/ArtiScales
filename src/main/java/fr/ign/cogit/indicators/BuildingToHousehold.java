@@ -7,7 +7,6 @@ import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.opengis.feature.simple.SimpleFeature;
 
-import fr.ign.cogit.util.VectorFct;
 import fr.ign.parameters.Parameters;
 
 public class BuildingToHousehold extends Indicators {

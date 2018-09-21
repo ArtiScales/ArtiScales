@@ -1,13 +1,8 @@
 package fr.ign.cogit;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
 
 import fr.ign.cogit.indicators.BuildingToHousehold;
 import fr.ign.cogit.outputs.XmlGen;
@@ -15,8 +10,6 @@ import fr.ign.cogit.util.GetFromGeom;
 import fr.ign.cogit.util.StatStuff;
 import fr.ign.cogit.util.VectorFct;
 import fr.ign.parameters.Parameters;
-import fr.ign.task.ProjectCreationDecompTask;
-import fr.ign.task.SimulTask;
 
 public class MainTask {
 
