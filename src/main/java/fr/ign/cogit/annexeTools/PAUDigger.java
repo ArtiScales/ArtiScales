@@ -50,7 +50,7 @@ public class PAUDigger {
 		File limit = prepareLimit(roadFile, riverFile, railFile);
 		File splitedCluster = splitLimClus(limit,buildAllegeCluster);
 	
-		countBuildInCluster(buildAllege, splitedCluster );
+		//countBuildInCluster(buildAllegeCluster, splitedCluster );
 	}
 
 	private static File prepareLimit(File roadFile, File riverFile, File railFile) throws IOException, NoSuchAuthorityCodeException, FactoryException {
