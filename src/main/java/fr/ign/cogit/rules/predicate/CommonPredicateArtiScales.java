@@ -115,6 +115,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 	 */
 	protected void prepareCachedGeometries(BasicPropertyUnit bPU, Environnement env) throws Exception {
 
+		System.out.println("Number of buildings in bPU : " + bPU.getBuildings().size());
 		// Pour simplifier la vérification, on extrait les différentes bordures de
 		// parcelles
 		IMultiCurve<IOrientableCurve> curveLimiteFondParcel = new GM_MultiCurve<>();
@@ -188,22 +189,20 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 		Collection<AbstractBuilding> buildingsHeightCol = env.getBuildings().select(bPU.getGeom().buffer(distanceHeightBuildings));
 		
 		if (!buildingsHeightCol.isEmpty()) {
-			for (AbstractBuilding bu : buildingsHeightCol) {
-				System.out.println("salo"+bu.height(0, 1));
-			}
-			heighSurroundingBuildings = buildingsHeightCol.stream().mapToDouble(x -> x.height(0, 1)).sum()/buildingsHeightCol.size();
+			heighSurroundingBuildings = buildingsHeightCol.stream().mapToDouble(x -> x.height(1, 1)).sum()/buildingsHeightCol.size();
 		}
 		
 		
 		//Code determining max height
 		
-		this.p.set("maxheight", this.getMaxHeight());
-		this.p.set("minheight", this.getMinHeight());
+
 		//this.p.set("maxheight", heighSurroundingBuildings * 1.1);
 		//this.p.set("minheight", heighSurroundingBuildings * 0.9);
 		
 		
-		if (!jtsCurveOppositeLimit.isEmpty()) {
+		System.out.println("TODO : jtsCurveOppositeLimit is not instanciated !!!!!!");
+		
+		if (jtsCurveOppositeLimit!=null && !jtsCurveOppositeLimit.isEmpty()) {
 			this.jtsCurveOppositeLimit = AdapterFactory.toGeometry(gf, curveOppositeLimit);
 		}
 
@@ -299,10 +298,10 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 				switch (regle.getArt_71()) {
 				// alignement interdit
 				case 0:
-					if (cRO.checkAlignement(cuboid, jtsCurveLimiteFondParcel)) {
+					if (jtsCurveLimiteFrontParcel!=null&&cRO.checkAlignement(cuboid, jtsCurveLimiteFondParcel)) {
 						return false;
 					}
-					if (cRO.checkAlignement(cuboid, jtsCurveLimiteLatParcel)) {
+					if (jtsCurveLimiteLatParcel!=null&&cRO.checkAlignement(cuboid, jtsCurveLimiteLatParcel)) {
 						return false;
 					}
 					break;

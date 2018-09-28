@@ -44,6 +44,9 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 		// The rules
 		this.regles = regle;
 		this.p = pA;
+		
+		this.p.set("maxheight", this.getMaxHeight());
+		this.p.set("minheight", this.getMinHeight());
 	}
 
 	/*

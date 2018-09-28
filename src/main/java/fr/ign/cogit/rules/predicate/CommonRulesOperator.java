@@ -69,7 +69,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	// limites ou faire un buffer)
 	public boolean checkAlignement(O cuboid, Geometry jtsCurveLimiteFrontParcel) {
 		// On vérifie que le batiment est compris dans la zone d'alignement (surfacique)
-		if (!cuboid.toGeometry().touches(jtsCurveLimiteFrontParcel)) {
+		if (jtsCurveLimiteFrontParcel!=null && !cuboid.toGeometry().touches(jtsCurveLimiteFrontParcel)) {
 			return false;
 		}
 

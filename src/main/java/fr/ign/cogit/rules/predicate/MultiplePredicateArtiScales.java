@@ -57,6 +57,8 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 		// We clean all regulation (Removing fake values from regulation object)
 		mapGeomRegulation.values().stream().forEach(x -> x.clean());
 
+		this.p.set("maxheight", this.getMaxHeight());
+		this.p.set("minheight", this.getMinHeight());
 	}
 
 	/*If necessary ....
