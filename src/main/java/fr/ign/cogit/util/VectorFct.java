@@ -7,14 +7,20 @@ import java.util.List;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
+import org.geotools.factory.CommonFactoryFinder;
+import org.geotools.factory.GeoTools;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.filter.Filter;
+import org.opengis.filter.FilterFactory2;
+import org.opengis.filter.expression.PropertyName;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Polygon;
 
 import fr.ign.cogit.GTFunctions.Vectors;
@@ -33,13 +39,25 @@ import fr.ign.parameters.Parameters;
 import fr.ign.random.Random;
 
 public class VectorFct {
-	
-	
-	public static void main(String[] args) throws Exception {
-		mergeBatis(new File("/home/yo/Documents/these/ArtiScales/output/Stability-dataAutomPhy-CM20.0-S0.0-GP_915948.0_6677337.0--N6_St_Moy_ahpx_seed_9015629222324914404-evalAnal-20.0/25495/ZoningAllowed/simu0/"));
-		
-	}
 
+	public static void main(String[] args) throws Exception {
+		mergeBatis(new File(
+				"/home/yo/Documents/these/ArtiScales/output/Stability-dataAutomPhy-CM20.0-S0.0-GP_915948.0_6677337.0--N6_St_Moy_ahpx_seed_9015629222324914404-evalAnal-20.0/25495/ZoningAllowed/simu0/"));
+
+	}
+	
+	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeatureCollection parcelIn,File filterFile,  Parameters p) throws Exception {
+		
+		ShapefileDataStore morphoSDS = new ShapefileDataStore(filterFile.toURI().toURL());
+		SimpleFeatureCollection morphoSFC = morphoSDS.getFeatureSource().getFeatures();
+		Geometry morphoUnion = Vectors.unionSFC(morphoSFC);
+		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
+		PropertyName pName = ff.property(parcelIn.getSchema().getGeometryDescriptor().getLocalName());
+		Filter filter = ff.intersects(pName, ff.literal(morphoUnion));
+		System.out.println("number of parcels " + parcelIn.subCollection(filter).size());
+		return generateSplitedParcels(parcelIn.subCollection(filter), p);
+	}
+	
 	/**
 	 * Determine if the parcels need to be splited or not, based on their area. This area is either determined by a param file, or taken as a default value of 1200 square meters
 	 * 
@@ -66,10 +84,10 @@ public class VectorFct {
 		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
 		sfTypeBuilder.setName("testType");
 		sfTypeBuilder.setCRS(sourceCRS);
-		sfTypeBuilder.add("the_geom", Polygon.class);
+		sfTypeBuilder.add("the_geom", MultiPolygon.class);
 		sfTypeBuilder.setDefaultGeometry("the_geom");
 		sfTypeBuilder.add("SPLIT", Integer.class);
-		sfTypeBuilder.add("num", Integer.class);
+		sfTypeBuilder.add("NUMEROPARC", String.class);
 
 		SimpleFeatureBuilder sfBuilder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
 
@@ -79,7 +97,8 @@ public class VectorFct {
 		try {
 			while (parcelIt.hasNext()) {
 				SimpleFeature feat = parcelIt.next();
-				Object[] attr = { 0, feat.getAttribute("NUMERO") };
+				Object[] attr = { 0, ((String) feat.getAttribute("CODE_DEP")) + ((String) feat.getAttribute("CODE_COM")) + ((String) feat.getAttribute("COM_ABS"))
+						+ ((String) feat.getAttribute("SECTION")) + ((String) feat.getAttribute("NUMERO"))};
 				if (((Geometry) feat.getDefaultGeometry()).getArea() > maximalArea) {
 					attr[0] = 1;
 				}
@@ -92,8 +111,8 @@ public class VectorFct {
 		} finally {
 			parcelIt.close();
 		}
-
-		return splitParcels(toSplit, maximalArea, maximalWidth, roadEpsilon, noise,p);
+		
+		return splitParcels(toSplit, maximalArea, maximalWidth, roadEpsilon, noise, p);
 
 	}
 
@@ -108,7 +127,8 @@ public class VectorFct {
 	 * @return
 	 * @throws Exception
 	 */
-	public static SimpleFeatureCollection splitParcels(SimpleFeatureCollection toSplit, double maximalArea, double maximalWidth, double roadEpsilon, double noise,Parameters p) throws Exception {
+	public static SimpleFeatureCollection splitParcels(SimpleFeatureCollection toSplit, double maximalArea, double maximalWidth, double roadEpsilon, double noise, Parameters p)
+			throws Exception {
 		// TODO un truc fait bugger la sortie dans cette classe..
 
 		// TODO classe po bô du tout: faire une vraie conversion entre les types
@@ -118,10 +138,16 @@ public class VectorFct {
 
 		// IFeatureCollection<?> ifeatColl =
 		// GeOxygeneGeoToolsTypes.convert2IFeatureCollection(toSplit);
-File tmpFile= new File(p.getString("rootFile"), "/temp/");
-tmpFile.mkdir();
-		File shpIn = new File(tmpFile,"temp-In.shp");
-	
+		File tmpFile = new File("");
+		if (p != null) {
+			tmpFile = new File(p.getString("rootFile"), "/temp/");
+
+		} else {
+			tmpFile = new File("/tmp/");
+		}
+		tmpFile.mkdir();
+		File shpIn = new File(tmpFile, "temp-In.shp");
+
 		Vectors.exportSFC(toSplit, shpIn);
 		IFeatureCollection<?> ifeatColl = ShapefileReader.read(shpIn.toString());
 		IFeatureCollection<IFeature> ifeatCollOut = new FT_FeatureCollection<IFeature>();
@@ -137,29 +163,21 @@ tmpFile.mkdir();
 			}
 			IPolygon pol = (IPolygon) FromGeomToSurface.convertGeom(feat.getGeom()).get(0);
 
-			int num = (int) feat.getAttribute("num");
 			int numParcelle = 1;
 			OBBBlockDecomposition obb = new OBBBlockDecomposition(pol, maximalArea, maximalWidth, Random.random(), roadEpsilon, noise);
 			// TODO erreures récurentes sur le split
 			try {
 				IFeatureCollection<IFeature> featCollDecomp = obb.decompParcel();
-				// recup du GF_AttributeType des numeros
-				GF_AttributeType attribute = null;
-				for (GF_AttributeType att : ifeatColl.getFeatureType().getFeatureAttributes()) {
-					if (att.toString().contains("num")) {
-						attribute = att;
-					}
-				}
 				for (IFeature featDecomp : featCollDecomp) {
 					// MAJ du numéro de la parcelle
-					int newNum = Integer.parseInt(String.valueOf(num) + "000" + String.valueOf(numParcelle));
-					numParcelle = numParcelle + 1;
+					String newNum = feat.getAttribute("NUMEROPARC") + String.valueOf(numParcelle);
+					numParcelle++;
 					IFeature newFeat = new DefaultFeature(featDecomp.getGeom());
-					AttributeManager.addAttribute(newFeat, "num", newNum, "Integer");
+					AttributeManager.addAttribute(newFeat, "NUMEROPARC", newNum, "String");
 					ifeatCollOut.add(newFeat);
 				}
 			} catch (NullPointerException n) {
-				System.out.println("erreur sur le split pour la parcelle " + num);
+				System.out.println("erreur sur le split pour la parcelle " + String.valueOf(feat.getAttribute("NUMEROPARC")));
 				IFeature featTemp = feat.cloneGeom();
 				ifeatCollOut.add(featTemp);
 			}
@@ -183,49 +201,31 @@ tmpFile.mkdir();
 		return splitedSFC;
 	}
 
-	
-	
 	/**
 	 * Merge all the shapefile of a folder (made for simPLU buildings) into one shapefile
-	 * @param file2MergeIn : list of files containing the shapefiles
+	 * 
+	 * @param file2MergeIn
+	 *            : list of files containing the shapefiles
 	 * @return : file where everything is saved (here whith a building name)
 	 * @throws Exception
 	 */
 	public static File mergeBatis(List<File> file2MergeIn) throws Exception {
-		DefaultFeatureCollection newParcel = new DefaultFeatureCollection();
-		for (File f : file2MergeIn) {
-			
-				ShapefileDataStore SDSParcel = new ShapefileDataStore(f.toURI().toURL());
-				SimpleFeatureIterator parcelIt = SDSParcel.getFeatureSource().getFeatures().features();
-				try {
-					while (parcelIt.hasNext()) {
-						newParcel.add(parcelIt.next());
-					}
-				} catch (Exception problem) {
-					problem.printStackTrace();
-				} finally {
-					parcelIt.close();
-				}
-				SDSParcel.dispose();
-			}
-		
 		File out = new File(file2MergeIn.get(0).getParentFile(), "TotBatSimuFill.shp");
-		if (!newParcel.isEmpty()) {
-			Vectors.exportSFC(newParcel.collection(), out);
-		}
-		return out;
+		return Vectors.mergeVectFiles(file2MergeIn, out);
 	}
-	
+
 	/**
 	 * Merge all the shapefile of a folder (made for simPLU buildings) into one shapefile
-	 * @param file2MergeIn : folder containing the shapefiles
+	 * 
+	 * @param file2MergeIn
+	 *            : folder containing the shapefiles
 	 * @return : file where everything is saved (here whith a building name)
 	 * @throws Exception
 	 */
 	public static File mergeBatis(File file2MergeIn) throws Exception {
 		List<File> listBatiFile = new ArrayList<File>();
 		for (File f : file2MergeIn.listFiles()) {
-			if (f.getName().endsWith(".shp")&&f.getName().startsWith("out")) {
+			if (f.getName().endsWith(".shp") && f.getName().startsWith("out")) {
 				listBatiFile.add(f);
 			}
 		}

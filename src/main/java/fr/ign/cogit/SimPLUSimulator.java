@@ -94,7 +94,7 @@ public class SimPLUSimulator {
 		List<File> lF = new ArrayList<>();
 		// Line to change to select the right scenario
 
-		String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenar0MKDom/").getPath();
+		String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenar0/").getPath();
 
 		System.out.println(rootParam);
 
@@ -111,13 +111,13 @@ public class SimPLUSimulator {
 		// codeDep + codeCom + comAbs + section + numero
 
 		// 2/ Alternatively we can decided to active an attribute (Here id)
-		AttribNames.setATT_CODE_PARC("Id");
+		AttribNames.setATT_CODE_PARC("NUMEROPARC");
 
 		// ID_PARCELLE_TO_SIMULATE.add("25495000AE0102"); //Test for a simulation
 		// with 1 regulation
 
 		USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = true;
-		ID_PARCELLE_TO_SIMULATE.add("25495000AK0005"); // Test for a simulation with
+		ID_PARCELLE_TO_SIMULATE.add("25111000AC013117"); // Test for a simulation with
 														// 3 regulations on 3 sub
 														// parcels
 
@@ -159,18 +159,18 @@ public class SimPLUSimulator {
 		this.lF = lF;
 		this.rootFile = rootfile;
 		this.zipCode = zipcode;
-
 		// Si les communes sont au RNU :
 		String[] communesRNU = StatStuff.makeZipTab(p.getString("RNUCommunes"));
 		// si la commune est uniquement soumise au RNU
 		for (String comm : communesRNU) {
 			if (comm.equals(zipCode)) {
 				rNU = true;
+				System.out.println("La commune est au RNU");
 				break;
 			}
 		}
 		if (rNU) {
-			zoningFile = GetFromGeom.getPAU(pluFile, new File(p.getString("geoFile")), new File(rootfile, "tmp"),
+			zoningFile = GetFromGeom.getPAUzone(pluFile, new File(p.getString("geoFile")), new File(rootfile, "tmp"),
 					zipCode);
 		} else {
 			zoningFile = GetFromGeom.getZoning(pluFile, zipCode);

@@ -103,7 +103,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 		this.nbCuboid = p.getInteger("nbCuboid");
 		this.currentBPU = currentBPU;
 		// This prepare the geoemtries
-		this.preapreCachedGeoemtries(currentBPU,env);
+		this.prepareCachedGeometries(currentBPU,env);
 
 	}
 
@@ -113,7 +113,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 	 * @param bPU
 	 * @throws Exception
 	 */
-	protected void preapreCachedGeoemtries(BasicPropertyUnit bPU, Environnement env) throws Exception {
+	protected void prepareCachedGeometries(BasicPropertyUnit bPU, Environnement env) throws Exception {
 
 		// Pour simplifier la vérification, on extrait les différentes bordures de
 		// parcelles
@@ -183,9 +183,14 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 		
 		//height of the surrounding buildings
 		
+		
+		System.out.println(bPU.getGeom().buffer(distanceHeightBuildings));
 		Collection<AbstractBuilding> buildingsHeightCol = env.getBuildings().select(bPU.getGeom().buffer(distanceHeightBuildings));
 		
 		if (!buildingsHeightCol.isEmpty()) {
+			for (AbstractBuilding bu : buildingsHeightCol) {
+				System.out.println("salo"+bu.height(0, 1));
+			}
 			heighSurroundingBuildings = buildingsHeightCol.stream().mapToDouble(x -> x.height(0, 1)).sum()/buildingsHeightCol.size();
 		}
 		
@@ -319,11 +324,18 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 				//////// Distance to the front of the parcel
 				// multiple cases of Art_6 rules
-				if (regle.getArt_6() == 55) {
-					if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, regle.getArt_6_optD()) || cRO.checkAlignement(cuboid, jtsCurveLimiteFrontParcel)) {
+				if (regle.getArt_6() == 0) {
+					if(cRO.checkAlignement(cuboid, jtsCurveLimiteFrontParcel)){
 						return false;
 					}
 				}
+				else if (regle.getArt_6() == 55) {
+					double dist = Double.valueOf(regle.getArt_6_optD().split("-")[0]);
+					if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, dist) || cRO.checkAlignement(cuboid, jtsCurveLimiteFrontParcel)) {
+						return false;
+					}	
+				}
+				
 				// the prospect of slope 1 ruel (usde in the RNU)
 				else if (regle.getArt_6() == 44) {
 					if (!cRO.checkProspectRNU(cuboid, jtsCurveOppositeLimit)) {
@@ -333,6 +345,13 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 				// regular rules
 				else if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, regle.getArt_6())) {
 					return false;
+				}
+				//distance en fonction d'une route
+				if (regle.getArt_6_opt() == "1") {
+					double dist = Double.valueOf(regle.getArt_6_optD().split("-")[0]);
+					String nRoute = regle.getArt_6_optD().split("-")[1];
+					//TODO dist en fonction d'une route (peut on choper son attribut?
+					
 				}
 
 				

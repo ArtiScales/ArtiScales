@@ -101,7 +101,7 @@ public class SelectParcels {
 		}
 
 		if (rNU) {
-			zoningFile = GetFromGeom.getPAU(pluFile, geofile, new File(rootfile, "tmp"), zipCode);
+			zoningFile = GetFromGeom.getPAUparcel(pluFile, geofile, new File(rootfile, "tmp"), zipCode);
 		} else {
 			zoningFile = GetFromGeom.getZoning(pluFile, zipCode);
 		}
@@ -355,7 +355,6 @@ public class SelectParcels {
 				
 				// selection by the MUP-City's cells
 				SimpleFeatureCollection parcelInCell = selecMultipleParcelInCell(pauCollection);
-				Vectors.exportSFC(parcelInCell, new File("/home/mcolomb/informatique/ArtiScales/tmp/zob.shp"));
 				// put evals in cells
 				SimpleFeatureCollection collectOut = putEvalInParcel(parcelInCell);
 
@@ -432,7 +431,7 @@ public class SelectParcels {
 		sfTypeBuilder.add("the_geom", Polygon.class);
 		sfTypeBuilder.setDefaultGeometry("the_geom");
 		sfTypeBuilder.add("eval", Float.class);
-		sfTypeBuilder.add("NUMERO", String.class);
+		sfTypeBuilder.add("NUMEROPARC", String.class);
 
 		SimpleFeatureBuilder sfBuilder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
 
@@ -465,17 +464,23 @@ public class SelectParcels {
 						onlyCellIt.close();
 					}
 				}
-				String numero = ((String) feat.getAttribute("CODE_DEP")) + ((String) feat.getAttribute("CODE_COM")) + ((String) feat.getAttribute("COM_ABS"))
+				//si on utilise des PAU, le nom est déjà généré
+				String numero;
+				if (!((String)feat.getAttribute("NUMEROPARC")).isEmpty()){
+					numero = ((String)feat.getAttribute("NUMEROPARC"));
+				}
+				else {
+				numero = ((String) feat.getAttribute("CODE_DEP")) + ((String) feat.getAttribute("CODE_COM")) + ((String) feat.getAttribute("COM_ABS"))
 						+ ((String) feat.getAttribute("SECTION")) + ((String) feat.getAttribute("NUMERO"));
-				System.out.println("numero de parcelle " + numero);
-				Object[] attr = { bestEval, numero };
+				}
+				Object[] attr  = { bestEval, numero };
 				sfBuilder.add(feat.getDefaultGeometry());
 
 				SimpleFeature feature = sfBuilder.buildFeature(String.valueOf(i), attr);
 				newParcel.add(feature);
 				i = i + 1;
 			}
-
+			
 		} catch (Exception problem) {
 			problem.printStackTrace();
 		} finally {
@@ -543,13 +548,9 @@ public class SelectParcels {
 
 	public File selecOneParcelInCell(SimpleFeatureCollection parcelIn) throws IOException {
 		// TODO finir cette méthode : mais sert elle à quelque chose?
-		// requied d'etre statique alors qu'elle est utilisé dans la classe
-		// SimPLUSimulator?
 		// mettre le recouvrement des cellules dans un attribut et favoriser
 		// selon le plus gros pourcentage?
-		// spatialConfiguration =
-		// SimPLUSimulator.snapDatas(spatialConfiguration, new
-		// File(spatialConfiguration, "snap"));
+
 
 		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
 		String geometryParcelPropertyName = parcelIn.getSchema().getGeometryDescriptor().getLocalName();

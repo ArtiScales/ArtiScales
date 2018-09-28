@@ -23,20 +23,17 @@ public class ZoneRulesAssociation {
 
 		// Rules parameters
 		ArtiScalesRegulation regle = null;
-		Map<String, ArtiScalesRegulation> regles = ArtiScalesRegulation
-				.loadRegulationSet(predicateFile.getAbsolutePath());
+		Map<String, ArtiScalesRegulation> regles = ArtiScalesRegulation.loadRegulationSet(predicateFile.getAbsolutePath());
 
 		if (regles == null || regles.isEmpty()) {
 			System.out.println("Missing predicate file");
 			//Failed
 			return false;
 		}
-
+		
 		// For each zone we associate a regulation to the zone
 		for (UrbaZone zone : env.getUrbaZones()) {
-
 			regle = regles.get(zone.getLibelle());
-
 			if (regle != null) {
 				zone.setZoneRegulation(regle);
 			} else {

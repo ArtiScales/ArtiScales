@@ -105,11 +105,21 @@ public class GetFromGeom {
 		throw new FileNotFoundException("Zoning file not found");
 	}
 
-	public static File getPAU(File pluFile, File geoFile, File tmpFile, String zipCode) throws Exception {
+	public static File getPAUzone(File pluFile, File geoFile, File tmpFile, String zipCode) throws Exception {
+		String type = "zone";
+		return getPAU(type, pluFile, geoFile, tmpFile, zipCode);
+	}
+	public static File getPAUparcel(File pluFile, File geoFile, File tmpFile, String zipCode) throws Exception {
+		String type = "parcel";
+		return getPAU(type, pluFile, geoFile, tmpFile, zipCode);
+	}
+
+
+	public static File getPAU(String type, File pluFile, File geoFile, File tmpFile, String zipCode) throws Exception {
 
 		tmpFile.mkdir();
 
-		File pauFile = new File(pluFile, "PAU-RNU.shp");
+		File pauFile = new File(pluFile, type+"PAU.shp");
 		ShapefileDataStore shpDSpau = new ShapefileDataStore(pauFile.toURI().toURL());
 		SimpleFeatureCollection pau = shpDSpau.getFeatureSource().getFeatures();
 
@@ -132,12 +142,12 @@ public class GetFromGeom {
 		} finally {
 			adminIt.close();
 		}
-		
+
 		Vectors.exportSFC(Vectors.snapDatas(pau, (Geometry) sf.getDefaultGeometry()), new File(tmpFile, "pau_" + zipCode + ".shp"));
 		shpDSpau.dispose();
 		return new File(tmpFile, "pau_" + zipCode + ".shp");
 	}
-	
+
 	public static SimpleFeatureCollection selecParcelZonePLU(String[] typesZone, String zipcode, File parcelFile, File zoningFile) throws Exception {
 
 		ShapefileDataStore shpDSParcel = new ShapefileDataStore(parcelFile.toURI().toURL());

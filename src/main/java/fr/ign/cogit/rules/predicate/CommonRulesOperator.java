@@ -334,9 +334,9 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		case 5:
 			max = regle.getArt_10() * p.getDouble("heightStair");
 			break;
-		// hauteur en
+		// hauteur en metre
 		case 2:
-			max = regle.getArt_10_m();
+			max = Double.valueOf(regle.getArt_10_m());
 			break;
 
 		// hauteur harmonisé avec les batiments des alentours (+/- 10 %)
@@ -354,9 +354,12 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 					max = regle.getArt_10() * p.getDouble("heightStair");
 				}
 				if (regle.getArt_10_top() == 7) {
-					max = regle.getArt_10_m();
+					max = Double.valueOf(regle.getArt_10_m());
 				}
 			}
+		//TODO en fonction des limites séparatives
+		case 20 : 
+			
 		}
 		Double[] result = { min, max };
 		return result;
