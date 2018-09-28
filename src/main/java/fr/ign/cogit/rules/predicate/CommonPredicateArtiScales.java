@@ -115,7 +115,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 	 */
 	protected void prepareCachedGeometries(BasicPropertyUnit bPU, Environnement env) throws Exception {
 
-		System.out.println("Number of buildings in bPU : " + bPU.getBuildings().size());
+		
 		// Pour simplifier la vérification, on extrait les différentes bordures de
 		// parcelles
 		IMultiCurve<IOrientableCurve> curveLimiteFondParcel = new GM_MultiCurve<>();
@@ -187,7 +187,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 		
 		System.out.println(bPU.getGeom().buffer(distanceHeightBuildings));
 		Collection<AbstractBuilding> buildingsHeightCol = env.getBuildings().select(bPU.getGeom().buffer(distanceHeightBuildings));
-		
+		System.out.println("Neighbour buildings :" + buildingsHeightCol.size());
 		if (!buildingsHeightCol.isEmpty()) {
 			heighSurroundingBuildings = buildingsHeightCol.stream().mapToDouble(x -> x.height(1, 1)).sum()/buildingsHeightCol.size();
 		}
@@ -199,10 +199,9 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 		//this.p.set("maxheight", heighSurroundingBuildings * 1.1);
 		//this.p.set("minheight", heighSurroundingBuildings * 0.9);
 		
+
 		
-		System.out.println("TODO : jtsCurveOppositeLimit is not instanciated !!!!!!");
-		
-		if (jtsCurveOppositeLimit!=null && !jtsCurveOppositeLimit.isEmpty()) {
+		if (!curveOppositeLimit.isEmpty()) {
 			this.jtsCurveOppositeLimit = AdapterFactory.toGeometry(gf, curveOppositeLimit);
 		}
 
@@ -244,6 +243,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 	@Override
 	public boolean check(C c, M m) {
 
+	
 		// NewCuboids
 		List<O> lONewCuboids = m.getBirth();
 
@@ -285,7 +285,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 			}
 		}
 
-		/////////// Regulation that depends from the SubParcel regulation
+	///////// Regulation that depends from the SubParcel regulation
 
 		for (O cuboid : lONewCuboids) {
 
@@ -294,33 +294,45 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 			for (ArtiScalesRegulation regle : lRegles) {
 
+	
+				
 				// type of distance to the parcel limits
 				switch (regle.getArt_71()) {
 				// alignement interdit
 				case 0:
-					if (jtsCurveLimiteFrontParcel!=null&&cRO.checkAlignement(cuboid, jtsCurveLimiteFondParcel)) {
+					
+					/*
+					if (jtsCurveLimiteFrontParcel!=null&&!cRO.checkAlignement(cuboid, jtsCurveLimiteFondParcel)) {
 						return false;
 					}
-					if (jtsCurveLimiteLatParcel!=null&&cRO.checkAlignement(cuboid, jtsCurveLimiteLatParcel)) {
+					if (jtsCurveLimiteLatParcel!=null&&!cRO.checkAlignement(cuboid, jtsCurveLimiteLatParcel)) {
 						return false;
-					}
+					}*/
+					//System.out.println("TODO : Alignement desactivés");
 					break;
 				case 1:
 
 					break;
 
 				}
-
+			
 				// Distance to the bottom of the parcel
 				if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFondParcel, regle.getArt_73())) {
 					return false;
 				}
 
+				
+		
+				
 				// Distance to the front of the parcel
 				if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteLatParcel, regle.getArt_72())) {
 					return false;
 				}
 
+			
+				//
+				
+				
 				//////// Distance to the front of the parcel
 				// multiple cases of Art_6 rules
 				if (regle.getArt_6() == 0) {
@@ -360,6 +372,8 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 				}
 
 			}
+			
+		
 
 			/////////// Groups or whole configuration constraints
 
