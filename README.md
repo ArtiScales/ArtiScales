@@ -13,3 +13,12 @@ MUP-City outputs in folder /depotConfigSpat \n
 Geogrpahic shapefiles in folder /donneeGeographiques \n
 PLU zoning plans in /pluZoning \n
 .csv file containing the SimPLU rules in /pluZoning/codes/predicate.csv
+
+# TODOs
+SelectParcels
+le merge/refonte des parcelles ne marche pas
+Réorganiser : factoriser le code de la classe « selection » (en faire des classes filles?)
+Les evaluations de certaines parelles sont nulles : voir pourquoi
+
+SimPLU
+Problème sur la méthode prepareCachedGeometries: les batiments des parcelles adjacentes ne sont pas trouvés.
