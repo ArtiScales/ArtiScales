@@ -167,12 +167,18 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 		// Limit Opposite
 		for (ParcelBoundary salut : bPU.getCadastralParcels().get(0).getBoundariesByType(ParcelBoundaryType.ROAD)) {
-			IGeometry geom = salut.getOppositeBoundary().getGeom();
-			if (geom instanceof IOrientableCurve) {
-				curveOppositeLimit.add((IOrientableCurve) geom);
-			} else {
-				System.out.println("Classe SamplePredicate : quelque chose n'est pas un ICurve : " + geom.getClass());
+			System.out.println("Number of buildings in env : " + bPU.getBuildings().size());
+			
+			if(salut.getOppositeBoundary() != null) {
+				IGeometry geom = salut.getOppositeBoundary().getGeom();
+				if (geom instanceof IOrientableCurve) {
+					curveOppositeLimit.add((IOrientableCurve) geom);
+				} else {
+					System.out.println("Classe SamplePredicate : quelque chose n'est pas un ICurve : " + geom.getClass());
+				}
 			}
+			
+	
 		}
 		
 		//height of the surrounding buildings
