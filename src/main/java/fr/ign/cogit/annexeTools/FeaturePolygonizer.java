@@ -15,6 +15,8 @@ import org.geotools.data.FileDataStore;
 import org.geotools.data.Transaction;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.shapefile.ShapefileDataStoreFactory;
+import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.feature.SchemaException;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
@@ -108,7 +110,24 @@ public class FeaturePolygonizer {
     return getPolygons(features);
   }
 
-  public static void main(String[] args) throws MalformedURLException, IOException, SchemaException {
+  public static List<Polygon> getPolygons(SimpleFeatureCollection sFC) throws IOException {
+	    List<Geometry> features = new ArrayList<>();
+	    SimpleFeatureIterator sFCit = sFC.features();
+		
+	    try {
+			while (sFCit.hasNext()) {
+				features.add((Geometry)sFCit.next().getDefaultGeometry());
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			sFCit.close();
+		}
+	    System.out.println(Calendar.getInstance().getTime() + " adding features");
+	    return getPolygons(features);
+	  }
+  
+	public static void main(String[] args) throws MalformedURLException, IOException, SchemaException {
     // input folder for shapefiles
     File folderData = new File("./data/pau");
     // output folder for shapefiles

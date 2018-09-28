@@ -31,9 +31,9 @@ public class SelecMUPOutput {
 		run(new File("/home/mcolomb/donnee/couplage"), listMupOut);
 	}
 
-	public static List<File> run(File rootfile, List<File> rasteroutputfolder) throws Exception {
+	public static List<File> run(File rootfile, List<File> listRaster) throws Exception {
 		// automatic vectorization of the MUP-City outputs
-		SelecMUPOutput smo = new SelecMUPOutput(rootfile, rasteroutputfolder);
+		SelecMUPOutput smo = new SelecMUPOutput(rootfile, listRaster);
 		return smo.run();
 	}
 

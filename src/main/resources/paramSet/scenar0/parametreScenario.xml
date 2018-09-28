@@ -4,7 +4,7 @@
 	<!--PARAMÈTRES SCÉNARISTIQUES POUR LES SIMULATIONS AVEC ARTISCALES -->
 
 	<!-- Nom du scénario -->
-	<param key="nom" value="uncontroled-sprawl" />
+	<param key="nom" value="test" />
 
 	<!-- Mode de fonctionnement d'ArtiScales -->
 	<!-- Si true, le modèle s'arrête quand les objectifs de création de logement 
@@ -15,7 +15,7 @@
 
 	<!-- Liste des villes à prendre en compte dans la simulation (séparer les 
 		codes postaux par des virgules) -->
-	<param key="listZipCode" value="25265" />
+	<param key="listZipCode" value="25111" />
 
 	<!-- Dossiers et fichiers nécessaires à la simulation -->
 	<!-- Emplacement des résultats de simulation (intermédiaires et finaux) -->
@@ -28,11 +28,10 @@
 		value="/home/mcolomb/informatique/ArtiScales/donneeGeographiques/PLU" />
 	<!-- Nom du fichier contenant la modélisation du règlement des PLU -->
 	<param key="pluPredicate"
-		value="/home/mcolomb/informatique/ArtiScales/donneeGeographiques/PLU/codes/predicate.csv" />
+		value="/home/mcolomb/workspace/ArtiScales/saisiePLUtxt/predicate-19-09.csv" />
 	<!-- Nom du fichier contenant les parcelles sélectionnées (si elles existent 
 		au préalable) -->
-	<param key="selectedParcelFile"
-		value="/home/mcolomb/informatique/ArtiScales/output/Stability-dataAutomPhy-CM20.0-S0.0-GP_915948.0_6677337.0--N6_St_Moy_ahpx_seed_9015629222324914404-evalAnal-20.0/25495/ZoningAllowed/parcelSelected.shp" />
+	<param key="selectedParcelFile" value="/home/mcolomb/tmp/pau/PAU.shp" />
 		
 	<!-- PARAMETRES DU MODULE MUP-CITY -->
 
