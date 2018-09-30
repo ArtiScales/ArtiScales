@@ -32,8 +32,9 @@ import fr.ign.parameters.Parameters;
 import fr.ign.rjmcmc.configuration.ConfigurationModificationPredicate;
 
 /**
- * This abstract class contains generics methods to have only one implementation of regulation if we considere a parcel with one regulation or several subparcels in a parcel with
- * their own regulations
+ * This abstract class contains generics methods to have only one implementation
+ * of regulation if we considere a parcel with one regulation or several
+ * subparcels in a parcel with their own regulations
  *
  * @param <O>
  * @param <C>
@@ -42,7 +43,7 @@ import fr.ign.rjmcmc.configuration.ConfigurationModificationPredicate;
 public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding, C extends AbstractGraphConfiguration<O, C, M>, M extends AbstractBirthDeathModification<O, C, M>>
 		implements ConfigurationModificationPredicate<C, M> {
 
-	//environnement 
+	// environnement
 	protected Environnement env;
 	// Indicate if we can simulate on a parcel
 	protected boolean canBeSimulated = true;
@@ -76,13 +77,14 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 	// Bâtiments dans les parcelles de l'autre côté de la route
 	protected Geometry jtsCurveOppositeLimit = null;
 
-	//hauteur des batiments environnants
+	// hauteur des batiments environnants
 	Double heighSurroundingBuildings = null;
-	
+
 	public static double distanceHeightBuildings = 50;
-	
+
 	/**
-	 * The default constructor with a considered BasicPropertyUnit, technical and scenario parameters and a set of selected prescriptions
+	 * The default constructor with a considered BasicPropertyUnit, technical and
+	 * scenario parameters and a set of selected prescriptions
 	 * 
 	 * @param currentBPU
 	 * @param align
@@ -90,32 +92,33 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 	 * @param presc
 	 * @throws Exceptiondistance
 	 */
-	protected CommonPredicateArtiScales(BasicPropertyUnit currentBPU, boolean align, Parameters pA, IFeatureCollection<Prescription> presc, Environnement env) throws Exception {
+	protected CommonPredicateArtiScales(BasicPropertyUnit currentBPU, boolean align, Parameters pA,
+			IFeatureCollection<Prescription> presc, Environnement env) throws Exception {
 
 		// Set the different initial values
 		this.env = env;
 		this.p = pA;
-	
-		
+
 		intersection = p.getBoolean("intersection");
 		this.prescriptions = presc;
 		this.align = align;
 		this.nbCuboid = p.getInteger("nbCuboid");
 		this.currentBPU = currentBPU;
 		// This prepare the geoemtries
-		this.prepareCachedGeometries(currentBPU,env);
+		this.prepareCachedGeometries(currentBPU, env);
 
 	}
 
 	/**
-	 * Ce constructeur initialise les géométries curveLimiteFondParcel, curveLimiteFrontParcel & curveLimiteLatParcel car elles seront utilisées pour exprimer certaines contraintes
+	 * Ce constructeur initialise les géométries curveLimiteFondParcel,
+	 * curveLimiteFrontParcel & curveLimiteLatParcel car elles seront utilisées pour
+	 * exprimer certaines contraintes
 	 * 
 	 * @param bPU
 	 * @throws Exception
 	 */
 	protected void prepareCachedGeometries(BasicPropertyUnit bPU, Environnement env) throws Exception {
 
-		
 		// Pour simplifier la vérification, on extrait les différentes bordures de
 		// parcelles
 		IMultiCurve<IOrientableCurve> curveLimiteFondParcel = new GM_MultiCurve<>();
@@ -142,7 +145,8 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 					if (geom instanceof IOrientableCurve) {
 						curveLimiteFondParcel.add((IOrientableCurve) geom);
 					} else {
-						System.out.println("Classe SamplePredicate : quelque chose n'est pas un ICurve : " + geom.getClass());
+						System.out.println(
+								"Classe SamplePredicate : quelque chose n'est pas un ICurve : " + geom.getClass());
 					}
 				}
 				// Limite latérale
@@ -151,7 +155,8 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 					if (geom instanceof IOrientableCurve) {
 						curveLimiteLatParcel.add((IOrientableCurve) geom);
 					} else {
-						System.out.println("Classe SamplePredicate : quelque chose n'est pas un ICurve : " + geom.getClass());
+						System.out.println(
+								"Classe SamplePredicate : quelque chose n'est pas un ICurve : " + geom.getClass());
 					}
 				}
 				// Limite front
@@ -160,7 +165,8 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 					if (geom instanceof IOrientableCurve) {
 						curveLimiteFrontParcel.add((IOrientableCurve) geom);
 					} else {
-						System.out.println("Classe SamplePredicate : quelque chose n'est pas un ICurve : " + geom.getClass());
+						System.out.println(
+								"Classe SamplePredicate : quelque chose n'est pas un ICurve : " + geom.getClass());
 					}
 				}
 			}
@@ -169,38 +175,35 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 		// Limit Opposite
 		for (ParcelBoundary salut : bPU.getCadastralParcels().get(0).getBoundariesByType(ParcelBoundaryType.ROAD)) {
 			System.out.println("Number of buildings in env : " + bPU.getBuildings().size());
-			
-			if(salut.getOppositeBoundary() != null) {
+
+			if (salut.getOppositeBoundary() != null) {
 				IGeometry geom = salut.getOppositeBoundary().getGeom();
 				if (geom instanceof IOrientableCurve) {
 					curveOppositeLimit.add((IOrientableCurve) geom);
 				} else {
-					System.out.println("Classe SamplePredicate : quelque chose n'est pas un ICurve : " + geom.getClass());
+					System.out
+							.println("Classe SamplePredicate : quelque chose n'est pas un ICurve : " + geom.getClass());
 				}
 			}
-			
-	
+
 		}
-		
-		//height of the surrounding buildings
-		
-		
+
+		// height of the surrounding buildings
+
 		System.out.println(bPU.getGeom().buffer(distanceHeightBuildings));
-		Collection<AbstractBuilding> buildingsHeightCol = env.getBuildings().select(bPU.getGeom().buffer(distanceHeightBuildings));
+		Collection<AbstractBuilding> buildingsHeightCol = env.getBuildings()
+				.select(bPU.getGeom().buffer(distanceHeightBuildings));
 		System.out.println("Neighbour buildings :" + buildingsHeightCol.size());
 		if (!buildingsHeightCol.isEmpty()) {
-			heighSurroundingBuildings = buildingsHeightCol.stream().mapToDouble(x -> x.height(1, 1)).sum()/buildingsHeightCol.size();
+			heighSurroundingBuildings = buildingsHeightCol.stream().mapToDouble(x -> x.height(1, 1)).sum()
+					/ buildingsHeightCol.size();
 		}
-		
-		
-		//Code determining max height
-		
 
-		//this.p.set("maxheight", heighSurroundingBuildings * 1.1);
-		//this.p.set("minheight", heighSurroundingBuildings * 0.9);
-		
+		// Code determining max height
 
-		
+		// this.p.set("maxheight", heighSurroundingBuildings * 1.1);
+		// this.p.set("minheight", heighSurroundingBuildings * 0.9);
+
 		if (!curveOppositeLimit.isEmpty()) {
 			this.jtsCurveOppositeLimit = AdapterFactory.toGeometry(gf, curveOppositeLimit);
 		}
@@ -236,14 +239,15 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 	}
 
 	/**
-	 * This method is executed every time the simulator suggest a new proposition C => current configuration composed of cuboids M => modification the simulator tries to applied
+	 * This method is executed every time the simulator suggest a new proposition C
+	 * => current configuration composed of cuboids M => modification the simulator
+	 * tries to applied
 	 * 
 	 * Normally there is a maximum of 1 birth and/or 1 death
 	 */
 	@Override
 	public boolean check(C c, M m) {
 
-	
 		// NewCuboids
 		List<O> lONewCuboids = m.getBirth();
 
@@ -285,7 +289,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 			}
 		}
 
-	///////// Regulation that depends from the SubParcel regulation
+		///////// Regulation that depends from the SubParcel regulation
 
 		for (O cuboid : lONewCuboids) {
 
@@ -294,59 +298,51 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 			for (ArtiScalesRegulation regle : lRegles) {
 
-	
-				
 				// type of distance to the parcel limits
 				switch (regle.getArt_71()) {
 				// alignement interdit
 				case 0:
-					
+
 					/*
-					if (jtsCurveLimiteFrontParcel!=null&&!cRO.checkAlignement(cuboid, jtsCurveLimiteFondParcel)) {
-						return false;
-					}
-					if (jtsCurveLimiteLatParcel!=null&&!cRO.checkAlignement(cuboid, jtsCurveLimiteLatParcel)) {
-						return false;
-					}*/
-					//System.out.println("TODO : Alignement desactivés");
+					 * if (jtsCurveLimiteFrontParcel!=null&&!cRO.checkAlignement(cuboid,
+					 * jtsCurveLimiteFondParcel)) { return false; } if
+					 * (jtsCurveLimiteLatParcel!=null&&!cRO.checkAlignement(cuboid,
+					 * jtsCurveLimiteLatParcel)) { return false; }
+					 */
+					// System.out.println("TODO : Alignement desactivés");
 					break;
 				case 1:
 
 					break;
 
 				}
-			
+
 				// Distance to the bottom of the parcel
 				if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFondParcel, regle.getArt_73())) {
 					return false;
 				}
 
-				
-		
-				
 				// Distance to the front of the parcel
 				if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteLatParcel, regle.getArt_72())) {
 					return false;
 				}
 
-			
 				//
-				
-				
+
 				//////// Distance to the front of the parcel
 				// multiple cases of Art_6 rules
 				if (regle.getArt_6() == 0) {
-					if(cRO.checkAlignement(cuboid, jtsCurveLimiteFrontParcel)){
+					if (cRO.checkAlignement(cuboid, jtsCurveLimiteFrontParcel)) {
+						return false;
+					}
+				} else if (regle.getArt_6() == 55) {
+					double dist = Double.valueOf(regle.getArt_6_optD().split("-")[0]);
+					if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, dist)
+							|| cRO.checkAlignement(cuboid, jtsCurveLimiteFrontParcel)) {
 						return false;
 					}
 				}
-				else if (regle.getArt_6() == 55) {
-					double dist = Double.valueOf(regle.getArt_6_optD().split("-")[0]);
-					if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, dist) || cRO.checkAlignement(cuboid, jtsCurveLimiteFrontParcel)) {
-						return false;
-					}	
-				}
-				
+
 				// the prospect of slope 1 ruel (usde in the RNU)
 				else if (regle.getArt_6() == 44) {
 					if (!cRO.checkProspectRNU(cuboid, jtsCurveOppositeLimit)) {
@@ -357,23 +353,20 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 				else if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, regle.getArt_6())) {
 					return false;
 				}
-				//distance en fonction d'une route
+				// distance en fonction d'une route
 				if (regle.getArt_6_opt() == "1") {
 					double dist = Double.valueOf(regle.getArt_6_optD().split("-")[0]);
 					String nRoute = regle.getArt_6_optD().split("-")[1];
-					//TODO dist en fonction d'une route (peut on choper son attribut?
-					
+					// TODO dist en fonction d'une route (peut on choper son attribut?
+
 				}
 
-				
 				// We check the constrain distance according to existing buildings
 				if (!cRO.checkDistanceBetweenCuboidandBuildings(cuboid, this.currentBPU, regle.getArt_8())) {
 					return false;
 				}
 
 			}
-			
-		
 
 			/////////// Groups or whole configuration constraints
 
@@ -473,16 +466,24 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 		return lCuboid;
 	}
 
+	@Override
+	public String toString() {
+//TODO ajouter toutes les règles qui s'appliquent (mais ça devrait être inscrit à chaque fois qu'une règle s'applique ?!
+		return "CadastralParcelsNb:" + currentBPU.getCadastralParcels().size() + "CadastralParcelsAre"
+				+ currentBPU.getCadastralParcels().toString();
+	}
+
 	// Determine for a cuboid the list of constraints that has to be ckecked
 	protected abstract List<ArtiScalesRegulation> getRegulationToApply(O cuboid);
 
 	// Determine the maximal CES
 	protected abstract double getMaxCES();
-	
+
 	// Determine the min and max
 	protected abstract double getMaxHeight();
+
 	protected abstract double getMinHeight();
-	
+
 	// Determine the recoils applied to a list of cuboids
 	protected abstract List<Double> determineDoubleDistanceForList(List<O> lCuboids);
 
