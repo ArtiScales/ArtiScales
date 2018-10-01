@@ -96,7 +96,7 @@ public class VectorFct {
 			while (parcelIt.hasNext()) {
 				SimpleFeature feat = parcelIt.next();
 				
-				System.out.println(feat);
+		
 				
 				String attributeValue = "";
 				
