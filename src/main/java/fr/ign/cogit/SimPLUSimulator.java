@@ -19,6 +19,7 @@ import fr.ign.cogit.geoxygene.feature.FT_FeatureCollection;
 import fr.ign.cogit.geoxygene.util.attribute.AttributeManager;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileWriter;
 import fr.ign.cogit.indicators.BuildingToHousehold;
+import fr.ign.cogit.outputs.XmlGen;
 import fr.ign.cogit.rules.io.PrescriptionPreparator;
 import fr.ign.cogit.rules.io.ZoneRulesAssociation;
 import fr.ign.cogit.rules.predicate.CommonPredicateArtiScales;
@@ -37,7 +38,6 @@ import fr.ign.cogit.simplu3d.rjmcmc.cuboid.optimizer.cuboid.OptimisedBuildingsCu
 import fr.ign.cogit.simplu3d.util.SDPCalc;
 import fr.ign.cogit.util.GetFromGeom;
 import fr.ign.cogit.util.SimpluParametersXML;
-import fr.ign.cogit.util.StatStuff;
 import fr.ign.cogit.util.VectorFct;
 import fr.ign.mpp.configuration.BirthDeathModification;
 import fr.ign.mpp.configuration.GraphConfiguration;
@@ -75,6 +75,10 @@ public class SimPLUSimulator {
 	// PLU Zoning file
 	File zoningFile;
 
+	// xml maker objects
+	XmlGen resultXml;
+	XmlGen logXml;
+
 	File simuFile;
 	int compteurOutput = 0;
 
@@ -94,7 +98,7 @@ public class SimPLUSimulator {
 		List<File> lF = new ArrayList<>();
 		// Line to change to select the right scenario
 
-		String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenar0MKDom/").getPath();
+		String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenar0/").getPath();
 
 		System.out.println(rootParam);
 
@@ -120,7 +124,7 @@ public class SimPLUSimulator {
 		ID_PARCELLE_TO_SIMULATE.add("25495000AK0005"); // Test for a simulation with
 														// 3 regulations on 3 sub
 														// parcels
-		
+
 		// RootFolder
 		File rootFolder = new File(p.getString("rootFile"));
 		// Selected parcels shapefile
@@ -130,8 +134,12 @@ public class SimPLUSimulator {
 		// PLU Folder
 		File pluFile = new File(p.getString("pluFile"));
 
+		// writed stuff
+		XmlGen resultxml = new XmlGen(new File(rootFolder, "mainSimPLUSIMresult.xml"),"result");
+		XmlGen logxml = new XmlGen(new File(rootFolder, "mainSimPLUSIMlog.xml"),"log");
+		;
 		SimPLUSimulator simplu = new SimPLUSimulator(rootFolder, geoFile, pluFile, selectedParcels,
-				p.getString("listZipCode"), p, lF);
+				p.getString("listZipCode"), p, lF, resultxml, logxml);
 
 		simplu.run();
 		// SimPLUSimulator.fillSelectedParcels(new File(rootFolder), geoFile,
@@ -149,10 +157,13 @@ public class SimPLUSimulator {
 	 * @param feat            : single parcel to simulate
 	 * @param zipcode         : zipcode of the city that is simulated
 	 * @param pa              : parameters file
+	 * @param lF              : list of the initials parameters
+	 * @param resultxml       : xml maker object to store results
+	 * @param logxml          : xml maker object to store temporary stuffs
 	 * @throws Exception
 	 */
 	public SimPLUSimulator(File rootfile, File geoFile, File pluFile, File selectedParcels, String zipcode,
-			Parameters pa, List<File> lF) throws Exception {
+			Parameters pa, List<File> lF, XmlGen resultxml, XmlGen logxml) throws Exception {
 
 		// some static parameters needed
 		this.p = pa;
@@ -160,15 +171,7 @@ public class SimPLUSimulator {
 		this.rootFile = rootfile;
 		this.zipCode = zipcode;
 		// Si les communes sont au RNU :
-		String[] communesRNU = StatStuff.makeZipTab(p.getString("RNUCommunes"));
-		// si la commune est uniquement soumise au RNU
-		for (String comm : communesRNU) {
-			if (comm.equals(zipCode)) {
-				rNU = true;
-				System.out.println("La commune est au RNU");
-				break;
-			}
-		}
+		rNU = GetFromGeom.isRNU(p, zipCode);
 		if (rNU) {
 			zoningFile = GetFromGeom.getPAUzone(pluFile, new File(p.getString("geoFile")), new File(rootfile, "tmp"),
 					zipCode);
@@ -180,6 +183,9 @@ public class SimPLUSimulator {
 		this.predicateFile = new File(p.getString("pluPredicate"));
 		this.simuFile = new File(parcelsFile.getParentFile(), "simu");
 		simuFile.mkdir();
+
+		resultXml = resultxml;
+		logXml = logxml;
 
 		// snap datas for lighter geographic files (do not do if it already
 		// exists)
@@ -224,8 +230,8 @@ public class SimPLUSimulator {
 	 */
 
 	public SimPLUSimulator(File rootfile, File geoFile, File pluFile, File selectedParcels, SimpleFeature feat,
-			String zipcode, Parameters pa, List<File> lF) throws Exception {
-		this(rootfile, geoFile, pluFile, selectedParcels, zipcode, pa, lF);
+			String zipcode, Parameters pa, List<File> lF, XmlGen resultXml, XmlGen logXml) throws Exception {
+		this(rootfile, geoFile, pluFile, selectedParcels, zipcode, pa, lF, resultXml, logXml);
 		singleFeat = feat;
 		isSingleFeat = true;
 
@@ -291,6 +297,7 @@ public class SimPLUSimulator {
 
 		if (!association) {
 			System.out.println("Association between rules and UrbanZone failed");
+			logXml.addLine("fail", "Association between rules and UrbanZone failed");
 			return null;
 		}
 
@@ -313,7 +320,8 @@ public class SimPLUSimulator {
 		if (listBatiSimu.isEmpty()) {
 			System.out.println(
 					"&&&&&&&&&&&&&& Aucun bâtiment n'a été simulé pour la commune " + zipCode + " &&&&&&&&&&&&&&");
-			System.exit(1);
+				logXml.addLine("fail", "Aucun bâtiment n'a été simulé pour la commune " + zipCode);
+			System.exit(1); //TODO ne pas arréter toute l'execution mais revenir au mainTask
 		}
 
 		return listBatiSimu;
@@ -330,6 +338,7 @@ public class SimPLUSimulator {
 	 * @return
 	 * @throws Exception
 	 */
+	@SuppressWarnings({ "deprecation", "deprecation" })
 	public File runSimulation(Environnement env, int i, Parameters p, IFeatureCollection<Prescription> prescriptionUse)
 			throws Exception {
 
@@ -344,6 +353,8 @@ public class SimPLUSimulator {
 		}
 
 		System.out.println("Parcelle code : " + bPU.getCadastralParcels().get(0).getCode());
+		resultXml.beginBalise("parcel-" + bPU.getCadastralParcels().get(0).getCode());
+		logXml.beginBalise("parcel-" + bPU.getCadastralParcels().get(0).getCode());
 
 		// si on lance une simulation avec une seule parcelle décrite dans
 		// l'environnement, son numéro sera 0 mais le numéro de la parcelle sera
@@ -376,7 +387,7 @@ public class SimPLUSimulator {
 			System.out.println("Parcel is overlapped by graphical prescriptions");
 			return null;
 		}
-
+		logXml.addLine("usedPredicate", pred.toString());
 		// We compute the parcel area
 		Double areaParcels = bPU.getCadastralParcels().stream().mapToDouble(x -> x.getArea()).sum();
 
@@ -428,7 +439,7 @@ public class SimPLUSimulator {
 		// méthode de calcul d'air simpliste
 
 		File output = new File(simuFile, "out-parcelle_" + i + ".shp");
-
+		logXml.addLine("OutputBuildingPath", output.getCanonicalPath());
 		// while (output.exists()) {
 		// output = new File(simuFile, "out-parcelle_" + compteurOutput +
 		// ".shp");
@@ -442,7 +453,8 @@ public class SimPLUSimulator {
 		if (!output.exists()) {
 			output = null;
 		}
-
+		resultXml.endBalise("parcel-" + bPU.getCadastralParcels().get(0).getCode());
+		logXml.endBalise("parcel-" + bPU.getCadastralParcels().get(0).getCode());
 		return output;
 	}
 
@@ -497,7 +509,8 @@ public class SimPLUSimulator {
 	 * @throws Exception
 	 */
 	protected static int fillSelectedParcels(File rootFile, File geoFile, File pluFile, File selectedParcels,
-			int missingHousingUnits, String zipcode, Parameters p, List<File> lF) throws Exception {
+			int missingHousingUnits, String zipcode, Parameters p, List<File> lF, XmlGen resultxml, XmlGen logxml)
+			throws Exception {
 		// Itérateurs sur les parcelles où l'on peut construire
 		ShapefileDataStore parcelDS = new ShapefileDataStore(selectedParcels.toURI().toURL());
 		SimpleFeatureIterator iterator = parcelDS.getFeatureSource().getFeatures().features();
@@ -509,7 +522,7 @@ public class SimPLUSimulator {
 				SimpleFeature sinlgeParcel = iterator.next();
 				// On créer un nouveau simulateur
 				SimPLUSimulator simPLUsimu = new SimPLUSimulator(rootFile, geoFile, pluFile, selectedParcels,
-						sinlgeParcel, zipcode, p, lF);
+						sinlgeParcel, zipcode, p, lF, resultxml, logxml);
 				// On lance la simulation
 				File batiSimulatedFile = simPLUsimu.runOneSim((int) sinlgeParcel.getAttribute("num"));
 

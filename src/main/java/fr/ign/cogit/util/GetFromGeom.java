@@ -35,6 +35,18 @@ import fr.ign.parameters.Parameters;
 
 public class GetFromGeom {
 
+	
+	public static boolean isRNU(Parameters p, String zipCode) {
+	String[] communesRNU = StatStuff.makeZipTab(p.getString("RNUCommunes"));
+	// si la commune est uniquement soumise au RNU
+	for (String comm : communesRNU) {
+		if (comm.equals(zipCode)) {
+			return true;
+		}
+	}
+	return false ;
+	}
+	
 	public static File getParcels(File geoFile) throws FileNotFoundException {
 		for (File f : geoFile.listFiles()) {
 			if (f.toString().contains("parcelle.shp")) {
