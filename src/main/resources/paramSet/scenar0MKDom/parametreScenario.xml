@@ -16,15 +16,15 @@
 	
 	<!-- Dossiers et fichiers nécessaires à la simulation -->
 		<!-- Emplacement des résultats de simulation (intermédiaires et finaux) -->
-	<param key="rootFile" value="/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales/"/>
+	<param key="rootFile" value="/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales-dossierType-2809/"/>
 		<!-- Emplacement des données géographiques générales -->
-	<param key="geoFile" value="/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales/donneeGeographiques/"/>
+	<param key="geoFile" value="/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales-dossierType-2809/donneeGeographiques/"/>
 		<!-- Emplacement des données géographiques concernant les PLU -->
-		<param key="pluFile" value="/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales/donneeGeographiques/PLU/" />
+		<param key="pluFile" value="/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales-dossierType-2809/donneeGeographiques/PLU/" />
 		<!-- Nom du fichier contenant la modélisation du règlement des PLU -->
-		<param key="pluPredicate" value="/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales/donneeGeographiques/PLU/codes/predicate.csv"/>
+		<param key="pluPredicate" value="/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales-dossierType-2809/donneeGeographiques/PLU/codes/predicate.csv"/>
 		<!-- Nom du fichier contenant les parcelles sélectionnées (si elles existent au préalable) -->
-		<param key="selectedParcelFile" value="/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales/donneeGeographiques/parcelle/parcelSelected.shp"/>
+		<param key="selectedParcelFile" value="/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales-dossierType-2809/donneeGeographiques/parcelle/parcelSelected.shp"/>
 	<!-- PARAMETRES DU MODULE MUP-CITY -->
 			
 		<!-- Densité du développement résidentiel -->
@@ -103,7 +103,8 @@
 	<!--PARAMETRE DU MODULE BÂTIMENT À MÉNAGE (BUILDING TO HOUSEHOLD) -->
 
 		<!-- Taille moyenne d'un logement -->
-		<param key="HousingUnitSize" value="120" />
+	<param key="HousingUnitSize" value="120" />
+	<param key="heightStair" value="3" />
 
 
 	<!-- PARAMETRES DE SIMPLU3D -->

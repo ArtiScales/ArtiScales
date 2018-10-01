@@ -324,7 +324,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	public Double[] hauteur(Parameters p, ArtiScalesRegulation regle, Double heighSurroundingBuildings) {
 		//////// Checking the height of the cuboid
 		double min = p.getDouble("heightStair");
-		double max = 0;
+		double max = p.getDouble("heightStair");
 
 		switch (regle.getArt_10_top()) {
 

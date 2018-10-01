@@ -95,8 +95,33 @@ public class VectorFct {
 		try {
 			while (parcelIt.hasNext()) {
 				SimpleFeature feat = parcelIt.next();
-				Object[] attr = { 0, ((String) feat.getAttribute("CODE_DEP")) + ((String) feat.getAttribute("CODE_COM")) + ((String) feat.getAttribute("COM_ABS"))
-						+ ((String) feat.getAttribute("SECTION")) + ((String) feat.getAttribute("NUMERO"))};
+				
+		
+				
+				String attributeValue = "";
+				
+				if(feat.getAttribute("CODE_DEP") != null) {
+					attributeValue =  ((String) feat.getAttribute("CODE_DEP")) + (feat.getAttribute("CODE_COM").toString()) + (feat.getAttribute("COM_ABS").toString())
+							+ (feat.getAttribute("SECTION").toString());
+				}else if(feat.getAttribute("NUMERO") != null) {
+					
+					attributeValue = feat.getAttribute("NUMERO").toString();
+					
+				}else if (feat.getAttribute("NUMEROPARC") != null) {
+					
+					attributeValue = feat.getAttribute("NUMEROPARC").toString();
+					
+				}else {
+					System.out.println("VectorFct : Other type of parcel : " + feat);
+				}
+				
+				
+				
+				
+				Object[] attr = { 0, attributeValue};
+						
+						
+						
 				if (((Geometry) feat.getDefaultGeometry()).getArea() > maximalArea) {
 					attr[0] = 1;
 				}

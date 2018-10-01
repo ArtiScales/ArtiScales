@@ -328,9 +328,15 @@ public class GetFromGeom {
 
 		// TODO opérateur géométrique pas terrible, mais rattrapé par le
 		// découpage de SimPLU
+		File selectedParcelFile = new File(p.getString("selectedParcelFile"));
+		File folderParent = selectedParcelFile.getParentFile();
+		if(!folderParent.exists()) {
+			folderParent.mkdirs();
+		}
+		
 		Filter inter = ff.intersects(ff.property(geometryParcelPropertyName), ff.literal(Vectors.unionSFC(featureZoneSelected)));
 		SimpleFeatureCollection parcelSelected = featuresParc.subCollection(inter);
-		Vectors.exportSFC(parcelSelected, new File("/home/mcolomb/tmp/parcelSelected.shp"));
+		Vectors.exportSFC(parcelSelected, selectedParcelFile);
 
 		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
 
@@ -348,9 +354,9 @@ public class GetFromGeom {
 		String[] attr = { "1" };
 		parcelAUCuted.add(sfBuilder.buildFeature(String.valueOf(0), attr));
 
-		Vectors.exportSFC(parcelAUCuted.collection(), new File("/home/mcolomb/tmp/parcelMerged.shp"));
+		Vectors.exportSFC(parcelAUCuted.collection(), new File(folderParent.getAbsolutePath()+"/parcelMerged.shp"));
 
-		Vectors.exportSFC(VectorFct.generateSplitedParcels(parcelAUCuted, p), new File("/home/mcolomb/tmp/parcelCuted.shp"));
+		Vectors.exportSFC(VectorFct.generateSplitedParcels(parcelAUCuted, p), new File(folderParent.getAbsolutePath()+ "parcelCuted.shp"));
 
 		System.out.println("parcelSelected : " + parcelAUCuted.size());
 		shpDSZone.dispose();

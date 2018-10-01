@@ -30,19 +30,19 @@ public class MainTask {
 
 	private static void runScenar() throws Exception {
 
-		// Le fichier de configuration
-		File paramFile = new File(MainTask.class.getClassLoader().getResource("paramSet/").getPath() + "param0.xml");
 
-		File paramFileScenar = new File(
-				"/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/scenar0/parametreScenario.xml");
-		File paramFileTech = new File(
-				"/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/scenar0/parametreTechnique.xml");
-		List<File> listParameters = new ArrayList<File>();
-		listParameters.add(paramFileTech);
-		listParameters.add(paramFileScenar);
+		//List of parameters files
+		List<File> listParameters = new ArrayList<>();
+
+		//Folder root with parameters
+		String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenar0MKDom/").getPath();
+		System.out.println(rootParam);
+
+
+		//Alll parameters are store both in a list and in a parameters objets
+		listParameters.add(new File(rootParam + "parametreTechnique.xml"));
+		listParameters.add(new File(rootParam + "parametreScenario.xml"));
 		Parameters p = Parameters.unmarshall(listParameters);
-		// Parameters p = Parameters.unmarshall(paramFile);
-
 		// Dossiers de projet
 		rootFile = new File(p.getString("rootFile"));
 		geoFile = new File(p.getString("geoFile"));
@@ -51,10 +51,10 @@ public class MainTask {
 		// kind verification
 		if (!rootFile.exists() || !geoFile.exists() || !pluFile.exists()) {
 			System.out.println("please check the file setting in the parameter file ");
-			System.out.println("J'AARETTTE TOUT");
 			System.exit(99);
 		}
 
+		//Begin of running scenario
 		String name = p.getString("nom");
 		System.out.println("-------------------====+++Scénario " + name + "+++=====----------------");
 
@@ -64,6 +64,8 @@ public class MainTask {
 		File outputMup = new File(rootFile, "depotConfigSpatMUP/simu");
 		List<File> listOutputMupToTest = new ArrayList<File>();
 
+		
+		//Do we need to generate MupCity simulations ? 
 		if (p.getBoolean("createMUPSimu")) {
 			/// Étape 1 : simulation de MupCity
 			String empriseStr = p.getString("emprise");
