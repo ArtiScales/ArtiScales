@@ -282,7 +282,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 				return false;
 			}
 
-			// We check if the cuboids intersects tne forbiddent zone
+			// We check if the cuboids intersects the forbiddent zone
 			// ATTENTION : Ons renvoie faux lorsque l'intersection a lieu
 			if (cRO.checkIfIntersectsGeometry(cuboid, this.forbiddenZone)) {
 				return false;

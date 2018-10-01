@@ -98,7 +98,7 @@ public class SimPLUSimulator {
 		List<File> lF = new ArrayList<>();
 		// Line to change to select the right scenario
 
-		String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenar0MKDom/").getPath();
+		String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenar0/").getPath();
 
 		System.out.println(rootParam);
 
@@ -135,8 +135,8 @@ public class SimPLUSimulator {
 		File pluFile = new File(p.getString("pluFile"));
 
 		// writed stuff
-		XmlGen resultxml = new XmlGen(rootFolder, "mainSimPLUSIMresult");
-		XmlGen logxml = new XmlGen(rootFolder, "mainSimPLUSIMlog");
+		XmlGen resultxml = new XmlGen(new File(rootFolder, "mainSimPLUSIMresult.xml"),"result");
+		XmlGen logxml = new XmlGen(new File(rootFolder, "mainSimPLUSIMlog.xml"),"log");
 		;
 		SimPLUSimulator simplu = new SimPLUSimulator(rootFolder, geoFile, pluFile, selectedParcels,
 				p.getString("listZipCode"), p, lF, resultxml, logxml);
@@ -297,6 +297,7 @@ public class SimPLUSimulator {
 
 		if (!association) {
 			System.out.println("Association between rules and UrbanZone failed");
+			logXml.addLine("fail", "Association between rules and UrbanZone failed");
 			return null;
 		}
 
@@ -319,7 +320,8 @@ public class SimPLUSimulator {
 		if (listBatiSimu.isEmpty()) {
 			System.out.println(
 					"&&&&&&&&&&&&&& Aucun bâtiment n'a été simulé pour la commune " + zipCode + " &&&&&&&&&&&&&&");
-			System.exit(1);
+				logXml.addLine("fail", "Aucun bâtiment n'a été simulé pour la commune " + zipCode);
+			System.exit(1); //TODO ne pas arréter toute l'execution mais revenir au mainTask
 		}
 
 		return listBatiSimu;
