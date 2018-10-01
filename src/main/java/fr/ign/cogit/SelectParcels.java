@@ -310,16 +310,16 @@ public class SelectParcels {
 				if (zone.equals("AU")) {
 					SimpleFeatureCollection salut = GetFromGeom.selecParcelZonePLUmergeAU(parcelFile, zipCode, zoningFile, p);
 					toSplit.addAll(salut);
-					Vectors.exportSFC(salut, new File("/home/mcolomb/tmp/sonof.shp"));
+					Vectors.exportSFC(salut, new File(simuFile+"/AU_parcels_splitted.shp"));
 				} else {
 					SimpleFeatureCollection salut = GetFromGeom.selecParcelZonePLU("U", zipCode, parcelFile, zoningFile);
 					toSplit.addAll(salut);
-					Vectors.exportSFC(salut, new File("/home/mcolomb/tmp/abitch.shp"));
+					Vectors.exportSFC(salut, new File(simuFile + "/parcels_splitted.shp"));
 				}
 			}
 
 			SimpleFeatureCollection parcelGen = toSplit.collection();
-			Vectors.exportSFC(parcelGen, new File("/home/mcolomb/tmp/out.shp"));
+			Vectors.exportSFC(parcelGen, new File(simuFile + "parcelsGen.shp"));
 			// split of parcels
 			SimpleFeatureCollection parcelAllowedSplited = VectorFct.generateSplitedParcels(parcelGen, p);
 			// reselection by the zoning
