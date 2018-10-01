@@ -15,7 +15,7 @@
 
 	<!-- Liste des villes à prendre en compte dans la simulation (séparer les 
 		codes postaux par des virgules) -->
-	<param key="listZipCode" value="25111" />
+	<param key="listZipCode" value="25078" />
 
 	<!-- Dossiers et fichiers nécessaires à la simulation -->
 	<!-- Emplacement des résultats de simulation (intermédiaires et finaux) -->

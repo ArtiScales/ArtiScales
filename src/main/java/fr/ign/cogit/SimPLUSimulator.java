@@ -115,13 +115,13 @@ public class SimPLUSimulator {
 		// codeDep + codeCom + comAbs + section + numero
 
 		// 2/ Alternatively we can decided to active an attribute (Here id)
-		AttribNames.setATT_CODE_PARC("Id");
+		AttribNames.setATT_CODE_PARC("NUMEROPARC");
 
 		// ID_PARCELLE_TO_SIMULATE.add("25495000AE0102"); //Test for a simulation
 		// with 1 regulation
 
-		USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = true;
-		ID_PARCELLE_TO_SIMULATE.add("25495000AK0005"); // Test for a simulation with
+		USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
+		ID_PARCELLE_TO_SIMULATE.add("25078000ZE01265"); // Test for a simulation with
 														// 3 regulations on 3 sub
 														// parcels
 
@@ -137,7 +137,7 @@ public class SimPLUSimulator {
 		// writed stuff
 		XmlGen resultxml = new XmlGen(new File(rootFolder, "mainSimPLUSIMresult.xml"),"result");
 		XmlGen logxml = new XmlGen(new File(rootFolder, "mainSimPLUSIMlog.xml"),"log");
-		;
+		
 		SimPLUSimulator simplu = new SimPLUSimulator(rootFolder, geoFile, pluFile, selectedParcels,
 				p.getString("listZipCode"), p, lF, resultxml, logxml);
 
