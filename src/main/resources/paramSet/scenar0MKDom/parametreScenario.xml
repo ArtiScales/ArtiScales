@@ -103,7 +103,8 @@
 	<!--PARAMETRE DU MODULE BÂTIMENT À MÉNAGE (BUILDING TO HOUSEHOLD) -->
 
 		<!-- Taille moyenne d'un logement -->
-		<param key="HousingUnitSize" value="120" />
+	<param key="HousingUnitSize" value="120" />
+	<param key="heightStair" value="3" />
 
 
 	<!-- PARAMETRES DE SIMPLU3D -->

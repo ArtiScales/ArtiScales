@@ -37,7 +37,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 		String[] lineSplited = line.split(CSV_SEPARATOR);
 
 		for (int i = 0; i < fLineSplited.length; i++) {
-			switch (fLineSplited[i]) {
+			switch (fLineSplited[i].toLowerCase()) {
 			case "libelle_zone":
 				libelle_zone= lineSplited[i];
 				break;

@@ -383,6 +383,11 @@ public class SimPLUSimulator {
 			pred = preparePredicateOneRegulationBySubParcel(bPU, p, prescriptionUse, env);
 		}
 
+		if(pred == null) {
+			System.out.println("Predicate cannot been instanciated");
+			return null;
+		}
+		
 		if (!(pred.isCanBeSimulated())) {
 			System.out.println("Parcel is overlapped by graphical prescriptions");
 			return null;
@@ -481,10 +486,22 @@ public class SimPLUSimulator {
 			}
 		});
 		SubParcel sPBiggest = sP.get(sP.size() - 1);
-		System.out.println("Regulation code : " + sPBiggest.getUrbaZone().getLibelle());
+		
+		if( sPBiggest.getUrbaZone() == null) {
+			System.out.println("Regulation is null for : " + bPU);
+			return null;
+			
+		}
+
 
 		ArtiScalesRegulation regle = (ArtiScalesRegulation) sPBiggest.getUrbaZone().getZoneRegulation();
 
+		if(regle == null) {
+			System.out.println("Regulation is null for : " + bPU);
+			return null;
+		}
+		
+		System.out.println("Regulation code : " + sPBiggest.getUrbaZone().getLibelle());
 		// Instantiation of the rule checker
 		// TODO : ou est-ce qu'on paramétrise le aligne ?
 		PredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = new PredicateArtiScales<>(
