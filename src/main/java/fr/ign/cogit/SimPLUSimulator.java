@@ -338,11 +338,20 @@ public class SimPLUSimulator {
 	 * @return
 	 * @throws Exception
 	 */
-	@SuppressWarnings({ "deprecation", "deprecation" })
+	@SuppressWarnings({ "deprecation"})
 	public File runSimulation(Environnement env, int i, Parameters p, IFeatureCollection<Prescription> prescriptionUse)
 			throws Exception {
 
 		BasicPropertyUnit bPU = env.getBpU().get(i);
+		
+		/*
+		//Valeur de l'attribut dans les parcelles en entrée :
+		 // AttribNames. ATT_HAS_TO_BE_SIMULATED = "SIMUL";
+		//On simule la parcelle si elle doit être simulée
+		if(! bPU.getCadastralParcels().get(0).hasToBeSimulated()) {
+			return null;
+		}
+		*/
 
 		// List ID Parcelle to Simulate is not empty
 		if (!ID_PARCELLE_TO_SIMULATE.isEmpty()) {
@@ -394,7 +403,7 @@ public class SimPLUSimulator {
 		}
 		logXml.addLine("usedPredicate", pred.toString());
 		// We compute the parcel area
-		Double areaParcels = bPU.getCadastralParcels().stream().mapToDouble(x -> x.getArea()).sum();
+		Double areaParcels = bPU.getArea(); //.getCadastralParcels().stream().mapToDouble(x -> x.getArea()).sum();
 
 		// Run of the optimisation on a parcel with the predicate
 		GraphConfiguration<Cuboid> cc = oCB.process(bPU, new SimpluParametersXML(p), env, 1, pred);
@@ -407,11 +416,35 @@ public class SimPLUSimulator {
 
 		List<Cuboid> cubes = LoaderCuboid.loadFromCollection(iFeat3D);
 		SDPCalc surfGen = new SDPCalc();
-		double formTot = surfGen.process(cubes);
-
+		double surfacePlancherTotal = surfGen.process(cubes);
+		double surfaceAuSol = surfGen.processSurface(cubes);
 		// Witting the output
 		IFeatureCollection<IFeature> iFeatC = new FT_FeatureCollection<>();
 
+		//get multiple zone regulation infos infos
+		List<String> typeZones = new ArrayList<>();
+		List<String> libelles = new ArrayList<>();
+		
+		for(SubParcel subParcel : bPU.getCadastralParcels().get(0).getSubParcels()) {
+			String temporaryTypeZone = subParcel.getUrbaZone().getTypeZone();
+			String temporarylibelle = subParcel.getUrbaZone().getLibelle();
+			if(! typeZones .contains(temporaryTypeZone)) {
+				typeZones.add(temporaryTypeZone);
+			}
+			if(! libelles .contains(temporarylibelle)) {
+				libelles.add(temporarylibelle);
+			}
+		}
+		
+		String typeZonesFinal = "";
+		for(String typeZoneTemp : typeZones) {
+			typeZonesFinal = typeZonesFinal + typeZoneTemp +"+";
+		}
+		String libellesFinal = "";
+		for(String libelleTemp : libelles) {
+			libellesFinal =  libellesFinal + libelleTemp +"+";
+		}
+		
 		// For all generated boxes
 		for (GraphVertex<Cuboid> v : cc.getGraph().vertexSet()) {
 
@@ -429,9 +462,12 @@ public class SimPLUSimulator {
 			AttributeManager.addAttribute(feat, "Hauteur", v.getValue().height, "Double");
 			AttributeManager.addAttribute(feat, "Rotation", v.getValue().orientation, "Double");
 			AttributeManager.addAttribute(feat, "SurfaceBox", feat.getGeom().area(), "Double");
-			AttributeManager.addAttribute(feat, "SDPShon", formTot * 0.8, "Double");
-			AttributeManager.addAttribute(feat, "areaParcel", areaParcels, "Double");
-			AttributeManager.addAttribute(feat, "num", i, "Integer");
+			AttributeManager.addAttribute(feat, "SDPShon", surfacePlancherTotal * 0.8, "Double");
+			AttributeManager.addAttribute(feat, "SurfacePar", areaParcels, "Double");
+			AttributeManager.addAttribute(feat, "SurfaceSol", surfaceAuSol, "Double");
+			AttributeManager.addAttribute(feat, "NUMEROPARC", bPU.getCadastralParcels().get(0).getCode(), "String");
+			AttributeManager.addAttribute(feat, "LIBELLE",libellesFinal, "String");
+			AttributeManager.addAttribute(feat, "TYPEZONE",typeZonesFinal, "String");
 			iFeatC.add(feat);
 		}
 
@@ -451,7 +487,6 @@ public class SimPLUSimulator {
 		// compteurOutput = compteurOutput + 1;
 		// }
 		output.getParentFile().mkdirs();
-		// TODO merge of the iFeatC objects
 
 		ShapefileWriter.write(iFeatC, output.toString(), CRS.decode("EPSG:2154"));
 

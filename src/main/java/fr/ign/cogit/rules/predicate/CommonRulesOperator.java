@@ -313,6 +313,9 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	}
 
 	public boolean checkProspectRNU(O cuboid, Geometry jtsCurveOppositeLimit) {
+		if(jtsCurveOppositeLimit == null || jtsCurveOppositeLimit.isEmpty()) {
+			return true;
+		}
 		return cuboid.prospectJTS(jtsCurveOppositeLimit, 1, 0);
 	}
 

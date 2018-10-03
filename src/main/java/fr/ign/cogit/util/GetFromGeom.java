@@ -130,7 +130,7 @@ public class GetFromGeom {
 	public static File getPAU(String type, File pluFile, File geoFile, File tmpFile, String zipCode) throws Exception {
 
 		tmpFile.mkdir();
-
+String test = "TypeZone";
 		File pauFile = new File(pluFile, type+"PAU.shp");
 		ShapefileDataStore shpDSpau = new ShapefileDataStore(pauFile.toURI().toURL());
 		SimpleFeatureCollection pau = shpDSpau.getFeatureSource().getFeatures();

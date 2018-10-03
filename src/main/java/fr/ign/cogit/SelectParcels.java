@@ -312,17 +312,19 @@ public class SelectParcels {
 				// parcelle
 				// doit être à +50% dans une zone? On fait un découpage? + ça ne passe pas bien
 				// dans l'algo (voir prochain todo)
+				SimpleFeatureCollection salut ;
 				if (zone.equals("AU")) {
-					SimpleFeatureCollection salut = GetFromGeom.selecParcelZonePLUmergeAU(parcelFile, zipCode,
+					 salut = GetFromGeom.selecParcelZonePLUmergeAU(parcelFile, zipCode,
 							zoningFile, p);
-					toSplit.addAll(salut);
-					Vectors.exportSFC(salut, new File(simuFile+"/AU_parcels_splitted.shp"));
+		
 				} else {
-					SimpleFeatureCollection salut = GetFromGeom.selecParcelZonePLU("U", zipCode, parcelFile,
+					 salut = GetFromGeom.selecParcelZonePLU("U", zipCode, parcelFile,
 							zoningFile);
-					toSplit.addAll(salut);
-					Vectors.exportSFC(salut, new File(simuFile + "/parcels_splitted.shp"));
+				
 				}
+				
+				toSplit.addAll(salut);
+				Vectors.exportSFC(salut, new File(simuFile + "/parcels_splitted.shp"));
 			}
 
 			SimpleFeatureCollection parcelGen = toSplit.collection();
@@ -461,16 +463,14 @@ public class SelectParcels {
 				Filter inter = ff.intersects(ff.property(geometryCellPropertyName),
 						ff.literal(feat.getDefaultGeometry()));
 				SimpleFeatureCollection onlyCells = cellsCollection.subCollection(inter);
-				Double bestEval = 0.0;
+				Double bestEval = Double.NEGATIVE_INFINITY;
 				// put the best cell evaluation into the parcel
-				if (onlyCells.size() > 1) {
+				if (onlyCells.size() > 0) {
 					SimpleFeatureIterator onlyCellIt = onlyCells.features();
 					try {
 						while (onlyCellIt.hasNext()) {
 							SimpleFeature multiCell = onlyCellIt.next();
-							if ((Double) multiCell.getAttribute("eval") > bestEval) {
-								bestEval = (Double) multiCell.getAttribute("eval");
-							}
+							bestEval = Math.max(bestEval, (Double) multiCell.getAttribute("eval") );
 						}
 					} catch (Exception problem) {
 						problem.printStackTrace();

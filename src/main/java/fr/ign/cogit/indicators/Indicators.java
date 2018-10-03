@@ -13,11 +13,23 @@ public abstract class Indicators {
 	Parameters p;
 	File rootFile;
 	File simuFile;
-	boolean firstLineGen = true;
-	boolean firstLineIndic = true;
-	// lazy way to get MUP-City's informations
-	ScenarAnalyse sA = new ScenarAnalyse(p.getString("cm"),p.getString("emprise"),p.getString("seuil"),p.getString("data"),p.getString("N"),p.getString("ahpName"),p.getString("strict"),p.getString("mean"),p.getString("seed"));
+	static boolean firstLineGen = true;
+	static boolean firstLineSimu = true;
+	ScenarAnalyse sA ;
+	public Indicators(Parameters p) {
+		this.p = p;
+		// lazy way to get MUP-City's informations
+		String strictStr = "St";
+		String meanStr="Moy";
+		if (p.getBoolean("strict")){
+			strictStr = "Ba";
+		}
+		if (p.getBoolean("mean")) {
+			meanStr = "Yag";
+		}
+		sA = new ScenarAnalyse(p.getString("cm"),p.getString("emprise"),p.getString("seuil"),p.getString("data"),"N"+p.getString("N"),p.getString("ahpName"),strictStr,meanStr,"seed_"+p.getString("seed"));
 
+	}
 
 	/**
 	 * getter of the scenar's name
@@ -33,7 +45,7 @@ public abstract class Indicators {
 	 * @return the name of the MUP-City's scenario used
 	 */
 	public String getMupScenario() {		
-		return sA.getNiceName();
+		return sA.getShortScenarNameWthSeed();
 	}
 
 	/**
@@ -42,7 +54,7 @@ public abstract class Indicators {
 	 * @return the name of the MUP-City's scenario used
 	 */
 	public String getMupTech() {
-		return ((ProjetAnalyse)sA).getNiceName();
+		return ((ProjetAnalyse)sA).getNiceName().replace(";", "#");
 	}
 
 	/**
@@ -71,7 +83,7 @@ public abstract class Indicators {
 	 * @return
 	 */
 	protected String getFirstlineCsv() {
-		return (getnameScenar() + ", paramètres techniques MUP-City,ZipCode,type de sélection,");
+		return ( "name, paramètres techniques MUP-City,paramètre Scenaristique MUP-City,zipCode,type de sélection,");
 	}
 
 	/**
@@ -80,8 +92,8 @@ public abstract class Indicators {
 	 * @param firstline : the first line (can be empty)
 	 * @throws IOException
 	 */
-	public void toGenCSV(String line, String firstline) throws IOException {
-		File fileName = new File(rootFile, "results.csv");
+	public void toGenCSV(String indicName, String firstline,String line) throws IOException {
+		File fileName = new File(rootFile, "results"+indicName+".csv");
 		FileWriter writer = new FileWriter(fileName, true);
 		// si l'on a pas encore insrit la premiere ligne
 		if (firstLineGen) {
@@ -91,21 +103,23 @@ public abstract class Indicators {
 		}
 		
 		//on cole les infos du scénario à la première ligne
-		line = getnameScenar() + "--" + getMupScenario() + "," + getMupTech() + "," + zipCode + "," + getSelection()
+		System.out.println("getMupTech" +getMupTech());
+		
+		line = getnameScenar() +","+ getMupTech() + "," + getMupScenario() + "," + zipCode + "," + getSelection()
 		+ ","+line;
 		writer.append(line);
 		writer.append("\n");
 		writer.close();
 	}
 
-	public void toCSV(File f, String name, String fLine, String line) throws IOException {
+	public void toParticularCSV(File f, String name, String fLine, String line) throws IOException {
 		File fileName = new File(f, name);
-		FileWriter writer = new FileWriter(fileName, !firstLineIndic);
-		if (firstLineIndic == true) {
-			writer.append(fLine);
-			writer.append("\n");
-			firstLineIndic = false;
-		}
+		FileWriter writer = new FileWriter(fileName, true);
+	if (firstLineSimu) {
+		writer.append(fLine);
+		writer.append("\n");
+		firstLineSimu=false;
+	}
 		writer.append(line);
 		writer.append("\n");
 		writer.close();

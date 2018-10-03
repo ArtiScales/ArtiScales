@@ -26,10 +26,10 @@ public class PrescriptionPreparator {
 					prescriptionUse.add(prescription);
 				}
 				break;
-			case NUISSANCES_RISQUE:
-				if (p.getBoolean("NUISSANCES_RISQUE")) {
+			case NUISANCES_RISQUES:
+				if (p.getBoolean("NUISANCES_RISQUES")) {
 					// si pas toutes les nuissances sont exclues
-					if (p.getBoolean("NUISSANCES_RISQUE-MAX")) {
+					if (p.getBoolean("NUISANCES_RISQUES-MAX")) {
 						// si le libelle ne contiens pas ces keywords, ce n'est
 						// somme toute pas très grave
 						if (prescription.getLabel().contains("grave") || prescription.getLabel().contains("fort") || prescription.getLabel().contains("Maximal")
