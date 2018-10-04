@@ -213,12 +213,20 @@ public class GetFromGeom {
 		// verificaiton
 		System.out.println("Pour la commune " + zipCode + " on a " + featuresZones.size() + " zones différentes");
 
+
+		
 		// creation of the filter to select only wanted type of zone in the PLU
 		// for the 'AU' zones, a temporality attribute is usually pre-fixed, we
 		// need to search after
 		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
 		Filter filter = ff.like(ff.property("TYPEZONE"), (typeZone.contains("AU") ? "*" : "") + typeZone + "*");
 		SimpleFeatureCollection featureZoneSelected = featuresZones.subCollection(filter);
+	
+		if(featureZoneSelected.getSchema().getType("TYPEZONE") == null) {
+			System.out.println("ATTRIBUTE TYPEZONE IS MISSING in data " + zoningFile);
+			return null;
+		}
+		
 		System.out.println("zones " + typeZone + " au nombre de : " + featureZoneSelected.size());
 
 		// Filter to select parcels that intersects the selected zonnig zone

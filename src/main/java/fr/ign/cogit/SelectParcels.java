@@ -320,7 +320,11 @@ public class SelectParcels {
 				} else {
 					SimpleFeatureCollection salut = GetFromGeom.selecParcelZonePLU("U", zipCode, parcelFile,
 							zoningFile);
-					toSplit.addAll(salut);
+					
+					if(salut != null ) {
+						toSplit.addAll(salut);
+					}
+				
 					Vectors.exportSFC(salut, new File(simuFile + "/parcels_splitted.shp"));
 				}
 			}
