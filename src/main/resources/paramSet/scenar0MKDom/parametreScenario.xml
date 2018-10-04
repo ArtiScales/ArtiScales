@@ -12,7 +12,7 @@
 		<param key="fill" value="false" />
 
 	<!-- Liste des villes à prendre en compte dans la simulation (séparer les codes postaux par des virgules) -->
-	<param key="listZipCode" value="25495" />
+	<param key="listZipCode" value="25111" />
 	
 	<!-- Dossiers et fichiers nécessaires à la simulation -->
 		<!-- Emplacement des résultats de simulation (intermédiaires et finaux) -->
@@ -112,10 +112,10 @@
 		<!--Bornes des dimensions des cuboïdes simulées -->
 		<!-- Largeur -->
 		<param key="minlen" value="7" />
-		<param key="maxlen" value="15" />
+		<param key="maxlen" value="30" />
 		<!-- Longueur -->
 		<param key="minwid" value="5" />
-		<param key="maxwid" value="15" />
+		<param key="maxwid" value="30" />
 		<!-- Hauteur -->
 		<param key="minheight" value="3" />
 		<param key="maxheight" value="10" />
@@ -127,6 +127,6 @@
 		<param key="intersection" value="true" />
 
 		<!-- Nombre de cuboïde maximal -->
-		<param key="nbCuboid" value="7" />
+		<param key="nbCuboid" value="20" />
 </parameters>
 

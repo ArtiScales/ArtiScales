@@ -302,56 +302,41 @@ public class SelectParcels {
 			zones[0] = "ZC";
 		}
 
-		if (splitParcel) {
-			DefaultFeatureCollection toSplit = new DefaultFeatureCollection();
+		for (String zone : zones) {
 
-			for (String zone : zones) {
+			if (splitParcel) {
+				DefaultFeatureCollection toSplit = new DefaultFeatureCollection();
 				// merging of the AU parcels
 				// TODO ça ne marche pas car les parcelles qui touchent un tout peutit peu les
 				// zones AU sont sélectionnées, alors qu'il ne le faudrait pas.. Y remédier (la
 				// parcelle
 				// doit être à +50% dans une zone? On fait un découpage? + ça ne passe pas bien
 				// dans l'algo (voir prochain todo)
-				SimpleFeatureCollection salut ;
+				SimpleFeatureCollection salut;
 				if (zone.equals("AU")) {
-					 salut = GetFromGeom.selecParcelZonePLUmergeAU(parcelFile, zipCode,
-							zoningFile, p);
-		
+					salut = GetFromGeom.selecParcelZonePLUmergeAU(parcelFile, zipCode, zoningFile, p);
+
 				} else {
-					 salut = GetFromGeom.selecParcelZonePLU("U", zipCode, parcelFile,
-							zoningFile);
-				
+					salut = GetFromGeom.selecParcelZonePLU("U", zipCode, parcelFile, zoningFile);
+
+					if (salut != null) {
+						toSplit.addAll(salut);
+					}
+
+					Vectors.exportSFC(salut, new File(simuFile + "/parcels_splitted.shp"));
+
 				}
-				
-				toSplit.addAll(salut);
-				Vectors.exportSFC(salut, new File(simuFile + "/parcels_splitted.shp"));
-			}
 
-			SimpleFeatureCollection parcelGen = toSplit.collection();
-			Vectors.exportSFC(parcelGen, new File(simuFile + "parcelsGen.shp"));
-			// split of parcels
-			SimpleFeatureCollection parcelAllowedSplited = VectorFct.generateSplitedParcels(parcelGen, p);
-			// reselection by the zoning
-			SimpleFeatureCollection parcelSplittedIn = GetFromGeom.selecParcelZonePLU(zones, zipCode,
-					parcelAllowedSplited, zoningFile);
-
-			// selection by the MUP-City's cells
-			SimpleFeatureCollection parcelInCell = selecMultipleParcelInCell(parcelSplittedIn);
-
-			// put evals in cells
-			SimpleFeatureCollection collectOut = putEvalInParcel(parcelInCell);
-
-			// export tout ça
-			Vectors.exportSFC(collectOut, newParcelSelection);
-		} else {
-
-			if (!rNU) {
-				// select grom zoning
-				SimpleFeatureCollection parcelGen = GetFromGeom.selecParcelZonePLU(zones, zipCode, parcelFile,
-						zoningFile);
+				SimpleFeatureCollection parcelGen = toSplit.collection();
+				Vectors.exportSFC(parcelGen, new File(simuFile + "parcelsGen.shp"));
+				// split of parcels
+				SimpleFeatureCollection parcelAllowedSplited = VectorFct.generateSplitedParcels(parcelGen, p);
+				// reselection by the zoning
+				SimpleFeatureCollection parcelSplittedIn = GetFromGeom.selecParcelZonePLU(zones, zipCode,
+						parcelAllowedSplited, zoningFile);
 
 				// selection by the MUP-City's cells
-				SimpleFeatureCollection parcelInCell = selecMultipleParcelInCell(parcelGen);
+				SimpleFeatureCollection parcelInCell = selecMultipleParcelInCell(parcelSplittedIn);
 
 				// put evals in cells
 				SimpleFeatureCollection collectOut = putEvalInParcel(parcelInCell);
@@ -360,18 +345,35 @@ public class SelectParcels {
 				Vectors.exportSFC(collectOut, newParcelSelection);
 			} else {
 
-				ShapefileDataStore pauSDS = new ShapefileDataStore(zoningFile.toURI().toURL());
-				SimpleFeatureCollection pauCollection = pauSDS.getFeatureSource().getFeatures();
+				if (!rNU) {
+					// select grom zoning
+					SimpleFeatureCollection parcelGen = GetFromGeom.selecParcelZonePLU(zones, zipCode, parcelFile,
+							zoningFile);
 
-				// selection by the MUP-City's cells
-				SimpleFeatureCollection parcelInCell = selecMultipleParcelInCell(pauCollection);
 
-				// put evals in cells
-				SimpleFeatureCollection collectOut = putEvalInParcel(parcelInCell);
+					// selection by the MUP-City's cells
+					SimpleFeatureCollection parcelInCell = selecMultipleParcelInCell(parcelGen);
 
-				// export tout ça
-				Vectors.exportSFC(collectOut, newParcelSelection);
-				pauSDS.dispose();
+
+					// put evals in cells
+					SimpleFeatureCollection collectOut = putEvalInParcel(parcelInCell);
+
+					// export tout ça
+					Vectors.exportSFC(collectOut, newParcelSelection);
+				} else {
+
+					ShapefileDataStore pauSDS = new ShapefileDataStore(zoningFile.toURI().toURL());
+					SimpleFeatureCollection pauCollection = pauSDS.getFeatureSource().getFeatures();
+
+					// selection by the MUP-City's cells
+					SimpleFeatureCollection parcelInCell = selecMultipleParcelInCell(pauCollection);
+					// put evals in cells
+					SimpleFeatureCollection collectOut = putEvalInParcel(parcelInCell);
+
+					// export tout ça
+					Vectors.exportSFC(collectOut, newParcelSelection);
+					pauSDS.dispose();
+				}
 			}
 		}
 		return newParcelSelection;
@@ -476,7 +478,7 @@ public class SelectParcels {
 					try {
 						while (onlyCellIt.hasNext()) {
 							SimpleFeature multiCell = onlyCellIt.next();
-							bestEval = Math.max(bestEval, (Double) multiCell.getAttribute("eval") );
+							bestEval = Math.max(bestEval, (Double) multiCell.getAttribute("eval"));
 						}
 					} catch (Exception problem) {
 						problem.printStackTrace();
