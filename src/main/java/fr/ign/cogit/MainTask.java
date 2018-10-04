@@ -2,12 +2,14 @@ package fr.ign.cogit;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import fr.ign.cogit.indicators.BuildingToHousehold;
 import fr.ign.cogit.outputs.XmlGen;
@@ -35,7 +37,7 @@ public class MainTask {
 		List<File> listParameters = new ArrayList<>();
 
 		//Folder root with parameters
-		String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenar0MKDom/").getPath();
+		String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenar0/").getPath();
 		System.out.println(rootParam);
 
 
@@ -172,9 +174,11 @@ public class MainTask {
 								zipCode, p, listParameters, resultXml, logXml);
 						List<File> batisSimulatedFile = simPLUsimu.run();
 
-						// count of the households in the buildings
-						BuildingToHousehold bTH = new BuildingToHousehold(VectorFct.mergeBatis(batisSimulatedFile), p);
-						bTH.run();
+						for(File f: batisSimulatedFile) {
+							BuildingToHousehold bTH = new BuildingToHousehold(f, p);
+							bTH.run();
+						}
+					
 
 						resultXml.endBalise("respectZoning");
 					} else {
