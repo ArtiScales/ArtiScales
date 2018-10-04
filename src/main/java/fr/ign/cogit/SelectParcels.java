@@ -365,6 +365,7 @@ public class SelectParcels {
 
 				// selection by the MUP-City's cells
 				SimpleFeatureCollection parcelInCell = selecMultipleParcelInCell(pauCollection);
+
 				// put evals in cells
 				SimpleFeatureCollection collectOut = putEvalInParcel(parcelInCell);
 
@@ -446,7 +447,12 @@ public class SelectParcels {
 		sfTypeBuilder.add("the_geom", Polygon.class);
 		sfTypeBuilder.setDefaultGeometry("the_geom");
 		sfTypeBuilder.add("eval", Float.class);
-		sfTypeBuilder.add("NUMEROPARC", String.class);
+		sfTypeBuilder.add("CODE", String.class);
+		sfTypeBuilder.add("CODE_DEP", String.class);
+		sfTypeBuilder.add("CODE_COM", String.class);
+		sfTypeBuilder.add("COM_ABS", String.class);
+		sfTypeBuilder.add("SECTION", String.class);
+		sfTypeBuilder.add("NUMERO", String.class);
 
 		SimpleFeatureBuilder sfBuilder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
 
@@ -480,14 +486,16 @@ public class SelectParcels {
 				}
 				// si on utilise des PAU, le nom est déjà généré
 				String numero;
-				if (!((String) feat.getAttribute("NUMEROPARC")).isEmpty()) {
-					numero = ((String) feat.getAttribute("NUMEROPARC"));
+				if (!((String) feat.getAttribute("CODE")).isEmpty()) {
+					numero = ((String) feat.getAttribute("CODE"));
 				} else {
 					numero = ((String) feat.getAttribute("CODE_DEP")) + ((String) feat.getAttribute("CODE_COM"))
 							+ ((String) feat.getAttribute("COM_ABS")) + ((String) feat.getAttribute("SECTION"))
 							+ ((String) feat.getAttribute("NUMERO"));
 				}
-				Object[] attr = { bestEval, numero };
+				Object[] attr = { bestEval, numero,feat.getAttribute("CODE_DEP"), feat.getAttribute("CODE_COM"),
+						feat.getAttribute("COM_ABS"),feat.getAttribute("SECTION"),feat.getAttribute("NUMERO")};
+
 				sfBuilder.add(feat.getDefaultGeometry());
 
 				SimpleFeature feature = sfBuilder.buildFeature(String.valueOf(i), attr);
@@ -505,6 +513,7 @@ public class SelectParcels {
 		PropertyName pN = ff.property("eval");
 		SortByImpl sbt = new SortByImpl(pN, org.opengis.filter.sort.SortOrder.DESCENDING);
 		SimpleFeatureCollection collectOut = new SortedSimpleFeatureCollection(newParcel, new SortBy[] { sbt });
+
 		moyenneEval(collectOut);
 
 		return collectOut;

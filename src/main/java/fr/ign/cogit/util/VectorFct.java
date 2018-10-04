@@ -85,7 +85,7 @@ public class VectorFct {
 		sfTypeBuilder.add("the_geom", MultiPolygon.class);
 		sfTypeBuilder.setDefaultGeometry("the_geom");
 		sfTypeBuilder.add("SPLIT", Integer.class);
-		sfTypeBuilder.add("NUMEROPARC", String.class);
+		sfTypeBuilder.add("CODE", String.class);
 
 		SimpleFeatureBuilder sfBuilder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
 
@@ -107,9 +107,9 @@ public class VectorFct {
 					
 					attributeValue = feat.getAttribute("NUMERO").toString();
 					
-				}else if (feat.getAttribute("NUMEROPARC") != null) {
+				}else if (feat.getAttribute("CODE") != null) {
 					
-					attributeValue = feat.getAttribute("NUMEROPARC").toString();
+					attributeValue = feat.getAttribute("CODE").toString();
 					
 				}else {
 					System.out.println("VectorFct : Other type of parcel : " + feat);
@@ -193,14 +193,14 @@ public class VectorFct {
 				IFeatureCollection<IFeature> featCollDecomp = obb.decompParcel();
 				for (IFeature featDecomp : featCollDecomp) {
 					// MAJ du numéro de la parcelle
-					String newNum = feat.getAttribute("NUMEROPARC") + String.valueOf(numParcelle);
+					String newNum = feat.getAttribute("CODE") + String.valueOf(numParcelle);
 					numParcelle++;
 					IFeature newFeat = new DefaultFeature(featDecomp.getGeom());
-					AttributeManager.addAttribute(newFeat, "NUMEROPARC", newNum, "String");
+					AttributeManager.addAttribute(newFeat, "CODE", newNum, "String");
 					ifeatCollOut.add(newFeat);
 				}
 			} catch (NullPointerException n) {
-				System.out.println("erreur sur le split pour la parcelle " + String.valueOf(feat.getAttribute("NUMEROPARC")));
+				System.out.println("erreur sur le split pour la parcelle " + String.valueOf(feat.getAttribute("CODE")));
 				IFeature featTemp = feat.cloneGeom();
 				ifeatCollOut.add(featTemp);
 			}

@@ -91,7 +91,7 @@ public class GetFromGeom {
 				if (s.contains("nbLogObjectif")) {
 					ColLog = i;
 				}
-				if (s.contains("zipcode")) {
+				if (s.contains("DEPCOM")) {
 					ColZip = i;
 				}
 				i = i + 1;

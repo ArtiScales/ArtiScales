@@ -127,7 +127,7 @@
 	<!--PARAMETRE DU MODULE BÂTIMENT À MÉNAGE (BUILDING TO HOUSEHOLD) -->
 
 	<!-- Taille moyenne d'un logement -->
-	<param key="HousingUnitSize" value="120" />
+	<param key="HousingUnitSize" value="100" />
 	<param key="heightStair" value="3" />
 
 
