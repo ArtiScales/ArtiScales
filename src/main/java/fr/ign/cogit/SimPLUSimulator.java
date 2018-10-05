@@ -189,6 +189,8 @@ public class SimPLUSimulator {
 
 		this.parcelsFile = selectedParcels;
 		this.predicateFile = new File(p.getString("pluPredicate"));
+		
+		System.out.println("STRANGE LOGIC ?");
 		this.simuFile = new File(parcelsFile.getParentFile(), "simu");
 		simuFile.mkdir();
 
@@ -198,15 +200,51 @@ public class SimPLUSimulator {
 		// snap datas for lighter geographic files (do not do if it already
 		// exists)
 		if (!(new File(simuFile.getParentFile(), "/snap/route.shp")).exists()) {
-			System.out.println("in snapDatas" + GetFromGeom.getBati(new File(rootfile, "donneeGeographiques")));
+			
+			System.out.println("ACCORDING TO THE PARAMETERS DATA MUST BE IN FOLDER GEOMFILE OLD CODE IS WRONG : ");
+			System.out.println("GetFromGeom.getBati(new File(rootfile, \"donneeGeographiques\"))");
+			
+			//Write code
+			System.out.println("in snapDatas" + GetFromGeom.getBati(new File(p.getString("geoFile"))));
+			
+			
 			File snapFile = new File(simuFile.getParentFile(), "/snap/");
 			snapFile.mkdir();
 
-			buildFile = Vectors.snapDatas(GetFromGeom.getBati(new File(rootfile, "donneeGeographiques")), zoningFile, new File(simuFile.getParentFile(), "/snap/batiment.shp"));
-			roadFile = Vectors.snapDatas(GetFromGeom.getRoute(new File(rootfile, "donneeGeographiques")), zoningFile, new File(simuFile.getParentFile(), "/snap/route.shp"));
-			filePrescPonct = Vectors.snapDatas(new File(pluFile, "prescPonctRegroupe.shp"), zoningFile, new File(simuFile.getParentFile(), "/snap/prescPonctRegroupe.shp"));
-			filePrescLin = Vectors.snapDatas(new File(pluFile, "prescLinRegroupe.shp"), zoningFile, new File(simuFile.getParentFile(), "/snap/prescLinRegroupe.shp"));
-			filePrescSurf = Vectors.snapDatas(new File(pluFile, "prescSurfRegroupe.shp"), zoningFile, new File(simuFile.getParentFile(), "/snap/prescSurfRegroupe.shp"));
+			System.out.println("ACCORDING TO THE PARAMETERS DATA MUST BE IN FOLDER GEOMFILE OLD CODE IS WRONG : ");
+			buildFile = Vectors.snapDatas(GetFromGeom.getBati(new File(p.getString("geoFile"))), zoningFile, new File(simuFile.getParentFile(), "/snap/batiment.shp"));
+			roadFile = Vectors.snapDatas(GetFromGeom.getRoute(new File(p.getString("geoFile"))), zoningFile, new File(simuFile.getParentFile(), "/snap/route.shp"));
+			
+			File prescriptionPonct = new File(pluFile, "prescPonctRegroupe.shp");
+			if(prescriptionPonct.exists()) {
+				filePrescPonct = Vectors.snapDatas(prescriptionPonct, zoningFile, new File(simuFile.getParentFile(), "/snap/prescPonctRegroupe.shp"));
+			}else {
+				System.out.println("filePrescPonct is empty");
+				filePrescPonct =null;
+			}
+			
+			File prescriptionLine = new File(pluFile, "prescLinRegroupe.shp");
+			if(prescriptionLine.exists()) {
+				filePrescLin = Vectors.snapDatas(prescriptionLine, zoningFile, new File(simuFile.getParentFile(), "/snap/prescLinRegroupe.shp"));
+		
+			}else {
+				System.out.println("filePrescPonct is empty");
+				filePrescLin =null;
+			}
+			
+			
+			
+			File prescriptionSurf = new File(pluFile, "prescSurfRegroupe.shp");
+			
+			
+			if(prescriptionSurf.exists()) {
+				filePrescSurf = Vectors.snapDatas(prescriptionSurf, zoningFile, new File(simuFile.getParentFile(), "/snap/prescSurfRegroupe.shp"));
+			}else {
+				System.out.println("filePrescSurf is empty");
+				filePrescSurf=null;
+			}
+			
+			
 
 		} else {
 			buildFile = new File(simuFile.getParentFile(), "/snap/batiment.shp");
@@ -215,7 +253,7 @@ public class SimPLUSimulator {
 			filePrescLin = new File(simuFile.getParentFile(), "/snap/prescLinRegroupe.shp");
 			filePrescSurf = new File(simuFile.getParentFile(), "/snap/prescSurfRegroupe.shp");
 		}
-		codeFile = new File(pluFile, "/codes/DOC_URBA.shp");
+
 	}
 
 	/**
