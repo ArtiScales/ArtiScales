@@ -9,26 +9,28 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
-
-import fr.ign.cogit.geoxygene.api.spatial.geomaggr.IMultiSurface;
-import fr.ign.cogit.geoxygene.api.spatial.geomprim.IOrientableSurface;
-import fr.ign.cogit.geoxygene.util.conversion.AdapterFactory;
 import fr.ign.cogit.simplu3d.model.IZoneRegulation;
 import fr.ign.cogit.simplu3d.model.UrbaZone;
 
 public class ArtiScalesRegulation implements IZoneRegulation {
 
 	private final static String CSV_SEPARATOR = ",";
-	
+
 	private static Logger log = Logger.getLogger(ArtiScalesRegulation.class);
 
 	// Les intitulés des colonnes
-	private int code_imu, insee,oap, date_approbation, fonctions, top_zac, zonage_coherent, correction_zonage, typ_bande,art_3,art_4, bande, art_71, art_74, art_10_top,art_10;
-	private String libelle_zone, libelle_de_base, libelle_de_dul,art_6_opt,art_6_optD, art_10_m, art_12,art_14;
+	private int insee, oap, fonctions, zonage_coherent, correction_zonage, art_3, art_4, art_71, art_74, art_10_top,
+			art_10_1;
+	private String libelle_zone, libelle_de_base, libelle_de_dul, art_6_opt, art_6_optD, art_10_2, art_12, art_14;
 
-	private double art_5, art_6, art_72, art_73, art_8, art_9, art_13 ;
+	private double art_5, art_6, art_72, art_73, art_8, art_9, art_13;
+	
+	//The UrbanZone that corresponds to the regulation
+	private UrbaZone zone;
+
+	public ArtiScalesRegulation() {
+
+	}
 
 	public ArtiScalesRegulation(String fLine, String line) {
 
@@ -38,164 +40,144 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 		for (int i = 0; i < fLineSplited.length; i++) {
 			switch (fLineSplited[i].toLowerCase()) {
 			case "libelle_zone":
-				libelle_zone= lineSplited[i];
+				libelle_zone = lineSplited[i];
 				break;
 			case "insee":
-				insee= Integer.valueOf(lineSplited[i]);
+				insee = Integer.valueOf(lineSplited[i]);
 				break;
 			case "libelle_de_base":
-				libelle_de_base= lineSplited[i];
+				libelle_de_base = lineSplited[i];
 				break;
 			case "libelle_de_dul":
-				libelle_de_dul=lineSplited[i];
+				libelle_de_dul = lineSplited[i];
 				break;
 			case "OAP":
-				oap= Integer.valueOf(lineSplited[i]);
+				oap = Integer.valueOf(lineSplited[i]);
 				break;
 			case "art_3":
-				art_3=Integer.valueOf(lineSplited[i]);
+				art_3 = Integer.valueOf(lineSplited[i]);
 				break;
 			case "art_4":
-				art_4=Integer.valueOf(lineSplited[i]);
+				art_4 = Integer.valueOf(lineSplited[i]);
 				break;
 			case "art_5":
-				art_5=Double.valueOf(lineSplited[i]);
+				art_5 = Double.valueOf(lineSplited[i]);
 				break;
 			case "art_6":
-				art_6=Double.valueOf(lineSplited[i]);
+				art_6 = Double.valueOf(lineSplited[i]);
 				break;
 			case "art_6_opt":
-				art_6_opt=lineSplited[i];
+				art_6_opt = lineSplited[i];
 				break;
 			case "art_6_optD":
-				art_6_optD=lineSplited[i];
+				art_6_optD = lineSplited[i];
 				break;
 			case "art_71":
-				art_71=Integer.valueOf(lineSplited[i]);
+				art_71 = Integer.valueOf(lineSplited[i]);
 				break;
 			case "art_72":
-				art_72=Double.valueOf(lineSplited[i]);
+				art_72 = Double.valueOf(lineSplited[i]);
 				break;
 			case "art_73":
-				art_73=Double.valueOf(lineSplited[i]);
+				art_73 = Double.valueOf(lineSplited[i]);
 				break;
 			case "art_8":
-				art_8=Double.valueOf(lineSplited[i]);
+				art_8 = Double.valueOf(lineSplited[i]);
 				break;
 			case "art_9":
-				art_9=Double.valueOf(lineSplited[i]);
+				art_9 = Double.valueOf(lineSplited[i]);
 				break;
 			case "art_10_top":
-				art_10_top=Integer.valueOf(lineSplited[i]);
+				art_10_top = Integer.valueOf(lineSplited[i]);
 				break;
 			case "art_101":
-				art_10 = Integer.valueOf(lineSplited[i]);
+				art_10_1 = Integer.valueOf(lineSplited[i]);
 				break;
 			case "art_102":
-				art_10_m=lineSplited[i];
+				art_10_2 = lineSplited[i];
 				break;
 			case "art_12":
-				art_12= lineSplited[i];
+				art_12 = lineSplited[i];
 				break;
 			case "art_13":
-				art_13=Double.valueOf( lineSplited[i]);
+				art_13 = Double.valueOf(lineSplited[i]);
 				break;
 			case "art_14":
-				art_14=lineSplited[i];
+				art_14 = lineSplited[i];
 				break;
 			}
 		}
 	}
 
-//	public ArtiScalesRegulation(int code_imu, String libelle_zone, int insee, int date_approbation, String libelle_de_base, String libelle_de_dul, int fonctions, int top_zac,
-//			int zonage_coherent, int correction_zonage, int typ_bande, int bande, double art_5, double art_6, int art_71, double art_72, double art_73, int art_74, double art_8,
-//			double art_9, int art_10_top, int art_10, double art_10_m, String art_12, double art_13, String art_14) {
-//		super();
-//		this.code_imu = code_imu;
-//		this.libelle_zone = libelle_zone;
-//		this.insee = insee;
-//		this.date_approbation = date_approbation;
-//		this.libelle_de_base = libelle_de_base;
-//		this.libelle_de_dul = libelle_de_dul;
-//		this.fonctions = fonctions;
-//		this.top_zac = top_zac;
-//		this.zonage_coherent = zonage_coherent;
-//		this.correction_zonage = correction_zonage;
-//		this.typ_bande = typ_bande;
-//		this.bande = bande;
-//		this.art_5 = art_5;
-//		this.art_6 = art_6;
-//		this.art_71 = art_71;
-//		this.art_72 = art_72;
-//		this.art_73 = art_73;
-//		this.art_74 = art_74;
-//		this.art_8 = art_8;
-//		this.art_9 = art_9;
-//		this.art_10_top = art_10_top;
-//		this.art_10 = art_10;
-//		this.art_10_m = art_10_m;
-//		this.art_12 = art_12;
-//		this.art_13 = art_13;
-//		this.art_14 = art_14;
-//	}
-
-	public ArtiScalesRegulation() {
-
+	public ArtiScalesRegulation(String libelle_zone, int insee, String libelle_de_base, String libelle_de_dul,
+			int fonctions, int oap, int zonage_coherent, int correction_zonage, int art_3, int art_4, double art_5,
+			double art_6, String art_6_opt, String art_6_optD, int art_71, double art_72, double art_73, int art_74,
+			double art_8, double art_9, int art_10_top, int art_10, String art_10_2, String art_12, double art_13,
+			String art_14) {
+		super();
+		this.libelle_zone = libelle_zone;
+		this.insee = insee;
+		this.libelle_de_base = libelle_de_base;
+		this.libelle_de_dul = libelle_de_dul;
+		this.fonctions = fonctions;
+		this.oap = oap;
+		this.zonage_coherent = zonage_coherent;
+		this.correction_zonage = correction_zonage;
+		this.art_3 = art_3;
+		this.art_4 = art_4;
+		this.art_5 = art_5;
+		this.art_6 = art_6;
+		this.art_6_opt = art_6_opt;
+		this.art_6_optD = art_6_optD;
+		this.art_71 = art_71;
+		this.art_72 = art_72;
+		this.art_73 = art_73;
+		this.art_74 = art_74;
+		this.art_8 = art_8;
+		this.art_9 = art_9;
+		this.art_10_top = art_10_top;
+		this.art_10_1 = art_10;
+		this.art_10_2 = art_10_2;
+		this.art_12 = art_12;
+		this.art_13 = art_13;
+		this.art_14 = art_14;
 	}
 
-//	public ArtiScalesRegulation(IFeature feat) {
-//		this(returnObjTab(feat));
-//
-//	}
+	/**
+	 * Replace some fake value by value used in simulator
+	 */
+	public void clean() {
 
-//	public static Object[] returnObjTab(IFeature feat) {
-//		Object[] caract = { 0, feat.getAttribute("INSEE_1"), feat.getAttribute("TARGET_FID"), feat.getAttribute("Annee_muta"), feat.getAttribute("INSEE_1"),
-//				feat.getAttribute("INSEE_1"), feat.getAttribute("FONCTION_1"), feat.getAttribute("TOP_ZAC_1"), feat.getAttribute("ZONAGE_C_1"), feat.getAttribute("CORRECTI_1"),
-//				feat.getAttribute("CORRECTI_1"), feat.getAttribute("BANDE_1"), feat.getAttribute("ART_56"), feat.getAttribute("ART_67"), feat.getAttribute("ART_71_72"),
-//				feat.getAttribute("ART_72_73"), feat.getAttribute("ART_73_74"), feat.getAttribute("ART_74_75"), feat.getAttribute("ART_89"), feat.getAttribute("ART_9_10"),
-//				feat.getAttribute("ART_10_T_1"), feat.getAttribute("ART_10_11"), feat.getAttribute("ART_102"), feat.getAttribute("ART_12_13"), feat.getAttribute("ART_13_14"),
-//				feat.getAttribute("ART_14_15") };
-//		return caract;
-//	}
-//
-//	public static Object[] returnObjTab2(IFeature feat) {
-//		Object[] caract = { 0, feat.getAttribute("INSEE_1"), feat.getAttribute("TARGET_FID"), feat.getAttribute("Annee_muta"), feat.getAttribute("INSEE_1"),
-//				feat.getAttribute("INSEE_1"), feat.getAttribute("FONCTION_1"), feat.getAttribute("TOP_ZAC_1"), feat.getAttribute("ZONAGE_C_1"), feat.getAttribute("CORRECTI_1"),
-//				feat.getAttribute("CORRECTI_1"), feat.getAttribute("2_BANDE"), feat.getAttribute("2_ART_5"), feat.getAttribute("2_ART_6"), feat.getAttribute("2_ART_71"),
-//				feat.getAttribute("2_ART_72"), feat.getAttribute("2_ART_73"), feat.getAttribute("2_ART_74"), feat.getAttribute("2_ART_8"), feat.getAttribute("2_ART_9"),
-//				feat.getAttribute("2_ART_10_T"), feat.getAttribute("2_ART_10"), feat.getAttribute("2_ART_102"), feat.getAttribute("2_ART_12"), feat.getAttribute("2_ART_13"),
-//				feat.getAttribute("2_ART_14") };
-//		return caract;
-//	}
+		if (this.getArt_72() == 88 || this.getArt_72() == 99) {
+			this.art_72 = 0;
+		}
 
-//	public ArtiScalesRegulation(String line) {
-//
-//		this(line.split(CSV_SEPARATOR));
-//
-//	}
+		if (this.getArt_73() == 88 || this.getArt_73() == 99) {
+			this.art_73 = 0;
+		}
 
-//	public ArtiScalesRegulation(String[] split) {
-//		this(Integer.parseInt(split[0]), split[1], Integer.parseInt(split[2]), Integer.parseInt(split[3]), split[4], split[5], Integer.parseInt(split[6]),
-//				Integer.parseInt(split[7]), Integer.parseInt(split[8]), Integer.parseInt(split[9]), Integer.parseInt(split[10]), Integer.parseInt(split[11]),
-//				Integer.parseInt(split[12]), Double.parseDouble(split[13]), Integer.parseInt(split[14]), Double.parseDouble(split[15]), Double.parseDouble(split[16]),
-//				Integer.parseInt(split[17]), Integer.parseInt(split[18]), Double.parseDouble(split[19]), Integer.parseInt(split[20]), Integer.parseInt(split[21]),
-//				Double.parseDouble(split[22]), split[23], Double.parseDouble(split[24]), Double.parseDouble(split[25]));
-//	}
-//
-//	public ArtiScalesRegulation(Object[] split) {
-//		this(Integer.parseInt(split[0].toString()), split[1].toString(), Integer.parseInt(split[2].toString()), (int) Double.parseDouble(split[3].toString()), split[4].toString(),
-//				split[5].toString(), (int) Double.parseDouble(split[6].toString()), (int) Double.parseDouble(split[7].toString()), (int) Double.parseDouble(split[8].toString()),
-//				(int) Double.parseDouble(split[9].toString()), (int) Double.parseDouble(split[10].toString()), (int) Double.parseDouble(split[11].toString()),
-//				Double.parseDouble(split[12].toString()), Double.parseDouble(split[13].toString()), (int) Double.parseDouble(split[14].toString()),
-//				Double.parseDouble(split[15].toString()), Double.parseDouble(split[16].toString()), (int) Double.parseDouble(split[17].toString()),
-//				(int) Double.parseDouble(split[18].toString()), Integer.getInteger(split[19].toString()), (int) Double.parseDouble(split[20].toString()),
-//				(int) Double.parseDouble(split[21].toString()), Double.parseDouble(split[22].toString()), split[23].toString(),
-//				Double.parseDouble(split[24].toString()), Double.parseDouble(split[25].toString()));
-//	}
+		if (this.getArt_6() == 77) {
+			this.art_6 = 0;
+		}
+
+		if (this.getArt_8() == 88.0 || this.getArt_8() == 99.0) {
+			this.art_8 = 50;
+		}
+
+		if (this.art_9 == 99) {
+			this.art_9 = 1;
+		}
+	}
+
+	public int getOap() {
+		return oap;
+	}
 
 	/**
-	 * Charge les règlements et les stockes dans une Map avec Integer = Code_Imu et List<Regulation> = la liste des règlements (= lignes du tableau) pour un code IMU donné
-	 * utilisation avec les objets de maxou
+	 * Charge les règlements et les stockes dans une Map avec Integer = Code_Imu et
+	 * List<Regulation> = la liste des règlements (= lignes du tableau) pour un code
+	 * IMU donné utilisation avec les objets de maxou
+	 * 
 	 * @param file
 	 * @return
 	 * @throws IOException
@@ -211,15 +193,15 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 
 		// On lit le fichier
 		BufferedReader in = new BufferedReader(new FileReader(file));
-		
-		//La première ligne est la plus importante 
+
+		// La première ligne est la plus importante
 		String fLine = in.readLine();
-		String line ="";
+		String line = "";
 		// On traite chaque ligne
 		while ((line = in.readLine()) != null) {
 			log.info(line);
 			// On instancier la réglementation
-			ArtiScalesRegulation r = new ArtiScalesRegulation(fLine,line);
+			ArtiScalesRegulation r = new ArtiScalesRegulation(fLine, line);
 			// On regarde si le code imu a été rencontré auparavant
 			if (r != null) {
 				table.put(r.getLibelle_de_dul(), r);
@@ -231,9 +213,11 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 
 		return table;
 	}
-	
+
 	/**
-	 * Charge les règlements et les stockes dans une Map avec Integer = Code_Imu et List<Regulation> = la liste des règlements (= lignes du tableau) pour un code IMU donné
+	 * Charge les règlements et les stockes dans une Map avec Integer = Code_Imu et
+	 * List<Regulation> = la liste des règlements (= lignes du tableau) pour un code
+	 * IMU donné
 	 * 
 	 * @param file
 	 * @return
@@ -244,9 +228,19 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 		return loadRegulationSet(new File(file));
 	}
 
-	public int getCode_imu() {
-		return code_imu;
+	@Override
+	public String toString() {
+		return "ArtiScalesRegulation [libelle_zone=" + libelle_zone + ", insee=" + insee + ", libelle_de_base="
+				+ libelle_de_base + ", libelle_de_dul=" + libelle_de_dul + ", fonctions=" + fonctions + ", oap=" + oap
+				+ ", zonage_coherent=" + zonage_coherent + ", correction_zonage=" + correction_zonage + ", art_3="
+				+ art_3 + ", art_4=" + art_4 + ", art_5=" + art_5 + ", art_6=" + art_6 + ", art_6_opt=" + art_6_opt
+				+ ", art_6_optD=" + art_6_optD + ", art_71=" + art_71 + ", art_72=" + art_72 + ", art_73=" + art_73
+				+ ", art_74=" + art_74 + ", art_8=" + art_8 + ", art_9=" + art_9 + ", art_10_top=" + art_10_top
+				+ ", art_10=" + art_10_1 + ", art_10_m=" + art_10_2 + ", art_12=" + art_12 + ", art_13=" + art_13
+				+ ", art_14=" + art_14 + "]";
 	}
+
+	//////////// GETTERS AND SETTERS
 
 	public String getLibelle_zone() {
 		return libelle_zone;
@@ -255,11 +249,6 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	// INSEE Code de la commune
 	public int getInsee() {
 		return insee;
-	}
-
-	// DATE_DUL Date d'approbation du PLU
-	public int getDate_approbation() {
-		return date_approbation;
 	}
 
 	// LIBELLE_DE_BASE Type de zone
@@ -278,11 +267,6 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 		return fonctions;
 	}
 
-	// TOP_ZAC Présence d'une ZAC 0 : NON // 1 : OUI
-	public int getTop_zac() {
-		return top_zac;
-	}
-
 	// ZONAGE_COHERENT Zonage cohérent entre la base et le plan de zonage du DUL
 	// 0 : NON // 1 : OUI
 	public int getZonage_coherent() {
@@ -296,36 +280,26 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 		return correction_zonage;
 	}
 
-	// TYP_BANDE Information concernant l'existence d'une bande principale ou
-	// secondaire 0 : pas de bande // 1 : principale // 2 : secondaire
-	public int getTyp_bande() {
-		return typ_bande;
-	}
-
-	// BANDE Profondeur de la bande principale x > 0 profondeur de la bande par
-	// rapport à la voirie
-	public int getBande() {
-		return bande;
-	}
-
-	
-	//SERVITUDE DE PASSAGE 1 : La parcelle qui n’a pas acces à la voirie doit mettre à disposition une servitude de passage
-	// **0** : l’article ne s’applique pas 
-	// **1** : La parcelle qui n’a pas accès à la voirie doit mettre à disposition une servitude de passage
+	// SERVITUDE DE PASSAGE 1 : La parcelle qui n’a pas acces à la voirie doit
+	// mettre à disposition une servitude de passage
+	// **0** : l’article ne s’applique pas
+	// **1** : La parcelle qui n’a pas accès à la voirie doit mettre à disposition
+	// une servitude de passage
 	// **99** : non renseigné
 	public int getArt_3() {
 		return art_3;
 	}
 
-	//RACCORDEMENT À L'ASSAINISSEMENT 77 : info pas disponible
-	//0 : non réglementé
-	//1 : doit être raccordé au réseau collectif
-	//2 : assainissement individuel obligatoire dans les zones d’assainissement autonome
-	//99 : non renseigné
+	// RACCORDEMENT À L'ASSAINISSEMENT 77 : info pas disponible
+	// 0 : non réglementé
+	// 1 : doit être raccordé au réseau collectif
+	// 2 : assainissement individuel obligatoire dans les zones d’assainissement
+	// autonome
+	// 99 : non renseigné
 	public int getArt_4() {
 		return art_4;
 	}
-	
+
 	// ART_5 Superficie minimale 88= non renseignable, 99= non réglementé
 
 	public double getArt_5() {
@@ -334,7 +308,8 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 
 	// ART_6 Distance minimale des constructions par rapport à la voirie imposée
 	// en mètre
-	// 55= alignement obligatoire OU distance => Art_6_optD 88= non renseignable, 99= non réglementé
+	// 55= alignement obligatoire OU distance => Art_6_optD 88= non renseignable,
+	// 99= non réglementé
 	// 44 = en fonction des bâtiments de l'autre coté (règle du RNU)
 	public double getArt_6() {
 		return art_6;
@@ -348,12 +323,11 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 		return art_6_opt;
 	}
 
-	
-	//Implantation en limite séparative
-	//0 : non, retrait imposé (cf.72) 
-	//1 : Oui 
-	//2 : Oui, mais sur un côté seulement 
-	//3 : Oui seulement si un bâtiment est déjà en limite de propriété
+	// Implantation en limite séparative
+	// 0 : non, retrait imposé (cf.72)
+	// 1 : Oui
+	// 2 : Oui, mais sur un côté seulement
+	// 3 : Oui seulement si un bâtiment est déjà en limite de propriété
 	public int getArt_71() {
 		return art_71;
 	}
@@ -413,13 +387,13 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 
 	// ART_101 Hauteur maximum autorisée 88= non renseignable, 99= non
 	// réglementé
-	public int getArt_10() {
-		return art_10;
+	public int getArt_10_1() {
+		return art_10_1;
 	}
 
 	// ART_102 Hauteur maximum autorisée En mètres
-	public String getArt_10_m() {
-		return art_10_m;
+	public String getArt_10_2() {
+		return art_10_2;
 	}
 
 	// ART_12 Nombre de places par logement 88= non renseignable, 99= non
@@ -441,72 +415,117 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 		return art_14;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		return "Regulation [code_imu=" + code_imu + ", insee=" + insee + ", date_approbation=" + date_approbation + ", fonctions=" + fonctions + ", top_zac=" + top_zac
-				+ ", zonage_coherent=" + zonage_coherent + ", correction_zonage=" + correction_zonage + ", typ_bande=" + typ_bande + ", bande=" + bande + ", art_5=" + art_5
-				+ ", art_6=" + art_6 + ", art_71=" + art_71 + ", art_72=" + art_72 + ", art_73=" + art_73 + ", art_74=" + art_74 + ", art_8=" + art_8 + ", art_9=" + art_9
-				+ ", art_10_top=" + art_10_top + ", art_10=" + art_10 + ", art_13=" + art_13 + ", libelle_zone=" + libelle_zone + ", libelle_de_base=" + libelle_de_base
-				+ ", libelle_de_dul=" + libelle_de_dul + ", art_9=" + art_9 + ", art_10_m=" + art_10_m + ", art_12=" + art_12 + ", art_14=" + art_14 + "]";
-	}
-
-	IMultiSurface<IOrientableSurface> geomBande = null;
-
-	/**
-	 * @return the geomBande
-	 */
-	public IMultiSurface<IOrientableSurface> getGeomBande() {
-		return geomBande;
-	}
-
-	public Geometry getEpsilonBuffer() {
-
-		if (epsilonBuffer == null) {
-			epsilonBuffer = this.getJTSBand().buffer(0.5);
-		}
-
-		return epsilonBuffer;
-	}
-
-	Geometry epsilonBuffer = null;
-
-	/**
-	 * @param geomBande
-	 *            the geomBande to set
-	 */
-	public void setGeomBande(IMultiSurface<IOrientableSurface> geomBande) {
-		this.geomBande = geomBande;
-		this.jtsGeometry = null;
-		this.epsilonBuffer = null;
-	}
-
-	Geometry jtsGeometry = null;
-
-	private static GeometryFactory gf = new GeometryFactory();
-
-	public Geometry getJTSBand() {
-
-		if (jtsGeometry == null) {
-			try {
-				jtsGeometry = AdapterFactory.toGeometry(gf, this.getGeomBande());
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		return jtsGeometry;
-	}
-
-	private UrbaZone zone;
-
 	@Override
 	public UrbaZone getUrbaZone() {
 		return zone;
+	}
+
+	public void setInsee(int insee) {
+		this.insee = insee;
+	}
+
+	public void setOap(int oap) {
+		this.oap = oap;
+	}
+
+	public void setFonctions(int fonctions) {
+		this.fonctions = fonctions;
+	}
+
+	public void setZonage_coherent(int zonage_coherent) {
+		this.zonage_coherent = zonage_coherent;
+	}
+
+	public void setCorrection_zonage(int correction_zonage) {
+		this.correction_zonage = correction_zonage;
+	}
+
+	public void setArt_3(int art_3) {
+		this.art_3 = art_3;
+	}
+
+	public void setArt_4(int art_4) {
+		this.art_4 = art_4;
+	}
+
+	public void setArt_71(int art_71) {
+		this.art_71 = art_71;
+	}
+
+	public void setArt_74(int art_74) {
+		this.art_74 = art_74;
+	}
+
+	public void setArt_10_top(int art_10_top) {
+		this.art_10_top = art_10_top;
+	}
+
+	public void setArt_10(int art_10) {
+		this.art_10_1 = art_10;
+	}
+
+	public void setLibelle_zone(String libelle_zone) {
+		this.libelle_zone = libelle_zone;
+	}
+
+	public void setLibelle_de_base(String libelle_de_base) {
+		this.libelle_de_base = libelle_de_base;
+	}
+
+	public void setLibelle_de_dul(String libelle_de_dul) {
+		this.libelle_de_dul = libelle_de_dul;
+	}
+
+	public void setArt_6_opt(String art_6_opt) {
+		this.art_6_opt = art_6_opt;
+	}
+
+	public void setArt_6_optD(String art_6_optD) {
+		this.art_6_optD = art_6_optD;
+	}
+
+	public void setArt_10_2(String art_10_2) {
+		this.art_10_2 = art_10_2;
+	}
+
+	public void setArt_12(String art_12) {
+		this.art_12 = art_12;
+	}
+
+	public void setArt_14(String art_14) {
+		this.art_14 = art_14;
+	}
+
+	public void setArt_5(double art_5) {
+		this.art_5 = art_5;
+	}
+
+	public void setArt_6(double art_6) {
+		this.art_6 = art_6;
+	}
+
+	public void setArt_72(double art_72) {
+		this.art_72 = art_72;
+	}
+
+	public void setArt_73(double art_73) {
+		this.art_73 = art_73;
+	}
+
+	public void setArt_8(double art_8) {
+		this.art_8 = art_8;
+	}
+
+	public void setArt_9(double art_9) {
+		this.art_9 = art_9;
+	}
+
+	public void setArt_13(double art_13) {
+		this.art_13 = art_13;
+	}
+
+	public void setZone(UrbaZone zone) {
+		this.zone = zone;
 	}
 
 	public void setUrbaZone(UrbaZone zone) {
@@ -516,37 +535,6 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	@Override
 	public String toText() {
 		return this.toString();
-	}
-
-	/**
-	 * Replace some fake value by value used in simulator
-	 */
-	public void clean() {
-		
-		if(this.getArt_72() == 88 ||this.getArt_72() == 99) {
-			this.art_72 = 0;
-		}
-
-		if(this.getArt_73() == 88 ||this.getArt_73() == 99) {
-			this.art_73 = 0;
-		}
-		
-		
-		if (this.getArt_6() == 77) {
-			this.art_6 = 0;
-		}
-
-		if (this.getArt_8() == 88.0 || this.getArt_8() == 99.0) {
-			this.art_8 = 50;
-		}
-
-		if (this.art_9 == 99) {
-			this.art_9 = 1;
-		}
-	}
-
-	public int getOap() {
-		return oap;
 	}
 
 }
