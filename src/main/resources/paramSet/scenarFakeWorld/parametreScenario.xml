@@ -113,11 +113,11 @@
 
 		<!--Bornes des dimensions des cuboïdes simulées -->
 		<!-- Largeur -->
-		<param key="minlen" value="7" />
-		<param key="maxlen" value="30" />
+		<param key="minlen" value="20" />
+		<param key="maxlen" value="200" />
 		<!-- Longueur -->
-		<param key="minwid" value="5" />
-		<param key="maxwid" value="30" />
+		<param key="minwid" value="20" />
+		<param key="maxwid" value="200" />
 		<!-- Hauteur -->
 		<param key="minheight" value="3" />
 		<param key="maxheight" value="10" />
