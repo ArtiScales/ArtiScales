@@ -31,12 +31,14 @@ public class FakeZone {
 	}
 
 
-
-
 	public FakeZone(int shift, String libelle) {
+		this(shift, libelle, 0, 0);
+	}
+
+	public FakeZone(int shift, String libelle, double dx, double dy) {
 		this();
-		double xOrigin = 0 + shift * 300;
-		double yOrigin = 0;
+		double xOrigin = dx + shift * 300;
+		double yOrigin = dy;
 		double zDefault = 0;
 
 		//ptRoad2 <---- 300 ----> ptRoad3

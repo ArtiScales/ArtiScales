@@ -76,7 +76,7 @@ public class FakeWorldGenerator {
 		 
 		for(ArtiScalesRegulation regulation: regulationList) {
 			//We create a zone with the right name
-			FakeZone fZ = new FakeZone(count,  regulation.getLibelle_de_dul());
+			FakeZone fZ = new FakeZone(count,  regulation.getLibelle_de_dul(), 843126.29, 6519466);
 			
 			//We export the regulation
 		    in.write(regulation.toCSVLine()+  "\n");
