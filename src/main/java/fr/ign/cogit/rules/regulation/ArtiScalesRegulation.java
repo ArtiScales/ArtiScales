@@ -108,11 +108,20 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 			}
 		}
 	}
+	
+	
+	public ArtiScalesRegulation clone() {
+		return new ArtiScalesRegulation(libelle_zone, insee, libelle_de_base, libelle_de_dul,
+				 fonctions,  oap,  zonage_coherent,  correction_zonage,  art_3,  art_4,  art_5,
+				 art_6,  art_6_opt,  art_6_optD,  art_71, art_72,  art_73,  art_74,
+				 art_8,  art_9,  art_10_top,  art_10_1,  art_10_2,  art_12,  art_13,
+				 art_14);
+	}
 
 	public ArtiScalesRegulation(String libelle_zone, int insee, String libelle_de_base, String libelle_de_dul,
 			int fonctions, int oap, int zonage_coherent, int correction_zonage, int art_3, int art_4, double art_5,
 			double art_6, String art_6_opt, String art_6_optD, int art_71, double art_72, double art_73, int art_74,
-			double art_8, double art_9, int art_10_top, int art_10, String art_10_2, String art_12, double art_13,
+			double art_8, double art_9, int art_10_top, int art_10_1, String art_10_2, String art_12, double art_13,
 			String art_14) {
 		super();
 		this.libelle_zone = libelle_zone;
@@ -136,7 +145,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 		this.art_8 = art_8;
 		this.art_9 = art_9;
 		this.art_10_top = art_10_top;
-		this.art_10_1 = art_10;
+		this.art_10_1 = art_10_1;
 		this.art_10_2 = art_10_2;
 		this.art_12 = art_12;
 		this.art_13 = art_13;
