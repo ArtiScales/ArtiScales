@@ -241,39 +241,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	 */
 	public static Map<String, ArtiScalesRegulation> loadRegulationSet(String file) throws IOException {
 
-		// On initialise la map
-		Map<String, ArtiScalesRegulation> table = new Hashtable<>();
-
-		// On charge le fichier CSV avec modèle IAU
-		File f = new File(file);
-		if (!f.exists()) {
-			return table;
-		}
-
-		// On lit le fichier
-		BufferedReader in = new BufferedReader(new FileReader(f));
-		// On saute la première ligne car c'est une en-tête
-		String fLine = in.readLine();
-		String line;
-		// On traite chaque ligne
-		while ((line = in.readLine()) != null) {
-		
-			log.info(line);
-			// On instancier la réglementation
-			ArtiScalesRegulation r = new ArtiScalesRegulation(fLine,line);
-
-			// On regarde si le code imu a été rencontré auparavant
-
-			if (r != null) {
-
-				table.put(r.getLibelle_de_dul(), r);
-			}
-
-		}
-
-		in.close();
-
-		return table;
+		return loadRegulationSet(new File(file));
 	}
 
 	public int getCode_imu() {
@@ -340,8 +308,11 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 		return bande;
 	}
 
+	
 	//SERVITUDE DE PASSAGE 1 : La parcelle qui n’a pas acces à la voirie doit mettre à disposition une servitude de passage
-	//99 : rien
+	// **0** : l’article ne s’applique pas 
+	// **1** : La parcelle qui n’a pas accès à la voirie doit mettre à disposition une servitude de passage
+	// **99** : non renseigné
 	public int getArt_3() {
 		return art_3;
 	}
@@ -349,7 +320,8 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	//RACCORDEMENT À L'ASSAINISSEMENT 77 : info pas disponible
 	//0 : non réglementé
 	//1 : doit être raccordé au réseau collectif
-	//20 : doit être dans une zone où l’assainissement individuel est autorisées
+	//2 : assainissement individuel obligatoire dans les zones d’assainissement autonome
+	//99 : non renseigné
 	public int getArt_4() {
 		return art_4;
 	}
@@ -376,9 +348,12 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 		return art_6_opt;
 	}
 
-	// ART_71 Implantation en limite séparative 0 : non, retrait imposé (cf.72)
-	// // 1 : Oui //2:Oui, ou retrait imposé //TODO 3 : oui seulement si un bâtiment est déjà en limite de propriété
-	// 4 : Oui, mais sur un côté seulement
+	
+	//Implantation en limite séparative
+	//0 : non, retrait imposé (cf.72) 
+	//1 : Oui 
+	//2 : Oui, mais sur un côté seulement 
+	//3 : Oui seulement si un bâtiment est déjà en limite de propriété
 	public int getArt_71() {
 		return art_71;
 	}
@@ -547,7 +522,16 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	 * Replace some fake value by value used in simulator
 	 */
 	public void clean() {
+		
+		if(this.getArt_72() == 88 ||this.getArt_72() == 99) {
+			this.art_72 = 0;
+		}
 
+		if(this.getArt_73() == 88 ||this.getArt_73() == 99) {
+			this.art_73 = 0;
+		}
+		
+		
 		if (this.getArt_6() == 77) {
 			this.art_6 = 0;
 		}
