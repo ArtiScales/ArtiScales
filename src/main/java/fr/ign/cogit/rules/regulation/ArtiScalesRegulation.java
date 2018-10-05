@@ -24,8 +24,8 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	private String libelle_zone, libelle_de_base, libelle_de_dul, art_6_opt, art_6_optD, art_10_2, art_12, art_14;
 
 	private double art_5, art_6, art_72, art_73, art_8, art_9, art_13;
-	
-	//The UrbanZone that corresponds to the regulation
+
+	// The UrbanZone that corresponds to the regulation
 	private UrbaZone zone;
 
 	public ArtiScalesRegulation() {
@@ -55,12 +55,12 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 				fonctions = Integer.parseInt(lineSplited[i]);
 				break;
 			case "zonage_coherent":
-					zonage_coherent = Integer.parseInt(lineSplited[i]);
-					break;
+				zonage_coherent = Integer.parseInt(lineSplited[i]);
+				break;
 			case "correction_zonage":
 				correction_zonage = Integer.parseInt(lineSplited[i]);
 				break;
-		
+
 			case "oap":
 				oap = Integer.valueOf(lineSplited[i]);
 				break;
@@ -92,7 +92,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 				art_73 = Double.valueOf(lineSplited[i]);
 				break;
 			case "art_74":
-				art_74 =  Integer.valueOf(lineSplited[i]);
+				art_74 = Integer.valueOf(lineSplited[i]);
 				break;
 			case "art_8":
 				art_8 = Double.valueOf(lineSplited[i]);
@@ -118,19 +118,24 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 			case "art_14":
 				art_14 = lineSplited[i];
 				break;
-			default :
-				System.out.println("Unreckognized value : " +  lineSplited[i]+ "  value : " + i);
+			default:
+				System.out.println("Unreckognized value : " + lineSplited[i] + "  value : " + i);
 			}
 		}
 	}
-	
-	
+
 	public ArtiScalesRegulation clone() {
-		return new ArtiScalesRegulation(libelle_zone, insee, libelle_de_base, libelle_de_dul,
-				 fonctions,  oap,  zonage_coherent,  correction_zonage,  art_3,  art_4,  art_5,
-				 art_6,  art_6_opt,  art_6_optD,  art_71, art_72,  art_73,  art_74,
-				 art_8,  art_9,  art_10_top,  art_10_1,  art_10_2,  art_12,  art_13,
-				 art_14);
+		return new ArtiScalesRegulation(libelle_zone, insee, libelle_de_base, libelle_de_dul, fonctions, oap,
+				zonage_coherent, correction_zonage, art_3, art_4, art_5, art_6, art_6_opt, art_6_optD, art_71, art_72,
+				art_73, art_74, art_8, art_9, art_10_top, art_10_1, art_10_2, art_12, art_13, art_14);
+	}
+
+	public String toCSVLine() {
+		return libelle_zone + "," + insee + "," + libelle_de_base + "," + libelle_de_dul + "," + fonctions + "," + oap
+				+ "," + zonage_coherent + "," + correction_zonage + "," + art_3 + "," + art_4 + "," + art_5 + ","
+				+ art_6 + "," + art_6_opt + "," + art_6_optD + "," + art_71 + "," + art_72 + "," + art_73 + "," + art_74
+				+ "," + art_8 + "," + art_9 + "," + art_10_top + "," + art_10_1 + "," + art_10_2 + "," + art_12 + ","
+				+ art_13 + "," + art_14;
 	}
 
 	public ArtiScalesRegulation(String libelle_zone, int insee, String libelle_de_base, String libelle_de_dul,
