@@ -51,7 +51,17 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 			case "libelle_de_dul":
 				libelle_de_dul = lineSplited[i];
 				break;
-			case "OAP":
+			case "fonctions":
+				fonctions = Integer.parseInt(lineSplited[i]);
+				break;
+			case "zonage_coherent":
+					zonage_coherent = Integer.parseInt(lineSplited[i]);
+					break;
+			case "correction_zonage":
+				correction_zonage = Integer.parseInt(lineSplited[i]);
+				break;
+		
+			case "oap":
 				oap = Integer.valueOf(lineSplited[i]);
 				break;
 			case "art_3":
@@ -69,7 +79,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 			case "art_6_opt":
 				art_6_opt = lineSplited[i];
 				break;
-			case "art_6_optD":
+			case "art_6_optd":
 				art_6_optD = lineSplited[i];
 				break;
 			case "art_71":
@@ -80,6 +90,9 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 				break;
 			case "art_73":
 				art_73 = Double.valueOf(lineSplited[i]);
+				break;
+			case "art_74":
+				art_74 =  Integer.valueOf(lineSplited[i]);
 				break;
 			case "art_8":
 				art_8 = Double.valueOf(lineSplited[i]);
@@ -105,6 +118,8 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 			case "art_14":
 				art_14 = lineSplited[i];
 				break;
+			default :
+				System.out.println("Unreckognized value : " +  lineSplited[i]+ "  value : " + i);
 			}
 		}
 	}
