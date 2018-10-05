@@ -62,7 +62,7 @@ public class SelecMUPOutput {
 			File vectFile = new File(outputMup, outputMup.getName() + "-vectorized.shp");
 			// avoid alreadymade operation
 			if (!vectFile.exists()) {
-				OutputTools.VectorizeMupOutput(Rasters.importRaster(new File(outputMup, rasterMupOutput.getName())), vectFile,sizeCell) ;
+				OutputTools.vectorizeMupOutput(Rasters.importRaster(new File(outputMup, rasterMupOutput.getName())), vectFile,sizeCell) ;
 			}
 		}
 
