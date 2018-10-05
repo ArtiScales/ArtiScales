@@ -49,7 +49,7 @@ public class FakeWorldGenerator {
 		
 		
 		ArtiScalesRegulation regulationDefault3 = regulationDefault.clone();
-		regulationDefault2.setLibelle_de_dul("U2");
+		regulationDefault3.setLibelle_de_dul("U2");
 		regulationDefault3.setArt_71(5);
 		
 		regulations.add(regulationDefault);
@@ -76,7 +76,7 @@ public class FakeWorldGenerator {
 		 
 		for(ArtiScalesRegulation regulation: regulationList) {
 			//We create a zone with the right name
-			FakeZone fZ = new FakeZone((++count),  regulation.getLibelle_de_dul());
+			FakeZone fZ = new FakeZone(count,  regulation.getLibelle_de_dul());
 			
 			//We export the regulation
 		    in.write(regulation.toCSVLine()+  "\n");
@@ -86,6 +86,8 @@ public class FakeWorldGenerator {
 		    zones.addAll(fZ.getUrbaZones());
 		    buildings.addAll(fZ.getBuildings());
 		    roads.addAll(fZ.getRoads());
+		    
+		    count++;
 		}
 		
 
