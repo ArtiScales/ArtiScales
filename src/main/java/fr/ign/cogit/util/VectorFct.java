@@ -187,10 +187,10 @@ public class VectorFct {
 			IPolygon pol = (IPolygon) FromGeomToSurface.convertGeom(feat.getGeom()).get(0);
 
 			int numParcelle = 1;
-			OBBBlockDecomposition obb = new OBBBlockDecomposition(pol, maximalArea, maximalWidth, Random.random(), roadEpsilon, noise);
+			OBBBlockDecomposition obb = new OBBBlockDecomposition(pol, maximalArea, maximalWidth, Random.random(), roadEpsilon );
 			// TODO erreures récurentes sur le split
 			try {
-				IFeatureCollection<IFeature> featCollDecomp = obb.decompParcel();
+				IFeatureCollection<IFeature> featCollDecomp = obb.decompParcel(noise);
 				for (IFeature featDecomp : featCollDecomp) {
 					// MAJ du numéro de la parcelle
 					String newNum = feat.getAttribute("CODE") + String.valueOf(numParcelle);
