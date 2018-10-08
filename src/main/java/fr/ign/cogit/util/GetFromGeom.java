@@ -114,6 +114,15 @@ public class GetFromGeom {
 				return f;
 			}
 		}
+		
+		for (File f : pluFile.listFiles()) {
+			Pattern insee = Pattern.compile("zoneUrba");
+			String[] list = insee.split(f.toString());
+			if (list.length > 1 && list[1].equals(zipCode + ".shp")) {
+				return f;
+			}
+		}
+		
 		throw new FileNotFoundException("Zoning file not found");
 	}
 
