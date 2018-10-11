@@ -14,9 +14,9 @@ Remarque :  Si valeur exprimée en %, convertir en ratio. Ex : 5%= 5/100 = 0,05 
 
 ## Explications
 
-{{B1_ART_9}} indique le ratio maximal entre la surface bâtie et la surface de la parcelle.
+**{{ART_9}}** indique le ratio maximal entre la surface bâtie et la surface de la parcelle.
 
-![Image montrant la contrainte de distance entre deux  bâtiments](img/Regle-art-09.png)
+![Image montrant la contrainte de distance entre deux  bâtiments](img/rule-art-009.png)
 
 ## Implémentation
 

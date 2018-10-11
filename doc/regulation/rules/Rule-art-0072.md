@@ -2,7 +2,7 @@
 
 ## Modèle de phrase
 
-> Une distance par rapport aux limites séparatives latérales de la parcelle de {{B1_ART_72}} m doit être respectée.
+> Une distance par rapport aux limites séparatives latérales de la parcelle de **{{B1_ART_72}}** m doit être respectée.
 
 
 ## Paramètres
@@ -10,9 +10,10 @@
 
 ### art_72
 
-Implantation en limite séparatives :
+Distance de recul par rapport aux limites séparatives latérales :
 - **88** : non renseignable
 - **99** : non applicable
+- Autre valeur : distance en m.
 
 ## Explications
 
@@ -23,4 +24,4 @@ Implantation en limite séparatives :
 
 ## Implémentation
 
-La vérification de la distance s'effectue dans la classe CommonPredicateArtiScales. 
+La vérification de la distance s'effectue dans la classe CommonPredicateArtiScales.

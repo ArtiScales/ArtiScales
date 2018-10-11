@@ -2,7 +2,7 @@
 
 ## Modèle de phrase
 
-> Une distance de {{ART_73}} m doit être respecté par rapport au fond de la parcelle.
+> Une distance de **{{ART_73}}** m doit être respecté par rapport au fond de la parcelle.
 
 ## Paramètres
 
@@ -11,7 +11,6 @@
 Distance de recul en mètre par rapport au fond de la parcelle.
 
 Valeurs particulières :
-
 * 88 : non renseignable
 * 99 : non réglementé
 
@@ -19,7 +18,7 @@ Valeurs particulières :
 
 Un recul de  {{ART_73}} m s'applique par rapport au fond de la parcelle.
 
-![Image illustrant la contrainte de recul par rapport au fond de la parcelle](img/regle-art-73.png)
+![Image illustrant la contrainte de recul par rapport au fond de la parcelle](img/rule-art-0073.png)
 
 ## Implémentation
 

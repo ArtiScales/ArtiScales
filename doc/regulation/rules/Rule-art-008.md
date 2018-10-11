@@ -2,22 +2,22 @@
 
 ## Modèle de phrase
 
-> La distance entre les bâtiments au sein de la parcelle doit être supérieure à {{B1_ART_8}} m.
+> La distance entre les bâtiments au sein de la parcelle doit être supérieure à **{{ART_8}}** m.
 
 ## Paramètres
 
-### B1_ART_8
+### ART_8
 
 Valeur en mètre de la distance minimale à respecter entre deux bâtiments.
 
 ## Explications
 
-{{B1_ART_8}} indique la distance minimale qui doit être respectée entre deux bâtiments.
+**{{ART_8}}** indique la distance minimale qui doit être respectée entre deux bâtiments.
 Cela concerne les bâtiments existants et les bâtiments simulés (un bâtiment = ensemble connexe de boîtes).
-Si l'intersection entre boîtes est autorisée (cf paramètre {{intersection}}), une contre de distance s'ajoute etest fixée par la moitié de la hauteur du bâtiment le plus haut.
+Si l'intersection entre boîtes est autorisée (cf paramètre **{{intersection}}**), une autre distance s'ajoute et est fixée comme étant la moitié de la hauteur du bâtiment le plus haut.
 
 ![Image montrant la contrainte de distance entre deux bâtiments](img/rule-art-008.png)
 
 ## Implémentation
 
-La vérification de la distance s'effectue dans la classe CommonPredicateArtiScales en deux fois (1 entre bâtiments existants et simulés et 2 entre bâtiments simulés)
+La vérification de la distance s'effectue dans la classe CommonPredicateArtiScales en deux fois (1/ entre bâtiments existants et simulés et 2/ entre bâtiments simulés)

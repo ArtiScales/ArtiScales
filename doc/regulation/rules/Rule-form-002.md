@@ -9,4 +9,4 @@
 
 ## Explications
 
-L'objectif de cette règle est d'éviter que la configuration simulée ne dépasse de la parcelle. On vérifie que les boîtes composant la configuration bâtie soit incluses dans la parcelle (avec l'opérateur topologique contains).
+L'objectif de cette règle est d'éviter que la configuration simulée ne dépasse de la parcelle. On vérifie que les boîtes composant la configuration bâtie sont incluses dans la parcelle (avec l'opérateur topologique contains).

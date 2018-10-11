@@ -7,6 +7,6 @@
 
 ## Paramètres
 
-(Définit dans les prescriptions / à voir)
+(Définis dans les prescriptions / à voir)
 
 ## Explications

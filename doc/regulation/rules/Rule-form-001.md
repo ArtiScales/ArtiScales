@@ -2,11 +2,11 @@
 
 ## Définition
 
->  La configuration bâtie simulée est limité à **{{nbCuboid}}** boîtes
+>  La configuration bâtie simulée est limitée à **{{nbCuboid}}** boîtes
 
 ## Paramètres
 
-**{{nbCuboid}}** :  le nombre de boîtes maximales autorisée pour une configuration et est stocké dans le fichier XML des paramètres de scénarios (parametreScenario.xml).
+**{{nbCuboid}}** :  le nombre maximal de boîtes  autorisées pour une configuration est fixé à **{{nbCuboid}}**. Cette valeur est stockée dans le fichier XML des paramètres de scénarios (parametreScenario.xml).
 
 ## Explications
 
