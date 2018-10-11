@@ -2,7 +2,7 @@
 
 ## Principe
 
-Afin de permettre la simulation locale de formes avec [SimPLU3D](https://github.com/SimPLU3D/simplu3D), ArtiScales doit prendre en compte un certain nombre de règles issues du PLU. Cette proposition de modélisation a été faite d'après le format CartoPLU+ de l'IAUIDF et d'ajouts nécessaires relativement au document d'urbanisme de la Communauté d'Agglomération du Grand Besançon.
+Afin de permettre la simulation locale de formes avec [SimPLU3D](https://github.com/SimPLU3D/simplu3D), ArtiScales doit prendre en compte un certain nombre de règles issues du PLU, des SUP et des contraintes de forme. LA proposition de modélisation sur les aspects réglementaires a été faite d'après le format CartoPLU+ de l'IAUIDF et d'ajouts nécessaires relativement au document d'urbanisme de la Communauté d'Agglomération du Grand Besançon.
 
 Certaines règles portent sur les PLU (et modélisées dans le CSV) et d'autres sont des ajouts pour simuler différents types de bâtiments (et non stockées dans le fichier CSV)
 
