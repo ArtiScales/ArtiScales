@@ -1,17 +1,17 @@
-# Illustration des règles utilisées par ArtiScales
+# Documentation des règles utilisées par ArtiScales
 
 ## Principe
 
-Afin de permettre la simulation locale de formes avec [SimPLU3D](https://github.com/SimPLU3D/simplu3D), ArtiScales doit prendre en compte un certain nombre de règles issues du PLU, des SUP et des contraintes de forme. LA proposition de modélisation sur les aspects réglementaires a été faite d'après le format CartoPLU+ de l'IAUIDF et d'ajouts nécessaires relativement au document d'urbanisme de la Communauté d'Agglomération du Grand Besançon.
+Afin de permettre la simulation locale de formes avec [SimPLU3D](https://github.com/SimPLU3D/simplu3D), ArtiScales doit prendre en compte un certain nombre de règles issues du PLU, des SUP et des contraintes de forme. La proposition de modélisation sur les aspects réglementaires a été faite d'après le format CartoPLU+ de l'IAUIDF et d'ajouts nécessaires relativement aux documents d'urbanisme de la Communauté d'Agglomération du Grand Besançon.
 
-Certaines règles portent sur les PLU (et modélisées dans le CSV) et d'autres sont des ajouts pour simuler différents types de bâtiments (et non stockées dans le fichier CSV)
+Certaines règles portent sur les PLU (et sont modélisées dans le predicate.csv), les règles concernant les SUP se trouvent les fichiers (prescriptionXXX.shp) et les contraintes concernant les formes du bâtiments sont stockés avec les paramètres de scénarios (parametreScenario.xml).
 
 ## Règles et application des règles du PLU
 
-Les règles sont stockées dans un format CSV, la tableau ci-dessous reprend :
-- les différentes colonnes définies dans le format
-- le lien vers la page définissant comment la contrainte s'applique sur une unité foncière
-- l'état d'avancement de l'implémentation de ces contraintes.
+Les règles sont stockées dans un format CSV, le tableau ci-dessous reprend :
+- les différentes colonnes définies dans le format ;
+- le lien vers la page définissant comment la contrainte s'applique sur une unité foncière ;
+- l'état d'avancement de l'implémentation de ces contraintes ;
 - des remarques éventuelles.
 
 | Nom de l'attribut     | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Page associée                                        | État                                                                                                                 | Notes                                                                                                                  |

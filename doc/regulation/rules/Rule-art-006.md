@@ -9,9 +9,9 @@
 ### ART_6
 
 Différentes valeurs sont possibles :
-- 1.0 : Alignement du bâtiment le long de la voirie (Non implémenté, redéfinir la valeur)
-- 44.0 : Application d'un prospect par rapport à la voirie d'après le RNU
-- 55.0 : Contrainte de recul appliquée par rapport à la voirie en fonction du paramètre (art_6_optD). (Mal défini et non implémenté)
+- **1.0** : Alignement du bâtiment le long de la voirie (Non implémenté, redéfinir la valeur)
+- **44.0** : Application d'un prospect par rapport à la voirie d'après le RNU
+- **55.0** : Contrainte de recul appliquée par rapport à la voirie en fonction du paramètre (art_6_optD). (Mal défini et non implémenté)
 - Autre valeur : valeur en m du recul du bâtiment par rapport à la voirie
 
 

@@ -2,7 +2,7 @@
 
 ## Modèle de phrase
 
-> Une distance de **{{ART_73}}** m doit être respecté par rapport au fond de la parcelle.
+> Une distance de **{{ART_73}}** m doit être respectée par rapport au fond de la parcelle.
 
 ## Paramètres
 
