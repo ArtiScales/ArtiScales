@@ -2,8 +2,11 @@ package fr.ign.cogit;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -25,10 +28,28 @@ public class SelecMUPOutput {
 		rasterMupOutputList = rastermupoutputList;
 	}
 
+	private static void deleteDirectoryStream(Path path) throws IOException {
+		  Files.walk(path)
+		    .sorted(Comparator.reverseOrder())
+		    .map(Path::toFile)
+		    .forEach(File::delete);
+		}
+	
 	public static void main(String[] args) throws Exception {
+		
+		String folder = "/tmp/tmp/";
+		
+		System.out.println("Sleeping");
+		
+		Thread.sleep(1000);
+		
+		deleteDirectoryStream((new File(folder)).toPath());
+		
 		List<File> listMupOut = new ArrayList<File>();
-		listMupOut.add(new File("/home/mcolomb/donnee/couplage/depotConfigSpat/N5_Ba_Moy_ahpx_seed42-eval_anal-20.0.tif"));
-		run(new File("/home/mcolomb/donnee/couplage"), listMupOut);
+		long t = System.currentTimeMillis();
+		listMupOut.add(new File("/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales/depotConfigSpatMUP/Stability-dataAutom-CM20.0-S0.0-GP_915948.0_6677337.0--N6_St_Moy_ahpx_seed_1180786471690866433-evalAnal-20.0.tif"));
+		run(new File(folder), listMupOut);
+		System.out.println((System.currentTimeMillis() - t) / 1000 + "  s");
 	}
 
 	public static List<File> run(File rootfile, List<File> listRaster) throws Exception {
@@ -36,6 +57,8 @@ public class SelecMUPOutput {
 		SelecMUPOutput smo = new SelecMUPOutput(rootfile, listRaster);
 		return smo.run();
 	}
+	
+
 
 	/**
 	 * Vectorise les sorties de MUP-City et les copient dans le répertoire "output".

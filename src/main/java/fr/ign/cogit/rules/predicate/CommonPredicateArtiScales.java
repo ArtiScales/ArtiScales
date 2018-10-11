@@ -266,24 +266,32 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 		/////////// General constraints that is always checked
 
 		// We check if the number of cuboids does not exceed the max
+		//In documentation : Rule-form-001
 		if (!cRO.checkNumberOfBuildings(lAllCuboids, nbCuboid)) {
 			return false;
 		}
 
 		// Checking only for new cuboids
+		//In documentation : Rule-form-002
 		for (O cuboid : lONewCuboids) {
 			// Does the cuboid lays inside the basic property unit
+			//In documentation : Rule-form-002
 			if (!cRO.checkIfContainsGeometry(cuboid, bPUGeom)) {
 				return false;
 			}
 
 			// Checking prescriptions alignement
+			//Rule-sup-001
+			//@TODO : TO IMPLEMENT 
+			/*
 			if (!cRO.checkAlignementPrescription(cuboid, prescriptions, align, jtsCurveLimiteFrontParcel)) {
 				return false;
-			}
+			}*/
 
+			
 			// We check if the cuboids intersects the forbiddent zone
 			// ATTENTION : Ons renvoie faux lorsque l'intersection a lieu
+			//Rule-sup-002
 			if (cRO.checkIfIntersectsGeometry(cuboid, this.forbiddenZone)) {
 				return false;
 			}
@@ -299,6 +307,8 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 			for (ArtiScalesRegulation regle : lRegles) {
 
 				// type of distance to the parcel limits
+				//Rule-art-0071
+				//@TODO
 				switch (regle.getArt_71()) {
 				// alignement interdit
 				case 0:
@@ -317,13 +327,19 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 				}
 
-				// Distance to the bottom of the parcel
-				if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFondParcel, regle.getArt_73())) {
-					return false;
-				}
+	
 
 				// Distance to the front of the parcel
+				//Rule-art-0072
 				if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteLatParcel, regle.getArt_72())) {
+					return false;
+				}
+				
+				
+				
+				// Distance to the bottom of the parcel
+				//Rule-art-0073
+				if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFondParcel, regle.getArt_73())) {
 					return false;
 				}
 
@@ -331,37 +347,53 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 				//////// Distance to the front of the parcel
 				// multiple cases of Art_6 rules
-				if (regle.getArt_6() == 0) {
+				//Rule-art-006
+				double art_6 = regle.getArt_6();
+				switch (art_6+"") {
+				case "1.0":
+					/*
 					if (cRO.checkAlignement(cuboid, jtsCurveLimiteFrontParcel)) {
 						return false;
-					}
-				} else if (regle.getArt_6() == 55) {
-					double dist = Double.valueOf(regle.getArt_6_optD().split("-")[0]);
-					if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, dist)
-							|| cRO.checkAlignement(cuboid, jtsCurveLimiteFrontParcel)) {
-						return false;
-					}
-				}
+					}*/
+					System.out.println("CASE NOT ESTIMATED");
+					break;
 
-				// the prospect of slope 1 ruel (usde in the RNU)
-				else if (regle.getArt_6() == 44) {
+				case "55.0":
+						/*
+						double dist = Double.valueOf(regle.getArt_6_optD().split("-")[0]);
+						if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, dist)
+								|| cRO.checkAlignement(cuboid, jtsCurveLimiteFrontParcel)) {
+							return false;
+						}*/
+						System.out.println("CASE NOT ESTIMATED");
+					break;
+				case "44.0":
 					if (!cRO.checkProspectRNU(cuboid, jtsCurveOppositeLimit)) {
 						return false;
 					}
+					break;
+				
+				default:
+					if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, regle.getArt_6())) {
+						return false;
+					}
+					break;
 				}
-				// regular rules
-				else if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, regle.getArt_6())) {
-					return false;
-				}
+				
+		
+		
+				//art_6_opt
 				// distance en fonction d'une route
+				/*
 				if (regle.getArt_6_opt() == "1") {
 					double dist = Double.valueOf(regle.getArt_6_optD().split("-")[0]);
 					String nRoute = regle.getArt_6_optD().split("-")[1];
 					// TODO dist en fonction d'une route (peut on choper son attribut?
 
-				}
+				}*/
 
 				// We check the constrain distance according to existing buildings
+				//art_8 (distance aux bâtiments existants)
 				if (!cRO.checkDistanceBetweenCuboidandBuildings(cuboid, this.currentBPU, regle.getArt_8())) {
 					return false;
 				}
@@ -371,7 +403,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 			/////////// Groups or whole configuration constraints
 
 			// Getting the maxCES according to the implementation
-
+			//art_9
 			double maxCES = this.getMaxCES();
 			// Checking the builtRatio
 			if (!cRO.checkBuiltRatio(lAllCuboids, currentBPU, maxCES)) {
@@ -384,12 +416,13 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 			List<List<O>> groupList = groupCreator.createGroup(lAllCuboids, 0.1);
 			if (intersection) {
+				//art_8 et 	//art_form_4
 				// If intersection is allowed, we check the width of the building
 				if (!cRO.checkBuildingWidth(groupList, 7.5, determineDoubleDistanceForGroup(groupList)))
 					return false;
 
 			} else {
-
+				//art_8
 				List<Double> distances = determineDoubleDistanceForList(lAllCuboids);
 				if (!cRO.checkDistanceInterCuboids(lAllCuboids, distances)) {
 					return false;
