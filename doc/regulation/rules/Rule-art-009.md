@@ -2,7 +2,7 @@
 
 ## Modèle de phrase
 
-> Le coefficient d'emprise au sol (rapport entre surface bâtie et surface de la parcelle) est limité à {{ART_9}}.
+> Le coefficient d'emprise au sol (rapport entre surface bâtie et surface de la parcelle) est limité à **{{ART_9}}**.
 
 ## Paramètres
 
@@ -10,7 +10,7 @@
 
 Valeur maximale du coefficient d'emprise au sol (entre 0 et 1)
 
-Remarque :  Si valeur exprimée en %, convertir en ratio. Ex : 5%= 5/100 = 0,05 ; 85%= 85/100 = 0.85
+Remarque : la valeur exprimée en %, convertir en ratio. Ex : 5%= 5/100 = 0,05 ; 85%= 85/100 = 0.85
 
 ## Explications
 
@@ -20,4 +20,4 @@ Remarque :  Si valeur exprimée en %, convertir en ratio. Ex : 5%= 5/100 = 0,05 
 
 ## Implémentation
 
-La vérification du ratio s'effectue dans la classe CommonPredicateArtiScales. Si la parcelle intersecte plusieurs zones, le coefficient est évolué au pro rata des valeurs des zones intersectées.
+La vérification du ratio s'effectue dans la classe CommonPredicateArtiScales. Si l'unité foncière intersecte plusieurs zones, le coefficient est évalué au prorata des valeurs des zones intersectées.
