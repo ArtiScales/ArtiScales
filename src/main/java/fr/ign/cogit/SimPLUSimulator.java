@@ -38,6 +38,7 @@ import fr.ign.cogit.simplu3d.io.feature.AttribNames;
 import fr.ign.cogit.simplu3d.io.nonStructDatabase.shp.LoaderSHP;
 import fr.ign.cogit.simplu3d.model.BasicPropertyUnit;
 import fr.ign.cogit.simplu3d.model.Environnement;
+import fr.ign.cogit.simplu3d.model.ParcelBoundarySide;
 import fr.ign.cogit.simplu3d.model.Prescription;
 import fr.ign.cogit.simplu3d.model.SubParcel;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.Cuboid;
@@ -382,6 +383,8 @@ public class SimPLUSimulator {
 
 		return listBatiSimu;
 	}
+	
+	
 
 	/**
 	 * Simulation for the ie bPU
@@ -451,7 +454,7 @@ public class SimPLUSimulator {
 		Double areaParcels = bPU.getArea(); // .getCadastralParcels().stream().mapToDouble(x -> x.getArea()).sum();
 
 
-		GraphConfiguration<Cuboid> cc;
+		GraphConfiguration<Cuboid> cc = null;
 		
 		
 		 Alignements alignementsGeometries = pred.getAlignements();
@@ -463,41 +466,68 @@ public class SimPLUSimulator {
 			ParallelCuboidOptimizer oCB = new ParallelCuboidOptimizer();
 
 			IMultiSurface<IOrientableSurface> iMSSamplinSurface = new GM_MultiSurface<>();
-			
+			// art-0071 implentation (begin)
 			//LEFT SIDE IS TESTED
 			IGeometry[] leftAlignement = alignementsGeometries.getLeftSide();
 			
-			for (IGeometry geom : leftAlignement) {
-				iMSSamplinSurface.addAll(FromGeomToSurface.convertGeom(geom.buffer(p.getDouble("maxwidth") / 2)));
-			}
+			if(leftAlignement!=null && (leftAlignement.length > 0)) {
+				for (IGeometry geom : leftAlignement) {
+					iMSSamplinSurface.addAll(FromGeomToSurface.convertGeom(geom.buffer(p.getDouble("maxwidth") / 2)));
+				}
+				
+				pred.setSide(ParcelBoundarySide.LEFT);
 
-			// Run of the optimisation on a parcel with the predicate
-			cc = oCB.process(new MersenneTwister(), bPU, new SimpluParametersXML(p), env, i, pred, leftAlignement,
-					iMSSamplinSurface);
+				// Run of the optimisation on a parcel with the predicate
+				cc = oCB.process(new MersenneTwister(), bPU, new SimpluParametersXML(p), env, i, pred, leftAlignement,
+						iMSSamplinSurface);
+			}
+			
+			
 			
 			//RIGHT SIDE IS TESTED
-			iMSSamplinSurface = new GM_MultiSurface<>();			
+						
 			
 			IGeometry[] rightAlignement = alignementsGeometries.getRightSide();
-			
-			for (IGeometry geom : rightAlignement) {
-				iMSSamplinSurface.addAll(FromGeomToSurface.convertGeom(geom.buffer(p.getDouble("maxwidth") / 2)));
+			GraphConfiguration<Cuboid> cc2 =null;
+			if(rightAlignement!=null && (rightAlignement.length > 0)) {
+				
+				iMSSamplinSurface = new GM_MultiSurface<>();
+				oCB = new ParallelCuboidOptimizer();
+				for (IGeometry geom : rightAlignement) {
+					iMSSamplinSurface.addAll(FromGeomToSurface.convertGeom(geom.buffer(p.getDouble("maxwidth") / 2)));
+				}
+				
+				pred.setSide(ParcelBoundarySide.RIGHT);
+				
+				cc2 = oCB.process(new MersenneTwister(), bPU, new SimpluParametersXML(p), env, i, pred, rightAlignement,
+						iMSSamplinSurface);
 			}
 			
-			
-			GraphConfiguration<Cuboid> cc2 = oCB.process(new MersenneTwister(), bPU, new SimpluParametersXML(p), env, i, pred, rightAlignement,
-					iMSSamplinSurface);
-			
-			if(cc.getEnergy() < cc2.getEnergy()) {
-				//We keep the configuratino with the best energy
+			if(cc ==null) {
 				cc = cc2;
 			}
 			
+			if(cc2 != null) {
+				if(cc.getEnergy() < cc2.getEnergy()) {
+					//We keep the configuratino with the best energy
+					cc = cc2;
+				}
+				
+			}
 			
+			if(cc ==null) {
+				return null;
+			}
+	
+			// art-0071 implentation (end)
 			
 		} else {
 			OptimisedBuildingsCuboidFinalDirectRejection oCB = new OptimisedBuildingsCuboidFinalDirectRejection();
 			cc = oCB.process(bPU, new SimpluParametersXML(p), env, i, pred);
+			
+			if(cc ==null) {
+				return null;
+			}
 		}
 
 
