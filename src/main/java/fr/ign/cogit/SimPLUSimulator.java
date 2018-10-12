@@ -446,7 +446,7 @@ public class SimPLUSimulator {
 		}
 
 		if (!(pred.isCanBeSimulated())) {
-			System.out.println("Parcel is overlapped by graphical prescriptions");
+			System.out.println("Parcel is not simulable according to the rules");
 			return null;
 		}
 		logXml.addLine("usedPredicate", pred.toString());

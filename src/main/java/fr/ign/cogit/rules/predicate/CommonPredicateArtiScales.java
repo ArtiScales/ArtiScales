@@ -235,8 +235,8 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 		}
 		
 		
-		if (!curveLimiteLatRightParcel.isEmpty()) {
-			this.jtsCurveLimiteLatParcelLeft = AdapterFactory.toGeometry(gf, curveLimiteLatRightParcel);
+		if (!curveLimiteLatLeftParcel.isEmpty()) {
+			this.jtsCurveLimiteLatParcelLeft = AdapterFactory.toGeometry(gf, curveLimiteLatLeftParcel);
 		}
 		
 		
