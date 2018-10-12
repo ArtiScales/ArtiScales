@@ -15,9 +15,13 @@ import org.opengis.feature.simple.SimpleFeature;
 import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
+import fr.ign.cogit.geoxygene.api.spatial.geomaggr.IMultiSurface;
+import fr.ign.cogit.geoxygene.api.spatial.geomprim.IOrientableSurface;
 import fr.ign.cogit.geoxygene.api.spatial.geomroot.IGeometry;
+import fr.ign.cogit.geoxygene.convert.FromGeomToSurface;
 import fr.ign.cogit.geoxygene.feature.DefaultFeature;
 import fr.ign.cogit.geoxygene.feature.FT_FeatureCollection;
+import fr.ign.cogit.geoxygene.spatial.geomaggr.GM_MultiSurface;
 import fr.ign.cogit.geoxygene.util.attribute.AttributeManager;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileWriter;
 import fr.ign.cogit.indicators.BuildingToHousingUnit;
@@ -453,15 +457,23 @@ public class SimPLUSimulator {
 		geomLimits[0] = bPU.getCadastralParcels().get(0).getBoundaries().get(0).getGeom();
 		
 		GraphConfiguration<Cuboid> cc ;
-		
-		if(pred.getAlignement() != null&& (pred.getAlignement().length !=0)) {
+		IGeometry[] alignementsGeometries = pred.getAlignement();
+		if(alignementsGeometries != null&& (alignementsGeometries.length !=0)) {
 			
 	
 			// Instantiation of the sampler
 			//
 			ParallelCuboidOptimizer oCB = new ParallelCuboidOptimizer();
+			
+			IMultiSurface<IOrientableSurface> iMSSamplinSurface = new GM_MultiSurface<>();
+			
+			for(IGeometry geom : alignementsGeometries) {
+				iMSSamplinSurface.addAll(FromGeomToSurface.convertGeom(geom.buffer(p.getDouble("maxwidth")/2)));
+			}
+			
+			
 			// Run of the optimisation on a parcel with the predicate
-			cc = oCB.process(new MersenneTwister(), bPU, new SimpluParametersXML(p), env, i, pred,pred.getAlignement() , bPU.getGeom());
+			cc = oCB.process(new MersenneTwister(), bPU, new SimpluParametersXML(p), env, i, pred,pred.getAlignement() , iMSSamplinSurface);
 		}else {
 			OptimisedBuildingsCuboidFinalDirectRejection oCB = new OptimisedBuildingsCuboidFinalDirectRejection();
 			cc = oCB.process( bPU, new SimpluParametersXML(p), env, i, pred);			
