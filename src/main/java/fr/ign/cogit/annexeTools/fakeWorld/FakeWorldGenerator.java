@@ -45,12 +45,12 @@ public class FakeWorldGenerator {
 		ArtiScalesRegulation regulationDefault2 = regulationDefault.clone();
 		//Important to change to get the right regulation recognized
 		regulationDefault2.setLibelle_de_dul("U1");
-		regulationDefault2.setArt_8(5);
+		regulationDefault2.setArt_5(500);
 		
 		
 		ArtiScalesRegulation regulationDefault3 = regulationDefault.clone();
 		regulationDefault3.setLibelle_de_dul("U2");
-		regulationDefault3.setArt_71(5);
+		regulationDefault3.setArt_5(99);
 		
 		regulations.add(regulationDefault);
 		regulations.add(regulationDefault2);

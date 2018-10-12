@@ -52,6 +52,20 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 			mapGeomRegulation.put(AdapterFactory.toGeometry(gf,subParcelGeometry),
 					(ArtiScalesRegulation) uZ.getZoneRegulation());
 
+			
+			
+			double aireMinimale = ((ArtiScalesRegulation)uZ.getZoneRegulation()).getArt_5();
+			
+			//##Rule-art-005
+			if(aireMinimale != 99.0) {
+				
+				if(currentBPU.getArea() < aireMinimale) {
+					canBeSimulated = false;
+				}
+			}
+			
+			
+			
 		}
 
 		// We clean all regulation (Removing fake values from regulation object)
@@ -126,6 +140,9 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 
 		return lArtiScalesRegulation;
 	}
+	
+	
+
 
 	// Default maxCES value
 	private double maxCES = 1;

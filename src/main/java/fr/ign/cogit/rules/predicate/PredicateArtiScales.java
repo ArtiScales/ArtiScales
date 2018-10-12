@@ -47,6 +47,17 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 		
 		this.p.set("maxheight", this.getMaxHeight());
 		this.p.set("minheight", this.getMinHeight());
+		
+		
+		double aireMinimale = regle.getArt_5();
+		
+		//##Rule-art-005
+		if(aireMinimale != 99.0) {
+			
+			if(currentBPU.getArea() < aireMinimale) {
+				canBeSimulated = false;
+			}
+		}
 	}
 
 	/*

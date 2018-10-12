@@ -535,5 +535,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 	public boolean isCanBeSimulated() {
 		return canBeSimulated;
 	}
+	
+	
 
 }
