@@ -15,6 +15,7 @@ import fr.ign.cogit.geoxygene.api.spatial.geomprim.IOrientableCurve;
 import fr.ign.cogit.geoxygene.api.spatial.geomroot.IGeometry;
 import fr.ign.cogit.geoxygene.spatial.geomaggr.GM_MultiCurve;
 import fr.ign.cogit.geoxygene.util.conversion.AdapterFactory;
+import fr.ign.cogit.rules.regulation.Alignements;
 import fr.ign.cogit.rules.regulation.ArtiScalesRegulation;
 import fr.ign.cogit.simplu3d.analysis.ForbiddenZoneGenerator;
 import fr.ign.cogit.simplu3d.model.AbstractBuilding;
@@ -309,7 +310,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 			for (ArtiScalesRegulation regle : lRegles) {
 
-				// type of distance to the parcel limits
+				// Alignement to separative limits
 				//Rule-art-0071
 				//@TODO
 				switch (regle.getArt_71()) {
@@ -509,15 +510,19 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 				+ currentBPU.getCadastralParcels().toString();
 	}
 	
+	private Alignements alignements = null;
 	
-	public IGeometry[] getAlignement() {
-		IGeometry[] geomLimits = new IGeometry[0];
-		//Exemple de valeur attendue
-		//geomLimits[0] = currentBPU.getCadastralParcels().get(0).getBoundaries().get(0).getGeom();
+	public Alignements getAlignements() {
+		
 
-		return geomLimits;
+		if(alignements == null) {
+			return new Alignements(this.getAllRegulation(), this.currentBPU);
+		}
+		return alignements;
 	}
 
+	protected abstract List<ArtiScalesRegulation> getAllRegulation();
+	
 	// Determine for a cuboid the list of constraints that has to be ckecked
 	protected abstract List<ArtiScalesRegulation> getRegulationToApply(O cuboid);
 

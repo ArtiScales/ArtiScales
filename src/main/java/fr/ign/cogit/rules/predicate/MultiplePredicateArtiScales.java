@@ -185,4 +185,9 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 		return mapGeomRegulation.values().stream().mapToDouble(x -> cRO.hauteur(p, x, heighSurroundingBuildings)[1]).max().getAsDouble();
 	}
 
+	@Override
+	protected List<ArtiScalesRegulation> getAllRegulation() {
+		return new ArrayList<>(mapGeomRegulation.values());
+	}
+
 }

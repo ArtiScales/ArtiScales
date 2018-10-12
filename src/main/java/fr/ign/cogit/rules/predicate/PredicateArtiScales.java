@@ -106,4 +106,11 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 		return cRO.hauteur(p, regles, heighSurroundingBuildings)[0];
 	}
 
+	@Override
+	protected List<ArtiScalesRegulation> getAllRegulation() {
+		List<ArtiScalesRegulation> regulations = new ArrayList<>();
+		regulations.add(this.regles);
+		return regulations;
+	}
+
 }

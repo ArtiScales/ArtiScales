@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.math3.random.MersenneTwister;
 import org.geotools.data.shapefile.ShapefileDataStore;
@@ -31,6 +32,7 @@ import fr.ign.cogit.rules.io.ZoneRulesAssociation;
 import fr.ign.cogit.rules.predicate.CommonPredicateArtiScales;
 import fr.ign.cogit.rules.predicate.MultiplePredicateArtiScales;
 import fr.ign.cogit.rules.predicate.PredicateArtiScales;
+import fr.ign.cogit.rules.regulation.Alignements;
 import fr.ign.cogit.rules.regulation.ArtiScalesRegulation;
 import fr.ign.cogit.simplu3d.io.feature.AttribNames;
 import fr.ign.cogit.simplu3d.io.nonStructDatabase.shp.LoaderSHP;
@@ -42,6 +44,8 @@ import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.Cuboid;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.loader.LoaderCuboid;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.optimizer.cuboid.OptimisedBuildingsCuboidFinalDirectRejection;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.optimizer.paralellcuboid.ParallelCuboidOptimizer;
+import fr.ign.cogit.simplu3d.rjmcmc.generic.object.ISimPLU3DPrimitive;
+import fr.ign.cogit.simplu3d.rjmcmc.generic.optimizer.DefaultSimPLU3DOptimizer;
 import fr.ign.cogit.simplu3d.util.SDPCalc;
 import fr.ign.cogit.util.GetFromGeom;
 import fr.ign.cogit.util.SimpluParametersXML;
@@ -396,12 +400,6 @@ public class SimPLUSimulator {
 
 		BasicPropertyUnit bPU = env.getBpU().get(i);
 
-		/*
-		 * //Valeur de l'attribut dans les parcelles en entrée : // AttribNames.
-		 * ATT_HAS_TO_BE_SIMULATED = "SIMUL"; //On simule la parcelle si elle doit être
-		 * simulée if(! bPU.getCadastralParcels().get(0).hasToBeSimulated()) { return
-		 * null; }
-		 */
 
 		// List ID Parcelle to Simulate is not empty
 		if (!ID_PARCELLE_TO_SIMULATE.isEmpty()) {
@@ -429,7 +427,7 @@ public class SimPLUSimulator {
 
 		CommonPredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = null;
 
-		// According to the case, different prediactes may be used
+		// According to the case, different predicates may be used
 		// Do we consider 1 regualtion by parcel or one by subParcel ?
 		if (!USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL || bPU.getCadastralParcels().get(0).getSubParcels().size() < 2) {
 			// In this mod there is only one regulation for the entire BPU
@@ -452,50 +450,69 @@ public class SimPLUSimulator {
 		// We compute the parcel area
 		Double areaParcels = bPU.getArea(); // .getCadastralParcels().stream().mapToDouble(x -> x.getArea()).sum();
 
-		IGeometry[] geomLimits = new IGeometry[1];
-		geomLimits[0] = bPU.getCadastralParcels().get(0).getBoundaries().get(0).getGeom();
 
 		GraphConfiguration<Cuboid> cc;
-		IGeometry[] alignementsGeometries = pred.getAlignement();
-		if (alignementsGeometries != null && (alignementsGeometries.length != 0)) {
+		
+		
+		 Alignements alignementsGeometries = pred.getAlignements();
+
+		
+		if (alignementsGeometries.getHasAlignement()) {
 
 			// Instantiation of the sampler
-			//
 			ParallelCuboidOptimizer oCB = new ParallelCuboidOptimizer();
 
 			IMultiSurface<IOrientableSurface> iMSSamplinSurface = new GM_MultiSurface<>();
-
-			for (IGeometry geom : alignementsGeometries) {
+			
+			//LEFT SIDE IS TESTED
+			IGeometry[] leftAlignement = alignementsGeometries.getLeftSide();
+			
+			for (IGeometry geom : leftAlignement) {
 				iMSSamplinSurface.addAll(FromGeomToSurface.convertGeom(geom.buffer(p.getDouble("maxwidth") / 2)));
 			}
 
 			// Run of the optimisation on a parcel with the predicate
-			cc = oCB.process(new MersenneTwister(), bPU, new SimpluParametersXML(p), env, i, pred, pred.getAlignement(),
+			cc = oCB.process(new MersenneTwister(), bPU, new SimpluParametersXML(p), env, i, pred, leftAlignement,
 					iMSSamplinSurface);
+			
+			//RIGHT SIDE IS TESTED
+			iMSSamplinSurface = new GM_MultiSurface<>();			
+			
+			IGeometry[] rightAlignement = alignementsGeometries.getRightSide();
+			
+			for (IGeometry geom : rightAlignement) {
+				iMSSamplinSurface.addAll(FromGeomToSurface.convertGeom(geom.buffer(p.getDouble("maxwidth") / 2)));
+			}
+			
+			
+			GraphConfiguration<Cuboid> cc2 = oCB.process(new MersenneTwister(), bPU, new SimpluParametersXML(p), env, i, pred, rightAlignement,
+					iMSSamplinSurface);
+			
+			if(cc.getEnergy() < cc2.getEnergy()) {
+				//We keep the configuratino with the best energy
+				cc = cc2;
+			}
+			
+			
+			
 		} else {
 			OptimisedBuildingsCuboidFinalDirectRejection oCB = new OptimisedBuildingsCuboidFinalDirectRejection();
 			cc = oCB.process(bPU, new SimpluParametersXML(p), env, i, pred);
 		}
 
-		//
 
-		IFeatureCollection<IFeature> iFeat3D = new FT_FeatureCollection<>();
-		for (GraphVertex<Cuboid> v : cc.getGraph().vertexSet()) {
-			IFeature feat = new DefaultFeature(v.getValue().generated3DGeom());
-			iFeat3D.add(feat);
-		}
-
-		List<Cuboid> cubes = LoaderCuboid.loadFromCollection(iFeat3D);
+		//Getting cuboid into list
+		List<Cuboid> cubes = cc.getGraph().vertexSet().stream().map(x -> x.getValue()).collect(Collectors.toList());
 		SDPCalc surfGen = new SDPCalc();
 		double surfacePlancherTotal = surfGen.process(cubes);
 		double surfaceAuSol = surfGen.processSurface(cubes);
-		// Witting the output
-		IFeatureCollection<IFeature> iFeatC = new FT_FeatureCollection<>();
+	
 
 		// get multiple zone regulation infos infos
 		List<String> typeZones = new ArrayList<>();
 		List<String> libelles = new ArrayList<>();
 
+		//@TODO : what is this supposed to do ?
 		for (SubParcel subParcel : bPU.getCadastralParcels().get(0).getSubParcels()) {
 			String temporaryTypeZone = subParcel.getUrbaZone().getTypeZone();
 			String temporarylibelle = subParcel.getUrbaZone().getLibelle();
@@ -521,6 +538,10 @@ public class SimPLUSimulator {
 		if (libellesFinal.endsWith("+")) {
 			libellesFinal.substring(0, libellesFinal.length() - 1);
 		}
+		
+		
+		// Writting the output
+		IFeatureCollection<IFeature> iFeatC = new FT_FeatureCollection<>();
 
 		// For all generated boxes
 		for (GraphVertex<Cuboid> v : cc.getGraph().vertexSet()) {
@@ -554,7 +575,7 @@ public class SimPLUSimulator {
 		// pas me permettre de ne pas prendre en compte un des seuls trucs que
 		// je peux sortir de mes quatre ans d'étude pour cette these..!)
 
-		// méthode de calcul d'air simpliste
+		// méthode de calcul d'aire simpliste
 
 		File output = new File(simuFile, "out-parcelle_" + i + ".shp");
 		logXml.addLine("OutputBuildingPath", output.getCanonicalPath());
