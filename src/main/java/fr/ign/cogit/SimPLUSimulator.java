@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import org.apache.commons.math3.random.MersenneTwister;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.feature.DefaultFeatureCollection;
@@ -14,6 +15,7 @@ import org.opengis.feature.simple.SimpleFeature;
 import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
+import fr.ign.cogit.geoxygene.api.spatial.geomroot.IGeometry;
 import fr.ign.cogit.geoxygene.feature.DefaultFeature;
 import fr.ign.cogit.geoxygene.feature.FT_FeatureCollection;
 import fr.ign.cogit.geoxygene.util.attribute.AttributeManager;
@@ -35,7 +37,9 @@ import fr.ign.cogit.simplu3d.model.SubParcel;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.Cuboid;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.loader.LoaderCuboid;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.optimizer.cuboid.OptimisedBuildingsCuboidFinalDirectRejection;
+import fr.ign.cogit.simplu3d.rjmcmc.cuboid.optimizer.paralellcuboid.ParallelCuboidOptimizer;
 import fr.ign.cogit.simplu3d.util.SDPCalc;
+import fr.ign.cogit.simplu3d.util.SimpluParameters;
 import fr.ign.cogit.util.GetFromGeom;
 import fr.ign.cogit.util.SimpluParametersXML;
 import fr.ign.cogit.util.VectorFct;
@@ -43,6 +47,7 @@ import fr.ign.mpp.configuration.BirthDeathModification;
 import fr.ign.mpp.configuration.GraphConfiguration;
 import fr.ign.mpp.configuration.GraphVertex;
 import fr.ign.parameters.Parameters;
+import fr.ign.rjmcmc.configuration.ConfigurationModificationPredicate;
 
 public class SimPLUSimulator {
 
@@ -95,20 +100,19 @@ public class SimPLUSimulator {
 
 	public static void main(String[] args) throws Exception {
 
+		/*
 		String folderGeo = "/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales/donneeGeographiques/";
 		String zoningFile = "/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales/donneeGeographiques/PLU/ Zonage_CAGB_INSEE_25495.shp";
 		String folderOut = "/tmp/tmp/";
 
 		File f = Vectors.snapDatas(GetFromGeom.getRoute(new File(folderGeo)), new File(zoningFile), new File(folderOut));
 
-		System.out.println(f.getAbsolutePath());
-		if (true)
-			return;
-
+		System.out.println(f.getAbsolutePath());*/
+		
 		List<File> lF = new ArrayList<>();
 		// Line to change to select the right scenario
 
-		String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenar0/").getPath();
+		String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenarFakeWorld/").getPath();
 
 		System.out.println(rootParam);
 
@@ -131,7 +135,7 @@ public class SimPLUSimulator {
 		// with 1 regulation
 
 		USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
-		ID_PARCELLE_TO_SIMULATE.add("25078000ZE01265"); // Test for a simulation with
+		//ID_PARCELLE_TO_SIMULATE.add("25078000ZE01265"); // Test for a simulation with
 														// 3 regulations on 3 sub
 														// parcels
 
@@ -417,9 +421,9 @@ public class SimPLUSimulator {
 			bPU = env.getBpU().get(0);
 		}
 
-		// Instantiation of the sampler
-		OptimisedBuildingsCuboidFinalDirectRejection oCB = new OptimisedBuildingsCuboidFinalDirectRejection();
 
+		
+		
 		CommonPredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = null;
 
 		// According to the case, different prediactes may be used
@@ -445,8 +449,26 @@ public class SimPLUSimulator {
 		// We compute the parcel area
 		Double areaParcels = bPU.getArea(); // .getCadastralParcels().stream().mapToDouble(x -> x.getArea()).sum();
 
-		// Run of the optimisation on a parcel with the predicate
-		GraphConfiguration<Cuboid> cc = oCB.process(bPU, new SimpluParametersXML(p), env, 1, pred);
+		IGeometry[] geomLimits = new IGeometry[1];
+		geomLimits[0] = bPU.getCadastralParcels().get(0).getBoundaries().get(0).getGeom();
+		
+		GraphConfiguration<Cuboid> cc ;
+		
+		if(pred.getAlignement() != null&& (pred.getAlignement().length !=0)) {
+			
+	
+			// Instantiation of the sampler
+			//
+			ParallelCuboidOptimizer oCB = new ParallelCuboidOptimizer();
+			// Run of the optimisation on a parcel with the predicate
+			cc = oCB.process(new MersenneTwister(), bPU, new SimpluParametersXML(p), env, i, pred,pred.getAlignement() , bPU.getGeom());
+		}else {
+			OptimisedBuildingsCuboidFinalDirectRejection oCB = new OptimisedBuildingsCuboidFinalDirectRejection();
+			cc = oCB.process( bPU, new SimpluParametersXML(p), env, i, pred);			
+		}
+		
+		//
+
 
 		IFeatureCollection<IFeature> iFeat3D = new FT_FeatureCollection<>();
 		for (GraphVertex<Cuboid> v : cc.getGraph().vertexSet()) {

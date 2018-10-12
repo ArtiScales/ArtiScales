@@ -353,9 +353,10 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	public Double[] hauteur(Parameters p, ArtiScalesRegulation regle, Double heighSurroundingBuildings) {
 		//@ART 10 : a faire complétement
 		//////// Checking the height of the cuboid
-		double min = p.getDouble("heightStair");
-		double max = p.getDouble("heightStair");
-
+		double min = p.getDouble("minheight");
+		double max = p.getDouble("maxheight");
+		System.out.println("TODO MAX HEIGHT CODE");
+		/*
 		switch (regle.getArt_10_top()) {
 
 		// 1 hauteur à l'étage
@@ -390,7 +391,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		//TODO en fonction des limites séparatives
 		case 20 : 
 			
-		}
+		}*/
 		Double[] result = { min, max };
 		return result;
 	}

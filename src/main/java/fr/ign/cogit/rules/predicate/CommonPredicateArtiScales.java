@@ -247,6 +247,8 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 	 */
 	@Override
 	public boolean check(C c, M m) {
+		
+	
 
 		// NewCuboids
 		List<O> lONewCuboids = m.getBirth();
@@ -256,6 +258,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 		if (lONewCuboids.isEmpty()) {
 			return true;
 		}
+
 
 		// All current cuboids
 		List<O> lAllCuboids = listAllCuboids(c, m);
@@ -501,9 +504,18 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 	@Override
 	public String toString() {
-//TODO ajouter toutes les règles qui s'appliquent (mais ça devrait être inscrit à chaque fois qu'une règle s'applique ?!
+		//TODO ajouter toutes les règles qui s'appliquent (mais ça devrait être inscrit à chaque fois qu'une règle s'applique ?!
 		return "CadastralParcelsNb:" + currentBPU.getCadastralParcels().size() + "CadastralParcelsAre"
 				+ currentBPU.getCadastralParcels().toString();
+	}
+	
+	
+	public IGeometry[] getAlignement() {
+		IGeometry[] geomLimits = new IGeometry[0];
+		//Exemple de valeur attendue
+		//geomLimits[0] = currentBPU.getCadastralParcels().get(0).getBoundaries().get(0).getGeom();
+
+		return geomLimits;
 	}
 
 	// Determine for a cuboid the list of constraints that has to be ckecked
