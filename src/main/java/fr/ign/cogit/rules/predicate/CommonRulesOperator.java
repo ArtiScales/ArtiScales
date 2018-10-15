@@ -396,4 +396,75 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		return result;
 	}
 
+	public boolean checkProspectArt7(O cuboid, Geometry jtsCurveLimiteFondParcel, int art_74) {
+		// ART_74 Distance minimum des constructions par rapport aux limites
+		// séparatives, exprimée par rapport à la hauteur du bâtiment
+		// 0 : NON
+		// 1 : Retrait égal à la hauteur
+		// 2 : Retrait égal à la hauteur divisé par deux
+		// 3 : Retrait égal à la hauteur divisé par trois
+		// 4 : Retrait égal à la hauteur divisé par quatre
+		// 5 : Retrait égal à la hauteur divisé par cinq
+		// 6 : Retrait égal à la hauteur divisé par deux moins trois mètres
+		// 7 : Retrait égal à la hauteur moins trois mètres divisé par deux
+		// 8 : retrait égal à la hauteur divisé par deux moins un mètre
+		// 9 : retrait égal aux deux tiers de la hauteur
+		// 10 : retrait égal aux trois quarts de la hauteur
+		
+	
+			double slope = 0;
+			double hIni = 0;
+			switch (art_74) {
+			case 0:
+				return true;
+			case 1:
+				slope = 1;
+				break;
+			case 2:
+				slope = 2;
+				break;
+			case 3:
+				slope = 3;
+				break;
+			case 4:
+				slope = 4;
+				break;
+			case 5:
+				slope = 5;
+				break;
+			case 6:
+				// 6 : Retrait égal à la hauteur divisé par deux moins trois
+				// mètres
+				hIni = 2;
+				slope = 6;
+				break;
+			case 7:
+				// 7 : Retrait égal à la hauteur moins trois mètres divisé par
+				// deux
+				hIni = 3;
+				slope = 2;
+				break;
+			case 8:
+				// 8 : retrait égal à la hauteur divisé par deux moins un mètre
+				hIni = 2;
+				slope = 2;
+				break;
+			case 9:
+				slope = 3 / 2;
+				break;
+			case 10:
+				slope = 4 / 3;
+				break;
+
+			}
+
+			if (jtsCurveLimiteFondParcel != null
+					&& !cuboid.prospectJTS(jtsCurveLimiteFondParcel, slope, hIni)) {
+				return false;
+			}
+
+
+		return false;
+	}
+
 }

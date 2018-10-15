@@ -16,7 +16,7 @@
 Cette contrainte a été implémentée pour produire des bâtiments réalistes dans le sens où ils permettent l'accessibilité de la lumière dans le centre du bâtiment.
 
 
-![Contraintes portant sur les bâtiments pour assurer une accessibilité à la lumière](img/rule-form-004)
+![Contraintes portant sur les bâtiments pour assurer une accessibilité à la lumière](img/rule-form-004.png)
 
 
 

@@ -369,7 +369,18 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 					return false;
 				}
 
-				//
+				//Rule art-0074
+				//We check for bot limits
+				if(! cRO.checkProspectArt7(cuboid, jtsCurveLimiteFondParcel, regle.getArt_74())){
+					return false;
+				}
+				
+				//We check for lateral limit
+				if(! cRO.checkProspectArt7(cuboid, jtsCurveLimiteLatParcel, regle.getArt_74())){
+					return false;
+				}
+				
+	
 
 				//////// Distance to the front of the parcel
 				// multiple cases of Art_6 rules
