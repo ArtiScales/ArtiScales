@@ -24,6 +24,9 @@
 		<!-- Nom du fichier contenant la modélisation du règlement des PLU -->
 		<param key="pluPredicate" value="/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScalesTest/Donnees/predicate.csv"/>
 		
+		
+				<param key="simu" value="/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScalesTest/Donnees/out/"/>
+		
 				<!-- Nom du fichier contenant la modélisation du règlement des PLU -->
 		<param key="selectedParcelFile" value="/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScalesTest/Donnees/parcelle.shp"/>
 

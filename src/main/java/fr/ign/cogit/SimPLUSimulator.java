@@ -42,11 +42,8 @@ import fr.ign.cogit.simplu3d.model.ParcelBoundarySide;
 import fr.ign.cogit.simplu3d.model.Prescription;
 import fr.ign.cogit.simplu3d.model.SubParcel;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.Cuboid;
-import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.loader.LoaderCuboid;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.optimizer.cuboid.OptimisedBuildingsCuboidFinalDirectRejection;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.optimizer.paralellcuboid.ParallelCuboidOptimizer;
-import fr.ign.cogit.simplu3d.rjmcmc.generic.object.ISimPLU3DPrimitive;
-import fr.ign.cogit.simplu3d.rjmcmc.generic.optimizer.DefaultSimPLU3DOptimizer;
 import fr.ign.cogit.simplu3d.util.SDPCalc;
 import fr.ign.cogit.util.GetFromGeom;
 import fr.ign.cogit.util.SimpluParametersXML;
@@ -208,7 +205,12 @@ public class SimPLUSimulator {
 		this.predicateFile = new File(p.getString("pluPredicate"));
 
 		System.out.println("STRANGE LOGIC ?");
-		this.simuFile = new File(parcelsFile.getParentFile(), "simu");
+		
+		String simulPath = p.getString("simu");
+		if(simulPath == null||simulPath == "") {
+			simulPath = parcelsFile.getParentFile() + "simu";
+		}
+		this.simuFile = new File(simulPath);
 		simuFile.mkdir();
 
 		resultXml = resultxml;
