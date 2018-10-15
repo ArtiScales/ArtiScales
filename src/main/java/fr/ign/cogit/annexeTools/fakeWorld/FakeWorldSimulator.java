@@ -21,6 +21,12 @@ public class FakeWorldSimulator {
 		File rootFolderFile = new File(absoluteRootFolder);
 		
 		for(String pathSubFolder: rootFolderFile.list()) {
+			/*
+			if(! pathSubFolder.contains("art9")) {
+				continue;
+			}
+			*/
+			
 			List<File> lF = new ArrayList<>();
 			// Line to change to select the right scenario
 

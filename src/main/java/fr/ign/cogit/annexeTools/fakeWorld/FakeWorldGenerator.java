@@ -39,7 +39,7 @@ public class FakeWorldGenerator {
 		generateTestForArticle74(folderOut+"art74/");
 		generateTestForArticle8(folderOut+"art8/");
 		generateTestForArticle9(folderOut+"art9/");
-		generateTestForArticle9(folderOut+"art13/");	
+		generateTestForArticle13(folderOut+"art13/");	
 	}
 	
 	
@@ -61,7 +61,7 @@ public class FakeWorldGenerator {
 		ArtiScalesRegulation regulationDefault2 = regulationDefault.clone();
 		//Important to change to get the right regulation recognized
 		regulationDefault2.setLibelle_de_dul("U1");
-		regulationDefault2.setArt_5(500);
+		regulationDefault2.setArt_5(25000);
 		
 		
 		ArtiScalesRegulation regulationDefault3 = regulationDefault.clone();
@@ -104,17 +104,17 @@ public class FakeWorldGenerator {
 		//CAS ARTICLE 6 = 44
 		ArtiScalesRegulation regulationDefault3 = regulationDefault.clone();
 		regulationDefault3.setLibelle_de_dul("U2");
-		regulationDefault3.setArt_5(44);
+		regulationDefault3.setArt_6(44);
 		
 		//CAS ARTICLE 6 = 55
 		ArtiScalesRegulation regulationDefault4 = regulationDefault.clone();
 		regulationDefault4.setLibelle_de_dul("U3");
-		regulationDefault4.setArt_5(55);
+		regulationDefault4.setArt_6(55);
 		
 		//CAS ARTICLE 6 = n (ici 6)
 		ArtiScalesRegulation regulationDefault5 = regulationDefault.clone();
 		regulationDefault5.setLibelle_de_dul("U3");
-		regulationDefault5.setArt_5(6);
+		regulationDefault5.setArt_6(6);
 		
 		regulations.add(regulationDefault);
 		regulations.add(regulationDefault2);
@@ -181,12 +181,12 @@ public class FakeWorldGenerator {
 		ArtiScalesRegulation regulationDefault2 = regulationDefault.clone();
 		//Important to change to get the right regulation recognized
 		regulationDefault2.setLibelle_de_dul("U1");
-		regulationDefault2.setArt_72(1);
+		regulationDefault2.setArt_72(5);
 		
 		//CAS ARTICLE 72 = 3
 		ArtiScalesRegulation regulationDefault3 = regulationDefault.clone();
 		regulationDefault3.setLibelle_de_dul("U2");
-		regulationDefault3.setArt_72(3);
+		regulationDefault3.setArt_72(10);
 		
 		//CAS ARTICLE 72 = 99
 		ArtiScalesRegulation regulationDefault4 = regulationDefault.clone();
@@ -223,12 +223,12 @@ public class FakeWorldGenerator {
 		ArtiScalesRegulation regulationDefault2 = regulationDefault.clone();
 		//Important to change to get the right regulation recognized
 		regulationDefault2.setLibelle_de_dul("U1");
-		regulationDefault2.setArt_73(1);
+		regulationDefault2.setArt_73(5);
 		
 		//CAS ARTICLE 73 = 3
 		ArtiScalesRegulation regulationDefault3 = regulationDefault.clone();
 		regulationDefault3.setLibelle_de_dul("U2");
-		regulationDefault3.setArt_73(3);
+		regulationDefault3.setArt_73(10);
 		
 		//CAS ARTICLE 73 = 99
 		ArtiScalesRegulation regulationDefault4 = regulationDefault.clone();

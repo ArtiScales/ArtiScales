@@ -464,7 +464,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 			}
 
 
-		return false;
+		return true;
 	}
 
 }
