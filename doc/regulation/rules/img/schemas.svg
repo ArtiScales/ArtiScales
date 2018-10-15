@@ -18,7 +18,7 @@
    version="1.1"
    inkscape:version="0.91 r13725"
    sodipodi:docname="schemas.svg"
-   inkscape:export-filename="/home/mbrasebin/Documents/Code/ArtiScales/ArtiScales/doc/regulation/rules/img/rule-art-0072.png"
+   inkscape:export-filename="/home/mbrasebin/Documents/Code/ArtiScales/ArtiScales/doc/regulation/rules/img/rule-art-013.png"
    inkscape:export-xdpi="96"
    inkscape:export-ydpi="96">
   <defs
@@ -1060,6 +1060,21 @@
          id="path5736-2"
          inkscape:connector-curvature="0" />
     </marker>
+    <marker
+       inkscape:stockid="EmptyTriangleOutM"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="EmptyTriangleOutM-9-64-4-5-7"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path4401-2-3-7-4-5"
+         d="m 5.77,0 -8.65,5 0,-10 8.65,5 z"
+         style="fill:#ffffff;fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1"
+         transform="matrix(0.4,0,0,0.4,-1.8,0)" />
+    </marker>
   </defs>
   <sodipodi:namedview
      id="base"
@@ -1068,9 +1083,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.85363809"
-     inkscape:cx="-50.205836"
-     inkscape:cy="-3151.6517"
+     inkscape:zoom="1.2072266"
+     inkscape:cx="-230.98837"
+     inkscape:cy="-1906.4898"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -1097,7 +1112,7 @@
      id="layer1">
     <path
        style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="m -266.30158,1439.2407 c 16.434,2.94 20.85937,32.7225 19.44544,40.6586"
+       d="m -271.57313,1374.2249 c 16.434,2.94 20.85937,32.7225 19.44544,40.6586"
        id="path18908"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cc"
@@ -1698,7 +1713,7 @@
        inkscape:export-ydpi="96" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:#fb0000;stroke-width:5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="m -290.79778,1482.4246 113.13709,-205.0609"
+       d="M -293.14069,1411.5515 -180.0036,1206.4906"
        id="path18906"
        inkscape:connector-curvature="0"
        inkscape:export-xdpi="96"
@@ -1707,7 +1722,7 @@
        xml:space="preserve"
        id="flowRoot4176-9-4-5-5-9-8-4"
        style="font-style:normal;font-weight:normal;font-size:18.75px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       transform="translate(123.0081,1371.2219)"
+       transform="translate(121.35141,1362.9385)"
        inkscape:export-xdpi="96"
        inkscape:export-ydpi="96"><flowRegion
          id="flowRegion4178-1-5-4-9-7-9-6"><rect
@@ -1716,9 +1731,9 @@
            height="36.428566"
            x="-577.14288"
            y="14.505061" /></flowRegion><flowPara
-         id="flowPara4182-7-36-4-0-6-4-2">{{B1_ART_74}}</flowPara></flowRoot>    <path
-       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:20, 20;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#EmptyTriangleOutM-9-64-4-5)"
-       d="m -360.22788,1414.9607 98.84266,26.9768"
+         id="flowPara4182-7-36-4-0-6-4-2">{{ART_74}}</flowPara></flowRoot>    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:8, 8;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#EmptyTriangleOutM-9-64-4-5)"
+       d="m -329.18428,1396.2174 75.41353,0.619"
        id="path4232-2-0-7"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cc"
@@ -2164,7 +2179,7 @@
          sodipodi:role="line"
          id="tspan22622-9-1"
          x="-283.5589"
-         y="2988.1218">&gt; {{B1_ART_13}}</tspan></text>
+         y="2988.1218">&gt; {{ART_13}}</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:18.75px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
@@ -3008,6 +3023,28 @@
        style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:3.76999998;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-start:url(#marker5346-8);marker-end:url(#marker5734-9)"
        d="m -110.38773,4172.0255 -41.36679,-0.3503"
        id="path4232-2-8-6-1-0-0"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:4.04199982;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:4.04199982,12.12599945;stroke-opacity:1;stroke-dashoffset:0"
+       d="m -296.87331,1412.5851 225.909241,0"
+       id="path16121-3"
+       inkscape:connector-curvature="0"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:4,12;stroke-dashoffset:0;stroke-opacity:1"
+       d="m -296.37853,1480.4386 0,-70.6912"
+       id="path16121-3-6"
+       inkscape:connector-curvature="0"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:8, 8;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#EmptyTriangleOutM-9-64-4-5-7)"
+       d="m -343.88306,1407.2882 45.06774,36.7555"
+       id="path4232-2-0-7-3"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cc"
        inkscape:export-xdpi="96"
