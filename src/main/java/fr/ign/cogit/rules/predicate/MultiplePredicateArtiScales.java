@@ -150,18 +150,22 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 	@Override
 	/**
 	 * Determine the maxCES value (a ponderated average according to the SubParcel surfaces)
+	 * 	#art_13 #art_5
 	 */
 	protected double getMaxCES() {
 		if (maxCES == -1) {
 			//// Determine the maximalCES according to all subparcel contribution
 			double totalSubParcelArea = mapGeomRegulation.keySet().stream().mapToDouble(x -> x.getArea()).sum();
 			double maxBuiltArea = 0;
-
+			double maxBuiltFreeSpace = 0;
+			
+			
 			for (Geometry geom : mapGeomRegulation.keySet()) {
 				maxBuiltArea = maxBuiltArea + geom.getArea() * mapGeomRegulation.get(geom).getArt_9();
+				maxBuiltArea = maxBuiltArea + geom.getArea() * mapGeomRegulation.get(geom).getArt_13();
 			}
 
-			maxCES = maxBuiltArea / totalSubParcelArea;
+			maxCES = Math.min(maxBuiltArea / totalSubParcelArea, (1 - maxBuiltFreeSpace) / totalSubParcelArea);
 		}
 
 		return maxCES;

@@ -92,8 +92,9 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 
 	@Override
 	// The max CES is directly stored in the regulation object
+	//#art_13 #art_5
 	protected double getMaxCES() {
-		return regles.getArt_9();
+		return Math.min(regles.getArt_9(), 1 - regles.getArt_13());
 	}
 
 	@Override
