@@ -52,6 +52,20 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 			mapGeomRegulation.put(AdapterFactory.toGeometry(gf,subParcelGeometry),
 					(ArtiScalesRegulation) uZ.getZoneRegulation());
 
+			
+			
+			double aireMinimale = ((ArtiScalesRegulation)uZ.getZoneRegulation()).getArt_5();
+			
+			//##Rule-art-005
+			if(aireMinimale != 99.0) {
+				
+				if(currentBPU.getArea() < aireMinimale) {
+					canBeSimulated = false;
+				}
+			}
+			
+			
+			
 		}
 
 		// We clean all regulation (Removing fake values from regulation object)
@@ -126,6 +140,9 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 
 		return lArtiScalesRegulation;
 	}
+	
+	
+
 
 	// Default maxCES value
 	private double maxCES = 1;
@@ -133,18 +150,22 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 	@Override
 	/**
 	 * Determine the maxCES value (a ponderated average according to the SubParcel surfaces)
+	 * 	#art_13 #art_5
 	 */
 	protected double getMaxCES() {
 		if (maxCES == -1) {
 			//// Determine the maximalCES according to all subparcel contribution
 			double totalSubParcelArea = mapGeomRegulation.keySet().stream().mapToDouble(x -> x.getArea()).sum();
 			double maxBuiltArea = 0;
-
+			double maxBuiltFreeSpace = 0;
+			
+			
 			for (Geometry geom : mapGeomRegulation.keySet()) {
 				maxBuiltArea = maxBuiltArea + geom.getArea() * mapGeomRegulation.get(geom).getArt_9();
+				maxBuiltArea = maxBuiltArea + geom.getArea() * mapGeomRegulation.get(geom).getArt_13();
 			}
 
-			maxCES = maxBuiltArea / totalSubParcelArea;
+			maxCES = Math.min(maxBuiltArea / totalSubParcelArea, (1 - maxBuiltFreeSpace) / totalSubParcelArea);
 		}
 
 		return maxCES;
@@ -166,6 +187,11 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 	@Override
 	protected double getMinHeight() {
 		return mapGeomRegulation.values().stream().mapToDouble(x -> cRO.hauteur(p, x, heighSurroundingBuildings)[1]).max().getAsDouble();
+	}
+
+	@Override
+	protected List<ArtiScalesRegulation> getAllRegulation() {
+		return new ArrayList<>(mapGeomRegulation.values());
 	}
 
 }

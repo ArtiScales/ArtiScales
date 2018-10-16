@@ -47,6 +47,17 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 		
 		this.p.set("maxheight", this.getMaxHeight());
 		this.p.set("minheight", this.getMinHeight());
+		
+		
+		double aireMinimale = regle.getArt_5();
+		
+		//##Rule-art-005
+		if(aireMinimale != 99.0) {
+			
+			if(currentBPU.getArea() < aireMinimale) {
+				canBeSimulated = false;
+			}
+		}
 	}
 
 	/*
@@ -81,8 +92,9 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 
 	@Override
 	// The max CES is directly stored in the regulation object
+	//#art_13 #art_5
 	protected double getMaxCES() {
-		return regles.getArt_9();
+		return Math.min(regles.getArt_9(), 1 - regles.getArt_13());
 	}
 
 	@Override
@@ -93,6 +105,13 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 	@Override
 	protected double getMinHeight() {
 		return cRO.hauteur(p, regles, heighSurroundingBuildings)[0];
+	}
+
+	@Override
+	protected List<ArtiScalesRegulation> getAllRegulation() {
+		List<ArtiScalesRegulation> regulations = new ArrayList<>();
+		regulations.add(this.regles);
+		return regulations;
 	}
 
 }

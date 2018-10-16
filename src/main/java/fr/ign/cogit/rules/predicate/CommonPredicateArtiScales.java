@@ -15,6 +15,7 @@ import fr.ign.cogit.geoxygene.api.spatial.geomprim.IOrientableCurve;
 import fr.ign.cogit.geoxygene.api.spatial.geomroot.IGeometry;
 import fr.ign.cogit.geoxygene.spatial.geomaggr.GM_MultiCurve;
 import fr.ign.cogit.geoxygene.util.conversion.AdapterFactory;
+import fr.ign.cogit.rules.regulation.Alignements;
 import fr.ign.cogit.rules.regulation.ArtiScalesRegulation;
 import fr.ign.cogit.simplu3d.analysis.ForbiddenZoneGenerator;
 import fr.ign.cogit.simplu3d.model.AbstractBuilding;
@@ -22,6 +23,7 @@ import fr.ign.cogit.simplu3d.model.BasicPropertyUnit;
 import fr.ign.cogit.simplu3d.model.CadastralParcel;
 import fr.ign.cogit.simplu3d.model.Environnement;
 import fr.ign.cogit.simplu3d.model.ParcelBoundary;
+import fr.ign.cogit.simplu3d.model.ParcelBoundarySide;
 import fr.ign.cogit.simplu3d.model.ParcelBoundaryType;
 import fr.ign.cogit.simplu3d.model.Prescription;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.AbstractSimpleBuilding;
@@ -69,6 +71,9 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 	protected Geometry jtsCurveLimiteFondParcel = null;
 	protected Geometry jtsCurveLimiteFrontParcel = null;
 	protected Geometry jtsCurveLimiteLatParcel = null;
+	
+	protected Geometry jtsCurveLimiteLatParcelRight = null;
+	protected Geometry jtsCurveLimiteLatParcelLeft = null;
 
 	// A geometry that store a forbidden zone (where buildings cannot be built)
 	// According to the selected prescriptions
@@ -76,6 +81,8 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 	// Bâtiments dans les parcelles de l'autre côté de la route
 	protected Geometry jtsCurveOppositeLimit = null;
+	
+
 
 	// hauteur des batiments environnants
 	Double heighSurroundingBuildings = null;
@@ -124,6 +131,8 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 		IMultiCurve<IOrientableCurve> curveLimiteFondParcel = new GM_MultiCurve<>();
 		IMultiCurve<IOrientableCurve> curveLimiteFrontParcel = new GM_MultiCurve<>();
 		IMultiCurve<IOrientableCurve> curveLimiteLatParcel = new GM_MultiCurve<>();
+		IMultiCurve<IOrientableCurve> curveLimiteLatRightParcel = new GM_MultiCurve<>();
+		IMultiCurve<IOrientableCurve> curveLimiteLatLeftParcel = new GM_MultiCurve<>();
 		IMultiCurve<IOrientableCurve> curveOppositeLimit = new GM_MultiCurve<>();
 
 		// On parcourt les parcelles du BasicPropertyUnit (un propriétaire peut
@@ -154,6 +163,11 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 					if (geom instanceof IOrientableCurve) {
 						curveLimiteLatParcel.add((IOrientableCurve) geom);
+						if(sCB.getSide() == ParcelBoundarySide.LEFT) {
+							curveLimiteLatLeftParcel.add((IOrientableCurve) geom);
+						}else if(sCB.getSide() == ParcelBoundarySide.RIGHT) {
+							curveLimiteLatRightParcel.add((IOrientableCurve) geom);
+						}
 					} else {
 						System.out.println(
 								"Classe SamplePredicate : quelque chose n'est pas un ICurve : " + geom.getClass());
@@ -219,6 +233,16 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 		if (!curveLimiteLatParcel.isEmpty()) {
 			this.jtsCurveLimiteLatParcel = AdapterFactory.toGeometry(gf, curveLimiteLatParcel);
 		}
+		
+		
+		if (!curveLimiteLatLeftParcel.isEmpty()) {
+			this.jtsCurveLimiteLatParcelLeft = AdapterFactory.toGeometry(gf, curveLimiteLatLeftParcel);
+		}
+		
+		
+		if (!curveLimiteLatRightParcel.isEmpty()) {
+			this.jtsCurveLimiteLatParcelRight = AdapterFactory.toGeometry(gf, curveLimiteLatRightParcel);
+		}
 
 		this.bPUGeom = AdapterFactory.toGeometry(gf, bPU.getGeom());
 
@@ -247,6 +271,8 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 	 */
 	@Override
 	public boolean check(C c, M m) {
+		
+	
 
 		// NewCuboids
 		List<O> lONewCuboids = m.getBirth();
@@ -257,6 +283,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 			return true;
 		}
 
+
 		// All current cuboids
 		List<O> lAllCuboids = listAllCuboids(c, m);
 
@@ -266,24 +293,32 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 		/////////// General constraints that is always checked
 
 		// We check if the number of cuboids does not exceed the max
+		//In documentation : Rule-form-001
 		if (!cRO.checkNumberOfBuildings(lAllCuboids, nbCuboid)) {
 			return false;
 		}
 
 		// Checking only for new cuboids
+		//In documentation : Rule-form-002
 		for (O cuboid : lONewCuboids) {
 			// Does the cuboid lays inside the basic property unit
+			//In documentation : Rule-form-002
 			if (!cRO.checkIfContainsGeometry(cuboid, bPUGeom)) {
 				return false;
 			}
 
 			// Checking prescriptions alignement
+			//Rule-sup-001
+			//@TODO : TO IMPLEMENT 
+			/*
 			if (!cRO.checkAlignementPrescription(cuboid, prescriptions, align, jtsCurveLimiteFrontParcel)) {
 				return false;
-			}
+			}*/
 
+			
 			// We check if the cuboids intersects the forbiddent zone
 			// ATTENTION : Ons renvoie faux lorsque l'intersection a lieu
+			//Rule-sup-002
 			if (cRO.checkIfIntersectsGeometry(cuboid, this.forbiddenZone)) {
 				return false;
 			}
@@ -298,70 +333,104 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 			for (ArtiScalesRegulation regle : lRegles) {
 
-				// type of distance to the parcel limits
-				switch (regle.getArt_71()) {
-				// alignement interdit
-				case 0:
+	
 
-					/*
-					 * if (jtsCurveLimiteFrontParcel!=null&&!cRO.checkAlignement(cuboid,
-					 * jtsCurveLimiteFondParcel)) { return false; } if
-					 * (jtsCurveLimiteLatParcel!=null&&!cRO.checkAlignement(cuboid,
-					 * jtsCurveLimiteLatParcel)) { return false; }
-					 */
-					// System.out.println("TODO : Alignement desactivés");
+				// Distance to the front of the parcel
+				//Rule-art-0072 && art-0071
+				switch (this.getSide()) {
+				case UNKNOWN:
+					if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteLatParcel, regle.getArt_72())) {
+						return false;
+					}
 					break;
-				case 1:
-
+				case LEFT:
+					//Building is stuck to the left so the art72 is only applied with the right part of the parcel
+					if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteLatParcelRight, regle.getArt_72())) {
+						return false;
+					}
 					break;
-
+				case RIGHT:
+					//Building is stuck to the right so the art72 is only applied with the left part of the parcel
+					if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteLatParcelLeft, regle.getArt_72())) {
+						return false;
+					}
+					break;
+				default:
+					System.out.println("Other cas for parcel SIDE ?? " + this.getSide());
+					break;
 				}
-
+		
+				
+				
+				
 				// Distance to the bottom of the parcel
+				//Rule-art-0073
 				if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFondParcel, regle.getArt_73())) {
 					return false;
 				}
 
-				// Distance to the front of the parcel
-				if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteLatParcel, regle.getArt_72())) {
+				//Rule art-0074
+				//We check for bot limits
+				if(! cRO.checkProspectArt7(cuboid, jtsCurveLimiteFondParcel, regle.getArt_74())){
 					return false;
 				}
-
-				//
+				
+				//We check for lateral limit
+				if(! cRO.checkProspectArt7(cuboid, jtsCurveLimiteLatParcel, regle.getArt_74())){
+					return false;
+				}
+				
+	
 
 				//////// Distance to the front of the parcel
 				// multiple cases of Art_6 rules
-				if (regle.getArt_6() == 0) {
+				//Rule-art-006
+				double art_6 = regle.getArt_6();
+				switch (art_6+"") {
+				case "1.0":
+					/*
 					if (cRO.checkAlignement(cuboid, jtsCurveLimiteFrontParcel)) {
 						return false;
-					}
-				} else if (regle.getArt_6() == 55) {
-					double dist = Double.valueOf(regle.getArt_6_optD().split("-")[0]);
-					if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, dist)
-							|| cRO.checkAlignement(cuboid, jtsCurveLimiteFrontParcel)) {
-						return false;
-					}
-				}
+					}*/
+					System.out.println("CASE NOT ESTIMATED");
+					break;
 
-				// the prospect of slope 1 ruel (usde in the RNU)
-				else if (regle.getArt_6() == 44) {
+				case "55.0":
+						/*
+						double dist = Double.valueOf(regle.getArt_6_optD().split("-")[0]);
+						if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, dist)
+								|| cRO.checkAlignement(cuboid, jtsCurveLimiteFrontParcel)) {
+							return false;
+						}*/
+						System.out.println("CASE NOT ESTIMATED");
+					break;
+				case "44.0":
 					if (!cRO.checkProspectRNU(cuboid, jtsCurveOppositeLimit)) {
 						return false;
 					}
+					break;
+				
+				default:
+					if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, regle.getArt_6())) {
+						return false;
+					}
+					break;
 				}
-				// regular rules
-				else if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, regle.getArt_6())) {
-					return false;
-				}
+				
+		
+		
+				//art_6_opt
 				// distance en fonction d'une route
+				/*
 				if (regle.getArt_6_opt() == "1") {
 					double dist = Double.valueOf(regle.getArt_6_optD().split("-")[0]);
 					String nRoute = regle.getArt_6_optD().split("-")[1];
 					// TODO dist en fonction d'une route (peut on choper son attribut?
 
-				}
+				}*/
 
 				// We check the constrain distance according to existing buildings
+				//art_8 (distance aux bâtiments existants)
 				if (!cRO.checkDistanceBetweenCuboidandBuildings(cuboid, this.currentBPU, regle.getArt_8())) {
 					return false;
 				}
@@ -371,7 +440,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 			/////////// Groups or whole configuration constraints
 
 			// Getting the maxCES according to the implementation
-
+			//art_9
 			double maxCES = this.getMaxCES();
 			// Checking the builtRatio
 			if (!cRO.checkBuiltRatio(lAllCuboids, currentBPU, maxCES)) {
@@ -384,12 +453,13 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 			List<List<O>> groupList = groupCreator.createGroup(lAllCuboids, 0.1);
 			if (intersection) {
+				//art_8 et 	//art_form_4
 				// If intersection is allowed, we check the width of the building
 				if (!cRO.checkBuildingWidth(groupList, 7.5, determineDoubleDistanceForGroup(groupList)))
 					return false;
 
 			} else {
-
+				//art_8
 				List<Double> distances = determineDoubleDistanceForList(lAllCuboids);
 				if (!cRO.checkDistanceInterCuboids(lAllCuboids, distances)) {
 					return false;
@@ -468,11 +538,24 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 	@Override
 	public String toString() {
-//TODO ajouter toutes les règles qui s'appliquent (mais ça devrait être inscrit à chaque fois qu'une règle s'applique ?!
+		//TODO ajouter toutes les règles qui s'appliquent (mais ça devrait être inscrit à chaque fois qu'une règle s'applique ?!
 		return "CadastralParcelsNb:" + currentBPU.getCadastralParcels().size() + "CadastralParcelsAre"
 				+ currentBPU.getCadastralParcels().toString();
 	}
+	
+	private Alignements alignements = null;
+	
+	public Alignements getAlignements() {
+		
 
+		if(alignements == null) {
+			return new Alignements(this.getAllRegulation(), this.currentBPU);
+		}
+		return alignements;
+	}
+
+	protected abstract List<ArtiScalesRegulation> getAllRegulation();
+	
 	// Determine for a cuboid the list of constraints that has to be ckecked
 	protected abstract List<ArtiScalesRegulation> getRegulationToApply(O cuboid);
 
@@ -490,5 +573,21 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 	public boolean isCanBeSimulated() {
 		return canBeSimulated;
 	}
+	
+	
+	//Designate if the buildings are stuck to a side
+	//ALLOWED VALUE  ("LEFT", "RIGHT", "NONE");
+	private ParcelBoundarySide side = ParcelBoundarySide.UNKNOWN;
+
+	public ParcelBoundarySide getSide() {
+		return side;
+	}
+
+	public void setSide(ParcelBoundarySide side) {
+		this.side = side;
+	}
+
+
+	
 
 }
