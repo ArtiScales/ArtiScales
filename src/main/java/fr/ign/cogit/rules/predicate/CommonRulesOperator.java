@@ -362,13 +362,14 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		// 1 hauteur à l'étage
 		// 5 hauteur à l'égout (pour l'instant la même que le 1 vu que l'on ne prends pas en compte les toits)
 		case 1:
-		case 5:
+
 			max = regle.getArt_10_1() * p.getDouble("heightStair");
 			break;
 		// hauteur en metre
 		case 2:
 		case 3:
 		case 4:
+		case 5:
 			max = Double.valueOf(regle.getArt_10_1());
 			break;
 
@@ -384,7 +385,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 			// si pas de batiments aux alentours, on se rabat sur différentes options
 			else {
 				if (regle.getArt_10_top() == 6) {
-					max = regle.getArt_10_1() * p.getDouble("heightStair");
+					max = regle.getArt_10_1();
 				}
 				if (regle.getArt_10_top() == 7) {
 					max = Double.valueOf(regle.getArt_10_1());
