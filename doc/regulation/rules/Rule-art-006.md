@@ -11,7 +11,7 @@
 Différentes valeurs sont possibles :
 - **1.0** : Alignement du bâtiment le long de la voirie (Non implémenté, redéfinir la valeur)
 - **44.0** : Application d'un prospect par rapport à la voirie d'après le RNU
-- Autre valeur : valeur en m du recul du bâtiment par rapport à la voirie
+- **Autres valeurs** : valeur en m du recul du bâtiment par rapport à la voirie
 
 
 ## Explications
