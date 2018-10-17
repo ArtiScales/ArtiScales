@@ -13,14 +13,14 @@ public class FakeWorldSimulator {
 	public static void main(String[] args) throws Exception {
 
 		// Parent folder with all subfolder
-		String absoluteRootFolder = "/home/mcolomb/tmp/fakeworld/";
+		String absoluteRootFolder = "/tmp/tmp/";
 
 		File rootFolderFile = new File(absoluteRootFolder);
 
 		for (String pathSubFolder : rootFolderFile.list()) {
-			/*
-			 * if(! pathSubFolder.contains("art9")) { continue; }
-			 */
+			
+			 if(! pathSubFolder.contains("art10")) { continue; }
+			 
 
 			List<File> lF = new ArrayList<>();
 			// Line to change to select the right scenario
