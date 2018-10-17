@@ -14,7 +14,7 @@ Implantation en limite séparatives :
 * 0 : Non, retrait imposé (cf.ART_72)
 * 1 : Oui des deux côtés
 * 2 : Oui, mais sur un côté seulement
-* 3 : Oui seulement si un bâtiment est déjà en limite de propriété (Cas non traité)
+* 3 : Oui seulement si un bâtiment est déjà en limite de propriété => Déterminer s'il y a un bâtiment adjacent à droite ou à gauche et faire coller à cette limite (Mickaël) (Cas non traité)
 
 ### ART_72
 
