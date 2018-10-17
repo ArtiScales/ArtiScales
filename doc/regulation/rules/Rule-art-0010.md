@@ -24,4 +24,4 @@ Cette valeur fixe la modalité de calcul de la hauteur. Plusieurs valeurs sont p
 ![Image montrant la contrainte de hauteur maximale d'un bâtiment](img/rule-art-0010.png)
 
 ## Implémentation
-L'implémentation est dans la classe CommonRulesOperator et la détermination des hauteurs des bâtiments (pourl es cas 6 à 8) s'effectue dans les classes PredicateArtiScales et MultiplePredicateArtiScales.
+L'implémentation est dans la classe CommonRulesOperator et la détermination des hauteurs des bâtiments (pour les cas 6 à 8) s'effectue dans les classes PredicateArtiScales et MultiplePredicateArtiScales.
