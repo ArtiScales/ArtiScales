@@ -30,7 +30,7 @@ public class FakeWorldGenerator {
 	 
 	public static void main(String[] args) throws IOException {
 		//Folder where to generate the fake data
-		String folderOut = "/home/mcolomb/tmp/fakeworld/";
+		String folderOut = "/tmp/tmp/";
 		(new File(folderOut)).mkdirs();
 		generateTestForArticle5(folderOut+"art5/");
 		generateTestForArticle6(folderOut+"art6/");
@@ -40,7 +40,7 @@ public class FakeWorldGenerator {
 		generateTestForArticle74(folderOut+"art74/");
 		generateTestForArticle8(folderOut+"art8/");
 		generateTestForArticle9(folderOut+"art9/");
-		generateTestForArticle13(folderOut+"art10/");	
+		generateTestForArticle10(folderOut+"art10/");	
 		generateTestForArticle13(folderOut+"art13/");	
 	}
 	
@@ -97,33 +97,33 @@ public class FakeWorldGenerator {
 		
 		//CAS ARTICLE 10 = 1 && ARTICLE_10_1 = 5
 		regulationDefault2.setLibelle_de_dul("U1");
-		regulationDefault2.setArt_10(1);
-		regulationDefault2.setArt_10_top(5);	
+		regulationDefault2.setArt_10(5);
+		regulationDefault2.setArt_10_top(1);	
 		
 		
 		//CAS ARTICLE 10 = 2 && ARTICLE_10_2 = 12
 		ArtiScalesRegulation regulationDefault3 = regulationDefault.clone();
 		regulationDefault3.setLibelle_de_dul("U2");
-		regulationDefault3.setArt_10(2);
-		regulationDefault3.setArt_10_top(12);	
+		regulationDefault3.setArt_10(12);
+		regulationDefault3.setArt_10_top(2);	
 		
 		//CAS ARTICLE 10 = 6 && ARTICLE_10_2 = 12
 		ArtiScalesRegulation regulationDefault4 = regulationDefault.clone();
 		regulationDefault4.setLibelle_de_dul("U3");
-		regulationDefault4.setArt_10(6);
-		regulationDefault4.setArt_10_top(12);	
+		regulationDefault4.setArt_10(12);
+		regulationDefault4.setArt_10_top(6);	
 		
 		//CAS ARTICLE 10 = 7 && ARTICLE_10_2 = 12
 		ArtiScalesRegulation regulationDefault5 = regulationDefault.clone();
 		regulationDefault5.setLibelle_de_dul("U3");
-		regulationDefault5.setArt_10(7);
-		regulationDefault5.setArt_10_top(12);	
+		regulationDefault5.setArt_10(12);
+		regulationDefault5.setArt_10_top(7);	
 		
 		//CAS ARTICLE 10 = 8 && ARTICLE_10_2 = 12
 		ArtiScalesRegulation regulationDefault6 = regulationDefault.clone();
 		regulationDefault6.setLibelle_de_dul("U4");
-		regulationDefault6.setArt_10(8);
-		regulationDefault6.setArt_10_top(12);	
+		regulationDefault6.setArt_10(12);
+		regulationDefault6.setArt_10_top(8);	
 		
 		
 		regulations.add(regulationDefault);
