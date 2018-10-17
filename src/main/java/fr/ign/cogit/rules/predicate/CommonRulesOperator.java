@@ -356,7 +356,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		double min = p.getDouble("minheight");
 		double max = p.getDouble("maxheight");
 		System.out.println("TODO MAX HEIGHT CODE");
-		/*
+	
 		switch (regle.getArt_10_top()) {
 
 		// 1 hauteur à l'étage
@@ -367,7 +367,9 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 			break;
 		// hauteur en metre
 		case 2:
-			max = Double.valueOf(regle.getArt_10_2());
+		case 3:
+		case 4:
+			max = Double.valueOf(regle.getArt_10_1());
 			break;
 
 		// hauteur harmonisé avec les batiments des alentours (+/- 10 %)
@@ -385,13 +387,15 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 					max = regle.getArt_10_1() * p.getDouble("heightStair");
 				}
 				if (regle.getArt_10_top() == 7) {
-					max = Double.valueOf(regle.getArt_10_2());
+					max = Double.valueOf(regle.getArt_10_1());
 				}
 			}
-		//TODO en fonction des limites séparatives
 		case 20 : 
+		default :
+			System.err.println("Cas de hauteur non géré");
 			
-		}*/
+			
+		}
 		Double[] result = { min, max };
 		return result;
 	}
