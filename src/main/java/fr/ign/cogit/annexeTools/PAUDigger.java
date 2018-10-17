@@ -24,6 +24,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
+import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory2;
 import org.opengis.filter.expression.PropertyName;
@@ -41,67 +42,68 @@ import fr.ign.cogit.util.VectorFct;
 
 public class PAUDigger {
 	// cut cluster polygons with limits
-	public static File tmpFile = new File("/home/mcolomb/tmp/pau/");
+	public static File tmpFile = new File("/home/mcolomb/tmp/");
 
 	public static void main(String[] args) throws Exception {
-		File outFile = new File("/home/mcolomb/tmp/pau/");
+		File outFile = new File("/media/mcolomb/Data_2/donnee/DocLocal/");
 
-		File buildFile = new File("/home/mcolomb/informatique/ArtiScales/donneeGeographiques/batimentPro.shp");
+		File buildFile = new File("/media/mcolomb/Data_2/donnee/autom/besac2/dataIn/bati/BATI_INDIFFERENCIE.SHP");
 		File parcelFile = new File("/home/mcolomb/informatique/ArtiScales/donneeGeographiques/parcelle.shp");
-		File morphoLimFile = new File("/home/mcolomb/informatique/ArtiScales/depotConfigSpatMUP/PAU-morpholimEnv.shp");
+		File morphoLimFile = new File("/home/mcolomb/informatique/ArtiScales/donneeGeographiques/PAU-morpholimEnv.shp");
 
-		 //zones NU
-		 List<File> nU= new ArrayList<File>();
-		 nU.add(new File("/media/mcolomb/Data_2/donnee/zonesAU/Zones_non_urbanisables_AU_Besancon/Shapefiles_Complets_AU/PPRI_Ognon_AU.shp"));
-		 nU.add(new File("/media/mcolomb/Data_2/donnee/zonesAU/Zones_non_urbanisables_AU_Besancon/Shapefiles_Complets_AU/PPRI_Loue_AU.shp"));
-		 nU.add(new File("/media/mcolomb/Data_2/donnee/zonesAU/Zones_non_urbanisables_AU_Besancon/Shapefiles_Complets_AU/PPRI_Doubs_AU.shp"));
-		 nU.add(new File("/media/mcolomb/Data_2/donnee/zonesAU/Zones_non_urbanisables_AU_Besancon/Shapefiles_Complets_AU/ZNIEFF1_AU.shp"));
-		 File fileNU = Vectors.mergeVectFiles(nU, new File(tmpFile, "zonesNU.shp"));
-		 ShapefileDataStore nUSDS = new ShapefileDataStore(fileNU.toURI().toURL());
-		 SimpleFeatureCollection nUSFC = nUSDS.getFeatureSource().getFeatures();
-		 Geometry unionNU = Vectors.unionSFC(nUSFC);
-		
-		 //limits
-		 File roadFile = new File("/home/mcolomb/informatique/ArtiScales/donneeGeographiques/rroute.shp");
-		 File riverFile = new File("/home/mcolomb/informatique/ArtiScales/donneeGeographiques/eau.shp");
-		 File railFile = new File("/media/mcolomb/Data_2/donnee/autom/besancon/dataIn/train/TRONCON_VOIE_FERREE.shp");
-		
-		 File[] buildResult = prepareClusterBuild(buildFile);
-		 File buildAllegeCluster = buildResult[1];
-		 File buildAllege = buildResult[0];
-		
-		 File limit = prepareLimit(roadFile, riverFile, railFile);
-		 File splitedCluster = splitLimClus(limit, buildAllegeCluster,buildAllege);
-		 ShapefileDataStore clusterSDS = new ShapefileDataStore(splitedCluster.toURI().toURL());
-		 SimpleFeatureCollection clusterSFC = clusterSDS.getFeatureSource().getFeatures();
-		 Geometry clusterUnion = Vectors.unionSFC(clusterSFC);
-		
-		 //parcels
-		 ShapefileDataStore parcelSDS = new ShapefileDataStore(parcelFile.toURI().toURL());
-		 SimpleFeatureCollection parcelSFC = parcelSDS.getFeatureSource().getFeatures();
-		 SimpleFeatureCollection parcelSplitted = VectorFct.generateSplitedParcels(parcelSFC,new File("/home/mcolomb/tmp/pau/rnu.shp"), null);
-		
-		 //morphology
-		 ShapefileDataStore morphoSDS = new ShapefileDataStore(morphoLimFile.toURI().toURL());
-		 SimpleFeatureCollection morphoSFC = morphoSDS.getFeatureSource().getFeatures();
-		 Geometry morphoUnion = Vectors.unionSFC(morphoSFC);
-		
-		 FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
-		 PropertyName pName = ff.property(parcelSplitted.getSchema().getGeometryDescriptor().getLocalName());
-		
-		 Filter filCluster = ff.intersects(pName, ff.literal(clusterUnion));
-		 Filter filMorpho = ff.intersects(pName, ff.literal(morphoUnion));
-		 Filter filNU = ff.disjoint(pName, ff.literal(unionNU));
-		
-		 SimpleFeatureCollection pau = parcelSplitted.subCollection(filCluster).subCollection(filMorpho).subCollection(filNU);
-		 Vectors.exportSFC(pau,new File(outFile, "parcelPAU"));
+		File rnuCityFiles = new File("/media/mcolomb/Data_2/donnee/DocLocal/communesRNU.shp");
 
+		// zones NU
+		List<File> nU = new ArrayList<File>();
+		nU.add(new File("/media/mcolomb/Data_2/donnee/zonesAU/Zones_non_urbanisables_AU_Besancon/Shapefiles_Complets_AU/PPRI_Ognon_AU.shp"));
+		nU.add(new File("/media/mcolomb/Data_2/donnee/zonesAU/Zones_non_urbanisables_AU_Besancon/Shapefiles_Complets_AU/PPRI_Loue_AU.shp"));
+		nU.add(new File("/media/mcolomb/Data_2/donnee/zonesAU/Zones_non_urbanisables_AU_Besancon/Shapefiles_Complets_AU/PPRI_Doubs_AU.shp"));
+		nU.add(new File("/media/mcolomb/Data_2/donnee/zonesAU/Zones_non_urbanisables_AU_Besancon/Shapefiles_Complets_AU/ZNIEFF1_AU.shp"));
+		File fileNU = Vectors.mergeVectFiles(nU, new File(tmpFile, "zonesNU.shp"));
+		ShapefileDataStore nUSDS = new ShapefileDataStore(fileNU.toURI().toURL());
+		SimpleFeatureCollection nUSFC = nUSDS.getFeatureSource().getFeatures();
+		Geometry unionNU = Vectors.unionSFC(nUSFC);
+
+		// limits
+		File roadFile = new File("/home/mcolomb/informatique/ArtiScales/donneeGeographiques/rroute.shp");
+		File riverFile = new File("/home/mcolomb/informatique/ArtiScales/donneeGeographiques/eau.shp");
+		File railFile = new File("/media/mcolomb/Data_2/donnee/autom/besac2/dataIn/train/TRONCON_VOIE_FERREE.shp");
+
+		File[] buildResult = prepareClusterBuild(buildFile);
+		File buildAllegeCluster = buildResult[1];
+		File buildAllege = buildResult[0];
+
+		File limit = prepareLimit(roadFile, riverFile, railFile);
+		File splitedCluster = splitLimClus(limit, buildAllegeCluster, buildAllege);
+		ShapefileDataStore clusterSDS = new ShapefileDataStore(splitedCluster.toURI().toURL());
+		SimpleFeatureCollection clusterSFC = clusterSDS.getFeatureSource().getFeatures();
+		Geometry clusterUnion = Vectors.unionSFC(clusterSFC);
+
+		// morphology
+		ShapefileDataStore morphoSDS = new ShapefileDataStore(morphoLimFile.toURI().toURL());
+		SimpleFeatureCollection morphoSFC = morphoSDS.getFeatureSource().getFeatures();
+		Geometry morphoUnion = Vectors.unionSFC(morphoSFC);
+		
+		// selection with geographical filters
+		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
+		PropertyName pName = ff.property(clusterSFC.getSchema().getGeometryDescriptor().getLocalName());
+		Filter filCluster = ff.intersects(pName, ff.literal(clusterUnion));
+		Filter filMorpho = ff.intersects(pName, ff.literal(morphoUnion));
+		Filter filNU = ff.disjoint(pName, ff.literal(unionNU));
+		
+		// parcels
+		ShapefileDataStore parcelSDS = new ShapefileDataStore(parcelFile.toURI().toURL());
+		SimpleFeatureCollection parcelSFC = parcelSDS.getFeatureSource().getFeatures();
+		SimpleFeatureCollection parcelPreSelected = parcelSFC.subCollection(filCluster).subCollection(filMorpho);
+		SimpleFeatureCollection parcelSplitted = VectorFct.generateSplitedParcels(parcelPreSelected, rnuCityFiles, null);
+
+		SimpleFeatureCollection pau = parcelSplitted.subCollection(filCluster).subCollection(filMorpho).subCollection(filNU);
 		Vectors.exportSFC(makeEnvelopePAU(pau), new File(outFile, "zonePAU"));
 
-		// nUSDS.dispose();
-		// clusterSDS.dispose();
-		// parcelSDS.dispose();
-		// morphoSDS.dispose();
+		nUSDS.dispose();
+		clusterSDS.dispose();
+		parcelSDS.dispose();
+		morphoSDS.dispose();
 	}
 
 	private static SimpleFeatureCollection makeEnvelopePAU(SimpleFeatureCollection pau) throws NoSuchAuthorityCodeException, FactoryException, IOException, SchemaException {
@@ -118,10 +120,10 @@ public class PAUDigger {
 		sfTypeBuilder.add("LIBELONG", String.class);
 		SimpleFeatureBuilder sfBuilder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
 		Object[] attr = { "RNU", "ZC", "ZC" };
-		
-		MultiPolygon mp = (MultiPolygon) Vectors.unionSFC(pau).buffer(0.01);
+
+		MultiPolygon mp = (MultiPolygon) Vectors.unionSFC(pau).buffer(2).buffer(-2);
 		int nbGeom = mp.getNumGeometries();
-		
+
 		int count = 0;
 		for (int i = 0; i < nbGeom; i++) {
 
@@ -227,6 +229,14 @@ public class PAUDigger {
 		SimpleFeatureCollection buildSFC = buildSDS.getFeatureSource().getFeatures();
 		SimpleFeatureIterator bIt = buildSFC.features();
 
+		// if the building is from an old version of the BD Topo and we need to sort the industrial and farmer buildings
+		boolean isOld = false;
+		for (AttributeDescriptor attr : buildSDS.getSchema().getAttributeDescriptors()) {
+			if (attr.getLocalName().equals("NATURE")) {
+				isOld = true;
+			}
+		}
+
 		DefaultFeatureCollection collecBuild = new DefaultFeatureCollection();
 		DefaultFeatureCollection bufferBuild = new DefaultFeatureCollection();
 
@@ -243,8 +253,15 @@ public class PAUDigger {
 		try {
 			while (bIt.hasNext()) {
 				SimpleFeature build = bIt.next();
-				if (!(((String) build.getAttribute("NATURE")).equals("Bâtiment agricole") || ((String) build.getAttribute("NATURE")).equals("Silo")
-						|| ((String) build.getAttribute("NATURE")).equals("Bâtiment industriel") || ((Geometry) build.getDefaultGeometry()).getArea() < 20.0)) {
+				// if the building is from an old version of the BD Topo and we need to sort the industrial and farmer buildings
+				if (isOld) {
+					if (!(((String) build.getAttribute("NATURE")).equals("Bâtiment agricole") || ((String) build.getAttribute("NATURE")).equals("Silo")
+							|| ((String) build.getAttribute("NATURE")).equals("Bâtiment industriel") || ((Geometry) build.getDefaultGeometry()).getArea() < 20.0)) {
+						collecBuild.add(build);
+						lG.add(((Geometry) build.getDefaultGeometry()).buffer(25));
+						i++;
+					}
+				} else {
 					collecBuild.add(build);
 					lG.add(((Geometry) build.getDefaultGeometry()).buffer(25));
 					i++;
@@ -269,7 +286,7 @@ public class PAUDigger {
 	}
 
 	/**
-	 * Cut the cluster regarding the important limits limits TODO doesnt work from now
+	 * Cut the cluster regarding the important limits limits
 	 * 
 	 * @return
 	 * 
