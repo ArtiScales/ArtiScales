@@ -190,7 +190,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 		}
 
 		if (this.getArt_8() == 88.0 || this.getArt_8() == 99.0) {
-			this.art_8 = 50;
+			this.art_8 = 3;
 		}
 
 		if (this.art_9 == 99) {

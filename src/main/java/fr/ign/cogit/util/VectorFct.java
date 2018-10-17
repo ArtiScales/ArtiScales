@@ -30,6 +30,7 @@ import fr.ign.cogit.geoxygene.convert.FromGeomToSurface;
 import fr.ign.cogit.geoxygene.feature.DefaultFeature;
 import fr.ign.cogit.geoxygene.feature.FT_FeatureCollection;
 import fr.ign.cogit.geoxygene.sig3d.calculation.parcelDecomposition.OBBBlockDecomposition;
+import fr.ign.cogit.geoxygene.spatial.coordgeom.DirectPosition;
 import fr.ign.cogit.geoxygene.util.attribute.AttributeManager;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileReader;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileWriter;
@@ -44,7 +45,7 @@ public class VectorFct {
 
 	}
 	
-	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeatureCollection parcelIn,File filterFile,  Parameters p) throws Exception {
+	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeatureCollection parcelIn, File filterFile,  Parameters p) throws Exception {
 		
 		ShapefileDataStore morphoSDS = new ShapefileDataStore(filterFile.toURI().toURL());
 		SimpleFeatureCollection morphoSFC = morphoSDS.getFeatureSource().getFeatures();
@@ -69,7 +70,7 @@ public class VectorFct {
 		// splitting method option
 
 		double roadEpsilon = 0.5;
-		double noise = 10;
+		double noise = 0;
 		double maximalArea = 1200;
 		double maximalWidth = 50;
 		if (!(p == null)) {
@@ -96,8 +97,6 @@ public class VectorFct {
 			while (parcelIt.hasNext()) {
 				SimpleFeature feat = parcelIt.next();
 				
-		
-				
 				String attributeValue = "";
 				
 				if(feat.getAttribute("CODE_DEP") != null) {
@@ -115,12 +114,7 @@ public class VectorFct {
 					System.out.println("VectorFct : Other type of parcel : " + feat);
 				}
 				
-				
-				
-				
-				Object[] attr = { 0, attributeValue};
-						
-						
+				Object[] attr = { 0, attributeValue};		
 						
 				if (((Geometry) feat.getDefaultGeometry()).getArea() > maximalArea) {
 					attr[0] = 1;
@@ -152,8 +146,8 @@ public class VectorFct {
 	 */
 	public static SimpleFeatureCollection splitParcels(SimpleFeatureCollection toSplit, double maximalArea, double maximalWidth, double roadEpsilon, double noise, Parameters p)
 			throws Exception {
-		// TODO un truc fait bugger la sortie dans cette classe..
 
+		DirectPosition.PRECISION = 5;
 		// TODO classe po bô du tout: faire une vraie conversion entre les types
 		// geotools et geox (passer par des shp a été le seul moyen que j'ai
 		// trouvé pour que ça fonctionne)

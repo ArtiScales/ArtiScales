@@ -38,6 +38,7 @@ import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Polygon;
 
 import fr.ign.cogit.GTFunctions.Vectors;
+import fr.ign.cogit.geoxygene.spatial.coordgeom.DirectPosition;
 import fr.ign.cogit.util.VectorFct;
 
 public class PAUDigger {
@@ -45,6 +46,7 @@ public class PAUDigger {
 	public static File tmpFile = new File("/home/mcolomb/tmp/");
 
 	public static void main(String[] args) throws Exception {
+		
 		File outFile = new File("/media/mcolomb/Data_2/donnee/DocLocal/");
 
 		File buildFile = new File("/media/mcolomb/Data_2/donnee/autom/besac2/dataIn/bati/BATI_INDIFFERENCIE.SHP");
@@ -121,7 +123,7 @@ public class PAUDigger {
 		SimpleFeatureBuilder sfBuilder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
 		Object[] attr = { "RNU", "ZC", "ZC" };
 
-		MultiPolygon mp = (MultiPolygon) Vectors.unionSFC(pau).buffer(2).buffer(-2);
+		MultiPolygon mp = (MultiPolygon) Vectors.unionSFC(pau).buffer(3).buffer(-3);
 		int nbGeom = mp.getNumGeometries();
 
 		int count = 0;

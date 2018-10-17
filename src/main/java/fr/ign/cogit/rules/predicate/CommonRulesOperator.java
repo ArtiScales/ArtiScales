@@ -410,8 +410,6 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		// 8 : retrait égal à la hauteur divisé par deux moins un mètre
 		// 9 : retrait égal aux deux tiers de la hauteur
 		// 10 : retrait égal aux trois quarts de la hauteur
-		
-	
 			double slope = 0;
 			double hIni = 0;
 			switch (art_74) {

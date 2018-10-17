@@ -15,7 +15,7 @@ public class FakeWorldSimulator {
 		
 		
 		//Parent folder with all wubfolder
-		String absoluteRootFolder = "/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScalesTest/Donnees/testArt/";
+		String absoluteRootFolder = "/home/mcolomb/tmp/fakeworld/";
 		
 		
 		File rootFolderFile = new File(absoluteRootFolder);
@@ -30,7 +30,7 @@ public class FakeWorldSimulator {
 			List<File> lF = new ArrayList<>();
 			// Line to change to select the right scenario
 
-			String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenarFakeWorld/").getPath();
+			String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenarFakeWorldMax/").getPath();
 
 	
 
@@ -72,11 +72,7 @@ public class FakeWorldSimulator {
 			// PLU Folder
 			File pluFile = new File(p.getString("pluFile"));
 
-			// writed stuff
-			XmlGen resultxml = new XmlGen(new File(rootFolder, "mainSimPLUSIMresult.xml"), "result");
-			XmlGen logxml = new XmlGen(new File(rootFolder, "mainSimPLUSIMlog.xml"), "log");
-
-			SimPLUSimulator simplu = new SimPLUSimulator(rootFolder, geoFile, pluFile, selectedParcels, p.getString("listZipCode"), p, lF, resultxml, logxml);
+			SimPLUSimulator simplu = new SimPLUSimulator(rootFolder, geoFile, pluFile, selectedParcels, p.getString("listZipCode"), p, lF);
 			
 			
 			simplu.run();

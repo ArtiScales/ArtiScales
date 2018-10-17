@@ -162,10 +162,10 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 			
 			for (Geometry geom : mapGeomRegulation.keySet()) {
 				maxBuiltArea = maxBuiltArea + geom.getArea() * mapGeomRegulation.get(geom).getArt_9();
-				maxBuiltArea = maxBuiltArea + geom.getArea() * mapGeomRegulation.get(geom).getArt_13();
+				maxBuiltFreeSpace = maxBuiltFreeSpace + geom.getArea() * mapGeomRegulation.get(geom).getArt_13();
 			}
 
-			maxCES = Math.min(maxBuiltArea / totalSubParcelArea, (1 - maxBuiltFreeSpace) / totalSubParcelArea);
+			maxCES = Math.min(maxBuiltArea / totalSubParcelArea, 1 - ( maxBuiltFreeSpace / totalSubParcelArea));
 		}
 
 		return maxCES;

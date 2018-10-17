@@ -64,19 +64,15 @@ public class SelectParcels {
 	boolean splitParcel;
 	Parameters p = null;
 
-	boolean rNU = false;
-
 	// result parameters
 	int nbParcels;
 	float moyEval;
 
-	public SelectParcels(File rootfile, File geoFile, File pluFile, File spatialconfiguration, String zipcode,
-			boolean splitparcel) throws Exception {
+	public SelectParcels(File rootfile, File geoFile, File pluFile, File spatialconfiguration, String zipcode, boolean splitparcel) throws Exception {
 		this(rootfile, geoFile, pluFile, spatialconfiguration, zipcode, splitparcel, null);
 	}
 
-	public SelectParcels(File rootfile, File geofile, File pluFile, File spatialconfiguration, String zipcode,
-			boolean splitparcel, Parameters pa) throws Exception {
+	public SelectParcels(File rootfile, File geofile, File pluFile, File spatialconfiguration, String zipcode, boolean splitparcel, Parameters pa) throws Exception {
 		// objet contenant les paramètres
 		p = pa;
 		// where everything's happends
@@ -90,15 +86,7 @@ public class SelectParcels {
 		// Paramètre si l'on découpe les parcelles ou non
 		splitParcel = splitparcel;
 		parcelFile = GetFromGeom.getParcels(geoFile);
-
-		// Si les communes sont au RNU :
-		rNU = GetFromGeom.isRNU(p, zipCode);
-
-		if (rNU) {
-			zoningFile = GetFromGeom.getPAUparcel(pluFile, geofile, new File(rootfile, "tmp"), zipCode);
-		} else {
-			zoningFile = GetFromGeom.getZoning(pluFile, zipCode);
-		}
+		zoningFile = GetFromGeom.getZoning(pluFile, zipCode);
 	}
 
 	// public static File run(File rootfile, File testFile, String zipcode, boolean
@@ -160,9 +148,8 @@ public class SelectParcels {
 	}
 
 	/**
-	 * Fill the already urbanised land (recognized with the U label from the field
-	 * TypeZone) and constructed parcels TODO verifier que c'est bien les bons
-	 * fichiers pour choper les PLUs
+	 * Fill the already urbanised land (recognized with the U label from the field TypeZone) and constructed parcels TODO verifier que c'est bien les bons fichiers pour choper les
+	 * PLUs
 	 * 
 	 * @return
 	 * @throws Exception
@@ -172,8 +159,7 @@ public class SelectParcels {
 		File newParcelSelection = new File(simuFile + "/parcelSelected.shp");
 
 		if (!newParcelSelection.exists()) {
-			SimpleFeatureCollection parcelBrownConstructed = parcelBuilt(
-					GetFromGeom.selecParcelZonePLU("U", zipCode, parcelFile, zoningFile), zipCode);
+			SimpleFeatureCollection parcelBrownConstructed = parcelBuilt(GetFromGeom.selecParcelZoning("U", zipCode, parcelFile, zoningFile), zipCode);
 			SimpleFeatureCollection parcelInCell = selecMultipleParcelInCell(parcelBrownConstructed);
 			SimpleFeatureCollection collectOut = putEvalInParcel(parcelInCell);
 			Vectors.exportSFC(collectOut, newParcelSelection);
@@ -182,16 +168,14 @@ public class SelectParcels {
 	}
 
 	/**
-	 * Fill the not-constructed parcel within the urbanised land (recognized with
-	 * the U label from the field TypeZone
+	 * Fill the not-constructed parcel within the urbanised land (recognized with the U label from the field TypeZone
 	 * 
 	 * @return
 	 * @throws Exception
 	 */
 	public File runBrownfieldUnconstructed() throws Exception {
 		File simuFile = makeDirSelection("UnotBuilt");
-		SimpleFeatureCollection parcelU = parcelNoBuilt(
-				GetFromGeom.selecParcelZonePLU("U", zipCode, parcelFile, zoningFile));
+		SimpleFeatureCollection parcelU = parcelNoBuilt(GetFromGeom.selecParcelZoning("U", zipCode, parcelFile, zoningFile));
 		File newParcelSelection = new File(simuFile + "/parcelSelected.shp");
 
 		if (splitParcel) {
@@ -210,7 +194,7 @@ public class SelectParcels {
 
 	public File runGreenfieldSelected() throws Exception {
 		File simuFile = makeDirSelection("AUnotBuilt");
-		SimpleFeatureCollection parcelAU = GetFromGeom.selecParcelZonePLU("AU", zipCode, parcelFile, zoningFile);
+		SimpleFeatureCollection parcelAU = GetFromGeom.selecParcelZoning("AU", zipCode, parcelFile, zoningFile);
 		File newParcelSelection = new File(simuFile + "/parcelSelected.shp");
 
 		if (splitParcel) {
@@ -229,20 +213,18 @@ public class SelectParcels {
 	}
 
 	/**
-	 * Selection of only the natural lands that intersects the MUP-City's outputs.
-	 * Selection could either be all merged and cut to produce a realistic parcel
-	 * land or not. Selection is ordered by MUP-City's evaluation.
+	 * Selection of only the natural lands that intersects the MUP-City's outputs. Selection could either be all merged and cut to produce a realistic parcel land or not. Selection
+	 * is ordered by MUP-City's evaluation.
 	 * 
-	 * TODO finish to code (prendre à la fois les classes N et A (surcharger la
-	 * méthode selectParcelsZonePLU? TODO optimiser (pas vraiment à créer un SFC à
-	 * chaque fois?!) TODO quelle règles de SimPLU modèlise-t-on?
+	 * TODO finish to code (prendre à la fois les classes N et A (surcharger la méthode selectParcelsZonePLU? TODO optimiser (pas vraiment à créer un SFC à chaque fois?!) TODO
+	 * quelle règles de SimPLU modèlise-t-on?
 	 * 
 	 * @return a (shape)file containing the selection of parcel to urbanise
 	 * @throws Exception
 	 */
 	public File runNaturalLand() throws Exception {
 		File simuFile = makeDirSelection("AUnotBuilt");
-		SimpleFeatureCollection parcelAU = GetFromGeom.selecParcelZonePLU("AU", zipCode, parcelFile, zoningFile);
+		SimpleFeatureCollection parcelAU = GetFromGeom.selecParcelZoning("AU", zipCode, parcelFile, zoningFile);
 		File newParcelSelection = new File(simuFile + "/parcelSelected.shp");
 
 		if (splitParcel) {
@@ -261,13 +243,11 @@ public class SelectParcels {
 	}
 
 	/**
-	 * Selection of only the natural lands that intersects the MUP-City's outputs.
-	 * Selection could either be all merged and cut to produce a realistic parcel
-	 * land or not. Selection is ordered by MUP-City's evaluation.
+	 * Selection of only the natural lands that intersects the MUP-City's outputs. Selection could either be all merged and cut to produce a realistic parcel land or not. Selection
+	 * is ordered by MUP-City's evaluation.
 	 * 
-	 * TODO finish to code (prendre à la fois les classes N et A (surcharger la
-	 * méthode selectParcelsZonePLU? TODO optimiser (pas vraiment à créer un SFC à
-	 * chaque fois?!) TODO quelle règles de SimPLU modèlise-t-on?
+	 * TODO finish to code (prendre à la fois les classes N et A (surcharger la méthode selectParcelsZonePLU? TODO optimiser (pas vraiment à créer un SFC à chaque fois?!) TODO
+	 * quelle règles de SimPLU modèlise-t-on?
 	 * 
 	 * @return a (shape)file containing the selection of parcel to urbanise
 	 * @throws Exception
@@ -295,12 +275,8 @@ public class SelectParcels {
 	public File runZoningAllowed() throws Exception {
 		File simuFile = makeDirSelection("ZoningAllowed");
 		File newParcelSelection = new File(simuFile + "/parcelSelected.shp");
-
-		String[] zones = { "U", "AU" };
-		if (rNU) {
-			zones = new String[1];
-			zones[0] = "ZC";
-		}
+		
+		String[] zones = { "U", "AU"};
 
 		for (String zone : zones) {
 
@@ -317,7 +293,7 @@ public class SelectParcels {
 					salut = GetFromGeom.selecParcelZonePLUmergeAU(parcelFile, zipCode, zoningFile, p);
 
 				} else {
-					salut = GetFromGeom.selecParcelZonePLU("U", zipCode, parcelFile, zoningFile);
+					salut = GetFromGeom.selecParcelZoning(zone, zipCode, parcelFile, zoningFile);
 
 					if (salut != null) {
 						toSplit.addAll(salut);
@@ -332,8 +308,7 @@ public class SelectParcels {
 				// split of parcels
 				SimpleFeatureCollection parcelAllowedSplited = VectorFct.generateSplitedParcels(parcelGen, p);
 				// reselection by the zoning
-				SimpleFeatureCollection parcelSplittedIn = GetFromGeom.selecParcelZonePLU(zones, zipCode,
-						parcelAllowedSplited, zoningFile);
+				SimpleFeatureCollection parcelSplittedIn = GetFromGeom.selecParcelZoning(zones, zipCode, parcelAllowedSplited, zoningFile);
 
 				// selection by the MUP-City's cells
 				SimpleFeatureCollection parcelInCell = selecMultipleParcelInCell(parcelSplittedIn);
@@ -344,47 +319,27 @@ public class SelectParcels {
 				// export tout ça
 				Vectors.exportSFC(collectOut, newParcelSelection);
 			} else {
+				// select grom zoning
+				SimpleFeatureCollection parcelGen = GetFromGeom.selecParcelZoning(zones, zipCode, parcelFile, zoningFile);
 
-				if (!rNU) {
-					// select grom zoning
-					SimpleFeatureCollection parcelGen = GetFromGeom.selecParcelZonePLU(zones, zipCode, parcelFile,
-							zoningFile);
+				// selection by the MUP-City's cells
+				SimpleFeatureCollection parcelInCell = selecMultipleParcelInCell(parcelGen);
 
+				// put evals in cells
+				SimpleFeatureCollection collectOut = putEvalInParcel(parcelInCell);
 
-					// selection by the MUP-City's cells
-					SimpleFeatureCollection parcelInCell = selecMultipleParcelInCell(parcelGen);
+				// export tout ça
+				Vectors.exportSFC(collectOut, newParcelSelection);
 
-
-					// put evals in cells
-					SimpleFeatureCollection collectOut = putEvalInParcel(parcelInCell);
-
-					// export tout ça
-					Vectors.exportSFC(collectOut, newParcelSelection);
-				} else {
-
-					ShapefileDataStore pauSDS = new ShapefileDataStore(zoningFile.toURI().toURL());
-					SimpleFeatureCollection pauCollection = pauSDS.getFeatureSource().getFeatures();
-
-					// selection by the MUP-City's cells
-					SimpleFeatureCollection parcelInCell = selecMultipleParcelInCell(pauCollection);
-					// put evals in cells
-					SimpleFeatureCollection collectOut = putEvalInParcel(parcelInCell);
-
-					// export tout ça
-					Vectors.exportSFC(collectOut, newParcelSelection);
-					pauSDS.dispose();
-				}
 			}
 		}
 		return newParcelSelection;
 	}
 
-	public SimpleFeatureCollection selecMultipleParcelInCell(SimpleFeatureCollection parcelIn)
-			throws IOException, NoSuchAuthorityCodeException, FactoryException {
+	public SimpleFeatureCollection selecMultipleParcelInCell(SimpleFeatureCollection parcelIn) throws IOException, NoSuchAuthorityCodeException, FactoryException {
 
 		// import of the MUP-City outputs
-		ShapefileDataStore shpDSCells = new ShapefileDataStore(
-				(new File(spatialConfiguration, spatialConfiguration.getName() + "-vectorized.shp")).toURI().toURL());
+		ShapefileDataStore shpDSCells = new ShapefileDataStore((new File(spatialConfiguration, spatialConfiguration.getName() + "-vectorized.shp")).toURI().toURL());
 		SimpleFeatureCollection cellsCollection = shpDSCells.getFeatureSource().getFeatures();
 
 		Geometry cellsUnion = Vectors.unionSFC(cellsCollection);
@@ -402,8 +357,7 @@ public class SelectParcels {
 		return parcelSelected;
 	}
 
-	public SimpleFeatureCollection mergeParcels(SimpleFeatureCollection parcelIn)
-			throws NoSuchAuthorityCodeException, FactoryException, IOException {
+	public SimpleFeatureCollection mergeParcels(SimpleFeatureCollection parcelIn) throws NoSuchAuthorityCodeException, FactoryException, IOException {
 
 		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
 
@@ -432,13 +386,11 @@ public class SelectParcels {
 	 * @throws FactoryException
 	 * @throws IOException
 	 */
-	public SimpleFeatureCollection putEvalInParcel(SimpleFeatureCollection parcelIn)
-			throws ParseException, NoSuchAuthorityCodeException, FactoryException, IOException {
+	public SimpleFeatureCollection putEvalInParcel(SimpleFeatureCollection parcelIn) throws ParseException, NoSuchAuthorityCodeException, FactoryException, IOException {
 		// TODO Prends des évaluations nulles pour les parcelles ou il n'y a pas
 		// de cellules : aller chercher le raster d'évaluation et le prendre yo
 
-		ShapefileDataStore shpDSCells = new ShapefileDataStore(
-				(new File(spatialConfiguration, spatialConfiguration.getName() + "-vectorized.shp")).toURI().toURL());
+		ShapefileDataStore shpDSCells = new ShapefileDataStore((new File(spatialConfiguration, spatialConfiguration.getName() + "-vectorized.shp")).toURI().toURL());
 		SimpleFeatureCollection cellsCollection = shpDSCells.getFeatureSource().getFeatures();
 
 		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
@@ -468,8 +420,7 @@ public class SelectParcels {
 		try {
 			while (parcelIt.hasNext()) {
 				SimpleFeature feat = parcelIt.next();
-				Filter inter = ff.intersects(ff.property(geometryCellPropertyName),
-						ff.literal(feat.getDefaultGeometry()));
+				Filter inter = ff.intersects(ff.property(geometryCellPropertyName), ff.literal(feat.getDefaultGeometry()));
 				SimpleFeatureCollection onlyCells = cellsCollection.subCollection(inter);
 				Double bestEval = Double.NEGATIVE_INFINITY;
 				// put the best cell evaluation into the parcel
@@ -486,17 +437,16 @@ public class SelectParcels {
 						onlyCellIt.close();
 					}
 				}
-				// si on utilise des PAU, le nom est déjà généré
+				// si jamais le nom est déjà généré
 				String numero;
 				if (!((String) feat.getAttribute("CODE")).isEmpty()) {
 					numero = ((String) feat.getAttribute("CODE"));
 				} else {
-					numero = ((String) feat.getAttribute("CODE_DEP")) + ((String) feat.getAttribute("CODE_COM"))
-							+ ((String) feat.getAttribute("COM_ABS")) + ((String) feat.getAttribute("SECTION"))
-							+ ((String) feat.getAttribute("NUMERO"));
+					numero = ((String) feat.getAttribute("CODE_DEP")) + ((String) feat.getAttribute("CODE_COM")) + ((String) feat.getAttribute("COM_ABS"))
+							+ ((String) feat.getAttribute("SECTION")) + ((String) feat.getAttribute("NUMERO"));
 				}
-				Object[] attr = { bestEval, numero,feat.getAttribute("CODE_DEP"), feat.getAttribute("CODE_COM"),
-						feat.getAttribute("COM_ABS"),feat.getAttribute("SECTION"),feat.getAttribute("NUMERO")};
+				Object[] attr = { bestEval, numero, feat.getAttribute("CODE_DEP"), feat.getAttribute("CODE_COM"), feat.getAttribute("COM_ABS"), feat.getAttribute("SECTION"),
+						feat.getAttribute("NUMERO") };
 
 				sfBuilder.add(feat.getDefaultGeometry());
 
@@ -521,16 +471,13 @@ public class SelectParcels {
 		return collectOut;
 	}
 
-	public SimpleFeatureCollection putEvalRasterInParcel(SimpleFeatureCollection parcelIn)
-			throws ParseException, NoSuchAuthorityCodeException, FactoryException, IOException {
+	public SimpleFeatureCollection putEvalRasterInParcel(SimpleFeatureCollection parcelIn) throws ParseException, NoSuchAuthorityCodeException, FactoryException, IOException {
 		// TODO Prends des évaluations nulles pour les parcelles ou il n'y a pas
 		// de cellules : aller chercher le raster d'évaluation et le prendre yo
 		// (encore pas mal de dev pour le début de la semaine prochaine mon
 		// coco)
-		GridCoverage2D rasterEvalGrid = Rasters.importRaster(new File(rootFile,
-				"depotConfigSpat/"
-						+ spatialConfiguration.getName().substring(0, spatialConfiguration.getName().length() - 14)
-						+ "eval-20.0.tif"));
+		GridCoverage2D rasterEvalGrid = Rasters
+				.importRaster(new File(rootFile, "depotConfigSpat/" + spatialConfiguration.getName().substring(0, spatialConfiguration.getName().length() - 14) + "eval-20.0.tif"));
 		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
 
 		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
@@ -582,16 +529,14 @@ public class SelectParcels {
 		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
 		String geometryParcelPropertyName = parcelIn.getSchema().getGeometryDescriptor().getLocalName();
 
-		ShapefileDataStore shpDSCells = new ShapefileDataStore(
-				(new File(spatialConfiguration, spatialConfiguration.getName() + "-vectorized.shp")).toURI().toURL());
+		ShapefileDataStore shpDSCells = new ShapefileDataStore((new File(spatialConfiguration, spatialConfiguration.getName() + "-vectorized.shp")).toURI().toURL());
 		SimpleFeatureCollection cellsCollection = shpDSCells.getFeatureSource().getFeatures();
 
 		SimpleFeatureIterator cellIt = cellsCollection.features();
 		try {
 			while (cellIt.hasNext()) {
 				SimpleFeature feat = cellIt.next();
-				Filter inter = ff.intersects(ff.property(geometryParcelPropertyName),
-						ff.literal(feat.getDefaultGeometry()));
+				Filter inter = ff.intersects(ff.property(geometryParcelPropertyName), ff.literal(feat.getDefaultGeometry()));
 				SimpleFeatureCollection parcelMultipleSelection = parcelIn.subCollection(inter);
 				if (!parcelMultipleSelection.isEmpty()) {
 					SimpleFeature bestFeature = null;
@@ -680,8 +625,7 @@ public class SelectParcels {
 		try {
 			while (iterator.hasNext()) {
 				SimpleFeature batiFeature = iterator.next();
-				if (feature.getDefaultGeometryProperty().getBounds()
-						.contains(batiFeature.getDefaultGeometryProperty().getBounds())) {
+				if (feature.getDefaultGeometryProperty().getBounds().contains(batiFeature.getDefaultGeometryProperty().getBounds())) {
 					isContent = true;
 					break;
 				}
