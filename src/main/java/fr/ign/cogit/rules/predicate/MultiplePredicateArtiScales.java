@@ -13,6 +13,7 @@ import fr.ign.cogit.geoxygene.util.conversion.AdapterFactory;
 import fr.ign.cogit.rules.regulation.ArtiScalesRegulation;
 import fr.ign.cogit.simplu3d.model.BasicPropertyUnit;
 import fr.ign.cogit.simplu3d.model.Environnement;
+import fr.ign.cogit.simplu3d.model.ParcelBoundaryType;
 import fr.ign.cogit.simplu3d.model.Prescription;
 import fr.ign.cogit.simplu3d.model.SubParcel;
 import fr.ign.cogit.simplu3d.model.UrbaZone;
@@ -24,17 +25,18 @@ import fr.ign.parameters.Parameters;
 public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C extends AbstractGraphConfiguration<O, C, M>, M extends AbstractBirthDeathModification<O, C, M>>
 		extends CommonPredicateArtiScales<O, C, M> {
 
-	//This map store the geometries of supercel relatively to the underlying regulation
+	// This map store the geometries of supercel relatively to the underlying
+	// regulation
 	Map<Geometry, ArtiScalesRegulation> mapGeomRegulation = new HashMap<>();
 	CommonRulesOperator<O> cRO = new CommonRulesOperator<O>();
-	
+
 	/**
 	 * 
 	 * @param currentBPU current bPU
-	 * @param align Alignement to prescription
-	 * @param p Parametrs
-	 * @param presc Considered prescription
-	 * @param env 
+	 * @param align      Alignement to prescription
+	 * @param p          Parametrs
+	 * @param presc      Considered prescription
+	 * @param env
 	 * @throws Exception
 	 */
 	public MultiplePredicateArtiScales(BasicPropertyUnit currentBPU, boolean align, Parameters p,
@@ -44,28 +46,33 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 		 */
 		super(currentBPU, align, p, presc, env);
 
-		//We create the map 
-		// for each  subparcel we add both object
+		// We create the map
+		// for each subparcel we add both object
 		for (SubParcel sp : currentBPU.getCadastralParcels().get(0).getSubParcels()) {
 			IGeometry subParcelGeometry = sp.getGeom();
-			UrbaZone uZ =  sp.getUrbaZone();
-			mapGeomRegulation.put(AdapterFactory.toGeometry(gf,subParcelGeometry),
+			UrbaZone uZ = sp.getUrbaZone();
+			mapGeomRegulation.put(AdapterFactory.toGeometry(gf, subParcelGeometry),
 					(ArtiScalesRegulation) uZ.getZoneRegulation());
 
-			
-			
-			double aireMinimale = ((ArtiScalesRegulation)uZ.getZoneRegulation()).getArt_5();
-			
-			//##Rule-art-005
-			if(aireMinimale != 99.0) {
-				
-				if(currentBPU.getArea() < aireMinimale) {
+			double aireMinimale = ((ArtiScalesRegulation) uZ.getZoneRegulation()).getArt_5();
+
+			// ##Rule-art-005
+			if (aireMinimale != 99.0) {
+
+				if (currentBPU.getArea() < aireMinimale) {
 					canBeSimulated = false;
 				}
 			}
-			
-			
-			
+
+			// ##Rule-art-003
+			double valArt3 = ((ArtiScalesRegulation) uZ.getZoneRegulation()).getArt_5();
+			if (valArt3 == 1) {
+				if (currentBPU.getCadastralParcels().get(0).getBoundariesByType(ParcelBoundaryType.ROAD).isEmpty()) {
+					canBeSimulated = false;
+
+				}
+			}
+
 		}
 
 		// We clean all regulation (Removing fake values from regulation object)
@@ -75,19 +82,15 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 		this.p.set("minheight", this.getMinHeight());
 	}
 
-	/*If necessary ....
-	  
-
-	@Override
-	public boolean check(C c, M m) {
-		if (!super.check(c, m)) {
-			return false;
-		}
-		//Implement some special function
-		return true;
-
-	}
-	*/
+	/*
+	 * If necessary ....
+	 * 
+	 * 
+	 * @Override public boolean check(C c, M m) { if (!super.check(c, m)) { return
+	 * false; } //Implement some special function return true;
+	 * 
+	 * }
+	 */
 
 	/**
 	 * Determine for a list of cuboids the distances values
@@ -121,6 +124,7 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 
 		return d;
 	}
+
 	/**
 	 * Determine the regulation for a cuboid (when subparcel is intersected)
 	 */
@@ -140,17 +144,14 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 
 		return lArtiScalesRegulation;
 	}
-	
-	
-
 
 	// Default maxCES value
 	private double maxCES = 1;
 
 	@Override
 	/**
-	 * Determine the maxCES value (a ponderated average according to the SubParcel surfaces)
-	 * 	#art_13 #art_5
+	 * Determine the maxCES value (a ponderated average according to the SubParcel
+	 * surfaces) #art_13 #art_5
 	 */
 	protected double getMaxCES() {
 		if (maxCES == -1) {
@@ -158,14 +159,13 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 			double totalSubParcelArea = mapGeomRegulation.keySet().stream().mapToDouble(x -> x.getArea()).sum();
 			double maxBuiltArea = 0;
 			double maxBuiltFreeSpace = 0;
-			
-			
+
 			for (Geometry geom : mapGeomRegulation.keySet()) {
 				maxBuiltArea = maxBuiltArea + geom.getArea() * mapGeomRegulation.get(geom).getArt_9();
 				maxBuiltFreeSpace = maxBuiltFreeSpace + geom.getArea() * mapGeomRegulation.get(geom).getArt_13();
 			}
 
-			maxCES = Math.min(maxBuiltArea / totalSubParcelArea, 1 - ( maxBuiltFreeSpace / totalSubParcelArea));
+			maxCES = Math.min(maxBuiltArea / totalSubParcelArea, 1 - (maxBuiltFreeSpace / totalSubParcelArea));
 		}
 
 		return maxCES;
@@ -173,11 +173,11 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 
 	@Override
 	protected double getMaxHeight() {
-		
-		Double maxVal=0.0;
+
+		Double maxVal = 0.0;
 		for (ArtiScalesRegulation rule : mapGeomRegulation.values()) {
 			Double tmpH = cRO.hauteur(super.p, rule, heighSurroundingBuildings)[1];
-			if (maxVal<tmpH) {
+			if (maxVal < tmpH) {
 				maxVal = tmpH;
 			}
 		}
@@ -186,7 +186,8 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 
 	@Override
 	protected double getMinHeight() {
-		return mapGeomRegulation.values().stream().mapToDouble(x -> cRO.hauteur(p, x, heighSurroundingBuildings)[1]).max().getAsDouble();
+		return mapGeomRegulation.values().stream().mapToDouble(x -> cRO.hauteur(p, x, heighSurroundingBuildings)[1])
+				.max().getAsDouble();
 	}
 
 	@Override
