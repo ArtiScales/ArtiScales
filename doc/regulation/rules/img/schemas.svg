@@ -1083,14 +1083,14 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.2072266"
-     inkscape:cx="-230.98837"
-     inkscape:cy="-1906.4898"
+     inkscape:zoom="0.52049858"
+     inkscape:cx="-752.42744"
+     inkscape:cy="-1493.0876"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="1855"
-     inkscape:window-height="1056"
+     inkscape:window-width="1215"
+     inkscape:window-height="1000"
      inkscape:window-x="65"
      inkscape:window-y="24"
      inkscape:window-maximized="1" />
@@ -1977,13 +1977,13 @@
        id="rect12567-5-4-3"
        width="86.873108"
        height="113.13709"
-       x="-267.4379"
-       y="2463.3511"
+       x="-772.72266"
+       y="2497.9333"
        inkscape:export-xdpi="96"
        inkscape:export-ydpi="96" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="m -333.09782,2579.0134 221.22342,0"
+       d="m -838.38258,2613.5956 221.22342,0"
        id="path16121-9"
        inkscape:connector-curvature="0"
        inkscape:export-xdpi="96"
@@ -1991,8 +1991,8 @@
     <ellipse
        style="opacity:1;fill:#2f8941;fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="path16123-1"
-       cx="-112.37949"
-       cy="2579.1301"
+       cx="-617.66425"
+       cy="2613.7124"
        rx="7.5761447"
        ry="7.9646649"
        inkscape:export-xdpi="96"
@@ -2000,15 +2000,15 @@
     <ellipse
        style="opacity:1;fill:#2f8941;fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="path16123-8-9"
-       cx="-336.12827"
-       cy="2581.0339"
+       cx="-841.41302"
+       cy="2615.6162"
        rx="7.5761447"
        ry="7.9646649"
        inkscape:export-xdpi="96"
        inkscape:export-ydpi="96" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-start:url(#EmptyTriangleInM-4-6-7-5-69);marker-end:url(#EmptyTriangleOutM-9-4-7-0-6-8-3)"
-       d="m -306.16696,2577.3684 0.18147,-138.7526"
+       d="m -811.45172,2611.9506 0.18147,-138.7526"
        id="path4232-2-8-6-1-6-1-05"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cc"
@@ -2016,7 +2016,7 @@
        inkscape:export-ydpi="96" />
     <path
        style="fill:#ff0000;fill-rule:evenodd;stroke:#f31919;stroke-width:4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="m -336.326,2435.9336 221.22342,0"
+       d="m -841.61076,2470.5158 221.22342,0"
        id="path16121-9-6"
        inkscape:connector-curvature="0"
        inkscape:export-xdpi="96"
@@ -2025,7 +2025,7 @@
        xml:space="preserve"
        id="flowRoot4176-9-4-5-5-9-8-4-5-4"
        style="font-style:normal;font-weight:normal;font-size:18.75px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       transform="translate(87.351581,2477.6887)"
+       transform="translate(-417.93318,2512.2709)"
        inkscape:export-xdpi="96"
        inkscape:export-ydpi="96"><flowRegion
          id="flowRegion4178-1-5-4-9-7-9-6-1-0"><rect
@@ -2034,9 +2034,9 @@
            height="36.428566"
            x="-577.14288"
            y="14.505061" /></flowRegion><flowPara
-         id="flowPara4182-7-36-4-0-6-4-2-0-4">{{B1_ART_10}}</flowPara></flowRoot>    <path
+         id="flowPara4182-7-36-4-0-6-4-2-0-4">{{art_10_top}}</flowPara></flowRoot>    <path
        style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#EmptyTriangleOutM-9-64-6)"
-       d="m -37.603523,2572.1978 0.271231,-100.1661"
+       d="m -542.88828,2606.78 0.27123,-100.1661"
        id="path4232-2-0-6"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cc"
@@ -2045,16 +2045,16 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:18.75px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       x="-45.082577"
-       y="2454.0334"
+       x="-550.36731"
+       y="2488.6157"
        id="text18814-7"
        sodipodi:linespacing="125%"
        inkscape:export-xdpi="96"
        inkscape:export-ydpi="96"><tspan
          sodipodi:role="line"
          id="tspan18816-5"
-         x="-45.082577"
-         y="2454.0334">z</tspan></text>
+         x="-550.36731"
+         y="2488.6157">z</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:18.75px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
@@ -2063,9 +2063,13 @@
        id="text8021-1-8-1-3-8-1-6"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
-         id="tspan8023-0-4-1-0-1-1-9"
          x="172.32584"
-         y="2485.6875">Article IAUIDF-007</tspan></text>
+         y="2485.6875"
+         id="tspan4975"> Regle-art-10</tspan><tspan
+         sodipodi:role="line"
+         x="172.32584"
+         y="2509.125"
+         id="tspan4979" /></text>
     <rect
        style="opacity:1;fill:#acdb01;fill-opacity:1;stroke:none;stroke-width:5;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="rect12567-5-4-9-2-5-8"

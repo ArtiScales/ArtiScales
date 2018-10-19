@@ -355,7 +355,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		//////// Checking the height of the cuboid
 		double min = p.getDouble("minheight");
 		double max = p.getDouble("maxheight");
-		System.out.println("TODO MAX HEIGHT CODE");
+
 	
 		switch (regle.getArt_10_top()) {
 
@@ -384,12 +384,9 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 			}
 			// si pas de batiments aux alentours, on se rabat sur différentes options
 			else {
-				if (regle.getArt_10_top() == 6) {
+			
 					max = regle.getArt_10_1();
-				}
-				if (regle.getArt_10_top() == 7) {
-					max = Double.valueOf(regle.getArt_10_1());
-				}
+		
 			}
 		case 20 : 
 		default :
