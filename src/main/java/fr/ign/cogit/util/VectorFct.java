@@ -147,7 +147,6 @@ public class VectorFct {
 	public static SimpleFeatureCollection splitParcels(SimpleFeatureCollection toSplit, double maximalArea, double maximalWidth, double roadEpsilon, double noise, Parameters p)
 			throws Exception {
 
-		DirectPosition.PRECISION = 5;
 		// TODO classe po bô du tout: faire une vraie conversion entre les types
 		// geotools et geox (passer par des shp a été le seul moyen que j'ai
 		// trouvé pour que ça fonctionne)

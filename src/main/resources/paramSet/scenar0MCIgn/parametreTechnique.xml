@@ -12,12 +12,19 @@
 	
 	<!-- PARAMETRES DE MUP-CITY -->
 	<!-- paramètres techniques -->	
-	<param key ="createMUPSimu" value="false" />
-	<param key="emprise" value="915948;6677337;26590;26590"/>
+	<param key ="createMUPSimu" value="true" />
+	
+<!--	<param key="emprise" value="915948;6677337;26590;26590"/> -->
+	<param key="emprise" value="915948;6677337;26590;26590"/>	
 	<param key ="cm" value="20"/>
 	<param key="seuil" value="0"/>
-	<param key="data" value="dataManu" />
+	<param key="data" value="Manu" />
 	<param key = "nivCellUtilise" value="1"/>
+
+	<param key = "variant" value="true"/>
+	<param key = "variante1" value="emprise=915948;6677337;26590;26590--cm=20--seuil=0--data=Manu--nivCellUtilise=1--seed=1213"/>
+	<param key = "variante2" value="emprise=915948;6677337;26590;26590--cm=20--seuil=0--data=Autom--nivCellUtilise=1--seed=213"/>
+
 
 	<!-- PARAMETRES DE SIMPLU3D -->
 

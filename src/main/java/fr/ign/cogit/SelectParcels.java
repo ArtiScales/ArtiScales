@@ -2,6 +2,7 @@ package fr.ign.cogit;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.data.shapefile.ShapefileDataStore;
@@ -57,9 +58,9 @@ public class SelectParcels {
 	File rootFile;
 	File geoFile;
 	File parcelFile;
-	File spatialConfiguration;
+	List<List<File>> spatialConfiguration;
 	File zoningFile;
-	String zipCode;
+
 	String action;
 	boolean splitParcel;
 	Parameters p = null;
@@ -67,12 +68,10 @@ public class SelectParcels {
 	// result parameters
 	int nbParcels;
 	float moyEval;
+//if we want to simulate only a single zone
+	String zipCode;
 
-	public SelectParcels(File rootfile, File geoFile, File pluFile, File spatialconfiguration, String zipcode, boolean splitparcel) throws Exception {
-		this(rootfile, geoFile, pluFile, spatialconfiguration, zipcode, splitparcel, null);
-	}
-
-	public SelectParcels(File rootfile, File geofile, File pluFile, File spatialconfiguration, String zipcode, boolean splitparcel, Parameters pa) throws Exception {
+	public SelectParcels(File rootfile, File geofile, File pluFile, List<List<File>> spatialconfigurations, boolean splitparcel, Parameters pa) throws Exception {
 		// objet contenant les paramètres
 		p = pa;
 		// where everything's happends
@@ -80,13 +79,11 @@ public class SelectParcels {
 		// where the geographic data are stored
 		geoFile = geofile;
 		// Liste des sorties de MupCity
-		spatialConfiguration = spatialconfiguration;
-		// Code postal de la commune étudié
-		zipCode = zipcode;
+		spatialConfiguration = spatialconfigurations;
 		// Paramètre si l'on découpe les parcelles ou non
 		splitParcel = splitparcel;
 		parcelFile = GetFromGeom.getParcels(geoFile);
-		zoningFile = GetFromGeom.getZoning(pluFile, zipCode);
+		zoningFile = GetFromGeom.getZoning(pluFile, zipCode); 
 	}
 
 	// public static File run(File rootfile, File testFile, String zipcode, boolean

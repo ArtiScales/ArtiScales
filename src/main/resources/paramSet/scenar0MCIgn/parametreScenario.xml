@@ -4,7 +4,7 @@
 	<!--PARAMÈTRES SCÉNARISTIQUES POUR LES SIMULATIONS AVEC ARTISCALES -->
 
 	<!-- Nom du scénario -->
-	<param key="nom" value="test" />
+	<param key="nom" value="teststp" />
 
 	<!-- Mode de fonctionnement d'ArtiScales -->
 	<!-- Si true, le modèle s'arrête quand les objectifs de création de logement 
@@ -20,12 +20,6 @@
 	<!-- Dossiers et fichiers nécessaires à la simulation -->
 	<!-- Emplacement des résultats de simulation (intermédiaires et finaux) -->
 	<param key="rootFile" value="/home/mcolomb/informatique/ArtiScales/" />
-	<!-- Emplacement des données géographiques générales -->
-	<param key="geoFile"
-		value="/home/mcolomb/informatique/ArtiScales/donneeGeographiques" />
-	<!-- Emplacement des données géographiques concernant les PLU -->
-	<param key="pluFile"
-		value="/home/mcolomb/informatique/ArtiScales/donneeGeographiques/PLU" />
 	<!-- Nom du fichier contenant la modélisation du règlement des PLU -->
 	<param key="pluPredicate"
 		value="/home/mcolomb/workspace/ArtiScales/saisiePLUtxt/predicate-19-09.csv" />
