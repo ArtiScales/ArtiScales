@@ -124,23 +124,12 @@ public class MainTask {
 
 		// Vectorisation des sorties de MupCity
 		List<File> outMupList = (new SelecMUPOutput(rootFile, listOutputMupToTest)).run();
-
-		// set the main statistic file => a terme, remplacé
-		StatStuff.setGenStat(rootFile);
-
-		// Xml files containing results infos and a log about what went on
-		XmlGen resultXml = new XmlGen(new File(rootFile, "output/result-scenar_" + p.getString("nom") + ".xml"), p.getString("nom"));
-		XmlGen logXml = new XmlGen(new File(rootFile, "output/log-scenar_" + p.getString("nom") + ".xml"), p.getString("nom"));
-
+		
 		// pour toutes les sorties
 		for (File outMup : outMupList) {
-			resultXml.beginBalise(outMup.getName());
 			System.out.println("----------==+Pour la sortie " + outMup.getName() + "+==----------");
 			// pour toutes les communes
 			for (String zipCode : zipCodes) {
-				// write onto the .xml
-				resultXml.beginBalise(zipCode);
-
 				System.out.println("------=+Pour la commune " + zipCode + "+=------");
 				// Liste de types de sélection à partir du phasage définis dans le fichier de
 				// paramètre
@@ -152,14 +141,12 @@ public class MainTask {
 				if (!p.getBoolean("fill")) {
 					// on ne va simuler que sur des emplacements permis par le zonage
 					if (p.getBoolean("respectZoning")) {
-						resultXml.beginBalise("respectZoning");
-
+	
 						// parcel selection
 						File parcelSelected = selectParcels.runZoningAllowed();
-						selectParcels.writeXMLResult(resultXml);
-
+		
 						// SimPLU simulation
-						SimPLUSimulator simPLUsimu = new SimPLUSimulator(rootFile, geoFile, pluFile, parcelSelected, zipCode, p, listParameters, resultXml, logXml);
+						SimPLUSimulator simPLUsimu = new SimPLUSimulator(rootFile, geoFile, pluFile, parcelSelected, zipCode, p, listParameters);
 						List<File> batisSimulatedFile = simPLUsimu.run();
 
 						// merge for workability reasons
@@ -169,11 +156,9 @@ public class MainTask {
 						bTH.runParticularSimpleEstimation();
 						bTH.simpleCityEstimate();
 
-						resultXml.endBalise("respectZoning");
-					} else {
-						resultXml.beginBalise("ConstructingEverywhere");
 
-						resultXml.endBalise("ConstructingEverywhere");
+					} else {
+
 
 					}
 				}
@@ -204,20 +189,15 @@ public class MainTask {
 								ParcelToTest = selectParcels.runAll();
 							}
 							// on calcule directement le nombre de logements par simulations de SimPLU
-							missingHousingUnits = SimPLUSimulator.fillSelectedParcels(rootFile, geoFile, pluFile, ParcelToTest, missingHousingUnits, zipCode, p, listParameters,
-									resultXml, logXml);
+							missingHousingUnits = SimPLUSimulator.fillSelectedParcels(rootFile, geoFile, pluFile, ParcelToTest, missingHousingUnits, zipCode, p, listParameters);
 						}
 						if (missingHousingUnits == 0) {
 							break;
 						}
 					}
 				}
-				resultXml.endBalise(zipCode);
 			}
-			resultXml.endBalise(outMup.getName());
 		}
-		resultXml.endBalise(p.getString("nom"));
-		logXml.endBalise(p.getString("nom"));
 	}
 
 	/**

@@ -36,17 +36,6 @@ import fr.ign.parameters.Parameters;
 public class GetFromGeom {
 
 	
-	public static boolean isRNU(Parameters p, String zipCode) {
-	String[] communesRNU = StatStuff.makeZipTab(p.getString("RNUCommunes"));
-	// si la commune est uniquement soumise au RNU
-	for (String comm : communesRNU) {
-		if (comm.equals(zipCode)) {
-			return true;
-		}
-	}
-	return false ;
-	}
-	
 	public static File getParcels(File geoFile) throws FileNotFoundException {
 		for (File f : geoFile.listFiles()) {
 			if (f.toString().contains("parcelle.shp")) {
@@ -126,66 +115,68 @@ public class GetFromGeom {
 		throw new FileNotFoundException("Zoning file not found");
 	}
 
-	public static File getPAUzone(File pluFile, File geoFile, File tmpFile, String zipCode) throws Exception {
-		String type = "zone";
-		return getPAU(type, pluFile, geoFile, tmpFile, zipCode);
-	}
-	public static File getPAUparcel(File pluFile, File geoFile, File tmpFile, String zipCode) throws Exception {
-		String type = "parcel";
-		return getPAU(type, pluFile, geoFile, tmpFile, zipCode);
-	}
+//	public static File getPAUzone(File pluFile, File geoFile, File tmpFile, String zipCode) throws Exception {
+//		String type = "zone";
+//		return getPAU(type, pluFile, geoFile, tmpFile, zipCode);
+//	}
+//	
+//	
+//	public static File getPAUparcel(File pluFile, File geoFile, File tmpFile, String zipCode) throws Exception {
+//		String type = "parcel";
+//		return getPAU(type, pluFile, geoFile, tmpFile, zipCode);
+//	}
+//
+//
+//	public static File getPAU(String type, File pluFile, File geoFile, File tmpFile, String zipCode) throws Exception {
+//
+//		tmpFile.mkdir();
+//String test = "TypeZone";
+//		File pauFile = new File(pluFile, type+"PAU.shp");
+//		ShapefileDataStore shpDSpau = new ShapefileDataStore(pauFile.toURI().toURL());
+//		SimpleFeatureCollection pau = shpDSpau.getFeatureSource().getFeatures();
+//
+//		File adminFile = new File(geoFile, "admin_typo.shp");
+//		ShapefileDataStore shpDSadmin = new ShapefileDataStore(adminFile.toURI().toURL());
+//		SimpleFeatureCollection admin = shpDSadmin.getFeatureSource().getFeatures();
+//		SimpleFeatureIterator adminIt = admin.features();
+//
+//		SimpleFeature sf = null;
+//
+//		try {
+//			while (adminIt.hasNext()) {
+//				SimpleFeature sFeat = adminIt.next();
+//				if (((String) sFeat.getAttribute("DEPCOM")).equals(zipCode)) {
+//					sf = sFeat;
+//				}
+//			}
+//		} catch (Exception problem) {
+//			problem.printStackTrace();
+//		} finally {
+//			adminIt.close();
+//		}
+//
+//		Vectors.exportSFC(Vectors.snapDatas(pau, (Geometry) sf.getDefaultGeometry()), new File(tmpFile, "pau_" + zipCode + ".shp"));
+//		shpDSpau.dispose();
+//		return new File(tmpFile, "pau_" + zipCode + ".shp");
+//	}
 
-
-	public static File getPAU(String type, File pluFile, File geoFile, File tmpFile, String zipCode) throws Exception {
-
-		tmpFile.mkdir();
-String test = "TypeZone";
-		File pauFile = new File(pluFile, type+"PAU.shp");
-		ShapefileDataStore shpDSpau = new ShapefileDataStore(pauFile.toURI().toURL());
-		SimpleFeatureCollection pau = shpDSpau.getFeatureSource().getFeatures();
-
-		File adminFile = new File(geoFile, "admin_typo.shp");
-		ShapefileDataStore shpDSadmin = new ShapefileDataStore(adminFile.toURI().toURL());
-		SimpleFeatureCollection admin = shpDSadmin.getFeatureSource().getFeatures();
-		SimpleFeatureIterator adminIt = admin.features();
-
-		SimpleFeature sf = null;
-
-		try {
-			while (adminIt.hasNext()) {
-				SimpleFeature sFeat = adminIt.next();
-				if (((String) sFeat.getAttribute("DEPCOM")).equals(zipCode)) {
-					sf = sFeat;
-				}
-			}
-		} catch (Exception problem) {
-			problem.printStackTrace();
-		} finally {
-			adminIt.close();
-		}
-
-		Vectors.exportSFC(Vectors.snapDatas(pau, (Geometry) sf.getDefaultGeometry()), new File(tmpFile, "pau_" + zipCode + ".shp"));
-		shpDSpau.dispose();
-		return new File(tmpFile, "pau_" + zipCode + ".shp");
-	}
-
-	public static SimpleFeatureCollection selecParcelZonePLU(String[] typesZone, String zipcode, File parcelFile, File zoningFile) throws Exception {
+	public static SimpleFeatureCollection selecParcelZoning(String[] typesZone, String zipcode, File parcelFile, File zoningFile) throws Exception {
 
 		ShapefileDataStore shpDSParcel = new ShapefileDataStore(parcelFile.toURI().toURL());
 		SimpleFeatureCollection parcels = shpDSParcel.getFeatureSource().getFeatures();
 
-		return selecParcelZonePLU(typesZone, zipcode, parcels, zoningFile);
+		return selecParcelZoning(typesZone, zipcode, parcels, zoningFile);
 
 	}
 
-	public static SimpleFeatureCollection selecParcelZonePLU(String[] typesZone, String zipCode, SimpleFeatureCollection parcels, File zoningFile)
+	public static SimpleFeatureCollection selecParcelZoning(String[] typesZone, String zipCode, SimpleFeatureCollection parcels, File zoningFile)
 			throws MismatchedDimensionException, CQLException, NoSuchAuthorityCodeException, IOException, FactoryException, TransformException, Exception {
 		// best exceptions ever
 
 		DefaultFeatureCollection totalParcel = new DefaultFeatureCollection();
 
 		for (String typeZone : typesZone) {
-			totalParcel.addAll(selecParcelZonePLU(typeZone, Vectors.snapDatas(parcels, zoningFile), zipCode, zoningFile));
+			totalParcel.addAll(selecParcelZoning(typeZone, Vectors.snapDatas(parcels, zoningFile), zipCode, zoningFile));
 		}
 
 		return totalParcel.collection();
@@ -206,13 +197,13 @@ String test = "TypeZone";
 	 * @throws TransformException
 	 * @throws MismatchedDimensionException
 	 */
-	public static SimpleFeatureCollection selecParcelZonePLU(String typeZone, String zipcode, File parcelFile, File zoningFile) throws Exception {
+	public static SimpleFeatureCollection selecParcelZoning(String typeZone, String zipcode, File parcelFile, File zoningFile) throws Exception {
 		// import of the parcel file
 		ShapefileDataStore shpDSParcel = new ShapefileDataStore(parcelFile.toURI().toURL());
-		return selecParcelZonePLU(typeZone, Vectors.snapDatas(shpDSParcel.getFeatureSource().getFeatures(), zoningFile), zipcode, zoningFile);
+		return selecParcelZoning(typeZone, Vectors.snapDatas(shpDSParcel.getFeatureSource().getFeatures(), zoningFile), zipcode, zoningFile);
 	}
 
-	public static SimpleFeatureCollection selecParcelZonePLU(String typeZone, SimpleFeatureCollection parcelCollection, String zipCode, File zoningFile)
+	public static SimpleFeatureCollection selecParcelZoning(String typeZone, SimpleFeatureCollection parcelCollection, String zipCode, File zoningFile)
 			throws IOException, CQLException, NoSuchAuthorityCodeException, FactoryException, MismatchedDimensionException, TransformException {
 
 		// import of the zoning file

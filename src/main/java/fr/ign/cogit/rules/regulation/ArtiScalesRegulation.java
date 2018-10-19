@@ -21,7 +21,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	// Les intitulés des colonnes
 	private int insee, oap, fonctions, zonage_coherent, correction_zonage, art_3, art_4, art_71, art_74, art_10_top,
 			art_10_1;
-	private String libelle_zone, libelle_de_base, libelle_de_dul, art_6_opt, art_6_optD, art_10_2, art_12, art_14;
+	private String libelle_zone, libelle_de_base, libelle_de_dul, art_6_opt, art_6_optD,  art_12, art_14;
 
 	private double art_5, art_6, art_72, art_73, art_8, art_9, art_13;
 
@@ -106,9 +106,6 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 			case "art_101":
 				art_10_1 = Integer.valueOf(lineSplited[i]);
 				break;
-			case "art_102":
-				art_10_2 = lineSplited[i];
-				break;
 			case "art_12":
 				art_12 = lineSplited[i];
 				break;
@@ -127,21 +124,21 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	public ArtiScalesRegulation clone() {
 		return new ArtiScalesRegulation(libelle_zone, insee, libelle_de_base, libelle_de_dul, fonctions, oap,
 				zonage_coherent, correction_zonage, art_3, art_4, art_5, art_6, art_6_opt, art_6_optD, art_71, art_72,
-				art_73, art_74, art_8, art_9, art_10_top, art_10_1, art_10_2, art_12, art_13, art_14);
+				art_73, art_74, art_8, art_9, art_10_top, art_10_1, art_12, art_13, art_14);
 	}
 
 	public String toCSVLine() {
 		return libelle_zone + "," + insee + "," + libelle_de_base + "," + libelle_de_dul + "," + fonctions + "," + oap
 				+ "," + zonage_coherent + "," + correction_zonage + "," + art_3 + "," + art_4 + "," + art_5 + ","
 				+ art_6 + "," + art_6_opt + "," + art_6_optD + "," + art_71 + "," + art_72 + "," + art_73 + "," + art_74
-				+ "," + art_8 + "," + art_9 + "," + art_10_top + "," + art_10_1 + "," + art_10_2 + "," + art_12 + ","
+				+ "," + art_8 + "," + art_9 + "," + art_10_top + "," + art_10_1 + "," +  art_12 + ","
 				+ art_13 + "," + art_14;
 	}
 
 	public ArtiScalesRegulation(String libelle_zone, int insee, String libelle_de_base, String libelle_de_dul,
 			int fonctions, int oap, int zonage_coherent, int correction_zonage, int art_3, int art_4, double art_5,
 			double art_6, String art_6_opt, String art_6_optD, int art_71, double art_72, double art_73, int art_74,
-			double art_8, double art_9, int art_10_top, int art_10_1, String art_10_2, String art_12, double art_13,
+			double art_8, double art_9, int art_10_top, int art_10_1,  String art_12, double art_13,
 			String art_14) {
 		super();
 		this.libelle_zone = libelle_zone;
@@ -166,7 +163,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 		this.art_9 = art_9;
 		this.art_10_top = art_10_top;
 		this.art_10_1 = art_10_1;
-		this.art_10_2 = art_10_2;
+
 		this.art_12 = art_12;
 		this.art_13 = art_13;
 		this.art_14 = art_14;
@@ -190,7 +187,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 		}
 
 		if (this.getArt_8() == 88.0 || this.getArt_8() == 99.0) {
-			this.art_8 = 50;
+			this.art_8 = 3;
 		}
 
 		if (this.art_9 == 99) {
@@ -265,7 +262,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 				+ art_3 + ", art_4=" + art_4 + ", art_5=" + art_5 + ", art_6=" + art_6 + ", art_6_opt=" + art_6_opt
 				+ ", art_6_optD=" + art_6_optD + ", art_71=" + art_71 + ", art_72=" + art_72 + ", art_73=" + art_73
 				+ ", art_74=" + art_74 + ", art_8=" + art_8 + ", art_9=" + art_9 + ", art_10_top=" + art_10_top
-				+ ", art_10=" + art_10_1 + ", art_10_m=" + art_10_2 + ", art_12=" + art_12 + ", art_13=" + art_13
+				+ ", art_10=" + art_10_1 +  ", " + "art_12=" + art_12 + ", art_13=" + art_13
 				+ ", art_14=" + art_14 + "]";
 	}
 
@@ -420,11 +417,6 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 		return art_10_1;
 	}
 
-	// ART_102 Hauteur maximum autorisée En mètres
-	public String getArt_10_2() {
-		return art_10_2;
-	}
-
 	// ART_12 Nombre de places par logement 88= non renseignable, 99= non
 	// réglementé
 	public String getArt_12() {
@@ -513,9 +505,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 		this.art_6_optD = art_6_optD;
 	}
 
-	public void setArt_10_2(String art_10_2) {
-		this.art_10_2 = art_10_2;
-	}
+
 
 	public void setArt_12(String art_12) {
 		this.art_12 = art_12;

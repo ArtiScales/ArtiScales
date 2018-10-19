@@ -355,19 +355,22 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		//////// Checking the height of the cuboid
 		double min = p.getDouble("minheight");
 		double max = p.getDouble("maxheight");
-		System.out.println("TODO MAX HEIGHT CODE");
-		/*
+
+	
 		switch (regle.getArt_10_top()) {
 
 		// 1 hauteur à l'étage
 		// 5 hauteur à l'égout (pour l'instant la même que le 1 vu que l'on ne prends pas en compte les toits)
 		case 1:
-		case 5:
+
 			max = regle.getArt_10_1() * p.getDouble("heightStair");
 			break;
 		// hauteur en metre
 		case 2:
-			max = Double.valueOf(regle.getArt_10_2());
+		case 3:
+		case 4:
+		case 5:
+			max = Double.valueOf(regle.getArt_10_1());
 			break;
 
 		// hauteur harmonisé avec les batiments des alentours (+/- 10 %)
@@ -381,17 +384,16 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 			}
 			// si pas de batiments aux alentours, on se rabat sur différentes options
 			else {
-				if (regle.getArt_10_top() == 6) {
-					max = regle.getArt_10_1() * p.getDouble("heightStair");
-				}
-				if (regle.getArt_10_top() == 7) {
-					max = Double.valueOf(regle.getArt_10_2());
-				}
-			}
-		//TODO en fonction des limites séparatives
-		case 20 : 
 			
-		}*/
+					max = regle.getArt_10_1();
+		
+			}
+		case 20 : 
+		default :
+			System.err.println("Cas de hauteur non géré");
+			
+			
+		}
 		Double[] result = { min, max };
 		return result;
 	}
@@ -410,8 +412,6 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		// 8 : retrait égal à la hauteur divisé par deux moins un mètre
 		// 9 : retrait égal aux deux tiers de la hauteur
 		// 10 : retrait égal aux trois quarts de la hauteur
-		
-	
 			double slope = 0;
 			double hIni = 0;
 			switch (art_74) {

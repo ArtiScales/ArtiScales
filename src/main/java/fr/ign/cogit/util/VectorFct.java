@@ -30,6 +30,7 @@ import fr.ign.cogit.geoxygene.convert.FromGeomToSurface;
 import fr.ign.cogit.geoxygene.feature.DefaultFeature;
 import fr.ign.cogit.geoxygene.feature.FT_FeatureCollection;
 import fr.ign.cogit.geoxygene.sig3d.calculation.parcelDecomposition.OBBBlockDecomposition;
+import fr.ign.cogit.geoxygene.spatial.coordgeom.DirectPosition;
 import fr.ign.cogit.geoxygene.util.attribute.AttributeManager;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileReader;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileWriter;
@@ -42,10 +43,16 @@ public class VectorFct {
 				"/home/yo/Documents/these/ArtiScales/output/Stability-dataAutomPhy-CM20.0-S0.0-GP_915948.0_6677337.0--N6_St_Moy_ahpx_seed_9015629222324914404-evalAnal-20.0/25495/ZoningAllowed/simu0/"));
 
 	}
+<<<<<<< HEAD
 
 	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeatureCollection parcelIn, File filterFile,
 			Parameters p) throws Exception {
 
+=======
+	
+	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeatureCollection parcelIn, File filterFile,  Parameters p) throws Exception {
+		
+>>>>>>> 83394712a4f20ec0f14ea25e33eec361ca875a05
 		ShapefileDataStore morphoSDS = new ShapefileDataStore(filterFile.toURI().toURL());
 		SimpleFeatureCollection morphoSFC = morphoSDS.getFeatureSource().getFeatures();
 		Geometry morphoUnion = Vectors.unionSFC(morphoSFC);
@@ -71,7 +78,7 @@ public class VectorFct {
 		// splitting method option
 
 		double roadEpsilon = 0.5;
-		double noise = 10;
+		double noise = 0;
 		double maximalArea = 1200;
 		double maximalWidth = 50;
 		if (!(p == null)) {
@@ -97,7 +104,11 @@ public class VectorFct {
 		try {
 			while (parcelIt.hasNext()) {
 				SimpleFeature feat = parcelIt.next();
+<<<<<<< HEAD
 
+=======
+				
+>>>>>>> 83394712a4f20ec0f14ea25e33eec361ca875a05
 				String attributeValue = "";
 
 				if (feat.getAttribute("CODE_DEP") != null) {
@@ -115,9 +126,15 @@ public class VectorFct {
 				} else {
 					System.out.println("VectorFct : Other type of parcel : " + feat);
 				}
+<<<<<<< HEAD
 
 				Object[] attr = { 0, attributeValue };
 
+=======
+				
+				Object[] attr = { 0, attributeValue};		
+						
+>>>>>>> 83394712a4f20ec0f14ea25e33eec361ca875a05
 				if (((Geometry) feat.getDefaultGeometry()).getArea() > maximalArea) {
 					attr[0] = 1;
 				}
@@ -147,10 +164,16 @@ public class VectorFct {
 	 * @return
 	 * @throws Exception
 	 */
+<<<<<<< HEAD
 	public static SimpleFeatureCollection splitParcels(SimpleFeatureCollection toSplit, double maximalArea,
 			double maximalWidth, double roadEpsilon, double noise, Parameters p) throws Exception {
 		// TODO un truc fait bugger la sortie dans cette classe..
+=======
+	public static SimpleFeatureCollection splitParcels(SimpleFeatureCollection toSplit, double maximalArea, double maximalWidth, double roadEpsilon, double noise, Parameters p)
+			throws Exception {
+>>>>>>> 83394712a4f20ec0f14ea25e33eec361ca875a05
 
+		DirectPosition.PRECISION = 5;
 		// TODO classe po bô du tout: faire une vraie conversion entre les types
 		// geotools et geox (passer par des shp a été le seul moyen que j'ai
 		// trouvé pour que ça fonctionne)

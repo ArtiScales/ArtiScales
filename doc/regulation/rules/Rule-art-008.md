@@ -8,7 +8,7 @@
 
 ### ART_8
 
-Valeur en mètre de la distance minimale à respecter entre deux bâtiments.
+Valeur en mètre de la distance minimale à respecter entre deux bâtiments. Si la valeur n'est pas définie (**{{ART_8}}** = 99) alors un recul de 3 m sera appliqué.
 
 ## Explications
 
