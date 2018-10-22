@@ -211,9 +211,18 @@ public class FakeWorldGenerator {
 		regulationDefault3.setLibelle_de_dul("U2");
 		regulationDefault3.setArt_71(2);
 		
+		
+		//CAS ARTICLE 71 = 3
+		ArtiScalesRegulation regulationDefault4 = regulationDefault.clone();
+		regulationDefault4.setLibelle_de_dul("U2");
+		regulationDefault4.setArt_71(3);
+		
+		
+		
 		regulations.add(regulationDefault);
 		regulations.add(regulationDefault2);
 		regulations.add(regulationDefault3);
+		regulations.add(regulationDefault4);
 		
 		generateFakeData(regulations, folderOut);
 		

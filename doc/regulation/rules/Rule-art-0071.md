@@ -14,7 +14,7 @@ Implantation en limite séparatives :
 * 0 : Non, retrait imposé (cf.ART_72)
 * 1 : Oui des deux côtés
 * 2 : Oui, mais sur un côté seulement
-* 3 : Oui seulement si un bâtiment est déjà en limite de propriété => Déterminer s'il y a un bâtiment adjacent à droite ou à gauche et faire coller à cette limite (Mickaël) (Cas non traité)
+* 3 : Oui seulement si un bâtiment est déjà en limite de propriété
 
 ### ART_72
 
@@ -29,6 +29,7 @@ Suivant les cas imposés par {{B1_ART_72}} :
 * si **{{ART_71}}** = 0, on ne peut construire à moins de {{ART_72} m des limites latérales ;
 * si **{{ART_71}}** = 1, le bâtiment doit être construit des deux côtés de la parcelle ;
 * si **{{ART_71}}** = 2, le bâtiment doit être collé d'un côté de la parcelle et respecter un recul de **{{ART_72}}** m par rapport à l'autre côté.
+* si **{{ART_71}}** = 3, le bâtiment est collé aux côté qui intersectent des bâtiments issus des parcelles voisines.
 
 ![Image illustrant les contraintes par rapport aux limites latérales](img/rule-art-0071-0072.png)
 

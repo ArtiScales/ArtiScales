@@ -19,7 +19,7 @@ public class FakeWorldSimulator {
 
 		for (String pathSubFolder : rootFolderFile.list()) {
 			
-			 if(! pathSubFolder.contains("art12")) { continue; }
+			 if(! pathSubFolder.contains("art71")) { continue; }
 			 
 
 			List<File> lF = new ArrayList<>();
