@@ -13,7 +13,6 @@ import fr.ign.cogit.simplu3d.model.Environnement;
 import fr.ign.cogit.simplu3d.model.ParcelBoundary;
 import fr.ign.cogit.simplu3d.model.ParcelBoundarySide;
 import fr.ign.cogit.simplu3d.model.ParcelBoundaryType;
-import fr.ign.cogit.simplu3d.model.SubParcel;
 
 public class Alignements {
 

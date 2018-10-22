@@ -19,7 +19,7 @@ public class FakeWorldSimulator {
 
 		for (String pathSubFolder : rootFolderFile.list()) {
 			
-			 if(! pathSubFolder.contains("art71")) { continue; }
+			 if(! pathSubFolder.contains("art8")) { continue; }
 			 
 
 			List<File> lF = new ArrayList<>();
@@ -66,7 +66,6 @@ public class FakeWorldSimulator {
 			// PLU Folder
 			File pluFile = new File(p.getString("pluFile"));
 
-			SimPLUSimulator.ID_PARCELLE_TO_SIMULATE.add("30002");
 			
 			SimPLUSimulator simplu = new SimPLUSimulator(rootFolder, geoFile, pluFile, selectedParcels,
 					p.getString("listZipCode"), p, lF);
