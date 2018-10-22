@@ -129,7 +129,7 @@
 	<!-- Taille moyenne d'un logement -->
 	<param key="HousingUnitSize" value="100" />
 	<param key="heightStair" value="3" />
-	<param key="surfPlaceParking" value="25" />
+	<param key="surfPlaceParking" value="12.5" />
 
 	<!-- PARAMETRES DE SIMPLU3D -->
 
