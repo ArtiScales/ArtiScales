@@ -122,4 +122,9 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 		return regulations;
 	}
 
+	@Override
+	protected String getArt12Value() {
+		return this.regles.getArt_12();
+	}
+
 }

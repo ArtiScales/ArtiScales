@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.vividsolutions.jts.geom.Geometry;
 
@@ -193,6 +194,23 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 	@Override
 	protected List<ArtiScalesRegulation> getAllRegulation() {
 		return new ArrayList<>(mapGeomRegulation.values());
+	}
+
+	@Override
+	protected String getArt12Value() {
+		List<String> art12 = this.mapGeomRegulation.values().stream().map(x -> x.getArt_12()).collect(Collectors.toList());
+		
+	
+		if(art12.contains("2")) {
+			return "2";
+		}
+		
+		if(art12.contains("1+2")) {
+			return "1+2";
+		}
+		
+		
+		return "1";
 	}
 
 }
