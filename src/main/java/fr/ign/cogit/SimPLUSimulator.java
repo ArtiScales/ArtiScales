@@ -182,17 +182,16 @@ public class SimPLUSimulator {
 		this.rootFile = rootfile;
 		this.zipCode = zipcode;
 		// Si les communes sont au RNU :
-	
+
 		zoningFile = GetFromGeom.getZoning(pluFile, zipCode);
-		
 
 		this.parcelsFile = selectedParcels;
 		this.predicateFile = new File(p.getString("pluPredicate"));
 
 		System.out.println("STRANGE LOGIC ?");
-		
+
 		String simulPath = p.getString("simu");
-		if(simulPath == null||simulPath == "") {
+		if (simulPath == null || simulPath == "") {
 			simulPath = parcelsFile.getParentFile() + "simu";
 		}
 		this.simuFile = new File(simulPath);
@@ -202,7 +201,7 @@ public class SimPLUSimulator {
 		// exists)
 		if (!(new File(simuFile.getParentFile(), "/snap/route.shp")).exists()) {
 
-				// Write code
+			// Write code
 			System.out.println("in snapDatas" + GetFromGeom.getBati(new File(p.getString("geoFile"))));
 
 			File snapFile = new File(simuFile.getParentFile(), "/snap/");
@@ -362,8 +361,6 @@ public class SimPLUSimulator {
 
 		return listBatiSimu;
 	}
-	
-	
 
 	/**
 	 * Simulation for the ie bPU
@@ -381,7 +378,6 @@ public class SimPLUSimulator {
 			throws Exception {
 
 		BasicPropertyUnit bPU = env.getBpU().get(i);
-
 
 		// List ID Parcelle to Simulate is not empty
 		if (!ID_PARCELLE_TO_SIMULATE.isEmpty()) {
@@ -429,96 +425,55 @@ public class SimPLUSimulator {
 		// We compute the parcel area
 		Double areaParcels = bPU.getArea(); // .getCadastralParcels().stream().mapToDouble(x -> x.getArea()).sum();
 
-
 		GraphConfiguration<Cuboid> cc = null;
-		
-		
-		 Alignements alignementsGeometries = pred.getAlignements();
 
-		
+		Alignements alignementsGeometries = pred.getAlignements();
+
 		if (alignementsGeometries.getHasAlignement()) {
 
-			// Instantiation of the sampler
-			ParallelCuboidOptimizer oCB = new ParallelCuboidOptimizer();
+			switch (alignementsGeometries.getType()) {
+			// #Art71 case 1 or 2
+			case ART7112:
+				cc = article71Case12(alignementsGeometries, pred, env, i, bPU);
+				break;
+			// #Art71 case 1 or 3
+			case ART713:
+				cc = article71Case3(alignementsGeometries, pred, env, i, bPU);
+				break;
+			case NONE:
+				System.out.println(this.getClass().getName() + " : Normally not possible case");
+				return null;
+			default:
+				System.out.println(
+						this.getClass().getName() + " : Normally not possible case" + alignementsGeometries.getType());
+				return null;
 
-			IMultiSurface<IOrientableSurface> iMSSamplinSurface = new GM_MultiSurface<>();
-			// art-0071 implentation (begin)
-			//LEFT SIDE IS TESTED
-			IGeometry[] leftAlignement = alignementsGeometries.getLeftSide();
-			
-			if(leftAlignement!=null && (leftAlignement.length > 0)) {
-				for (IGeometry geom : leftAlignement) {
-					iMSSamplinSurface.addAll(FromGeomToSurface.convertGeom(geom.buffer(p.getDouble("maxwidth") / 2)));
-				}
-				
-				pred.setSide(ParcelBoundarySide.LEFT);
+			}
 
-				// Run of the optimisation on a parcel with the predicate
-				cc = oCB.process(new MersenneTwister(), bPU, new SimpluParametersXML(p), env, i, pred, leftAlignement,
-						iMSSamplinSurface);
-			}
-			
-			
-			
-			//RIGHT SIDE IS TESTED
-						
-			
-			IGeometry[] rightAlignement = alignementsGeometries.getRightSide();
-			GraphConfiguration<Cuboid> cc2 =null;
-			if(rightAlignement!=null && (rightAlignement.length > 0)) {
-				
-				iMSSamplinSurface = new GM_MultiSurface<>();
-				oCB = new ParallelCuboidOptimizer();
-				for (IGeometry geom : rightAlignement) {
-					iMSSamplinSurface.addAll(FromGeomToSurface.convertGeom(geom.buffer(p.getDouble("maxwidth") / 2)));
-				}
-				
-				pred.setSide(ParcelBoundarySide.RIGHT);
-				
-				cc2 = oCB.process(new MersenneTwister(), bPU, new SimpluParametersXML(p), env, i, pred, rightAlignement,
-						iMSSamplinSurface);
-			}
-			
-			if(cc ==null) {
-				cc = cc2;
-			}
-			
-			if(cc2 != null) {
-				if(cc.getEnergy() < cc2.getEnergy()) {
-					//We keep the configuratino with the best energy
-					cc = cc2;
-				}
-				
-			}
-			
-			if(cc ==null) {
+			if (cc == null) {
 				return null;
 			}
-	
-			// art-0071 implentation (end)
-			
+
 		} else {
 			OptimisedBuildingsCuboidFinalDirectRejection oCB = new OptimisedBuildingsCuboidFinalDirectRejection();
 			cc = oCB.process(bPU, new SimpluParametersXML(p), env, i, pred);
-			
-			if(cc ==null) {
+
+			if (cc == null) {
 				return null;
 			}
 		}
 
-
-		//Getting cuboid into list
+		// Getting cuboid into list
 		List<Cuboid> cubes = cc.getGraph().vertexSet().stream().map(x -> x.getValue()).collect(Collectors.toList());
 		SDPCalc surfGen = new SDPCalc();
 		double surfacePlancherTotal = surfGen.process(cubes);
 		double surfaceAuSol = surfGen.processSurface(cubes);
-	
 
 		// get multiple zone regulation infos infos
 		List<String> typeZones = new ArrayList<>();
 		List<String> libelles = new ArrayList<>();
 
-		//@TODO : what is this supposed to do ?
+		// @TODO : what is this supposed to do ?
 		for (SubParcel subParcel : bPU.getCadastralParcels().get(0).getSubParcels()) {
 			String temporaryTypeZone = subParcel.getUrbaZone().getTypeZone();
 			String temporarylibelle = subParcel.getUrbaZone().getLibelle();
@@ -544,8 +499,7 @@ public class SimPLUSimulator {
 		if (libellesFinal.endsWith("+")) {
 			libellesFinal.substring(0, libellesFinal.length() - 1);
 		}
-		
-		
+
 		// Writting the output
 		IFeatureCollection<IFeature> iFeatC = new FT_FeatureCollection<>();
 
@@ -597,6 +551,93 @@ public class SimPLUSimulator {
 			output = null;
 		}
 		return output;
+	}
+
+	private GraphConfiguration<Cuboid> article71Case3(Alignements alignementsGeometries,
+			CommonPredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred,
+			Environnement env, int i, BasicPropertyUnit bPU) throws Exception {
+
+		GraphConfiguration<Cuboid> cc = null;
+
+		IGeometry[] geoms = alignementsGeometries.getSideWithBuilding();
+
+		if (geoms.length == 0) {
+			OptimisedBuildingsCuboidFinalDirectRejection oCB = new OptimisedBuildingsCuboidFinalDirectRejection();
+			cc = oCB.process(bPU, new SimpluParametersXML(p), env, i, pred);
+		} else {
+
+			// Instantiation of the sampler
+			ParallelCuboidOptimizer oCB = new ParallelCuboidOptimizer();
+
+			IMultiSurface<IOrientableSurface> iMSSamplinSurface = new GM_MultiSurface<>();
+
+			for (IGeometry geom : geoms) {
+				iMSSamplinSurface.addAll(FromGeomToSurface.convertGeom(geom.buffer(p.getDouble("maxwidth") / 2)));
+			}
+			// Run of the optimisation on a parcel with the predicate
+			cc = oCB.process(new MersenneTwister(), bPU, new SimpluParametersXML(p), env, i, pred, geoms,
+					iMSSamplinSurface);
+		}
+
+		return cc;
+	}
+
+	private GraphConfiguration<Cuboid> article71Case12(Alignements alignementsGeometries,
+			CommonPredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred,
+			Environnement env, int i, BasicPropertyUnit bPU) throws Exception {
+
+		GraphConfiguration<Cuboid> cc = null;
+		// Instantiation of the sampler
+		ParallelCuboidOptimizer oCB = new ParallelCuboidOptimizer();
+
+		IMultiSurface<IOrientableSurface> iMSSamplinSurface = new GM_MultiSurface<>();
+		// art-0071 implentation (begin)
+		// LEFT SIDE IS TESTED
+		IGeometry[] leftAlignement = alignementsGeometries.getLeftSide();
+
+		if (leftAlignement != null && (leftAlignement.length > 0)) {
+			for (IGeometry geom : leftAlignement) {
+				iMSSamplinSurface.addAll(FromGeomToSurface.convertGeom(geom.buffer(p.getDouble("maxwidth") / 2)));
+			}
+
+			pred.setSide(ParcelBoundarySide.LEFT);
+
+			// Run of the optimisation on a parcel with the predicate
+			cc = oCB.process(new MersenneTwister(), bPU, new SimpluParametersXML(p), env, i, pred, leftAlignement,
+					iMSSamplinSurface);
+		}
+
+		// RIGHT SIDE IS TESTED
+
+		IGeometry[] rightAlignement = alignementsGeometries.getRightSide();
+		GraphConfiguration<Cuboid> cc2 = null;
+		if (rightAlignement != null && (rightAlignement.length > 0)) {
+
+			iMSSamplinSurface = new GM_MultiSurface<>();
+			oCB = new ParallelCuboidOptimizer();
+			for (IGeometry geom : rightAlignement) {
+				iMSSamplinSurface.addAll(FromGeomToSurface.convertGeom(geom.buffer(p.getDouble("maxwidth") / 2)));
+			}
+
+			pred.setSide(ParcelBoundarySide.RIGHT);
+
+			cc2 = oCB.process(new MersenneTwister(), bPU, new SimpluParametersXML(p), env, i, pred, rightAlignement,
+					iMSSamplinSurface);
+		}
+
+		if (cc == null) {
+			cc = cc2;
+		}
+
+		if (cc2 != null) {
+			if (cc.getEnergy() < cc2.getEnergy()) {
+				// We keep the configuratino with the best energy
+				cc = cc2;
+			}
+
+		}
+
+		return cc;
 	}
 
 	private CommonPredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> preparePredicateOneRegulationBySubParcel(
@@ -659,8 +700,7 @@ public class SimPLUSimulator {
 	 * @throws Exception
 	 */
 	protected static int fillSelectedParcels(File rootFile, File geoFile, File pluFile, File selectedParcels,
-			int missingHousingUnits, String zipcode, Parameters p, List<File> lF)
-			throws Exception {
+			int missingHousingUnits, String zipcode, Parameters p, List<File> lF) throws Exception {
 		// Itérateurs sur les parcelles où l'on peut construire
 		ShapefileDataStore parcelDS = new ShapefileDataStore(selectedParcels.toURI().toURL());
 		SimpleFeatureIterator iterator = parcelDS.getFeatureSource().getFeatures().features();

@@ -524,7 +524,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 	public Alignements getAlignements() {
 
 		if (alignements == null) {
-			return new Alignements(this.getAllRegulation(), this.currentBPU);
+			return new Alignements(this.getAllRegulation(), this.currentBPU, this.env);
 		}
 		return alignements;
 	}
