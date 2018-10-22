@@ -66,6 +66,8 @@ public class FakeWorldSimulator {
 			// PLU Folder
 			File pluFile = new File(p.getString("pluFile"));
 
+			SimPLUSimulator.ID_PARCELLE_TO_SIMULATE.add("30002");
+			
 			SimPLUSimulator simplu = new SimPLUSimulator(rootFolder, geoFile, pluFile, selectedParcels,
 					p.getString("listZipCode"), p, lF);
 

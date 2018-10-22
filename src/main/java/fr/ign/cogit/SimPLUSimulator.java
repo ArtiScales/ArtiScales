@@ -93,7 +93,7 @@ public class SimPLUSimulator {
 	File filePrescLin;
 	File filePrescSurf;
 
-	private static List<String> ID_PARCELLE_TO_SIMULATE = new ArrayList<>();
+	public static List<String> ID_PARCELLE_TO_SIMULATE = new ArrayList<>();
 
 	public static boolean USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
 

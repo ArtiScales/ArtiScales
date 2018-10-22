@@ -55,7 +55,7 @@ public class Alignements {
 		}
 		
 		if(regulation.getArt_71() == 3) {
-			hasAlignement = false;
+			hasAlignement = true;
 			this.type = AlignementType.ART713;
 		}
 
@@ -89,13 +89,12 @@ public class Alignements {
 
 				// We have some buildings do they belong to the current CadastralParcel
 				for (AbstractBuilding currentBuilding : buildingsSel) {
-					// The buildings is on sub parcel do they belong to the current parcel
-					for (SubParcel sP : currentBuilding.getSubParcels()) {
+	
 						// No !!! we add the geometry and go to the next parcel boundary
-						if (!sP.getCadastralParcel().equals(cO)) {
+						if (!currentBuilding.getbPU().equals(currentBPU)) {
 							lGeom.add(boundary.getGeom());
 							continue boucleboundary;
-						}
+					
 					}
 
 				}
