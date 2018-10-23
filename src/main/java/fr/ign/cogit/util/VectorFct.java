@@ -35,7 +35,6 @@ import fr.ign.cogit.geoxygene.util.attribute.AttributeManager;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileReader;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileWriter;
 import fr.ign.parameters.Parameters;
-import fr.ign.random.Random;
 
 public class VectorFct {
 
@@ -44,9 +43,12 @@ public class VectorFct {
 				"/home/yo/Documents/these/ArtiScales/output/Stability-dataAutomPhy-CM20.0-S0.0-GP_915948.0_6677337.0--N6_St_Moy_ahpx_seed_9015629222324914404-evalAnal-20.0/25495/ZoningAllowed/simu0/"));
 
 	}
-	
-	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeatureCollection parcelIn, File filterFile,  Parameters p) throws Exception {
-		
+
+
+	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeatureCollection parcelIn, File filterFile,
+			Parameters p) throws Exception {
+
+
 		ShapefileDataStore morphoSDS = new ShapefileDataStore(filterFile.toURI().toURL());
 		SimpleFeatureCollection morphoSFC = morphoSDS.getFeatureSource().getFeatures();
 		Geometry morphoUnion = Vectors.unionSFC(morphoSFC);
@@ -56,16 +58,18 @@ public class VectorFct {
 		System.out.println("number of parcels " + parcelIn.subCollection(filter).size());
 		return generateSplitedParcels(parcelIn.subCollection(filter), p);
 	}
-	
+
 	/**
-	 * Determine if the parcels need to be splited or not, based on their area. This area is either determined by a param file, or taken as a default value of 1200 square meters
+	 * Determine if the parcels need to be splited or not, based on their area. This
+	 * area is either determined by a param file, or taken as a default value of
+	 * 1200 square meters
 	 * 
-	 * @param parcelIn
-	 *            : Parcels collection of simple features
+	 * @param parcelIn : Parcels collection of simple features
 	 * @return
 	 * @throws Exception
 	 */
-	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeatureCollection parcelIn, Parameters p) throws Exception {
+	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeatureCollection parcelIn, Parameters p)
+			throws Exception {
 
 		// splitting method option
 
@@ -96,21 +100,21 @@ public class VectorFct {
 		try {
 			while (parcelIt.hasNext()) {
 				SimpleFeature feat = parcelIt.next();
-				
 				String attributeValue = "";
-				
-				if(feat.getAttribute("CODE_DEP") != null) {
-					attributeValue =  ((String) feat.getAttribute("CODE_DEP")) + (feat.getAttribute("CODE_COM").toString()) + (feat.getAttribute("COM_ABS").toString())
+
+				if (feat.getAttribute("CODE_DEP") != null) {
+					attributeValue = ((String) feat.getAttribute("CODE_DEP"))
+							+ (feat.getAttribute("CODE_COM").toString()) + (feat.getAttribute("COM_ABS").toString())
 							+ (feat.getAttribute("SECTION").toString());
-				}else if(feat.getAttribute("NUMERO") != null) {
-					
+				} else if (feat.getAttribute("NUMERO") != null) {
+
 					attributeValue = feat.getAttribute("NUMERO").toString();
-					
-				}else if (feat.getAttribute("CODE") != null) {
-					
+
+				} else if (feat.getAttribute("CODE") != null) {
+
 					attributeValue = feat.getAttribute("CODE").toString();
-					
-				}else {
+
+				} else {
 					System.out.println("VectorFct : Other type of parcel : " + feat);
 				}
 				
@@ -128,13 +132,14 @@ public class VectorFct {
 		} finally {
 			parcelIt.close();
 		}
-		
+
 		return splitParcels(toSplit, maximalArea, maximalWidth, roadEpsilon, noise, p);
 
 	}
 
 	/**
-	 * largely inspired from the simPLU. ParcelSplitting class but rewrote to work with geotools SimpleFeatureCollection objects
+	 * largely inspired from the simPLU. ParcelSplitting class but rewrote to work
+	 * with geotools SimpleFeatureCollection objects
 	 * 
 	 * @param toSplit
 	 * @param maximalArea
@@ -144,8 +149,9 @@ public class VectorFct {
 	 * @return
 	 * @throws Exception
 	 */
-	public static SimpleFeatureCollection splitParcels(SimpleFeatureCollection toSplit, double maximalArea, double maximalWidth, double roadEpsilon, double noise, Parameters p)
-			throws Exception {
+	public static SimpleFeatureCollection splitParcels(SimpleFeatureCollection toSplit, double maximalArea,
+			double maximalWidth, double roadEpsilon, double noise, Parameters p) throws Exception {
+		// TODO un truc fait bugger la sortie dans cette classe..
 
 		// TODO classe po bô du tout: faire une vraie conversion entre les types
 		// geotools et geox (passer par des shp a été le seul moyen que j'ai
@@ -180,7 +186,7 @@ public class VectorFct {
 			IPolygon pol = (IPolygon) FromGeomToSurface.convertGeom(feat.getGeom()).get(0);
 
 			int numParcelle = 1;
-			OBBBlockDecomposition obb = new OBBBlockDecomposition(pol, maximalArea, maximalWidth, Random.random(), roadEpsilon );
+			OBBBlockDecomposition obb = new OBBBlockDecomposition(pol, maximalArea, maximalWidth, roadEpsilon);
 			// TODO erreures récurentes sur le split
 			try {
 				IFeatureCollection<IFeature> featCollDecomp = obb.decompParcel(noise);
@@ -218,10 +224,10 @@ public class VectorFct {
 	}
 
 	/**
-	 * Merge all the shapefile of a folder (made for simPLU buildings) into one shapefile
+	 * Merge all the shapefile of a folder (made for simPLU buildings) into one
+	 * shapefile
 	 * 
-	 * @param file2MergeIn
-	 *            : list of files containing the shapefiles
+	 * @param file2MergeIn : list of files containing the shapefiles
 	 * @return : file where everything is saved (here whith a building name)
 	 * @throws Exception
 	 */
@@ -231,10 +237,10 @@ public class VectorFct {
 	}
 
 	/**
-	 * Merge all the shapefile of a folder (made for simPLU buildings) into one shapefile
+	 * Merge all the shapefile of a folder (made for simPLU buildings) into one
+	 * shapefile
 	 * 
-	 * @param file2MergeIn
-	 *            : folder containing the shapefiles
+	 * @param file2MergeIn : folder containing the shapefiles
 	 * @return : file where everything is saved (here whith a building name)
 	 * @throws Exception
 	 */

@@ -125,6 +125,21 @@ public class FakeZone {
 		IFeature building = new DefaultFeature(FromGeomToSurface.convertMSGeom(geom));
 		
 		
+		
+		//The building geometry (inside the upper right parcel)
+		IDirectPosition dpBuilding5 = new DirectPosition(xOrigin + 200, yOrigin + 250, zDefault);
+		IDirectPosition dpBuilding6 = new DirectPosition(xOrigin + 250, yOrigin + 250, zDefault);
+		IDirectPosition dpBuilding7 = new DirectPosition(xOrigin + 250, yOrigin + 275, zDefault);
+		IDirectPosition dpBuilding8 = new DirectPosition(xOrigin + 200, yOrigin + 275, zDefault);
+
+		IDirectPositionList dplFaceBuilding2 = new DirectPositionList(dpBuilding5, dpBuilding6, dpBuilding7, dpBuilding8,
+				dpBuilding5);
+
+		IGeometry geom2 = Extrusion2DObject.convertFromGeometry(new GM_Polygon(new GM_LineString(dplFaceBuilding2)), 0,
+				10);
+		IFeature building2 = new DefaultFeature(FromGeomToSurface.convertMSGeom(geom2));
+		
+		
 		//The road geometry (upper and downer the parcel)
 		IDirectPosition dpRoad0 = new DirectPosition(xOrigin, yOrigin - 10, zDefault);
 		IDirectPosition dpRoad1 = new DirectPosition(xOrigin + 300, yOrigin - 10, zDefault);
@@ -152,6 +167,7 @@ public class FakeZone {
 		this.parcels.add(parcel3);
 
 		this.buildings.add(building);
+		this.buildings.add(building2);
 		
 		this.urbaZones.add(urbaZone);
 		

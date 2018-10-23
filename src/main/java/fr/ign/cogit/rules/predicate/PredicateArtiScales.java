@@ -7,6 +7,7 @@ import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
 import fr.ign.cogit.rules.regulation.ArtiScalesRegulation;
 import fr.ign.cogit.simplu3d.model.BasicPropertyUnit;
 import fr.ign.cogit.simplu3d.model.Environnement;
+import fr.ign.cogit.simplu3d.model.ParcelBoundaryType;
 import fr.ign.cogit.simplu3d.model.Prescription;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.AbstractSimpleBuilding;
 import fr.ign.mpp.configuration.AbstractBirthDeathModification;
@@ -56,6 +57,13 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 			
 			if(currentBPU.getArea() < aireMinimale) {
 				canBeSimulated = false;
+			}
+		}
+		double valArt3 = regle.getArt_3();
+		if (valArt3 == 1) {
+			if (currentBPU.getCadastralParcels().get(0).getBoundariesByType(ParcelBoundaryType.ROAD).isEmpty()) {
+				canBeSimulated = false;
+
 			}
 		}
 	}
@@ -112,6 +120,11 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 		List<ArtiScalesRegulation> regulations = new ArrayList<>();
 		regulations.add(this.regles);
 		return regulations;
+	}
+
+	@Override
+	protected String getArt12Value() {
+		return this.regles.getArt_12();
 	}
 
 }

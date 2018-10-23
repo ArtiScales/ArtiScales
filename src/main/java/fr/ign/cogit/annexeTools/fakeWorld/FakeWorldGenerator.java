@@ -41,6 +41,7 @@ public class FakeWorldGenerator {
 		generateTestForArticle8(folderOut+"art8/");
 		generateTestForArticle9(folderOut+"art9/");
 		generateTestForArticle10(folderOut+"art10/");	
+		generateTestForArticle12(folderOut+"art12/");	
 		generateTestForArticle13(folderOut+"art13/");	
 	}
 	
@@ -210,9 +211,18 @@ public class FakeWorldGenerator {
 		regulationDefault3.setLibelle_de_dul("U2");
 		regulationDefault3.setArt_71(2);
 		
+		
+		//CAS ARTICLE 71 = 3
+		ArtiScalesRegulation regulationDefault4 = regulationDefault.clone();
+		regulationDefault4.setLibelle_de_dul("U2");
+		regulationDefault4.setArt_71(3);
+		
+		
+		
 		regulations.add(regulationDefault);
 		regulations.add(regulationDefault2);
 		regulations.add(regulationDefault3);
+		regulations.add(regulationDefault4);
 		
 		generateFakeData(regulations, folderOut);
 		
@@ -430,6 +440,46 @@ public class FakeWorldGenerator {
 	}
 	
 	
+	
+	public static void generateTestForArticle12(String folderOut) throws IOException {
+		
+		(new File(folderOut)).mkdirs();
+		
+		in = new FileWriter( new File(folderOut+"predicate.csv")); 
+		in.write(fLine +  "\n");
+		
+		//Having a default regulation is very pratical to see the influence of varying a parameter
+			String defaultRegulation = "0,0,U0,U0,0,0,0,0,0,0,0,0.1,0,0,0,0,0,0,0,1.0,2,10,0,0,10";
+	
+			//The list of regulation for which building generation will be testsed
+		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
+		
+		//CAS ARTICLE 9 = 0.333
+		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, defaultRegulation);
+		ArtiScalesRegulation regulationDefault2 = regulationDefault.clone();
+		//Important to change to get the right regulation recognized
+		regulationDefault2.setLibelle_de_dul("U1");
+		regulationDefault2.setArt_12("1");
+		
+		//CAS ARTICLE 9 = 0.6666
+		ArtiScalesRegulation regulationDefault3 = regulationDefault.clone();
+		regulationDefault3.setLibelle_de_dul("U2");
+		regulationDefault3.setArt_12("1+2");
+		
+		//CAS ARTICLE 8 = 0
+		ArtiScalesRegulation regulationDefault4 = regulationDefault.clone();
+		regulationDefault4.setLibelle_de_dul("U3");
+		regulationDefault4.setArt_12("2");
+		
+		
+		regulations.add(regulationDefault);
+		regulations.add(regulationDefault2);
+		regulations.add(regulationDefault3);
+		regulations.add(regulationDefault4);
+		
+		generateFakeData(regulations, folderOut);
+		
+	}
 	
 	
 	public static void generateTestForArticle13(String folderOut) throws IOException {

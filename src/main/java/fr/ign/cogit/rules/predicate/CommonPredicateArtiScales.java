@@ -193,17 +193,14 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 		// height of the surrounding buildings
 
-		System.out.println(bPU.getGeom().buffer(distanceHeightBuildings));
+		//System.out.println(bPU.getGeom().buffer(distanceHeightBuildings));
 		Collection<AbstractBuilding> buildingsHeightCol = env.getBuildings().select(bPU.getGeom().buffer(distanceHeightBuildings));
-		System.out.println("Neighbour buildings :" + buildingsHeightCol.size());
+		//System.out.println("Neighbour buildings :" + buildingsHeightCol.size());
 		if (!buildingsHeightCol.isEmpty()) {
 			heighSurroundingBuildings = buildingsHeightCol.stream().mapToDouble(x -> x.height(1, 1)).sum() / buildingsHeightCol.size();
 		}
 
-		// Code determining max height
 
-		// this.p.set("maxheight", heighSurroundingBuildings * 1.1);
-		// this.p.set("minheight", heighSurroundingBuildings * 0.9);
 
 		if (!curveOppositeLimit.isEmpty()) {
 			this.jtsCurveOppositeLimit = AdapterFactory.toGeometry(gf, curveOppositeLimit);
@@ -416,6 +413,16 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 			if (!cRO.checkBuiltRatio(lAllCuboids, currentBPU, maxCES)) {
 				return false;
 			}
+			
+			
+			
+			String art12 = this.getArt12Value();
+			//art_12
+			if(! cRO.checkParking(lAllCuboids,currentBPU, art12, p)) {
+				return false;
+				
+			}
+			
 
 			// Width and distance between buildings constraints
 
@@ -517,7 +524,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 	public Alignements getAlignements() {
 
 		if (alignements == null) {
-			return new Alignements(this.getAllRegulation(), this.currentBPU);
+			return new Alignements(this.getAllRegulation(), this.currentBPU, this.env);
 		}
 		return alignements;
 	}
@@ -530,11 +537,15 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 	// Determine the maximal CES
 	protected abstract double getMaxCES();
 
-	// Determine the min and max
+	// Determine the min and max constraint
 	protected abstract double getMaxHeight();
 
 	protected abstract double getMinHeight();
-
+	
+	// Determine art12 most constraintful value
+	protected abstract String getArt12Value();
+	
+	
 	// Determine the recoils applied to a list of cuboids
 	protected abstract List<Double> determineDoubleDistanceForList(List<O> lCuboids);
 

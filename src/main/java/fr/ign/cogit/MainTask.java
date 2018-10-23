@@ -4,7 +4,17 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
+<<<<<<< HEAD
 
+=======
+import java.util.Map;
+import java.util.regex.Pattern;
+
+import fr.ign.cogit.indicators.BuildingToHousingUnit;
+import fr.ign.cogit.util.GetFromGeom;
+import fr.ign.cogit.util.StatStuff;
+import fr.ign.cogit.util.VectorFct;
+>>>>>>> ad901294dda7e180e0dc82f37295391c3948b47b
 import fr.ign.parameters.Parameters;
 
 public class MainTask {

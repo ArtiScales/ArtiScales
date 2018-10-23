@@ -15,6 +15,7 @@ import fr.ign.cogit.simplu3d.model.PrescriptionType;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.AbstractSimpleBuilding;
 import fr.ign.cogit.simplu3d.rjmcmc.generic.object.ISimPLU3DPrimitive;
 import fr.ign.cogit.simplu3d.util.CuboidGroupCreation;
+import fr.ign.cogit.simplu3d.util.SDPCalc;
 import fr.ign.parameters.Parameters;
 
 public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
@@ -22,8 +23,8 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	public CommonRulesOperator() {
 
 	}
-	
-	/////////////////Checked zone
+
+	///////////////// Checked zone
 
 	/**
 	 * Check if the number of cuboid is lesser than nbCuboids
@@ -36,8 +37,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 
 		return allCuboids.size() < nbCuboid;
 	}
-	
-	
+
 	/**
 	 * Indicates if a geometry intersects a zone
 	 * 
@@ -55,17 +55,13 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		return false;
 	}
 
-	
-	
 	public boolean checkProspectRNU(O cuboid, Geometry jtsCurveOppositeLimit) {
-		if(jtsCurveOppositeLimit == null || jtsCurveOppositeLimit.isEmpty()) {
+		if (jtsCurveOppositeLimit == null || jtsCurveOppositeLimit.isEmpty()) {
 			return true;
 		}
 		return cuboid.prospectJTS(jtsCurveOppositeLimit, 1, 0);
 	}
 
-	
-	
 	/**
 	 * Check the distance between the cuboids and the existing buildings
 	 * 
@@ -129,13 +125,15 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	}
 
 	/**
-	 * Check the distance between the cuboids with differenciated distance WARNING : The size of both list have to be the same
+	 * Check the distance between the cuboids with differenciated distance WARNING :
+	 * The size of both list have to be the same
 	 * 
 	 * @param lO
 	 * @param distanceInterBati
 	 * @return
 	 */
-	public boolean checkDistanceInterCuboids(List<? extends AbstractSimpleBuilding> lO, List<Double> distanceInterBati) {
+	public boolean checkDistanceInterCuboids(List<? extends AbstractSimpleBuilding> lO,
+			List<Double> distanceInterBati) {
 
 		int nbCuboid = lO.size();
 
@@ -149,7 +147,8 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 
 				// If there is only one distance we use it or we use the max of the distance
 				// constraints of the groups
-				double distInterBatiCalculated = (distanceInterBati.size() == 1) ? distanceInterBati.get(0) : Math.min(distanceInterBati.get(i), distanceInterBati.get(j));
+				double distInterBatiCalculated = (distanceInterBati.size() == 1) ? distanceInterBati.get(0)
+						: Math.min(distanceInterBati.get(i), distanceInterBati.get(j));
 
 				if (distance < distInterBatiCalculated) {
 					return false;
@@ -161,8 +160,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		return true;
 
 	}
-	
-	
+
 	/**
 	 * Check if the distance between a cuboid and a geometry is lesser than distMax
 	 * 
@@ -192,8 +190,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		return true;
 
 	}
-	
-	
+
 	/**
 	 * Check the distance between a cuboid and existing buildings
 	 * 
@@ -228,7 +225,21 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 
 		return false;
 	}
-	
+
+	private double assesBuiltArea(List<? extends AbstractSimpleBuilding> lCuboid) {
+		// On calcule la surface couverte par l'ensemble des cuboid
+		int nbElem = lCuboid.size();
+
+		Geometry geom = lCuboid.get(0).toGeometry();
+
+		for (int i = 1; i < nbElem; i++) {
+
+			geom = geom.union(lCuboid.get(i).toGeometry());
+
+		}
+
+		return geom.getArea();
+	}
 
 	/**
 	 * Check if the builtraio (with existing buildings) is lesser than a maxValue
@@ -240,16 +251,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	 */
 	public boolean checkBuiltRatio(List<O> lCuboid, BasicPropertyUnit currentBPU, double maxValue) {
 
-		// On calcule la surface couverte par l'ensemble des cuboid
-		int nbElem = lCuboid.size();
-
-		Geometry geom = lCuboid.get(0).toGeometry();
-
-		for (int i = 1; i < nbElem; i++) {
-
-			geom = geom.union(lCuboid.get(i).toGeometry());
-
-		}
+		double builtArea = assesBuiltArea(lCuboid);
 
 		List<AbstractSimpleBuilding> lBatIni = new ArrayList<>();
 		for (ISimPLU3DPrimitive s : lCuboid) {
@@ -262,13 +264,11 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 			airePAr = airePAr + cP.getArea();
 		}
 
-		return ((geom.getArea() / airePAr) <= maxValue);
+		return ((builtArea / airePAr) <= maxValue);
 	}
-	
-	
-	/////////////////Checked zone
-	
-	
+
+	///////////////// Checked zone
+
 	/**
 	 * Check if the height of a cuboid is lesser than a given number of stairs
 	 * 
@@ -283,13 +283,11 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		return true;
 	}
 
-	
-
 	// TODO a expérimenter (trouver une autre manière de le faire) (snapper aux
 	// limites ou faire un buffer)
 	public boolean checkAlignement(O cuboid, Geometry jtsCurveLimiteFrontParcel) {
 		// On vérifie que le batiment est compris dans la zone d'alignement (surfacique)
-		if (jtsCurveLimiteFrontParcel!=null && !cuboid.toGeometry().touches(jtsCurveLimiteFrontParcel)) {
+		if (jtsCurveLimiteFrontParcel != null && !cuboid.toGeometry().touches(jtsCurveLimiteFrontParcel)) {
 			return false;
 		}
 
@@ -297,7 +295,8 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	}
 
 	/**
-	 * Check if an alignment constraint is respected between a cuboid and the public road
+	 * Check if an alignment constraint is respected between a cuboid and the public
+	 * road
 	 * 
 	 * @param cuboid
 	 * @param prescriptions
@@ -305,7 +304,8 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	 * @param jtsCurveLimiteFrontParcel
 	 * @return
 	 */
-	public boolean checkAlignementPrescription(O cuboid, IFeatureCollection<Prescription> prescriptions, boolean align, Geometry jtsCurveLimiteFrontParcel) {
+	public boolean checkAlignementPrescription(O cuboid, IFeatureCollection<Prescription> prescriptions, boolean align,
+			Geometry jtsCurveLimiteFrontParcel) {
 		// On vérifie que le batiment est compris dans la zone d'alignement (surfacique)
 
 		if (prescriptions != null && align) {
@@ -321,11 +321,6 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		return true;
 	}
 
-
-
-
-
-
 	/**
 	 * Check if the height of a cuboid is lesser than a given height in meters
 	 * 
@@ -340,27 +335,22 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		return true;
 	}
 
-
-	
-
-
-
 	/**
 	 * get authorized height
 	 * 
 	 * @return
 	 */
 	public Double[] hauteur(Parameters p, ArtiScalesRegulation regle, Double heighSurroundingBuildings) {
-		//@ART 10 : a faire complétement
+		// @ART 10 : a faire complétement
 		//////// Checking the height of the cuboid
 		double min = p.getDouble("minheight");
 		double max = p.getDouble("maxheight");
 
-	
 		switch (regle.getArt_10_top()) {
 
 		// 1 hauteur à l'étage
-		// 5 hauteur à l'égout (pour l'instant la même que le 1 vu que l'on ne prends pas en compte les toits)
+		// 5 hauteur à l'égout (pour l'instant la même que le 1 vu que l'on ne prends
+		// pas en compte les toits)
 		case 1:
 
 			max = regle.getArt_10_1() * p.getDouble("heightStair");
@@ -384,15 +374,14 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 			}
 			// si pas de batiments aux alentours, on se rabat sur différentes options
 			else {
-			
-					max = regle.getArt_10_1();
-		
+
+				max = regle.getArt_10_1();
+
 			}
-		case 20 : 
-		default :
+		case 20:
+		default:
 			System.err.println("Cas de hauteur non géré");
-			
-			
+
 		}
 		Double[] result = { min, max };
 		return result;
@@ -412,59 +401,118 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		// 8 : retrait égal à la hauteur divisé par deux moins un mètre
 		// 9 : retrait égal aux deux tiers de la hauteur
 		// 10 : retrait égal aux trois quarts de la hauteur
-			double slope = 0;
-			double hIni = 0;
-			switch (art_74) {
-			case 0:
-				return true;
-			case 1:
-				slope = 1;
-				break;
-			case 2:
-				slope = 2;
-				break;
-			case 3:
-				slope = 3;
-				break;
-			case 4:
-				slope = 4;
-				break;
-			case 5:
-				slope = 5;
-				break;
-			case 6:
-				// 6 : Retrait égal à la hauteur divisé par deux moins trois
-				// mètres
-				hIni = 2;
-				slope = 6;
-				break;
-			case 7:
-				// 7 : Retrait égal à la hauteur moins trois mètres divisé par
-				// deux
-				hIni = 3;
-				slope = 2;
-				break;
-			case 8:
-				// 8 : retrait égal à la hauteur divisé par deux moins un mètre
-				hIni = 2;
-				slope = 2;
-				break;
-			case 9:
-				slope = 3 / 2;
-				break;
-			case 10:
-				slope = 4 / 3;
-				break;
+		double slope = 0;
+		double hIni = 0;
+		switch (art_74) {
+		case 0:
+			return true;
+		case 1:
+			slope = 1;
+			break;
+		case 2:
+			slope = 2;
+			break;
+		case 3:
+			slope = 3;
+			break;
+		case 4:
+			slope = 4;
+			break;
+		case 5:
+			slope = 5;
+			break;
+		case 6:
+			// 6 : Retrait égal à la hauteur divisé par deux moins trois
+			// mètres
+			hIni = 2;
+			slope = 6;
+			break;
+		case 7:
+			// 7 : Retrait égal à la hauteur moins trois mètres divisé par
+			// deux
+			hIni = 3;
+			slope = 2;
+			break;
+		case 8:
+			// 8 : retrait égal à la hauteur divisé par deux moins un mètre
+			hIni = 2;
+			slope = 2;
+			break;
+		case 9:
+			slope = 3 / 2;
+			break;
+		case 10:
+			slope = 4 / 3;
+			break;
 
-			}
+		}
 
-			if (jtsCurveLimiteFondParcel != null
-					&& !cuboid.prospectJTS(jtsCurveLimiteFondParcel, slope, hIni)) {
-				return false;
-			}
-
+		if (jtsCurveLimiteFondParcel != null && !cuboid.prospectJTS(jtsCurveLimiteFondParcel, slope, hIni)) {
+			return false;
+		}
 
 		return true;
+	}
+
+	public boolean checkParking(List<O> lAllCuboids, BasicPropertyUnit currentBPU, String art12, Parameters p) {
+		if (art12.equals("99")) {
+			return true;
+		}
+
+		// Règle de stationnement 
+		//
+		//1 : un stationnement par logement .
+		//
+		// 1+2 : 2 places de stationnement par logement (dont 1 hors clôture pour les
+		// maisons individuelles) ; 1 place par logement (pour les immeubles
+		// collectifs).
+		//
+		// 2 : deux stationnements par logement
+		//
+		// 20_1-60_2 : un stationnement pour un logement en dessous de 60m2, 2 pour les
+		// logements plus
+
+		// Parking place surface
+		double surfPlace = p.getDouble("surfPlaceParking");
+
+		// Surface of a dwelling
+		double surfLogement = p.getInteger("HousingUnitSize");
+
+		// Built area on the parcel
+		double builtArea = assesBuiltArea(lAllCuboids);
+
+		// Buildings height is used to assess SDP
+		SDPCalc c = new SDPCalc(p.getInteger("heightStair"));
+
+		int multiplierParking = 1;
+
+		if (art12 == "1") {
+			//////// Cas 1 : 1 : un stationnement par logement
+			multiplierParking = 1;
+		} else if (art12 == "1+2") {
+			/////// Cas 1+2 : places de stationnement par logement (dont 1 hors clôture pour
+			/////// les maisons
+			multiplierParking = 1;
+		} else if (art12 == "2") {
+			//////// Cas 2 : 2 : deux stationnements par logement
+			multiplierParking = 2;
+		} else {
+
+		}
+
+		// We assess the SHON
+		double shon = c.process(lAllCuboids);
+
+		// Number of dwellings
+		int nbDwellings = (int) Math.round((shon / surfLogement));
+
+		// Surface of parking places
+		double surfaceParking = multiplierParking * nbDwellings * surfPlace;
+
+		// We check that the total surface of the parcel is less then the sum of built
+		// buildings and the surface parking
+		return (currentBPU.getArea() > surfaceParking + builtArea);
+
 	}
 
 }

@@ -19,13 +19,13 @@ public class FakeWorldSimulator {
 
 		for (String pathSubFolder : rootFolderFile.list()) {
 			
-			 if(! pathSubFolder.contains("art10")) { continue; }
+			 if(! pathSubFolder.contains("art8")) { continue; }
 			 
 
 			List<File> lF = new ArrayList<>();
 			// Line to change to select the right scenario
 
-			String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenarFakeWorldMax/")
+			String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenarFakeWorld/")
 					.getPath();
 
 			lF.add(new File(rootParam + "parametreTechnique.xml"));
@@ -66,6 +66,7 @@ public class FakeWorldSimulator {
 			// PLU Folder
 			File pluFile = new File(p.getString("pluFile"));
 
+			
 			SimPLUSimulator simplu = new SimPLUSimulator(rootFolder, geoFile, pluFile, selectedParcels,
 					p.getString("listZipCode"), p, lF);
 
