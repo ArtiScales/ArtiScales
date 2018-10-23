@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.tuple.MutablePair;
+
 import fr.ign.cogit.GTFunctions.Rasters;
 import fr.ign.parameters.Parameters;
 import fr.ign.task.Initialize;
@@ -45,7 +47,7 @@ public class MupCitySimulation {
 	}
 
 	private static void deleteDirectoryStream(Path path) throws IOException {
-		//use that?!
+		// use that?!
 		Files.walk(path).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
 	}
 
@@ -67,17 +69,16 @@ public class MupCitySimulation {
 	 * @return renvoie une liste de toutes les simulations MUP-City à tester.
 	 */
 	public File run() throws Exception {
-
-		File outputTiff = mupCityDistribTask(p, variant, variantFile, geoFile);
-		double sizeCell = Double.parseDouble(outputTiff.getName().split("-")[2].replace(".tif", ""));
-		OutputTools.vectorizeMupOutput(Rasters.importRaster(outputTiff), new File(variantFile, outputTiff.getName()), sizeCell);
+		File outputTiff = mupCityTask(p, variant, variantFile, geoFile);
+		double sizeCell = Double.valueOf(variant[1]) * Double.valueOf(variant[4]);
+		OutputTools.vectorizeMupOutput(Rasters.importRaster(outputTiff), new File(variantFile, outputTiff.getName().replace(".tif", "")), sizeCell);
 		return variantFile;
 	}
 
-	public static File mupCityDistribTask(Parameters p, String[] variant, File variantFile, File geoFile) throws Exception {
+	public static File mupCityTask(Parameters p, String[] variant, File variantFile, File geoFile) throws Exception {
 
 		Initialize.init();
-		String name = p.getString("name");
+		String name = p.getString("nom");
 
 		String empriseStr = variant[0];
 		Pattern ptVir = Pattern.compile(";");
@@ -100,13 +101,12 @@ public class MupCitySimulation {
 		dataHT.put("nU", "nonUrbaSys.shp");
 
 		System.out.println("----------Project creation and decomp----------");
-		
-		File projectFile = ProjectCreationDecompTask.run(name, geoFile, variantFile, xmin, ymin, width, height, 0, 0, dataHT, Double.valueOf(variant[1]), 14580,
-				Double.valueOf(variant[2]));
+		MutablePair<String, File> projectFile = ProjectCreationDecompTask.run(name, geoFile, variantFile, xmin, ymin, width, height, 0, 0, dataHT, 14580, Double.valueOf(variant[1]),
+				Double.valueOf(variant[2]),true);
 		System.out.println("----------Simulation task----------");
-		File result = SimulTask.run(projectFile, name, p.getInteger("N"), p.getBoolean("strict"), p.getDouble("ahp0"), p.getDouble("ahp1"), p.getDouble("ahp2"),
+		File result = SimulTask.run(projectFile.getRight(), projectFile.getLeft(), p.getInteger("N"), p.getBoolean("strict"), p.getDouble("ahp0"), p.getDouble("ahp1"), p.getDouble("ahp2"),
 				p.getDouble("ahp3"), p.getDouble("ahp4"), p.getDouble("ahp5"), p.getDouble("ahp6"), p.getDouble("ahp7"), p.getDouble("ahp8"), p.getBoolean("mean"),
-				Integer.valueOf(variant[5]), false);
+				Integer.valueOf(variant[5]), true);
 		System.out.println("result : " + result);
 		System.out.println("----------End task----------");
 
@@ -114,12 +114,11 @@ public class MupCitySimulation {
 
 		double nivObs = Double.valueOf(variant[1]) * Double.valueOf(variant[4]);
 		for (File f : result.listFiles()) {
-			if (f.getName().contains("evalAnal") && f.getName().contains(String.valueOf(nivObs))) {
+				if (f.getName().endsWith("evalAnal-"+String.valueOf(nivObs)+".tif")) {
 				System.out.println("returned : " + f);
 				return f;
 			}
 		}
 		throw new NullPointerException("nothing to return");
 	}
-
 }

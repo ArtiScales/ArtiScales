@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
@@ -26,8 +25,8 @@ import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.TransformException;
 
-import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.MultiPolygon;
+import com.vividsolutions.jts.geom.Polygon;
 
 import au.com.bytecode.opencsv.CSVReader;
 import fr.ign.cogit.GTFunctions.Vectors;
@@ -35,14 +34,71 @@ import fr.ign.parameters.Parameters;
 
 public class GetFromGeom {
 
-	
-	public static File getParcels(File geoFile) throws FileNotFoundException {
+	/**
+	 * get the parcel file and add necessary files
+	 * @param geoFile
+	 * @return
+	 * @throws IOException 
+	 * @throws FactoryException 
+	 * @throws NoSuchAuthorityCodeException 
+	 */
+	public static File getParcels(File geoFile,File currentFile) throws IOException, NoSuchAuthorityCodeException, FactoryException {
+		File result = new File("");
 		for (File f : geoFile.listFiles()) {
 			if (f.toString().contains("parcelle.shp")) {
-				return f;
+				result= f;
 			}
 		}
-		throw new FileNotFoundException("Parcel file not found");
+		ShapefileDataStore parcelSDS = new ShapefileDataStore(result.toURI().toURL());
+		SimpleFeatureCollection parcels = parcelSDS.getFeatureSource().getFeatures();
+		
+		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
+		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
+		sfTypeBuilder.setName("testType");
+		sfTypeBuilder.setCRS(sourceCRS);
+		sfTypeBuilder.add("the_geom", Polygon.class);
+		sfTypeBuilder.setDefaultGeometry("the_geom");
+		sfTypeBuilder.add("CODE", String.class);
+		sfTypeBuilder.add("CODE_DEP", String.class);
+		sfTypeBuilder.add("CODE_COM", String.class);
+		sfTypeBuilder.add("COM_ABS", String.class);
+		sfTypeBuilder.add("SECTION", String.class);
+		sfTypeBuilder.add("NUMERO", String.class);
+		sfTypeBuilder.add("eval", String.class);		
+		sfTypeBuilder.add("DoWeSimul", Integer.class);
+
+		SimpleFeatureBuilder sfBuilder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
+
+		DefaultFeatureCollection newParcel = new DefaultFeatureCollection();
+
+		int i = 0;
+		SimpleFeatureIterator parcelIt = parcels.features();
+		try {
+			while (parcelIt.hasNext()) {
+				SimpleFeature feat = parcelIt.next();
+				// put the best cell evaluation into the parcel
+				String numero;
+				numero = ((String) feat.getAttribute("CODE_DEP")) + ((String) feat.getAttribute("CODE_COM")) + ((String) feat.getAttribute("COM_ABS"))
+							+ ((String) feat.getAttribute("SECTION")) + ((String) feat.getAttribute("NUMERO"));
+				Object[] attr = { numero, feat.getAttribute("CODE_DEP"), feat.getAttribute("CODE_COM"), feat.getAttribute("COM_ABS"), feat.getAttribute("SECTION"),
+						feat.getAttribute("NUMERO"),0,0 };
+
+				sfBuilder.add(feat.getDefaultGeometry());
+
+				SimpleFeature feature = sfBuilder.buildFeature(String.valueOf(i), attr);
+				newParcel.add(feature);
+				i = i + 1;
+			}
+
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			parcelIt.close();
+		}
+		
+		parcelSDS.dispose();
+		
+		return Vectors.exportSFC(newParcel.collection(), new File (currentFile,"parcels.shp"));
 	}
 
 	// TODO préciser quelle couche de batiment on utilise (si l'on explore plein de
@@ -95,25 +151,61 @@ public class GetFromGeom {
 		throw new FileNotFoundException("Housing units objectives not found");
 	}
 
-	public static File getZoning(File pluFile, String zipCode) throws FileNotFoundException {
-		for (File f : pluFile.listFiles()) {
-			Pattern insee = Pattern.compile("INSEE_");
-			String[] list = insee.split(f.toString());
-			if (list.length > 1 && list[1].equals(zipCode + ".shp")) {
+	public static File getZoning(File zoningFile) throws FileNotFoundException {
+		for (File f : zoningFile.listFiles()) {
+			if (f.getName().startsWith("zoning") && f.getName().endsWith(".shp")) {
 				return f;
 			}
 		}
-		
-		for (File f : pluFile.listFiles()) {
-			Pattern insee = Pattern.compile("zoneUrba");
-			String[] list = insee.split(f.toString());
-			if (list.length > 1 && list[1].equals(zipCode + ".shp")) {
-				return f;
-			}
-		}
-		
 		throw new FileNotFoundException("Zoning file not found");
 	}
+	
+	public static File getPrescPonct(File zoningFile) throws FileNotFoundException {
+		for (File f : zoningFile.listFiles()) {
+			if (f.getName().startsWith("prescPonct") && f.getName().endsWith(".shp")) {
+				return f;
+			}
+		}
+		throw new FileNotFoundException("Zoning file not found");
+	}
+	
+	public static File getPrescSurf(File zoningFile) throws FileNotFoundException {
+		for (File f : zoningFile.listFiles()) {
+			if (f.getName().startsWith("prescSurf") && f.getName().endsWith(".shp")) {
+				return f;
+			}
+		}
+		throw new FileNotFoundException("Zoning file not found");
+	}
+	
+	public static File getPrescLin(File zoningFile) throws FileNotFoundException {
+		for (File f : zoningFile.listFiles()) {
+			if (f.getName().startsWith("prescLin") && f.getName().endsWith(".shp")) {
+				return f;
+			}
+		}
+		throw new FileNotFoundException("Zoning file not found");
+	}
+	
+//	public static File getZoning(File pluFile, String zipCode) throws FileNotFoundException {
+//		for (File f : pluFile.listFiles()) {
+//			Pattern insee = Pattern.compile("INSEE_");
+//			String[] list = insee.split(f.toString());
+//			if (list.length > 1 && list[1].equals(zipCode + ".shp")) {
+//				return f;
+//			}
+//		}
+//		
+//		for (File f : pluFile.listFiles()) {
+//			Pattern insee = Pattern.compile("zoneUrba");
+//			String[] list = insee.split(f.toString());
+//			if (list.length > 1 && list[1].equals(zipCode + ".shp")) {
+//				return f;
+//			}
+//		}
+//		
+//		throw new FileNotFoundException("Zoning file not found");
+//	}
 
 //	public static File getPAUzone(File pluFile, File geoFile, File tmpFile, String zipCode) throws Exception {
 //		String type = "zone";
@@ -176,14 +268,16 @@ public class GetFromGeom {
 		DefaultFeatureCollection totalParcel = new DefaultFeatureCollection();
 
 		for (String typeZone : typesZone) {
-			totalParcel.addAll(selecParcelZoning(typeZone, Vectors.snapDatas(parcels, zoningFile), zipCode, zoningFile));
+			totalParcel.addAll(selecParcelZoning(typeZone, Vectors.snapDatas(parcels, zoningFile), zoningFile));
 		}
 
 		return totalParcel.collection();
 	}
 
+
+
 	/**
-	 * Choppe les parcelles d'une certaine zone du PLU
+	 * Get parcels from a Zoning file matching a certain type of zone (characterized by the field TYPEZONE)
 	 * 
 	 * @param typeZone
 	 *            the code of the zone willed to be selected. In a french context, it can either be (A, N, U, AU) or one of its subsection
@@ -197,22 +291,12 @@ public class GetFromGeom {
 	 * @throws TransformException
 	 * @throws MismatchedDimensionException
 	 */
-	public static SimpleFeatureCollection selecParcelZoning(String typeZone, String zipcode, File parcelFile, File zoningFile) throws Exception {
-		// import of the parcel file
-		ShapefileDataStore shpDSParcel = new ShapefileDataStore(parcelFile.toURI().toURL());
-		return selecParcelZoning(typeZone, Vectors.snapDatas(shpDSParcel.getFeatureSource().getFeatures(), zoningFile), zipcode, zoningFile);
-	}
-
-	public static SimpleFeatureCollection selecParcelZoning(String typeZone, SimpleFeatureCollection parcelCollection, String zipCode, File zoningFile)
+	public static SimpleFeatureCollection selecParcelZoning(String typeZone, SimpleFeatureCollection parcelCollection, File zoningFile)
 			throws IOException, CQLException, NoSuchAuthorityCodeException, FactoryException, MismatchedDimensionException, TransformException {
 
 		// import of the zoning file
 		ShapefileDataStore shpDSZone = new ShapefileDataStore(zoningFile.toURI().toURL());
 		SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
-
-		// verificaiton
-		System.out.println("Pour la commune " + zipCode + " on a " + featuresZones.size() + " zones différentes");
-
 
 		
 		// creation of the filter to select only wanted type of zone in the PLU
@@ -241,6 +325,20 @@ public class GetFromGeom {
 		shpDSZone.dispose();
 
 		return parcelSelected;
+	}
+	/**
+	 * Overload if the entry is a file.
+	 * Not very good coz the shapefileDataStore cannot be disposed. 
+	 * @param typeZone
+	 * @param parcelFile
+	 * @param zoningFile
+	 * @return
+	 * @throws Exception
+	 */
+	public static SimpleFeatureCollection selecParcelZoning(String typeZone, File parcelFile, File zoningFile) throws Exception {
+		// import of the parcel file
+		ShapefileDataStore shpDSParcel = new ShapefileDataStore(parcelFile.toURI().toURL());
+		return selecParcelZoning(typeZone, shpDSParcel.getFeatureSource().getFeatures(), zoningFile);
 	}
 
 	// public static SimpleFeatureCollection selecParcelZonePLUmergeAU(File parcelFile, String zipCode, File zoningFile, Parameters p)

@@ -163,7 +163,6 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 		this.art_9 = art_9;
 		this.art_10_top = art_10_top;
 		this.art_10_1 = art_10_1;
-
 		this.art_12 = art_12;
 		this.art_13 = art_13;
 		this.art_14 = art_14;

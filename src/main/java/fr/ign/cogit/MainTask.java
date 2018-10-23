@@ -1,28 +1,17 @@
 package fr.ign.cogit;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
 
-import fr.ign.cogit.indicators.BuildingToHousingUnit;
-import fr.ign.cogit.outputs.XmlGen;
-import fr.ign.cogit.util.GetFromGeom;
-import fr.ign.cogit.util.StatStuff;
-import fr.ign.cogit.util.VectorFct;
 import fr.ign.parameters.Parameters;
-import fr.ign.task.ProjectCreationDecompTask;
-import fr.ign.task.SimulTask;
 
 public class MainTask {
 
 	static File rootFile;
 	static File geoFile;
-	static File pluFile;
+	static File regulFile;
 
 	public static void main(String[] args) throws Exception {
 		runScenar();
@@ -41,10 +30,10 @@ public class MainTask {
 		List<Parameters> listScenarios = getParamFile("MCIgn", new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet"));
 
 		rootFile = new File(listScenarios.get(0).getString("rootFile"));
-		geoFile = new File(rootFile, "donneeGeographiques");
-		pluFile = new File(rootFile, "donneeZoning");
+		geoFile = new File(rootFile, "dataGeo");
+		regulFile = new File(rootFile, "dataRegul");
 		// kind verification
-		if (!rootFile.exists() || !geoFile.exists() || !pluFile.exists()) {
+		if (!rootFile.exists() || !geoFile.exists() || !regulFile.exists()) {
 			System.out.println("please check the file setting in the parameter file ");
 			System.exit(99);
 		}
@@ -56,12 +45,10 @@ public class MainTask {
 		// if we want to simulate MUPCity part or we directly using outputs
 		if (listScenarios.get(0).getBoolean("createMUPSimu")) {
 			File mupCityDepot = new File(rootFile, "MupCityDepot");
-
 			for (Parameters p : listScenarios) {
 				List<File> listVariant = new ArrayList<File>();
 				String name = p.getString("nom");
 				File scenarFile = new File(mupCityDepot, name);
-
 				int i = 0;
 				for (String[] variant : prepareVariant(p).values()) {
 					File variantFile = new File(scenarFile, "variant" + i);
@@ -71,47 +58,48 @@ public class MainTask {
 					listVariant.add(mupOutShp);
 				}
 				mupCityOutput.add(listVariant);
-				System.out.println(listVariant);
 			}
 		} else {
 			for (File f : (new File(rootFile, "MupCityDepot")).listFiles()) {
-				List<File> variante = new ArrayList<File>();
 				if (f.isDirectory()) {
-					for (File var : f.listFiles()) {
-
-						if (var.getName().contains("evalAnal") && var.getName().endsWith(".shp")) {
-							variante.add(var);
-							System.out.println("MUP-City's output in the machine : " + f);
+					List<File> variante = new ArrayList<File>();
+					for (File varitante : f.listFiles()) {
+						for (File var : varitante.listFiles()) {
+							if (var.getName().contains("evalAnal") && var.getName().endsWith(".shp")) {
+								variante.add(var);
+								System.out.println("MUP-City's output in the machine : " + var);
+							}
 						}
 					}
+					mupCityOutput.add(variante);
 				}
-				mupCityOutput.add(variante);
 			}
 		}
 
-		// // Selection and parcel management part
-		//// File parcelPackages = parcelManagerSelectionAndPack();
-		// SelectParcels selecPar = new SelectParcels(rootFile, geoFile, pluFile, geoFile, null, false, null);
-		// File parcelPackages = parcelManagerSelection(listScenarios,mupCityVectorizedOutput);
+		// Selection and parcel management part
+		// File parcelPackages = parcelManagerSelectionAndPack();
+		SelectParcels selecPar = new SelectParcels(rootFile, mupCityOutput, listScenarios);
+		List<List<File>> parcelPackages = selecPar.run();
 
 		// SimPLU3D part
 
+		
 	}
 
 	public static Hashtable<String, String[]> prepareVariant(Parameters p) {
 		Hashtable<String, String[]> variants = new Hashtable<String, String[]>();
 		try {
-			String[] originalScenar = { p.getString("emprise"), p.getString("cm"), p.getString("seuil"), p.getString("data"), p.getString("emprise") };
+			String[] originalScenar = { p.getString("emprise"), p.getString("cm"), p.getString("seuil"), p.getString("data"), p.getString("nivCellUtilise"), p.getString("seed") };
 			variants.put("original", originalScenar);
 			for (int i = 1; i <= 1000; i++) {
-				if (!p.getString("variant" + i).isEmpty()) {
-					String[] variant = unmarshalVariant(p.getString("variant" + i));
-					variants.put("variant" + 1, variant);
+				if (!p.getString("variante" + i).isEmpty()) {
+					String[] variant = unmarshalVariant(p.getString("variante" + i));
+					variants.put("variante" + i, variant);
 				}
 			}
 		} catch (NullPointerException npa) {
-
 		}
+
 		return variants;
 
 	}
@@ -119,16 +107,15 @@ public class MainTask {
 	/**
 	 * return technical parameters from the parameter file
 	 * 
-	 * @param tab
-	 *            with parameters sorted like that : 0 : emprise 1 : minimal cize of cell 2 : threshold of building density 3 : dataset to use 4 : level of cell size to use 5 :
-	 *            seed
-	 * @return
+	 * @param line
+	 *            from the parameter file
+	 * @return tab with parameters sorted like that : \n 0 : emprise \n 1 : minimal size of cell \n 2 : threshold of building density \n 3 : dataset to use \n 4 : level of cell
+	 *         size to use \n 5 : seed \n
 	 */
 	private static String[] unmarshalVariant(String line) {
 		String[] result = new String[6];
 
 		String[] splited = line.split("--");
-
 		result[0] = splited[0].split("=")[1];
 		result[1] = splited[1].split("=")[1];
 		result[2] = splited[2].split("=")[1];
@@ -398,37 +385,6 @@ public class MainTask {
 	 * @return
 	 */
 	private static List<String> varianteType(Parameters p) {
-		List<String> routine = new ArrayList<String>();
-		if (p.getBoolean("Anarchie")) {
-			// TODO sélection aléatoire de parcelles
-		} else if (p.getBoolean("JustEval")) {
-			routine.add("justEval");
-			// TODO sélection de parcelles uniquement selon l'évaluation
-		} else {
-			if (p.getBoolean("Ubuilt")) {
-				routine.add("Ubuilt");
-			}
-			if (p.getBoolean("UnotBuilt")) {
-				routine.add("UnotBuilt");
-			}
-			if (p.getBoolean("AUnotBuilt")) {
-				routine.add("AUnotBuilt");
-			}
-			if (p.getBoolean("ALLnotBuilt")) {
-				routine.add("ALLnotBuilt");
-			}
-		}
-		return routine;
-	}
-
-	/**
-	 * Know which selection method to use determined by the param file
-	 * 
-	 * @return a list with all the different selections
-	 * 
-	 * @return
-	 */
-	private static List<String> selectionType(Parameters p) {
 		List<String> routine = new ArrayList<String>();
 		if (p.getBoolean("Anarchie")) {
 			// TODO sélection aléatoire de parcelles
