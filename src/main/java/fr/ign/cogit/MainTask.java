@@ -4,17 +4,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
-<<<<<<< HEAD
-
-=======
-import java.util.Map;
-import java.util.regex.Pattern;
 
 import fr.ign.cogit.indicators.BuildingToHousingUnit;
-import fr.ign.cogit.util.GetFromGeom;
-import fr.ign.cogit.util.StatStuff;
-import fr.ign.cogit.util.VectorFct;
->>>>>>> ad901294dda7e180e0dc82f37295391c3948b47b
+import fr.ign.cogit.util.SimuTool;
 import fr.ign.parameters.Parameters;
 
 public class MainTask {
@@ -48,7 +40,9 @@ public class MainTask {
 			System.exit(99);
 		}
 
-		// Mup-City part
+		////////////////
+		// MUP-City part
+		////////////////
 
 		List<List<File>> mupCityOutput = new ArrayList<List<File>>();
 
@@ -86,14 +80,33 @@ public class MainTask {
 			}
 		}
 
+		////////////////
 		// Selection and parcel management part
+		////////////////
+
 		// File parcelPackages = parcelManagerSelectionAndPack();
 		SelectParcels selecPar = new SelectParcels(rootFile, mupCityOutput, listScenarios);
 		List<List<File>> parcelPackages = selecPar.run();
-
-		// SimPLU3D part
-
 		
+		////////////////
+		// SimPLU3D part
+		////////////////
+		
+		for (List<File> listVariantes : parcelPackages) {
+			String scenarName = listVariantes.get(0).getName().split("-")[0];
+			for (File packFile : listVariantes) {
+				Parameters p = SimuTool.getParamFile(listScenarios, scenarName);
+
+				SimPLUSimulator simPluSim = new SimPLUSimulator(rootFile, packFile, p);
+				List<File> batiSimu = simPluSim.run();
+
+				BuildingToHousingUnit bTH = new BuildingToHousingUnit(batiSimu, p);
+				bTH.runParticularSimpleEstimation();
+
+			}
+		}
+		// Some indicators
+
 	}
 
 	public static Hashtable<String, String[]> prepareVariant(Parameters p) {

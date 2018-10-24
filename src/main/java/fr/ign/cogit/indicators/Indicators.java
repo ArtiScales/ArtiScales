@@ -52,7 +52,7 @@ public abstract class Indicators {
 	}
 
 	/**
-	 * getters of the MUP-City's techical parameters informations
+	 * getters of the MUP-City's technical parameters informations
 	 * 
 	 * @return the name of the MUP-City's scenario used
 	 */

@@ -110,9 +110,15 @@ public class SelectParcels {
 				ShapefileDataStore shpDSparcel = new ShapefileDataStore((parcelFile).toURI().toURL());
 				SimpleFeatureCollection parcelCollection = shpDSparcel.getFeatureSource().getFeatures();
 
-				if (p.getBoolean("splitParcel")) {
+				// Split parcels
+				if (p.getString("splitParcel").equals("true")) {
+					parcelCollection = VectorFct.generateSplitedParcels(GetFromGeom.selecParcelZonePLUmergeAU(parcelCollection, zoningFile, p), p);
 					parcelCollection = VectorFct.generateSplitedParcels(parcelCollection, p);
 				}
+				if (p.getString("splitParcel").equals("AU")) {
+					parcelCollection = VectorFct.generateSplitedParcels(GetFromGeom.selecParcelZonePLUmergeAU(parcelCollection, zoningFile, p), p);
+				}
+
 				for (String action : listeAction) {
 					System.out.println("---=+Pour le remplissage " + action + "+=---");
 					switch (action) {
@@ -248,12 +254,15 @@ public class SelectParcels {
 
 		DefaultFeatureCollection result = new DefaultFeatureCollection();
 
+		ShapefileDataStore shpDSCells = new ShapefileDataStore(spatialConf.toURI().toURL());
+		SimpleFeatureCollection cellsSFS = shpDSCells.getFeatureSource().getFeatures();
+
 		try {
 			while (parcelIt.hasNext()) {
 				SimpleFeature parcel = parcelIt.next();
 				if (isParcelInZone(parcel, "U")) {
 					if (isParcelBuilt(parcel)) {
-						if (isParcelInCell(parcel)) {
+						if (isParcelInCell(parcel, cellsSFS)) {
 							parcel.setAttribute("DoWeSimul", 1);
 							parcel.setAttribute("eval", getEvalInParcel(parcel));
 						}
@@ -266,6 +275,7 @@ public class SelectParcels {
 		} finally {
 			parcelIt.close();
 		}
+		shpDSCells.dispose();
 		return result.collection();
 	}
 
@@ -280,12 +290,15 @@ public class SelectParcels {
 
 		DefaultFeatureCollection result = new DefaultFeatureCollection();
 
+		ShapefileDataStore shpDSCells = new ShapefileDataStore(spatialConf.toURI().toURL());
+		SimpleFeatureCollection cellsSFS = shpDSCells.getFeatureSource().getFeatures();
+
 		try {
 			while (parcelIt.hasNext()) {
 				SimpleFeature parcel = parcelIt.next();
 				if (isParcelInZone(parcel, "U")) {
 					if (!isParcelBuilt(parcel)) {
-						if (isParcelInCell(parcel)) {
+						if (isParcelInCell(parcel, cellsSFS)) {
 							parcel.setAttribute("DoWeSimul", 1);
 							parcel.setAttribute("eval", getEvalInParcel(parcel));
 						}
@@ -298,6 +311,7 @@ public class SelectParcels {
 		} finally {
 			parcelIt.close();
 		}
+		shpDSCells.dispose();
 		return result;
 	}
 
@@ -306,12 +320,15 @@ public class SelectParcels {
 
 		DefaultFeatureCollection result = new DefaultFeatureCollection();
 
+		ShapefileDataStore shpDSCells = new ShapefileDataStore(spatialConf.toURI().toURL());
+		SimpleFeatureCollection cellsSFS = shpDSCells.getFeatureSource().getFeatures();
+
 		try {
 			while (parcelIt.hasNext()) {
 				SimpleFeature parcel = parcelIt.next();
 				if (isParcelInZone(parcel, "U")) {
 					if (!isParcelBuilt(parcel)) {
-						if (isParcelInCell(parcel)) {
+						if (isParcelInCell(parcel, cellsSFS)) {
 							parcel.setAttribute("DoWeSimul", 1);
 							parcel.setAttribute("eval", getEvalInParcel(parcel));
 						}
@@ -324,6 +341,7 @@ public class SelectParcels {
 		} finally {
 			parcelIt.close();
 		}
+		shpDSCells.dispose();
 		return result;
 	}
 
@@ -341,11 +359,14 @@ public class SelectParcels {
 
 		DefaultFeatureCollection result = new DefaultFeatureCollection();
 
+		ShapefileDataStore shpDSCells = new ShapefileDataStore(spatialConf.toURI().toURL());
+		SimpleFeatureCollection cellsSFS = shpDSCells.getFeatureSource().getFeatures();
+
 		try {
 			while (parcelIt.hasNext()) {
 				SimpleFeature parcel = parcelIt.next();
 				if (isParcelInZone(parcel, "N") || isParcelInZone(parcel, "A") || isParcelInZone(parcel, "NC")) {
-					if (isParcelInCell(parcel)) {
+					if (isParcelInCell(parcel, cellsSFS)) {
 						parcel.setAttribute("DoWeSimul", 1);
 						parcel.setAttribute("eval", getEvalInParcel(parcel));
 					}
@@ -358,6 +379,7 @@ public class SelectParcels {
 		} finally {
 			parcelIt.close();
 		}
+		shpDSCells.dispose();
 		return result;
 	}
 
@@ -375,11 +397,14 @@ public class SelectParcels {
 
 		DefaultFeatureCollection result = new DefaultFeatureCollection();
 
+		ShapefileDataStore shpDSCells = new ShapefileDataStore(spatialConf.toURI().toURL());
+		SimpleFeatureCollection cellsSFS = shpDSCells.getFeatureSource().getFeatures();
+
 		try {
 			while (parcelIt.hasNext()) {
 				SimpleFeature parcel = parcelIt.next();
 
-				if (isParcelInCell(parcel)) {
+				if (isParcelInCell(parcel, cellsSFS)) {
 					parcel.setAttribute("DoWeSimul", 1);
 					parcel.setAttribute("eval", getEvalInParcel(parcel));
 				}
@@ -391,6 +416,7 @@ public class SelectParcels {
 		} finally {
 			parcelIt.close();
 		}
+		shpDSCells.dispose();
 		return result.collection();
 	}
 
@@ -409,12 +435,14 @@ public class SelectParcels {
 		SimpleFeatureIterator parcelIt = parcelSFC.features();
 		DefaultFeatureCollection result = new DefaultFeatureCollection();
 
+		ShapefileDataStore shpDSCells = new ShapefileDataStore(spatialConf.toURI().toURL());
+		SimpleFeatureCollection cellsSFS = shpDSCells.getFeatureSource().getFeatures();
+
 		try {
 			while (parcelIt.hasNext()) {
 				SimpleFeature parcel = parcelIt.next();
 				if (isParcelInZone(parcel, "U") || isParcelInZone(parcel, "AU")) {
-					if (isParcelInCell(parcel)) {
-						System.out.println("parcelInCell");
+					if (isParcelInCell(parcel, cellsSFS)) {
 						parcel.setAttribute("DoWeSimul", 1);
 						parcel.setAttribute("eval", getEvalInParcel(parcel));
 					}
@@ -426,25 +454,27 @@ public class SelectParcels {
 		} finally {
 			parcelIt.close();
 		}
+		shpDSCells.dispose();
 		return result;
 	}
 
-	public boolean isParcelInCell(SimpleFeature parcelIn) throws IOException, NoSuchAuthorityCodeException, FactoryException {
+	public boolean isParcelInCell(SimpleFeature parcelIn, SimpleFeatureCollection cellsCollection) throws IOException, NoSuchAuthorityCodeException, FactoryException {
 
-		// import of the MUP-City outputs
-		ShapefileDataStore shpDSCells = new ShapefileDataStore(spatialConf.toURI().toURL());
-		SimpleFeatureCollection cellsCollection = shpDSCells.getFeatureSource().getFeatures();
+		// import of the cells of MUP-City outputs
+		SimpleFeatureIterator cellsCollectionIt = cellsCollection.features();
 
-		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
-		String geometryParcelPropertyName = cellsCollection.getSchema().getGeometryDescriptor().getLocalName();
-		Filter inter = ff.intersects(ff.property(geometryParcelPropertyName), ff.literal((Geometry)parcelIn.getDefaultGeometry()));
+		try {
+			while (cellsCollectionIt.hasNext()) {
+				SimpleFeature cell = cellsCollectionIt.next();
+				if (((Geometry) cell.getDefaultGeometry()).intersects(((Geometry) parcelIn.getDefaultGeometry()))) {
+					return true;
+				}
 
-		SimpleFeatureCollection cellSelected = cellsCollection.subCollection(inter);
-
-	//	shpDSCells.dispose();
-		System.out.println(cellSelected.size());
-		if (cellSelected.size() > 0) {
-			return true;
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			cellsCollectionIt.close();
 		}
 		return false;
 
@@ -472,7 +502,7 @@ public class SelectParcels {
 				System.out.println("problem");
 			}
 		}
-		
+
 		if (zoneCollection.contains(parcelIn)) {
 
 			return true;
@@ -612,9 +642,9 @@ public class SelectParcels {
 
 		// on snap la couche de batiment et la met dans une géométrie unique
 		Geometry batiUnion = Vectors.unionSFC(Vectors.snapDatas(batiCollection, zoningFile));
-		
+
 		shpDSBati.dispose();
-		
+
 		if (((Geometry) parcelIn.getDefaultGeometryProperty()).contains(batiUnion)) {
 			return true;
 		}

@@ -30,7 +30,6 @@ import fr.ign.cogit.geoxygene.convert.FromGeomToSurface;
 import fr.ign.cogit.geoxygene.feature.DefaultFeature;
 import fr.ign.cogit.geoxygene.feature.FT_FeatureCollection;
 import fr.ign.cogit.geoxygene.sig3d.calculation.parcelDecomposition.OBBBlockDecomposition;
-import fr.ign.cogit.geoxygene.spatial.coordgeom.DirectPosition;
 import fr.ign.cogit.geoxygene.util.attribute.AttributeManager;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileReader;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileWriter;
@@ -89,8 +88,16 @@ public class VectorFct {
 		sfTypeBuilder.setCRS(sourceCRS);
 		sfTypeBuilder.add("the_geom", MultiPolygon.class);
 		sfTypeBuilder.setDefaultGeometry("the_geom");
-		sfTypeBuilder.add("SPLIT", Integer.class);
 		sfTypeBuilder.add("CODE", String.class);
+		sfTypeBuilder.add("CODE_DEP", String.class);
+		sfTypeBuilder.add("CODE_COM", String.class);
+		sfTypeBuilder.add("COM_ABS", String.class);
+		sfTypeBuilder.add("SECTION", String.class);
+		sfTypeBuilder.add("NUMERO", String.class);
+		sfTypeBuilder.add("INSEE", String.class);
+		sfTypeBuilder.add("eval", String.class);		
+		sfTypeBuilder.add("DoWeSimul", Integer.class);
+		sfTypeBuilder.add("SPLIT", Integer.class);
 
 		SimpleFeatureBuilder sfBuilder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
 
@@ -100,28 +107,26 @@ public class VectorFct {
 		try {
 			while (parcelIt.hasNext()) {
 				SimpleFeature feat = parcelIt.next();
-				String attributeValue = "";
+				String numParcelValue = "";
+				if (feat.getAttribute("CODE") != null) {
 
-				if (feat.getAttribute("CODE_DEP") != null) {
-					attributeValue = ((String) feat.getAttribute("CODE_DEP"))
+					numParcelValue = feat.getAttribute("CODE").toString();
+				}
+				else if (feat.getAttribute("CODE_DEP") != null) {
+					numParcelValue = ((String) feat.getAttribute("CODE_DEP"))
 							+ (feat.getAttribute("CODE_COM").toString()) + (feat.getAttribute("COM_ABS").toString())
 							+ (feat.getAttribute("SECTION").toString());
 				} else if (feat.getAttribute("NUMERO") != null) {
-
-					attributeValue = feat.getAttribute("NUMERO").toString();
-
-				} else if (feat.getAttribute("CODE") != null) {
-
-					attributeValue = feat.getAttribute("CODE").toString();
-
+					numParcelValue = feat.getAttribute("NUMERO").toString();
 				} else {
-					System.out.println("VectorFct : Other type of parcel : " + feat);
+					System.out.println("VectorFct : Other type of parcel : " + feat.getAttribute(1));
 				}
-				
-				Object[] attr = { 0, attributeValue};		
+				Object[] attr = {numParcelValue,feat.getAttribute("CODE_DEP"),feat.getAttribute("CODE_COM"),feat.getAttribute("COM_ABS")
+						,feat.getAttribute("SECTION"),feat.getAttribute("NUMERO"),feat.getAttribute("INSEE"),feat.getAttribute("eval")
+						,feat.getAttribute("DoWeSimul"),0};		
 						
 				if (((Geometry) feat.getDefaultGeometry()).getArea() > maximalArea) {
-					attr[0] = 1;
+					attr[9] = 1;
 				}
 				sfBuilder.add(feat.getDefaultGeometry());
 				toSplit.add(sfBuilder.buildFeature(String.valueOf(i), attr));

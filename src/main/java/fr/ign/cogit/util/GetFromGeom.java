@@ -4,17 +4,27 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.List;
 
+import org.geotools.data.DataUtilities;
+import org.geotools.data.FeatureWriter;
+import org.geotools.data.FileDataStore;
+import org.geotools.data.Transaction;
 import org.geotools.data.shapefile.ShapefileDataStore;
+import org.geotools.data.shapefile.ShapefileDataStoreFactory;
 import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.factory.GeoTools;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.filter.text.cql2.CQLException;
+import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
+import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory2;
 import org.opengis.geometry.MismatchedDimensionException;
@@ -23,33 +33,37 @@ import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.TransformException;
 
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryCollection;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Polygon;
 
 import au.com.bytecode.opencsv.CSVReader;
 import fr.ign.cogit.GTFunctions.Vectors;
+import fr.ign.cogit.annexeTools.FeaturePolygonizer;
 import fr.ign.parameters.Parameters;
 
 public class GetFromGeom {
 
 	/**
 	 * get the parcel file and add necessary files
+	 * 
 	 * @param geoFile
 	 * @return
-	 * @throws IOException 
-	 * @throws FactoryException 
-	 * @throws NoSuchAuthorityCodeException 
+	 * @throws IOException
+	 * @throws FactoryException
+	 * @throws NoSuchAuthorityCodeException
 	 */
-	public static File getParcels(File geoFile,File currentFile) throws IOException, NoSuchAuthorityCodeException, FactoryException {
+	public static File getParcels(File geoFile, File currentFile) throws IOException, NoSuchAuthorityCodeException, FactoryException {
 		File result = new File("");
 		for (File f : geoFile.listFiles()) {
 			if (f.toString().contains("parcelle.shp")) {
-				result= f;
+				result = f;
 			}
 		}
 		ShapefileDataStore parcelSDS = new ShapefileDataStore(result.toURI().toURL());
 		SimpleFeatureCollection parcels = parcelSDS.getFeatureSource().getFeatures();
-		
+
 		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
 		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
 		sfTypeBuilder.setName("testType");
@@ -62,7 +76,8 @@ public class GetFromGeom {
 		sfTypeBuilder.add("COM_ABS", String.class);
 		sfTypeBuilder.add("SECTION", String.class);
 		sfTypeBuilder.add("NUMERO", String.class);
-		sfTypeBuilder.add("eval", String.class);		
+		sfTypeBuilder.add("INSEE", String.class);
+		sfTypeBuilder.add("eval", String.class);
 		sfTypeBuilder.add("DoWeSimul", Integer.class);
 
 		SimpleFeatureBuilder sfBuilder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
@@ -75,11 +90,12 @@ public class GetFromGeom {
 			while (parcelIt.hasNext()) {
 				SimpleFeature feat = parcelIt.next();
 				// put the best cell evaluation into the parcel
-				String numero;
-				numero = ((String) feat.getAttribute("CODE_DEP")) + ((String) feat.getAttribute("CODE_COM")) + ((String) feat.getAttribute("COM_ABS"))
-							+ ((String) feat.getAttribute("SECTION")) + ((String) feat.getAttribute("NUMERO"));
+				String numero = ((String) feat.getAttribute("CODE_DEP")) + ((String) feat.getAttribute("CODE_COM")) + ((String) feat.getAttribute("COM_ABS"))
+						+ ((String) feat.getAttribute("SECTION")) + ((String) feat.getAttribute("NUMERO"));
+				String INSEE = ((String) feat.getAttribute("CODE_DEP")) + ((String) feat.getAttribute("CODE_COM"));
+
 				Object[] attr = { numero, feat.getAttribute("CODE_DEP"), feat.getAttribute("CODE_COM"), feat.getAttribute("COM_ABS"), feat.getAttribute("SECTION"),
-						feat.getAttribute("NUMERO"),0,0 };
+						feat.getAttribute("NUMERO"), INSEE, 0, 0 };
 
 				sfBuilder.add(feat.getDefaultGeometry());
 
@@ -93,10 +109,10 @@ public class GetFromGeom {
 		} finally {
 			parcelIt.close();
 		}
-		
+
 		parcelSDS.dispose();
-		
-		return Vectors.exportSFC(newParcel.collection(), new File (currentFile,"parcels.shp"));
+
+		return Vectors.exportSFC(newParcel.collection(), new File(currentFile, "parcels.shp"));
 	}
 
 	// TODO préciser quelle couche de batiment on utilise (si l'on explore plein de
@@ -157,7 +173,7 @@ public class GetFromGeom {
 		}
 		throw new FileNotFoundException("Zoning file not found");
 	}
-	
+
 	public static File getPrescPonct(File zoningFile) throws FileNotFoundException {
 		for (File f : zoningFile.listFiles()) {
 			if (f.getName().startsWith("prescPonct") && f.getName().endsWith(".shp")) {
@@ -166,7 +182,7 @@ public class GetFromGeom {
 		}
 		throw new FileNotFoundException("Zoning file not found");
 	}
-	
+
 	public static File getPrescSurf(File zoningFile) throws FileNotFoundException {
 		for (File f : zoningFile.listFiles()) {
 			if (f.getName().startsWith("prescSurf") && f.getName().endsWith(".shp")) {
@@ -175,7 +191,7 @@ public class GetFromGeom {
 		}
 		throw new FileNotFoundException("Zoning file not found");
 	}
-	
+
 	public static File getPrescLin(File zoningFile) throws FileNotFoundException {
 		for (File f : zoningFile.listFiles()) {
 			if (f.getName().startsWith("prescLin") && f.getName().endsWith(".shp")) {
@@ -184,71 +200,6 @@ public class GetFromGeom {
 		}
 		throw new FileNotFoundException("Zoning file not found");
 	}
-	
-//	public static File getZoning(File pluFile, String zipCode) throws FileNotFoundException {
-//		for (File f : pluFile.listFiles()) {
-//			Pattern insee = Pattern.compile("INSEE_");
-//			String[] list = insee.split(f.toString());
-//			if (list.length > 1 && list[1].equals(zipCode + ".shp")) {
-//				return f;
-//			}
-//		}
-//		
-//		for (File f : pluFile.listFiles()) {
-//			Pattern insee = Pattern.compile("zoneUrba");
-//			String[] list = insee.split(f.toString());
-//			if (list.length > 1 && list[1].equals(zipCode + ".shp")) {
-//				return f;
-//			}
-//		}
-//		
-//		throw new FileNotFoundException("Zoning file not found");
-//	}
-
-//	public static File getPAUzone(File pluFile, File geoFile, File tmpFile, String zipCode) throws Exception {
-//		String type = "zone";
-//		return getPAU(type, pluFile, geoFile, tmpFile, zipCode);
-//	}
-//	
-//	
-//	public static File getPAUparcel(File pluFile, File geoFile, File tmpFile, String zipCode) throws Exception {
-//		String type = "parcel";
-//		return getPAU(type, pluFile, geoFile, tmpFile, zipCode);
-//	}
-//
-//
-//	public static File getPAU(String type, File pluFile, File geoFile, File tmpFile, String zipCode) throws Exception {
-//
-//		tmpFile.mkdir();
-//String test = "TypeZone";
-//		File pauFile = new File(pluFile, type+"PAU.shp");
-//		ShapefileDataStore shpDSpau = new ShapefileDataStore(pauFile.toURI().toURL());
-//		SimpleFeatureCollection pau = shpDSpau.getFeatureSource().getFeatures();
-//
-//		File adminFile = new File(geoFile, "admin_typo.shp");
-//		ShapefileDataStore shpDSadmin = new ShapefileDataStore(adminFile.toURI().toURL());
-//		SimpleFeatureCollection admin = shpDSadmin.getFeatureSource().getFeatures();
-//		SimpleFeatureIterator adminIt = admin.features();
-//
-//		SimpleFeature sf = null;
-//
-//		try {
-//			while (adminIt.hasNext()) {
-//				SimpleFeature sFeat = adminIt.next();
-//				if (((String) sFeat.getAttribute("DEPCOM")).equals(zipCode)) {
-//					sf = sFeat;
-//				}
-//			}
-//		} catch (Exception problem) {
-//			problem.printStackTrace();
-//		} finally {
-//			adminIt.close();
-//		}
-//
-//		Vectors.exportSFC(Vectors.snapDatas(pau, (Geometry) sf.getDefaultGeometry()), new File(tmpFile, "pau_" + zipCode + ".shp"));
-//		shpDSpau.dispose();
-//		return new File(tmpFile, "pau_" + zipCode + ".shp");
-//	}
 
 	public static SimpleFeatureCollection selecParcelZoning(String[] typesZone, String zipcode, File parcelFile, File zoningFile) throws Exception {
 
@@ -272,8 +223,6 @@ public class GetFromGeom {
 		return totalParcel.collection();
 	}
 
-
-
 	/**
 	 * Get parcels from a Zoning file matching a certain type of zone (characterized by the field TYPEZONE)
 	 * 
@@ -296,19 +245,18 @@ public class GetFromGeom {
 		ShapefileDataStore shpDSZone = new ShapefileDataStore(zoningFile.toURI().toURL());
 		SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
 
-		
 		// creation of the filter to select only wanted type of zone in the PLU
 		// for the 'AU' zones, a temporality attribute is usually pre-fixed, we
 		// need to search after
 		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
 		Filter filter = ff.like(ff.property("TYPEZONE"), (typeZone.contains("AU") ? "*" : "") + typeZone + "*");
 		SimpleFeatureCollection featureZoneSelected = featuresZones.subCollection(filter);
-	
-		if(featureZoneSelected.getSchema().getType("TYPEZONE") == null) {
+
+		if (featureZoneSelected.getSchema().getType("TYPEZONE") == null) {
 			System.out.println("ATTRIBUTE TYPEZONE IS MISSING in data " + zoningFile);
 			return null;
 		}
-		
+
 		System.out.println("zones " + typeZone + " au nombre de : " + featureZoneSelected.size());
 
 		// Filter to select parcels that intersects the selected zonnig zone
@@ -324,9 +272,10 @@ public class GetFromGeom {
 
 		return parcelSelected;
 	}
+
 	/**
-	 * Overload if the entry is a file.
-	 * Not very good coz the shapefileDataStore cannot be disposed. 
+	 * Overload if the entry is a file. Not very good coz the shapefileDataStore cannot be disposed.
+	 * 
 	 * @param typeZone
 	 * @param parcelFile
 	 * @param zoningFile
@@ -339,133 +288,192 @@ public class GetFromGeom {
 		return selecParcelZoning(typeZone, shpDSParcel.getFeatureSource().getFeatures(), zoningFile);
 	}
 
-	// public static SimpleFeatureCollection selecParcelZonePLUmergeAU(File parcelFile, String zipCode, File zoningFile, Parameters p)
-	// throws Exception {
-	//
-	// // import the parcel files
-	// ShapefileDataStore shpDSParc = new ShapefileDataStore(parcelFile.toURI().toURL());
-	// SimpleFeatureCollection featuresParc = shpDSParc.getFeatureSource().getFeatures();
-	//
-	// // import of the zoning file
-	// ShapefileDataStore shpDSZone = new ShapefileDataStore(zoningFile.toURI().toURL());
-	// SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
-	//
-	// // output
-	// DefaultFeatureCollection parcelAUCuted = new DefaultFeatureCollection();
-	//
-	// // verificaiton
-	// System.out.println("Pour la commune " + zipCode + " on a " + featuresZones.size() + " zones différentes");
-	//
-	// // creation of the filter to select only wanted type of zone in the PLU
-	// // for the 'AU' zones, a temporality attribute is usually pre-fixed, we
-	// // need to search after
-	// FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
-	// Filter filter = ff.like(ff.property("TYPEZONE"), "*AU*");
-	// SimpleFeatureCollection featureZoneSelected = featuresZones.subCollection(filter);
-	// System.out.println("zones " + "AU" + " au nombre de : " + featureZoneSelected.size());
-	// int i = 0;
-	// SimpleFeatureIterator zoneIt = featureZoneSelected.features();
-	// try {
-	// while (zoneIt.hasNext()) {
-	// SimpleFeature zone = zoneIt.next();
-	// // Filter to select parcels that intersects the selected zonnig zone
-	// String geometryParcelPropertyName = featuresParc.getSchema().getGeometryDescriptor().getLocalName();
-	//
-	// // TODO opérateur géométrique pas terrible, mais rattrapé par le
-	// // découpage de SimPLU
-	// Filter inter = ff.intersects(ff.property(geometryParcelPropertyName), ff.literal(zone.getDefaultGeometry()));
-	// SimpleFeatureCollection parcelSelected = featuresParc.subCollection(inter);
-	// Vectors.exportSFC(parcelSelected, new File("/home/mcolomb/tmp/samere"+i+".shp"));
-	//
-	// SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
-	//
-	// CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
-	// sfTypeBuilder.setName("mergeAUParcels");
-	// sfTypeBuilder.setCRS(sourceCRS);
-	// sfTypeBuilder.add("the_geom", Polygon.class);
-	// sfTypeBuilder.setDefaultGeometry("the_geom");
-	//
-	// SimpleFeatureBuilder sfBuilder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
-	//
-	// sfBuilder.add(Vectors.unionSFC(parcelSelected));
-	// parcelAUCuted.add(sfBuilder.buildFeature(String.valueOf(i)));
-	// i = i + 1;
-	// }
-	// } catch (Exception problem) {
-	// problem.printStackTrace();
-	// } finally {
-	// zoneIt.close();
-	// }
-	//
-	// System.out.println("parcelSelected : " + parcelAUCuted.size());
-	// shpDSZone.dispose();
-	// Vectors.exportSFC(parcelAUCuted.collection(), new File("/home/mcolomb/tmp/samereTot.shp"));
-	// return VectorFct.generateSplitedParcels(parcelAUCuted.collection(), p);
-	// }
-
-	public static SimpleFeatureCollection selecParcelZonePLUmergeAU(File parcelFile, String zipCode, File zoningFile, Parameters p) throws Exception {
-
-		// import the parcel files
-		ShapefileDataStore shpDSParc = new ShapefileDataStore(parcelFile.toURI().toURL());
-		SimpleFeatureCollection featuresParc = shpDSParc.getFeatureSource().getFeatures();
+	/**
+	 * Merge and recut the to urbanised (AU) zones. TODO : faire apparaitre les routes car elles ne sont pas prises en comptes et le découpage est faite indépendament d'elle.
+	 * TODO essayé avec les polygones ou en faisant le merge avec les parcelles au lieu de prendre les zones, ça ne marche pas, j'y reviendrais
+	 * @param parcels
+	 * @param zoningFile
+	 * @param p
+	 *            : parametre file s
+	 * @return
+	 * @throws Exception
+	 */
+	public static SimpleFeatureCollection selecParcelZonePLUmergeAU(SimpleFeatureCollection parcels, File zoningFile, Parameters p) throws Exception {
 
 		// import of the zoning file
 		ShapefileDataStore shpDSZone = new ShapefileDataStore(zoningFile.toURI().toURL());
 		SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
 
-		// output
-		DefaultFeatureCollection parcelAUCuted = new DefaultFeatureCollection();
-
-		// verificaiton
-		System.out.println("Pour la commune " + zipCode + " on a " + featuresZones.size() + " zones différentes");
-
-		// creation of the filter to select only wanted type of zone in the PLU
-		// for the 'AU' zones, a temporality attribute is usually pre-fixed, we
-		// need to search after
+		// get the AU zones from the zoning file
 		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
-		Filter filter = ff.like(ff.property("TYPEZONE"), "*AU*");
-		SimpleFeatureCollection featureZoneSelected = featuresZones.subCollection(filter);
-		System.out.println("zones " + "AU" + " au nombre de : " + featureZoneSelected.size());
+		Filter filter = ff.like(ff.property("TYPEZONE"), "AU");
+		SimpleFeatureCollection zoneAU = featuresZones.subCollection(filter);
+		System.out.println("zones " + "AU" + " au nombre de : " + zoneAU.size());
 
 		// Filter to select parcels that intersects the selected zonnig zone
-		String geometryParcelPropertyName = featuresParc.getSchema().getGeometryDescriptor().getLocalName();
+		String geometryParcelPropertyName = parcels.getSchema().getGeometryDescriptor().getLocalName();
+		Geometry geomAU = Vectors.unionSFC(zoneAU);
+		Filter inter = ff.intersects(ff.property(geometryParcelPropertyName), ff.literal(geomAU));
+		SimpleFeatureCollection parcelsInAU = parcels.subCollection(inter);
 
-		// TODO opérateur géométrique pas terrible, mais rattrapé par le
-		// découpage de SimPLU
-		File selectedParcelFile = new File(p.getString("selectedParcelFile"));
-		File folderParent = selectedParcelFile.getParentFile();
-		if(!folderParent.exists()) {
-			folderParent.mkdirs();
-		}
+		Filter contains = ff.contains(ff.property(geometryParcelPropertyName), ff.literal(geomAU.buffer(0.01)));
+		SimpleFeatureCollection parcelsAbsoInAU = parcels.subCollection(contains);
+		Geometry geomParcAU = Vectors.unionSFC(parcelsAbsoInAU);
 		
-		Filter inter = ff.intersects(ff.property(geometryParcelPropertyName), ff.literal(Vectors.unionSFC(featureZoneSelected)));
-		SimpleFeatureCollection parcelSelected = featuresParc.subCollection(inter);
-		Vectors.exportSFC(parcelSelected, selectedParcelFile);
+		
+		// temporary
+		File fParcelsInAU = Vectors.exportSFC(parcelsInAU, new File("/tmp/parcelCible.shp"));
+		File fZoneAU = Vectors.exportSFC(zoneAU, new File("/tmp/zoneAU.shp"));
+
+		// cut and separate parcel according to their spatial relation with the zonnig zones
+		File[] polyFiles = { fParcelsInAU, fZoneAU };
+		List<Polygon> polygons = FeaturePolygonizer.getPolygons(polyFiles);
+		ShapefileDataStoreFactory factory = new ShapefileDataStoreFactory();
+
+		// parcel intersecting the U zone must not be cuted and keep their attributes
+		File outU = new File("/tmp/polygonU.shp");
+		FileDataStore dataStoreU = factory.createDataStore(outU.toURI().toURL());
 
 		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
-
 		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
-		sfTypeBuilder.setName("mergeAUParcels");
+		sfTypeBuilder.setName("testType");
 		sfTypeBuilder.setCRS(sourceCRS);
-		sfTypeBuilder.add("the_geom", MultiPolygon.class);
+		sfTypeBuilder.add("the_geom", Polygon.class);
 		sfTypeBuilder.setDefaultGeometry("the_geom");
-		sfTypeBuilder.add("NUMERO", Integer.class);
+		sfTypeBuilder.add("CODE", String.class);
+		sfTypeBuilder.add("CODE_DEP", String.class);
+		sfTypeBuilder.add("CODE_COM", String.class);
+		sfTypeBuilder.add("COM_ABS", String.class);
+		sfTypeBuilder.add("SECTION", String.class);
+		sfTypeBuilder.add("NUMERO", String.class);
+		sfTypeBuilder.add("INSEE", String.class);
+		sfTypeBuilder.add("eval", String.class);
+		sfTypeBuilder.add("DoWeSimul", Integer.class);
+		sfTypeBuilder.add("SPLIT", Integer.class);
 
 		SimpleFeatureBuilder sfBuilder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
-		// TODO ne marche pas car renvoie juste quelques parcelles découpés. Surement la faute au multipolygone dans l'algo de découpage. Repasser en simple polygones, mais
-		// comment?
-		sfBuilder.add(Vectors.unionSFC(parcelSelected));
-		String[] attr = { "1" };
-		parcelAUCuted.add(sfBuilder.buildFeature(String.valueOf(0), attr));
 
-		Vectors.exportSFC(parcelAUCuted.collection(), new File(folderParent.getAbsolutePath()+"/parcelMerged.shp"));
+		dataStoreU.createSchema(sfBuilder.getFeatureType());
+		String typeName = dataStoreU.getTypeNames()[0];
+		FeatureWriter<SimpleFeatureType, SimpleFeature> writer = dataStoreU.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT);
 
-		Vectors.exportSFC(VectorFct.generateSplitedParcels(parcelAUCuted, p), new File(folderParent.getAbsolutePath()+ "parcelCuted.shp"));
+		System.setProperty("org.geotools.referencing.forceXY", "true");
+		System.out.println(Calendar.getInstance().getTime() + " write shapefile");
 
-		System.out.println("parcelSelected : " + parcelAUCuted.size());
+//		List<Polygon> polygonsFinal = FeaturePolygonizer.getPolygons(polyFiles);
+//		//delete polygon if the parcel 
+//		for (Polygon poly : polygons) {
+//			SimpleFeatureIterator parcelIt = parcelsInAU.features();
+//			boolean keepPoly = false;
+//			try {
+//				while (parcelIt.hasNext()) {
+//					SimpleFeature feat = parcelIt.next();
+//					if (((Geometry) feat.getDefaultGeometry()).equals(poly)) {
+//						keepPoly = true;
+//					}
+//				}
+//			} catch (Exception problem) {
+//				problem.printStackTrace();
+//			} finally {
+//				parcelIt.close();
+//			}
+//			if (keepPoly) {
+//				polygonsFinal.add(poly);
+//			}
+//		}
+//		
+//		//temp block
+//		String specs = "geom:Polygon:srid=2154";
+//		File out = new File("/tmp/polygon.shp");
+//		ShapefileDataStoreFactory factory2 = new ShapefileDataStoreFactory();
+//		FileDataStore dataStore = factory2.createDataStore(out.toURI().toURL());
+//		String featureTypeName = "Object";
+//		SimpleFeatureType featureType = DataUtilities.createType(featureTypeName, specs);
+//		dataStore.createSchema(featureType);
+//		String typeName2 = dataStore.getTypeNames()[0];
+//		FeatureWriter<SimpleFeatureType, SimpleFeature> writer2 = dataStore.getFeatureWriterAppend(typeName2, Transaction.AUTO_COMMIT);
+//		System.setProperty("org.geotools.referencing.forceXY", "true");
+//		System.out.println(Calendar.getInstance().getTime() + " write shapefile");
+//		for (Polygon po : polygonsFinal) {
+//
+//				SimpleFeature feature = writer2.next();
+//				feature.setAttributes(new Object[] { po });
+//				writer2.write();
+//			
+//		}
+//		System.out.println(Calendar.getInstance().getTime() + " done");
+//		writer2.close();
+//		dataStore.dispose();
+//	
+//		
+//	
+		
+
+		
+		for (Polygon poly : polygons) {
+			if (!geomAU.buffer(0.01).contains(poly)) {
+				Object[] attr = new Object[11];
+				SimpleFeatureIterator parcelIt = parcelsInAU.features();
+				try {
+					while (parcelIt.hasNext()) {
+						SimpleFeature feat = parcelIt.next();
+						if (((Geometry) feat.getDefaultGeometry()).contains(poly)) {
+							attr = feat.getAttributes().toArray();
+							attr[10] = 0;
+						}
+					}
+				} catch (Exception problem) {
+					problem.printStackTrace();
+				} finally {
+					parcelIt.close();
+				}
+				SimpleFeature feature = writer.next();
+				feature.setAttributes(attr);
+				feature.setDefaultGeometry(poly);
+				writer.write();
+			}
+		}
+		
+		// parcel within the AU zone must be merged and prepared to be cuted (with the value 1 at the SPLIT attribute)
+//		MultiPolygon mp = (MultiPolygon) geomAU;
+//		for (int i = 0; i < mp.getNumGeometries(); i++) {
+//			SimpleFeature feature = writer.next();
+//			feature.setAttribute("SPLIT", 1);
+//			feature.setDefaultGeometry(mp.getGeometryN(i));
+//			writer.write();
+//		}
+		
+		GeometryCollection collec = (GeometryCollection) geomParcAU;
+		for (int i = 0; i < collec.getNumGeometries(); i++) {
+			SimpleFeature feature = writer.next();
+			feature.setAttribute("SPLIT", 1);
+			feature.setDefaultGeometry(collec.getGeometryN(i));
+			writer.write();
+		}
+
+		writer.close();
+		dataStoreU.dispose();
+
+		double roadEpsilon = 0.5;
+		double noise = 0;
+		double maximalArea = 1500;
+		double maximalWidth = 15;
+		if (!(p == null)) {
+			maximalArea = p.getDouble("maximalAreaSplitParcel");
+			maximalWidth = p.getDouble("maximalWidthSplitParcel");
+		}
+
+		// get the previously cuted and reshaped shapefile
+		ShapefileDataStore pSDS = new ShapefileDataStore(outU.toURI().toURL());
+		SimpleFeatureCollection pSFS = pSDS.getFeatureSource().getFeatures();
+
+		SimpleFeatureCollection splitedAUParcels = VectorFct.splitParcels(pSFS, maximalArea, maximalWidth, roadEpsilon, noise, p);
+		Vectors.exportSFC(splitedAUParcels, new File("/tmp/parcelCuted.shp"));
+
 		shpDSZone.dispose();
 
-		return VectorFct.generateSplitedParcels(parcelAUCuted.collection(), p);
+		return splitedAUParcels;
+
 	}
 
 }

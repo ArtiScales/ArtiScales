@@ -12,6 +12,7 @@ public class FakeWorldSimulator {
 
 	public static void main(String[] args) throws Exception {
 
+		//TODO try before push
 		// Parent folder with all subfolder
 		String absoluteRootFolder = "/tmp/tmp/";
 
@@ -60,15 +61,8 @@ public class FakeWorldSimulator {
 			// RootFolder
 			File rootFolder = new File(p.getString("rootFile"));
 			// Selected parcels shapefile
-			File selectedParcels = new File(p.getString("selectedParcelFile"));
-			// GeographicData folder
-			File geoFile = new File(p.getString("geoFile"));
-			// PLU Folder
-			File pluFile = new File(p.getString("pluFile"));
-
 			
-			SimPLUSimulator simplu = new SimPLUSimulator(rootFolder, geoFile, pluFile, selectedParcels,
-					p.getString("listZipCode"), p, lF);
+			SimPLUSimulator simplu = new SimPLUSimulator(rootFolder, null, p);
 
 			simplu.run();
 		}

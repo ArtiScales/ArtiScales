@@ -10,8 +10,6 @@ public class SimuTool {
 	public static Parameters getParamFile(List<Parameters> lP, String scenar) throws FileNotFoundException {
 	
 		for (Parameters p : lP) {
-			System.out.println(scenar);
-			System.out.println(p.getString("nom"));
 			if (p.getString("nom").equals(scenar)) {
 				return p;
 			}
