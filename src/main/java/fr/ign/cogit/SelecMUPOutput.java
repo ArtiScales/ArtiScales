@@ -40,23 +40,23 @@ public class SelecMUPOutput {
 		Files.walk(path).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
 	}
 
-	 public static void main(String[] args) throws Exception {
-	
-	 String folder = "/tmp/tmp/";
-	
-	 System.out.println("Sleeping");
-	
-	 Thread.sleep(1000);
-	
-	 deleteDirectoryStream((new File(folder)).toPath());
-	
-	 List<File> listMupOut = new ArrayList<File>();
-	 long t = System.currentTimeMillis();
-	 listMupOut.add(new
-	 File("/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales/depotConfigSpatMUP/Stability-dataAutom-CM20.0-S0.0-GP_915948.0_6677337.0--N6_St_Moy_ahpx_seed_1180786471690866433-evalAnal-20.0.tif"));
-	 run(new File(folder), listMupOut);
-	 System.out.println((System.currentTimeMillis() - t) / 1000 + " s");
-	 }
+	public static void main(String[] args) throws Exception {
+
+		String folder = "/tmp/tmp/";
+
+		System.out.println("Sleeping");
+
+		Thread.sleep(1000);
+
+		deleteDirectoryStream((new File(folder)).toPath());
+
+		List<File> listMupOut = new ArrayList<File>();
+		long t = System.currentTimeMillis();
+		listMupOut.add(new File(
+				"/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales/depotConfigSpatMUP/Stability-dataAutom-CM20.0-S0.0-GP_915948.0_6677337.0--N6_St_Moy_ahpx_seed_1180786471690866433-evalAnal-20.0.tif"));
+		run(new File(folder), listMupOut);
+		System.out.println((System.currentTimeMillis() - t) / 1000 + " s");
+	}
 
 	public static List<File> run(File rootfile, List<File> listRaster) throws Exception {
 		// automatic vectorization of the MUP-City outputs
@@ -148,7 +148,7 @@ public class SelecMUPOutput {
 				for (File f : result.listFiles()) {
 					if (f.getName().contains("evalAnal") && f.getName().contains(String.valueOf(nivObs))) {
 						listVariant.add(f);
-						System.out.println("added in list "+ f);
+						System.out.println("added in list " + f);
 					}
 				}
 			}

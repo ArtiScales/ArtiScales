@@ -32,6 +32,7 @@ import fr.ign.cogit.outputs.XmlGen;
 import fr.ign.cogit.util.DataPreparator;
 import fr.ign.cogit.util.GetFromGeom;
 import fr.ign.cogit.util.SimuTool;
+import fr.ign.cogit.util.VectorFct;
 import fr.ign.parameters.Parameters;
 
 public class SelectParcels {
@@ -109,58 +110,58 @@ public class SelectParcels {
 			Parameters p = SimuTool.getParamFile(lP, scenar.get(0).getName().split("-")[0]);
 			List<String> listeAction = selectionType(p);
 			for (File varianteSpatialConf : scenar) {
-//				spatialConf = varianteSpatialConf;
-//				parcelFile = GetFromGeom.getParcels(geoFile, tmpFile);
-//				// parcelFile = new File("/home/mcolomb/tmp/parcTmp.shp");
-//				ShapefileDataStore shpDSparcel = new ShapefileDataStore((parcelFile).toURI().toURL());
-//				SimpleFeatureCollection parcelCollection = shpDSparcel.getFeatureSource().getFeatures();
-//
-//				// Split parcels
-//				if (p.getString("splitParcel").equals("true")) {
-//					parcelCollection = VectorFct.generateSplitedParcels(GetFromGeom.selecParcelZonePLUmergeAU(parcelCollection, zoningFile, p), p);
-//					parcelCollection = VectorFct.generateSplitedParcels(parcelCollection, p);
-//				}
-//				if (p.getString("splitParcel").equals("AU")) {
-//					parcelCollection = VectorFct.generateSplitedParcels(GetFromGeom.selecParcelZonePLUmergeAU(parcelCollection, zoningFile, p), p);
-//				}
-//
-//				for (String action : listeAction) {
-//					System.out.println("---=+Pour le remplissage " + action + "+=---");
-//					switch (action) {
-//					case "Ubuilt":
-//						parcelCollection = runBrownfieldConstructed(parcelCollection);
-//						break;
-//					case "UnotBuilt":
-//						parcelCollection = runBrownfieldUnconstructed(parcelCollection);
-//						break;
-//					case "AUnotBuilt":
-//						parcelCollection = runGreenfieldSelected(parcelCollection);
-//						break;
-//					case "ALLnotBuilt":
-//						parcelCollection = runNaturalLand(parcelCollection);
-//						break;
-//					case "justEval":
-//						parcelCollection = runAll(parcelCollection);
-//						break;
-//					case "random":
-//						parcelCollection = random(parcelCollection);
-//						break;
-//					case "JustZoning":
-//						parcelCollection = runZoningAllowed(parcelCollection);
-//						break;
-//					}
-//				}
-//
-//				File parcelSelectedFile = Vectors.exportSFC(parcelCollection, new File(tmpFile, "parcelExport.shp"));
-				File parcelSelectedFile = new File("/home/mcolomb/informatique/ArtiScales/tmp/parcelExport.shp");
-				File packFile = new File(rootFile, "parcelSelectionFile/"+scenar.get(0).getName().split("-")[0]+"/"+varianteSpatialConf.getName()+"/");
-				
-				 packFile.mkdirs();
-				
-				 separateToDifferentPack(parcelSelectedFile,packFile);
-				 listScenar.add(packFile);
+				spatialConf = varianteSpatialConf;
+				parcelFile = GetFromGeom.getParcels(geoFile, tmpFile);
+				// parcelFile = new File("/home/mcolomb/tmp/parcTmp.shp");
+				ShapefileDataStore shpDSparcel = new ShapefileDataStore((parcelFile).toURI().toURL());
+				SimpleFeatureCollection parcelCollection = shpDSparcel.getFeatureSource().getFeatures();
 
-//				shpDSparcel.dispose();
+				// Split parcels
+				if (p.getString("splitParcel").equals("true")) {
+					parcelCollection = VectorFct.generateSplitedParcels(GetFromGeom.selecParcelZonePLUmergeAU(parcelCollection, zoningFile, p), p);
+					parcelCollection = VectorFct.generateSplitedParcels(parcelCollection, p);
+				}
+				if (p.getString("splitParcel").equals("AU")) {
+					parcelCollection = VectorFct.generateSplitedParcels(GetFromGeom.selecParcelZonePLUmergeAU(parcelCollection, zoningFile, p), p);
+				}
+
+				for (String action : listeAction) {
+					System.out.println("---=+Pour le remplissage " + action + "+=---");
+					switch (action) {
+					case "Ubuilt":
+						parcelCollection = runBrownfieldConstructed(parcelCollection);
+						break;
+					case "UnotBuilt":
+						parcelCollection = runBrownfieldUnconstructed(parcelCollection);
+						break;
+					case "AUnotBuilt":
+						parcelCollection = runGreenfieldSelected(parcelCollection);
+						break;
+					case "ALLnotBuilt":
+						parcelCollection = runNaturalLand(parcelCollection);
+						break;
+					case "justEval":
+						parcelCollection = runAll(parcelCollection);
+						break;
+					case "random":
+						parcelCollection = random(parcelCollection);
+						break;
+					case "JustZoning":
+						parcelCollection = runZoningAllowed(parcelCollection);
+						break;
+					}
+				}
+
+				File parcelSelectedFile = Vectors.exportSFC(parcelCollection, new File(tmpFile, "parcelExport.shp"));
+				// File parcelSelectedFile = new File("/home/mcolomb/informatique/ArtiScales/tmp/parcelExport.shp");
+				File packFile = new File(rootFile, "parcelSelectionFile/" + scenar.get(0).getName().split("-")[0] + "/" + varianteSpatialConf.getName() + "/");
+
+				packFile.mkdirs();
+
+				separateToDifferentPack(parcelSelectedFile, packFile);
+				listScenar.add(packFile);
+
+				// shpDSparcel.dispose();
 			}
 			selectionFile.add(listScenar);
 		}
@@ -705,11 +706,11 @@ public class SelectParcels {
 			// TODO générer ça stp
 			File fBBox = new File(pack, "bbox.shp");
 
-			File snapPack = new File(pack,"snap");
+			File snapPack = new File(pack, "snap");
 			snapPack.mkdirs();
-			
+
 			createPackOfEmptyShp(snapPack);
-			
+
 			ShapefileDataStore build_datastore = new ShapefileDataStore(GetFromGeom.getBati(geoFile).toURI().toURL());
 			SimpleFeatureCollection buildFeatures = build_datastore.getFeatureSource().getFeatures();
 			Vectors.exportSFC(Vectors.snapDatas(buildFeatures, fBBox), new File(snapPack, "building.shp"));
@@ -741,17 +742,18 @@ public class SelectParcels {
 			prescSurf_datastore.dispose();
 		}
 	}
-	
+
 	/**
 	 * create empty shapefile (better than non existent shapefile)
+	 * 
 	 * @param f
 	 * @throws IOException
-	 * @throws FactoryException 
-	 * @throws NoSuchAuthorityCodeException 
+	 * @throws FactoryException
+	 * @throws NoSuchAuthorityCodeException
 	 */
-	
+
 	public static void createPackOfEmptyShp(File f) throws IOException, NoSuchAuthorityCodeException, FactoryException {
-		
+
 		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
 		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
 		sfTypeBuilder.setName("testType");
@@ -759,13 +761,12 @@ public class SelectParcels {
 		sfTypeBuilder.add("the_geom", MultiPolygon.class);
 		sfTypeBuilder.setDefaultGeometry("the_geom");
 
-		DefaultFeatureCollection vide = new DefaultFeatureCollection();		
-		String[] stuffs = {"building.shp","road.shp","zoning.shp","prescPonct.shp","prescLin.shp","prescSurf.shp"};
+		DefaultFeatureCollection vide = new DefaultFeatureCollection();
+		String[] stuffs = { "building.shp", "road.shp", "zoning.shp", "prescPonct.shp", "prescLin.shp", "prescSurf.shp" };
 		for (String object : stuffs) {
-			Vectors.exportSFC(vide.collection(),new File(f,object));
+			Vectors.exportSFC(vide.collection(), new File(f, object));
 
 		}
 	}
-
 
 }
