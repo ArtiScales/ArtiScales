@@ -49,7 +49,6 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 		this.p.set("maxheight", this.getMaxHeight());
 		this.p.set("minheight", this.getMinHeight());
 		
-		
 		double aireMinimale = regle.getArt_5();
 		
 		//##Rule-art-005
@@ -59,6 +58,7 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 				canBeSimulated = false;
 			}
 		}
+		//has acces to road?
 		double valArt3 = regle.getArt_3();
 		if (valArt3 == 1) {
 			if (currentBPU.getCadastralParcels().get(0).getBoundariesByType(ParcelBoundaryType.ROAD).isEmpty()) {

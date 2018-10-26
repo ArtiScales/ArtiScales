@@ -77,7 +77,7 @@ public class SimPLUSimulator {
 	File predicateFile;
 	// PLU Zoning file
 	File zoningFile;
-
+	File codeFile;
 	File simuFile;
 	int compteurOutput = 0;
 
@@ -92,56 +92,67 @@ public class SimPLUSimulator {
 
 	public static void main(String[] args) throws Exception {
 
-		/*
-		 * String folderGeo = "/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales/donneeGeographiques/"; String zoningFile =
-		 * "/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales/donneeGeographiques/PLU/ Zonage_CAGB_INSEE_25495.shp" ; String folderOut = "/tmp/tmp/";
-		 * 
-		 * File f = Vectors.snapDatas(GetFromGeom.getRoute(new File(folderGeo)), new File(zoningFile), new File(folderOut));
-		 * 
-		 * System.out.println(f.getAbsolutePath());
-		 */
+		// /*
+		// * String folderGeo = "/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales/donneeGeographiques/"; String zoningFile =
+		// * "/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales/donneeGeographiques/PLU/ Zonage_CAGB_INSEE_25495.shp" ; String folderOut = "/tmp/tmp/";
+		// *
+		// * File f = Vectors.snapDatas(GetFromGeom.getRoute(new File(folderGeo)), new File(zoningFile), new File(folderOut));
+		// *
+		// * System.out.println(f.getAbsolutePath());
+		// */
+		//
+		// List<File> lF = new ArrayList<>();
+		// // Line to change to select the right scenario
+		//
+		// String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenarFakeWorld/").getPath();
+		//
+		// System.out.println(rootParam);
+		//
+		// lF.add(new File(rootParam + "parametreTechnique.xml"));
+		// lF.add(new File(rootParam + "parametreScenario.xml"));
+		//
+		// Parameters p = Parameters.unmarshall(lF);
+		//
+		// System.out.println(p.getString("nom"));
+		// // Rappel de la construction du code :
+		//
+		// // 1/ Basically the parcels are filtered on the code with the following
+		// // attributes
+		// // codeDep + codeCom + comAbs + section + numero
+		//
+		// // 2/ Alternatively we can decided to active an attribute (Here id)
+		// AttribNames.setATT_CODE_PARC("CODE");
+		//
+		// // ID_PARCELLE_TO_SIMULATE.add("25495000AE0102"); //Test for a simulation
+		// // with 1 regulation
+		//
+		// USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
+		// // ID_PARCELLE_TO_SIMULATE.add("25078000ZE01265"); // Test for a simulation with
+		// // 3 regulations on 3 sub
+		// // parcels
+		//
+		// // RootFolder
+		// File rootFolder = new File(p.getString("rootFile"));
+		// // Selected parcels shapefile
+		// File selectedParcels = new File(p.getString("selectedParcelFile"));
+		//
+		// SimPLUSimulator simplu = new SimPLUSimulator(rootFolder, selectedParcels, p);
+		//
+		// simplu.run();
+		// // SimPLUSimulator.fillSelectedParcels(new File(rootFolder), geoFile,
+		// // pluFile, selectedParcels, 50, "25495", p);
 
+		File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/scenar0MCIgn");
 		List<File> lF = new ArrayList<>();
-		// Line to change to select the right scenario
-
-		String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenarFakeWorld/").getPath();
-
-		System.out.println(rootParam);
-
-		lF.add(new File(rootParam + "parametreTechnique.xml"));
-		lF.add(new File(rootParam + "parametreScenario.xml"));
+		lF.add(new File(rootParam, "parametreTechnique.xml"));
+		lF.add(new File(rootParam, "parametreScenario.xml"));
 
 		Parameters p = Parameters.unmarshall(lF);
 
-		System.out.println(p.getString("nom"));
-		// Rappel de la construction du code :
-
-		// 1/ Basically the parcels are filtered on the code with the following
-		// attributes
-		// codeDep + codeCom + comAbs + section + numero
-
-		// 2/ Alternatively we can decided to active an attribute (Here id)
-		AttribNames.setATT_CODE_PARC("CODE");
-
-		// ID_PARCELLE_TO_SIMULATE.add("25495000AE0102"); //Test for a simulation
-		// with 1 regulation
-
-		USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
-		// ID_PARCELLE_TO_SIMULATE.add("25078000ZE01265"); // Test for a simulation with
-		// 3 regulations on 3 sub
-		// parcels
-
-		// RootFolder
-		File rootFolder = new File(p.getString("rootFile"));
-		// Selected parcels shapefile
-		File selectedParcels = new File(p.getString("selectedParcelFile"));
-
-		SimPLUSimulator simplu = new SimPLUSimulator(rootFolder, selectedParcels, p);
-
-		simplu.run();
-		// SimPLUSimulator.fillSelectedParcels(new File(rootFolder), geoFile,
-		// pluFile, selectedParcels, 50, "25495", p);
-
+		SimPLUSimulator sim = new SimPLUSimulator(new File(p.getString("rootFile")), new File(
+				"/home/mcolomb/informatique/ArtiScales/parcelSelectionFile/teststp/teststp-DataSys-CM20.0-S0.0-GP_915948.0_6677337.0--N5_Ba_ahpx_seed_1213-evalAnal-20.0.shp/29"),
+				p);
+		sim.run();
 	}
 
 	/**
@@ -172,20 +183,23 @@ public class SimPLUSimulator {
 		this.pSaved = pa;
 		this.rootFile = rootfile;
 
-		//if it's a test mode - file could be stored into the param files
+		// if it's a test mode - file could be stored into the param files
 		if (packFile == null || packFile.equals("")) {
-			packFile  = new File(p.getString("simu"));
+			packFile = new File(p.getString("simu"));
 		}
-		
-		parcelsFile = new File(packFile, "/snap/parcel.shp"); 
+
+		simuFile = packFile;
+		parcelsFile = new File(packFile, "/parcelle.shp");
 		zoningFile = new File(packFile, "/snap/zoning.shp");
-		buildFile = new File(packFile, "/snap/batiment.shp");
-		roadFile = new File(packFile, "/snap/route.shp");
-		predicateFile = new File(rootFile,"dataRegul/predicate.csv");
-		filePrescPonct = new File(packFile, "/snap/prescPonctRegroupe.shp");
-		filePrescLin = new File(packFile, "/snap/prescLinRegroupe.shp");
-		filePrescSurf = new File(packFile, "/snap/prescSurfRegroupe.shp");
-		
+		buildFile = new File(packFile, "/snap/building.shp");
+		roadFile = new File(packFile, "/snap/road.shp");
+
+		predicateFile = new File(rootFile, "dataRegul/predicate.csv");
+
+		filePrescPonct = new File(packFile, "/snap/prescPonct.shp");
+		filePrescLin = new File(packFile, "/snap/prescLin.shp");
+		filePrescSurf = new File(packFile, "/snap/prescSurf.shp");
+
 	}
 
 	/**
@@ -208,7 +222,7 @@ public class SimPLUSimulator {
 	 * @throws Exception
 	 */
 
-	public SimPLUSimulator(File rootfile,  File selectedParcels, SimpleFeature feat, Parameters pa) throws Exception {
+	public SimPLUSimulator(File rootfile, File selectedParcels, SimpleFeature feat, Parameters pa) throws Exception {
 		this(rootfile, selectedParcels, pa);
 		singleFeat = feat;
 		isSingleFeat = true;
@@ -237,7 +251,7 @@ public class SimPLUSimulator {
 		Vectors.exportSFC(tmp.collection(), featFile);
 
 		// SimPLU3D-rules geographic loader
-		Environnement env = LoaderSHP.load(simuFile,null, zoningFile, featFile, roadFile, buildFile, filePrescPonct, filePrescLin, filePrescSurf, null);
+		Environnement env = LoaderSHP.load(simuFile, null, zoningFile, featFile, roadFile, buildFile, filePrescPonct, filePrescLin, filePrescSurf, null);
 
 		// Prescription setting
 		IFeatureCollection<Prescription> prescriptions = env.getPrescriptions();
@@ -260,8 +274,7 @@ public class SimPLUSimulator {
 		// Loading of configuration file that contains sampling space
 		// information and simulated annealing configuration
 
-		// System.out.println(filePrescLin);
-		Environnement env = LoaderSHP.load(simuFile, null, zoningFile, parcelsFile, roadFile, buildFile, filePrescPonct, filePrescLin, filePrescSurf, null);
+		Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile, parcelsFile, roadFile, buildFile, filePrescPonct, filePrescLin, filePrescSurf, null);
 
 		// Prescription setting
 		IFeatureCollection<Prescription> prescriptions = env.getPrescriptions();
@@ -292,7 +305,7 @@ public class SimPLUSimulator {
 		// Not results
 		if (listBatiSimu.isEmpty()) {
 			System.out.println("&&&&&&&&&&&&&& Aucun bâtiment n'a été simulé &&&&&&&&&&&&&&");
-			System.exit(1); // TODO ne pas arréter toute l'execution mais revenir au mainTask
+			return null;
 		}
 
 		return listBatiSimu;
@@ -324,24 +337,12 @@ public class SimPLUSimulator {
 
 		System.out.println("Parcelle code : " + bPU.getCadastralParcels().get(0).getCode());
 
-		// si on lance une simulation avec une seule parcelle décrite dans
-		// l'environnement, son numéro sera 0 mais le numéro de la parcelle sera
-		// conservé
-		//
-		// @TODO : c'est pas un peu bizarre ça ? Il suffit pas juste de passer 0
-		// comme
-		// paramètres pour i ?
-		// Je pense qu'il faudrait virer le isSingleFeat
-		if (isSingleFeat) {
-			bPU = env.getBpU().get(0);
-		}
-
 		CommonPredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = null;
 
 		// According to the case, different predicates may be used
 		// Do we consider 1 regualtion by parcel or one by subParcel ?
 		if (!USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL || bPU.getCadastralParcels().get(0).getSubParcels().size() < 2) {
-			// In this mod there is only one regulation for the entire BPU
+			// In this mode there is only one regulation for the entire BPU
 			pred = preparePredicateOneRegulation(bPU, p, prescriptionUse, env);
 
 		} else {
@@ -364,9 +365,7 @@ public class SimPLUSimulator {
 
 		Alignements alignementsGeometries = pred.getAlignements();
 
-
 		if (alignementsGeometries.getHasAlignement()) {
-
 
 			switch (alignementsGeometries.getType()) {
 			// #Art71 case 1 or 2
@@ -381,10 +380,8 @@ public class SimPLUSimulator {
 				System.out.println(this.getClass().getName() + " : Normally not possible case");
 				return null;
 			default:
-				System.out.println(
-						this.getClass().getName() + " : Normally not possible case" + alignementsGeometries.getType());
+				System.out.println(this.getClass().getName() + " : Normally not possible case" + alignementsGeometries.getType());
 				return null;
-
 
 			}
 
@@ -392,11 +389,9 @@ public class SimPLUSimulator {
 				return null;
 			}
 
-
 		} else {
 			OptimisedBuildingsCuboidFinalDirectRejection oCB = new OptimisedBuildingsCuboidFinalDirectRejection();
 			cc = oCB.process(bPU, new SimpluParametersXML(p), env, i, pred);
-
 			if (cc == null) {
 				return null;
 			}
@@ -412,7 +407,7 @@ public class SimPLUSimulator {
 		List<String> typeZones = new ArrayList<>();
 		List<String> libelles = new ArrayList<>();
 
-		// @TODO : what is this supposed to do ?
+		// if multiple parts of a parcel has been simulated, put a long name containing them all
 		for (SubParcel subParcel : bPU.getCadastralParcels().get(0).getSubParcels()) {
 			String temporaryTypeZone = subParcel.getUrbaZone().getTypeZone();
 			String temporarylibelle = subParcel.getUrbaZone().getLibelle();
@@ -476,11 +471,7 @@ public class SimPLUSimulator {
 		// méthode de calcul d'aire simpliste
 
 		File output = new File(simuFile, "out-parcelle_" + i + ".shp");
-		// while (output.exists()) {
-		// output = new File(simuFile, "out-parcelle_" + compteurOutput +
-		// ".shp");
-		// compteurOutput = compteurOutput + 1;
-		// }
+
 		output.getParentFile().mkdirs();
 
 		ShapefileWriter.write(iFeatC, output.toString(), CRS.decode("EPSG:2154"));
@@ -491,10 +482,8 @@ public class SimPLUSimulator {
 		return output;
 	}
 
-
 	private GraphConfiguration<Cuboid> article71Case3(Alignements alignementsGeometries,
-			CommonPredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred,
-			Environnement env, int i, BasicPropertyUnit bPU) throws Exception {
+			CommonPredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred, Environnement env, int i, BasicPropertyUnit bPU) throws Exception {
 
 		GraphConfiguration<Cuboid> cc = null;
 
@@ -514,16 +503,14 @@ public class SimPLUSimulator {
 				iMSSamplinSurface.addAll(FromGeomToSurface.convertGeom(geom.buffer(p.getDouble("maxwidth") / 2)));
 			}
 			// Run of the optimisation on a parcel with the predicate
-			cc = oCB.process(new MersenneTwister(), bPU, new SimpluParametersXML(p), env, i, pred, geoms,
-					iMSSamplinSurface);
+			cc = oCB.process(new MersenneTwister(), bPU, new SimpluParametersXML(p), env, i, pred, geoms, iMSSamplinSurface);
 		}
 
 		return cc;
 	}
 
 	private GraphConfiguration<Cuboid> article71Case12(Alignements alignementsGeometries,
-			CommonPredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred,
-			Environnement env, int i, BasicPropertyUnit bPU) throws Exception {
+			CommonPredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred, Environnement env, int i, BasicPropertyUnit bPU) throws Exception {
 
 		GraphConfiguration<Cuboid> cc = null;
 		// Instantiation of the sampler
@@ -542,8 +529,7 @@ public class SimPLUSimulator {
 			pred.setSide(ParcelBoundarySide.LEFT);
 
 			// Run of the optimisation on a parcel with the predicate
-			cc = oCB.process(new MersenneTwister(), bPU, new SimpluParametersXML(p), env, i, pred, leftAlignement,
-					iMSSamplinSurface);
+			cc = oCB.process(new MersenneTwister(), bPU, new SimpluParametersXML(p), env, i, pred, leftAlignement, iMSSamplinSurface);
 		}
 
 		// RIGHT SIDE IS TESTED
@@ -560,8 +546,7 @@ public class SimPLUSimulator {
 
 			pred.setSide(ParcelBoundarySide.RIGHT);
 
-			cc2 = oCB.process(new MersenneTwister(), bPU, new SimpluParametersXML(p), env, i, pred, rightAlignement,
-					iMSSamplinSurface);
+			cc2 = oCB.process(new MersenneTwister(), bPU, new SimpluParametersXML(p), env, i, pred, rightAlignement, iMSSamplinSurface);
 		}
 
 		if (cc == null) {
@@ -579,9 +564,8 @@ public class SimPLUSimulator {
 		return cc;
 	}
 
-	private CommonPredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> preparePredicateOneRegulationBySubParcel(
-			BasicPropertyUnit bPU, Parameters p2, IFeatureCollection<Prescription> prescriptionUse, Environnement env)
-			throws Exception {
+	private CommonPredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> preparePredicateOneRegulationBySubParcel(BasicPropertyUnit bPU,
+			Parameters p2, IFeatureCollection<Prescription> prescriptionUse, Environnement env) throws Exception {
 
 		MultiplePredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = new MultiplePredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>>(
 				bPU, true, p2, prescriptionUse, env);
@@ -623,8 +607,8 @@ public class SimPLUSimulator {
 	}
 
 	/**
-	 * Class used to fill a parcel file containing multiple parcels with buildings simulated with SimPLU
-	 * TODO verify
+	 * Class used to fill a parcel file containing multiple parcels with buildings simulated with SimPLU TODO verify
+	 * 
 	 * @param rootFile
 	 *            : main file of the ArtiScales's simulation
 	 * @param geoFile
@@ -639,8 +623,8 @@ public class SimPLUSimulator {
 	 * @throws Exception
 	 */
 
-	protected static int fillSelectedParcels(File rootFile, File geoFile, File pluFile, File selectedParcels,
-			int missingHousingUnits, String zipcode, Parameters p, List<File> lF) throws Exception {
+	protected static int fillSelectedParcels(File rootFile, File geoFile, File pluFile, File selectedParcels, int missingHousingUnits, String zipcode, Parameters p, List<File> lF)
+			throws Exception {
 		// Itérateurs sur les parcelles où l'on peut construire
 		ShapefileDataStore parcelDS = new ShapefileDataStore(selectedParcels.toURI().toURL());
 		SimpleFeatureIterator iterator = parcelDS.getFeatureSource().getFeatures().features();
@@ -663,7 +647,7 @@ public class SimPLUSimulator {
 				// l'indicateur
 				// buildingToHousehold
 
-				BuildingToHousingUnit bTH = new BuildingToHousingUnit(listSimulatedFile, p);
+				BuildingToHousingUnit bTH = new BuildingToHousingUnit(listSimulatedFile,selectedParcels, p);
 				System.out.println("--- missingHousingUnits  " + missingHousingUnits);
 
 				missingHousingUnits = missingHousingUnits - bTH.runParticularSimpleEstimation();

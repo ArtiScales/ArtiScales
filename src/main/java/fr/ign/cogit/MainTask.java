@@ -87,22 +87,23 @@ public class MainTask {
 		// File parcelPackages = parcelManagerSelectionAndPack();
 		SelectParcels selecPar = new SelectParcels(rootFile, mupCityOutput, listScenarios);
 		List<List<File>> parcelPackages = selecPar.run();
-		
+
 		////////////////
 		// SimPLU3D part
 		////////////////
-		
+
 		for (List<File> listVariantes : parcelPackages) {
 			String scenarName = listVariantes.get(0).getName().split("-")[0];
-			for (File packFile : listVariantes) {
+			for (File varianteFile : listVariantes) {
 				Parameters p = SimuTool.getParamFile(listScenarios, scenarName);
+				for (File packFile : varianteFile.listFiles()) {
 
-				SimPLUSimulator simPluSim = new SimPLUSimulator(rootFile, packFile, p);
-				List<File> batiSimu = simPluSim.run();
+					SimPLUSimulator simPluSim = new SimPLUSimulator(rootFile, packFile, p);
+					List<File> batiSimu = simPluSim.run();
 
-				BuildingToHousingUnit bTH = new BuildingToHousingUnit(batiSimu, p);
-				bTH.runParticularSimpleEstimation();
-
+					// BuildingToHousingUnit bTH = new BuildingToHousingUnit(batiSimu,packFile, p);
+					// bTH.runParticularSimpleEstimation();
+				}
 			}
 		}
 		// Some indicators

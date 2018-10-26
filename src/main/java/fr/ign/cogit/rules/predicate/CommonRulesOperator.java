@@ -125,15 +125,13 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	}
 
 	/**
-	 * Check the distance between the cuboids with differenciated distance WARNING :
-	 * The size of both list have to be the same
+	 * Check the distance between the cuboids with differenciated distance WARNING : The size of both list have to be the same
 	 * 
 	 * @param lO
 	 * @param distanceInterBati
 	 * @return
 	 */
-	public boolean checkDistanceInterCuboids(List<? extends AbstractSimpleBuilding> lO,
-			List<Double> distanceInterBati) {
+	public boolean checkDistanceInterCuboids(List<? extends AbstractSimpleBuilding> lO, List<Double> distanceInterBati) {
 
 		int nbCuboid = lO.size();
 
@@ -147,8 +145,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 
 				// If there is only one distance we use it or we use the max of the distance
 				// constraints of the groups
-				double distInterBatiCalculated = (distanceInterBati.size() == 1) ? distanceInterBati.get(0)
-						: Math.min(distanceInterBati.get(i), distanceInterBati.get(j));
+				double distInterBatiCalculated = (distanceInterBati.size() == 1) ? distanceInterBati.get(0) : Math.min(distanceInterBati.get(i), distanceInterBati.get(j));
 
 				if (distance < distInterBatiCalculated) {
 					return false;
@@ -295,8 +292,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	}
 
 	/**
-	 * Check if an alignment constraint is respected between a cuboid and the public
-	 * road
+	 * Check if an alignment constraint is respected between a cuboid and the public road
 	 * 
 	 * @param cuboid
 	 * @param prescriptions
@@ -304,8 +300,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	 * @param jtsCurveLimiteFrontParcel
 	 * @return
 	 */
-	public boolean checkAlignementPrescription(O cuboid, IFeatureCollection<Prescription> prescriptions, boolean align,
-			Geometry jtsCurveLimiteFrontParcel) {
+	public boolean checkAlignementPrescription(O cuboid, IFeatureCollection<Prescription> prescriptions, boolean align, Geometry jtsCurveLimiteFrontParcel) {
 		// On vérifie que le batiment est compris dans la zone d'alignement (surfacique)
 
 		if (prescriptions != null && align) {
@@ -347,13 +342,12 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		double max = p.getDouble("maxheight");
 
 		switch (regle.getArt_10_top()) {
-
+		
 		// 1 hauteur à l'étage
 		// 5 hauteur à l'égout (pour l'instant la même que le 1 vu que l'on ne prends
 		// pas en compte les toits)
 		case 1:
-
-			max = regle.getArt_10_1() * p.getDouble("heightStair");
+			max = p.getDouble(regle.getArt_10_1()) * p.getDouble("heightStair");
 			break;
 		// hauteur en metre
 		case 2:
@@ -367,23 +361,23 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		case 6:
 		case 7:
 		case 8:
-			// si il y a des batiments
-			if (heighSurroundingBuildings != null) {
+			// si il y a des batiments TODO valeurs bizares
+			if (heighSurroundingBuildings != null && heighSurroundingBuildings== 0.0) {
 				min = heighSurroundingBuildings * 0.9;
 				max = heighSurroundingBuildings * 1.1;
 			}
 			// si pas de batiments aux alentours, on se rabat sur différentes options
 			else {
-
-				max = regle.getArt_10_1();
-
+				max = p.getDouble("maxheight");
 			}
+			break;
 		case 20:
 		default:
-			System.err.println("Cas de hauteur non géré");
-
+			System.err.println("Cas de hauteur non géré : hauteur normale de "+p.getDouble(regle.getArt_10_1()));
+			max = p.getDouble(regle.getArt_10_1());
 		}
 		Double[] result = { min, max };
+		System.out.println("hauteur authorisé : "+max);
 		return result;
 	}
 
@@ -459,9 +453,9 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 			return true;
 		}
 
-		// Règle de stationnement 
+		// Règle de stationnement
 		//
-		//1 : un stationnement par logement .
+		// 1 : un stationnement par logement .
 		//
 		// 1+2 : 2 places de stationnement par logement (dont 1 hors clôture pour les
 		// maisons individuelles) ; 1 place par logement (pour les immeubles

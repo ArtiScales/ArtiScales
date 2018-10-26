@@ -57,7 +57,7 @@ public class GetFromGeom {
 	public static File getParcels(File geoFile, File currentFile) throws IOException, NoSuchAuthorityCodeException, FactoryException {
 		File result = new File("");
 		for (File f : geoFile.listFiles()) {
-			if (f.toString().contains("parcelle.shp")) {
+			if (f.toString().contains("parcel.shp")) {
 				result = f;
 			}
 		}
@@ -78,7 +78,7 @@ public class GetFromGeom {
 		sfTypeBuilder.add("NUMERO", String.class);
 		sfTypeBuilder.add("INSEE", String.class);
 		sfTypeBuilder.add("eval", String.class);
-		sfTypeBuilder.add("DoWeSimul", Integer.class);
+		sfTypeBuilder.add("DoWeSimul", String.class);
 
 		SimpleFeatureBuilder sfBuilder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
 
@@ -95,7 +95,7 @@ public class GetFromGeom {
 				String INSEE = ((String) feat.getAttribute("CODE_DEP")) + ((String) feat.getAttribute("CODE_COM"));
 
 				Object[] attr = { numero, feat.getAttribute("CODE_DEP"), feat.getAttribute("CODE_COM"), feat.getAttribute("COM_ABS"), feat.getAttribute("SECTION"),
-						feat.getAttribute("NUMERO"), INSEE, 0, 0 };
+						feat.getAttribute("NUMERO"), INSEE, 0, "false" };
 
 				sfBuilder.add(feat.getDefaultGeometry());
 
@@ -348,7 +348,7 @@ public class GetFromGeom {
 		sfTypeBuilder.add("NUMERO", String.class);
 		sfTypeBuilder.add("INSEE", String.class);
 		sfTypeBuilder.add("eval", String.class);
-		sfTypeBuilder.add("DoWeSimul", Integer.class);
+		sfTypeBuilder.add("DoWeSimul", String.class);
 		sfTypeBuilder.add("SPLIT", Integer.class);
 
 		SimpleFeatureBuilder sfBuilder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());

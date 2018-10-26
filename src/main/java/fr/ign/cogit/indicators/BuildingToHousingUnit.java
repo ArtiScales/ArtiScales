@@ -40,10 +40,10 @@ public class BuildingToHousingUnit extends Indicators {
 	final String SDWELLING = "petit logement collectif";
 	final String LDWELLING = "grand logement collectif";
 
-	public BuildingToHousingUnit(List<File> buildingList, Parameters par) {
+	public BuildingToHousingUnit(List<File> buildingList, File simuFile, Parameters par) {
 		super(par);
 		this.buildingList = buildingList;
-		simuFile = buildingList.get(0).getParentFile().getParentFile();
+		this.simuFile = simuFile;
 		zipCode = simuFile.getParentFile().getName();
 		rootFile = new File(p.getString("rootFile"));
 		surfaceLogDefault = p.getInteger("HousingUnitSize");
@@ -70,19 +70,20 @@ public class BuildingToHousingUnit extends Indicators {
 		Parameters p = Parameters.unmarshall(listParameters);
 		File batisSimulatedFile = new File(
 				"/home/mcolomb/informatique/ArtiScales/output/Stability-dataAutomPhy-CM20.0-S0.0-GP_915948.0_6677337.0--N6_St_Moy_ahpx_seed_9015629222324914404-evalAnal-20.0/25265/ZoningAllowed/simu/");
+		File simuFile= new File("/home/mcolomb/informatique/ArtiScales/output/Stability-dataAutomPhy-CM20.0-S0.0-GP_915948.0_6677337.0--N6_St_Moy_ahpx_seed_9015629222324914404-evalAnal-20.0/25265/ZoningAllowed");
 		List<File> listFile = new ArrayList<File>();
 		for (File f : batisSimulatedFile.listFiles()) {
 			if (f.getName().startsWith("out-parcelle_") && f.getName().endsWith(".shp")) {
 				listFile.add(f);
 			}
 		}
-		BuildingToHousingUnit bhtU = new BuildingToHousingUnit(listFile, p);
+		BuildingToHousingUnit bhtU = new BuildingToHousingUnit(listFile,simuFile, p);
 		bhtU.runParticularSimpleEstimation();
 		bhtU.simpleCityEstimate();
 	}
 
-	public static void runParticularSimpleEstimation(List<File> filebati, Parameters p) throws IOException {
-		BuildingToHousingUnit bth = new BuildingToHousingUnit(filebati, p);
+	public static void runParticularSimpleEstimation(List<File> filebati,File simuFile, Parameters p) throws IOException {
+		BuildingToHousingUnit bth = new BuildingToHousingUnit(filebati,simuFile, p);
 		bth.runParticularSimpleEstimation();
 	}
 
@@ -102,8 +103,9 @@ public class BuildingToHousingUnit extends Indicators {
 
 	public int runParticularSimpleEstimation() throws IOException {
 		System.out.println("pour " + getnameScenar() + ", la simu selectionnant like " + getSelection() + " avec le code zip " + zipCode);
-
-		simpleEstimate();
+		if (buildingList.size() > 0) {
+			simpleEstimate();
+		}
 
 		return nbLogements;
 	}

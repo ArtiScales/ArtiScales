@@ -27,29 +27,27 @@ public class ZoneRulesAssociation {
 
 		if (regles == null || regles.isEmpty()) {
 			System.out.println("Missing predicate file");
-			//Failed
+			// Failed
 			return false;
 		}
-		
+
 		// For each zone we associate a regulation to the zone
 		for (UrbaZone zone : env.getUrbaZones()) {
-			regle = regles.get(zone.getLibelle());
+			regle = regles.get(zone.getLibelle() + "-" + zone.getInsee());
 			if (regle != null) {
 				zone.setZoneRegulation(regle);
+				System.out.println("found : " + regle.getLibelle_de_dul());
 			} else {
 				System.out.println("Missing regulation for zone : " + zone.getLibelle());
 				System.out.println("We associate the default regulation");
 
-				if (regles.get("999") == null) {
+				if (regles.get("out-0") == null) {
 					System.out.println("Default regulation does not exist");
 				} else {
 					zone.setZoneRegulation(regles.get("999"));
 				}
-
 			}
-
 		}
-
 		return true;
 	}
 

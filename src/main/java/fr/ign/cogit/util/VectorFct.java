@@ -96,7 +96,7 @@ public class VectorFct {
 		sfTypeBuilder.add("NUMERO", String.class);
 		sfTypeBuilder.add("INSEE", String.class);
 		sfTypeBuilder.add("eval", String.class);		
-		sfTypeBuilder.add("DoWeSimul", Integer.class);
+		sfTypeBuilder.add("DoWeSimul", String.class);
 		sfTypeBuilder.add("SPLIT", Integer.class);
 
 		SimpleFeatureBuilder sfBuilder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
@@ -139,7 +139,6 @@ public class VectorFct {
 		}
 
 		return splitParcels(toSplit, maximalArea, maximalWidth, roadEpsilon, noise, p);
-
 	}
 
 	/**
