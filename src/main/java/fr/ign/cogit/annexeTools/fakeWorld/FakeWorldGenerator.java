@@ -98,32 +98,32 @@ public class FakeWorldGenerator {
 		
 		//CAS ARTICLE 10 = 1 && ARTICLE_10_1 = 5
 		regulationDefault2.setLibelle_de_dul("U1");
-		regulationDefault2.setArt_10(5);
+		regulationDefault2.setArt_10("5");
 		regulationDefault2.setArt_10_top(1);	
 		
 		
 		//CAS ARTICLE 10 = 2 && ARTICLE_10_2 = 12
 		ArtiScalesRegulation regulationDefault3 = regulationDefault.clone();
 		regulationDefault3.setLibelle_de_dul("U2");
-		regulationDefault3.setArt_10(12);
+		regulationDefault3.setArt_10("12");
 		regulationDefault3.setArt_10_top(2);	
 		
 		//CAS ARTICLE 10 = 6 && ARTICLE_10_2 = 12
 		ArtiScalesRegulation regulationDefault4 = regulationDefault.clone();
 		regulationDefault4.setLibelle_de_dul("U3");
-		regulationDefault4.setArt_10(12);
+		regulationDefault4.setArt_10("12");
 		regulationDefault4.setArt_10_top(6);	
 		
 		//CAS ARTICLE 10 = 7 && ARTICLE_10_2 = 12
 		ArtiScalesRegulation regulationDefault5 = regulationDefault.clone();
 		regulationDefault5.setLibelle_de_dul("U3");
-		regulationDefault5.setArt_10(12);
+		regulationDefault5.setArt_10("12");
 		regulationDefault5.setArt_10_top(7);	
 		
 		//CAS ARTICLE 10 = 8 && ARTICLE_10_2 = 12
 		ArtiScalesRegulation regulationDefault6 = regulationDefault.clone();
 		regulationDefault6.setLibelle_de_dul("U4");
-		regulationDefault6.setArt_10(12);
+		regulationDefault6.setArt_10("12");
 		regulationDefault6.setArt_10_top(8);	
 		
 		
