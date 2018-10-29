@@ -178,7 +178,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 		// Limit Opposite
 		for (ParcelBoundary salut : bPU.getCadastralParcels().get(0).getBoundariesByType(ParcelBoundaryType.ROAD)) {
-			System.out.println("Number of buildings in env : " + bPU.getBuildings().size());
+		//	System.out.println("Number of buildings in env : " + bPU.getBuildings().size());
 
 			if (salut.getOppositeBoundary() != null) {
 				IGeometry geom = salut.getOppositeBoundary().getGeom();
@@ -252,6 +252,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 	@Override
 	public boolean check(C c, M m) {
 
+		
 		// NewCuboids
 		List<O> lONewCuboids = m.getBirth();
 
@@ -298,7 +299,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 				return false;
 			}
 		}
-
+		
 		///////// Regulation that depends from the SubParcel regulation
 
 		for (O cuboid : lONewCuboids) {
@@ -338,18 +339,22 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 					break;
 				}
 
+	
 				// Distance to the bottom of the parcel
 				// Rule-art-0073
 				if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFondParcel, regle.getArt_73())) {
 					return false;
 				}
 
+				
+		
 				// Rule art-0074
 				// We check for bot limits
 				if (!cRO.checkProspectArt7(cuboid, jtsCurveLimiteFondParcel, regle.getArt_74())) {
 					return false;
 				}
-
+				
+			
 				// We check for lateral limit
 				if (!cRO.checkProspectArt7(cuboid, jtsCurveLimiteLatParcel, regle.getArt_74())) {
 					return false;
@@ -396,6 +401,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 				 * }
 				 */
 
+		
 				// We check the constrain distance according to existing buildings
 				// art_8 (distance aux bâtiments existants)
 				if (!cRO.checkDistanceBetweenCuboidandBuildings(cuboid, this.currentBPU, regle.getArt_8())) {
@@ -404,25 +410,34 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 			}
 
+
+		
+
+
 			/////////// Groups or whole configuration constraints
 
 			// Getting the maxCES according to the implementation
 			// art_9 art_13
 			double maxCES = this.getMaxCES();
 			// Checking the builtRatio
-			if (!cRO.checkBuiltRatio(lAllCuboids, currentBPU, maxCES)) {
-				return false;
+			if(maxCES != 99) {
+				if (!cRO.checkBuiltRatio(lAllCuboids, currentBPU, maxCES)) {
+					return false;
+				}	
 			}
 			
-			
+		
 			
 			String art12 = this.getArt12Value();
 			//art_12
-			if(! cRO.checkParking(lAllCuboids,currentBPU, art12, p)) {
-				return false;
-				
+			if(art12 != "99") {
+				if(! cRO.checkParking(lAllCuboids,currentBPU, art12, p)) {
+					return false;
+					
+				}			
 			}
-			
+	
+	
 
 			// Width and distance between buildings constraints
 
@@ -445,6 +460,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 			}
 
 		}
+		
 
 		return true;
 	}

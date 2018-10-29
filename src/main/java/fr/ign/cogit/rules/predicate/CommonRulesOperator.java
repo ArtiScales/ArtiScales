@@ -203,6 +203,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 				return false;
 			}
 		}
+		
 		return true;
 	}
 
@@ -362,7 +363,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		case 7:
 		case 8:
 			// si il y a des batiments TODO valeurs bizares
-			if (heighSurroundingBuildings != null && heighSurroundingBuildings== 0.0) {
+			if (heighSurroundingBuildings != null && heighSurroundingBuildings!= 0.0) {
 				min = heighSurroundingBuildings * 0.9;
 				max = heighSurroundingBuildings * 1.1;
 			}
@@ -377,7 +378,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 			max = p.getDouble(regle.getArt_10_1());
 		}
 		Double[] result = { min, max };
-		System.out.println("hauteur authorisé : "+max);
+		System.out.println("Hauteur max autorisée : "+max);
 		return result;
 	}
 
