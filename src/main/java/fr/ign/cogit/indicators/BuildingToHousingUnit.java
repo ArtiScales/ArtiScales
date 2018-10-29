@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
@@ -12,8 +13,8 @@ import org.geotools.data.simple.SimpleFeatureIterator;
 import org.opengis.feature.simple.SimpleFeature;
 
 import au.com.bytecode.opencsv.CSVReader;
-import fr.ign.cogit.SimPLUSimulator;
 import fr.ign.cogit.util.GetFromGeom;
+import fr.ign.cogit.util.SimuTool;
 import fr.ign.parameters.Parameters;
 
 public class BuildingToHousingUnit extends Indicators {
@@ -44,7 +45,6 @@ public class BuildingToHousingUnit extends Indicators {
 		super(par);
 		this.buildingList = buildingList;
 		this.simuFile = simuFile;
-		zipCode = simuFile.getParentFile().getName();
 		rootFile = new File(p.getString("rootFile"));
 		surfaceLogDefault = p.getInteger("HousingUnitSize");
 		particularFirstLine = "numero_parcelle,surface_de_plancher," + "surface_au_sol," + "nombre_de_logements," + "type_du_logement," + "zone_de_la_construction,"
@@ -60,30 +60,30 @@ public class BuildingToHousingUnit extends Indicators {
 	}
 
 	public static void main(String[] args) throws Exception {
-		List<File> listParameters = new ArrayList<>();
+		File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/scenar0MCIgn");
+		List<File> lF = new ArrayList<>();
+		lF.add(new File(rootParam, "parametreTechnique.xml"));
+		lF.add(new File(rootParam, "parametreScenario.xml"));
 
-		// Folder root with parameters
-		String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenar0/").getPath();
-
-		listParameters.add(new File(rootParam + "parametreTechnique.xml"));
-		listParameters.add(new File(rootParam + "parametreScenario.xml"));
-		Parameters p = Parameters.unmarshall(listParameters);
+		Parameters p = Parameters.unmarshall(lF);
+		
+		
 		File batisSimulatedFile = new File(
-				"/home/mcolomb/informatique/ArtiScales/output/Stability-dataAutomPhy-CM20.0-S0.0-GP_915948.0_6677337.0--N6_St_Moy_ahpx_seed_9015629222324914404-evalAnal-20.0/25265/ZoningAllowed/simu/");
-		File simuFile= new File("/home/mcolomb/informatique/ArtiScales/output/Stability-dataAutomPhy-CM20.0-S0.0-GP_915948.0_6677337.0--N6_St_Moy_ahpx_seed_9015629222324914404-evalAnal-20.0/25265/ZoningAllowed");
-		List<File> listFile = new ArrayList<File>();
+				"/home/mcolomb/informatique/ArtiScales/SimPLUDepot/teststp/variant0");
+		File simuFile = new File("/home/mcolomb/informatique/ArtiScales/indic/bTH/teststp/variant1");
+					List<File> listFile = new ArrayList<File>();
 		for (File f : batisSimulatedFile.listFiles()) {
 			if (f.getName().startsWith("out-parcelle_") && f.getName().endsWith(".shp")) {
 				listFile.add(f);
 			}
 		}
-		BuildingToHousingUnit bhtU = new BuildingToHousingUnit(listFile,simuFile, p);
+		BuildingToHousingUnit bhtU = new BuildingToHousingUnit(listFile, simuFile, p);
 		bhtU.runParticularSimpleEstimation();
 		bhtU.simpleCityEstimate();
 	}
 
-	public static void runParticularSimpleEstimation(List<File> filebati,File simuFile, Parameters p) throws IOException {
-		BuildingToHousingUnit bth = new BuildingToHousingUnit(filebati,simuFile, p);
+	public static void runParticularSimpleEstimation(List<File> filebati, File simuFile, Parameters p) throws IOException {
+		BuildingToHousingUnit bth = new BuildingToHousingUnit(filebati, simuFile, p);
 		bth.runParticularSimpleEstimation();
 	}
 
@@ -102,7 +102,7 @@ public class BuildingToHousingUnit extends Indicators {
 	}
 
 	public int runParticularSimpleEstimation() throws IOException {
-		System.out.println("pour " + getnameScenar() + ", la simu selectionnant like " + getSelection() + " avec le code zip " + zipCode);
+		System.out.println("pour " + getnameScenar() + ", la simu selectionnant like " + getSelection());
 		if (buildingList.size() > 0) {
 			simpleEstimate();
 		}
@@ -118,88 +118,96 @@ public class BuildingToHousingUnit extends Indicators {
 			simpleEstimate();
 		}
 
-		// different values
-		int sumLgt = 0;
-		int sumIndiv = 0;
-		int sumDlbIndiv = 0;
-		int sumSDwell = 0;
-		int sumLDwell = 0;
-		int sumLgtU = 0;
-		int sumLgtAU = 0;
-		int sumLgtOther = 0;
-		DescriptiveStatistics floorAreaStat = new DescriptiveStatistics();
-		DescriptiveStatistics groundAreaStat = new DescriptiveStatistics();
-		DescriptiveStatistics builtDensity = new DescriptiveStatistics();
+		// for every cities
 
-		CSVReader csvReader = new CSVReader(new FileReader(particularSimpleEstimate));
+		Hashtable<String, List<String[]>> cities = SimuTool.getCitiesFromparticularHousingUnit(particularSimpleEstimate);
+		
+		for (String zipCode : cities.keySet()) {
+			System.out.println("zipcode : "+zipCode);
+			// different values
+			int sumLgt = 0;
+			int sumIndiv = 0;
+			int sumDlbIndiv = 0;
+			int sumSDwell = 0;
+			int sumLDwell = 0;
+			int sumLgtU = 0;
+			int sumLgtAU = 0;
+			int sumLgtOther = 0;
+			DescriptiveStatistics floorAreaStat = new DescriptiveStatistics();
+			DescriptiveStatistics groundAreaStat = new DescriptiveStatistics();
+			DescriptiveStatistics builtDensity = new DescriptiveStatistics();
 
-		String[] fLine = csvReader.readNext();
+			CSVReader csvReader = new CSVReader(new FileReader(particularSimpleEstimate));
 
-		for (String[] lineCsv : csvReader.readAll()) {
-			// make sure that nb of lgt's on
-			int nbLgtLine = 0;
-			for (int i = 0; i < fLine.length; i++) {
-				if (fLine[i].equals("nombre_de_logements")) {
-					nbLgtLine = Integer.valueOf(lineCsv[i]);
-					sumLgt = sumLgt + nbLgtLine;
+			String[] fLine = csvReader.readNext();
+
+			for (String[] lineCsv : cities.get(zipCode)) {
+			
+				// make sure that nb of lgt's on
+				int nbLgtLine = 0;
+				for (int i = 0; i < fLine.length; i++) {
+					if (fLine[i].equals("nombre_de_logements")) {
+						nbLgtLine = Integer.valueOf(lineCsv[i]);
+						sumLgt = sumLgt + nbLgtLine;
+					}
+				}
+				// if no household in the building
+				if (nbLgtLine == 0) {
+					System.out.println("dog's house");
+					continue;
+				}
+				for (int i = 0; i < fLine.length; i++) {
+					String nameCol = fLine[i];
+
+					switch (nameCol) {
+					case "surface_au_sol":
+						groundAreaStat.addValue(Double.valueOf(lineCsv[i]));
+						break;
+
+					case "surface_de_plancher":
+						floorAreaStat.addValue(Double.valueOf(lineCsv[i]));
+						break;
+					case "type_du_logement":
+						String type = lineCsv[i];
+						if (type.equals(INDIV)) {
+							sumIndiv = sumIndiv + nbLgtLine;
+						} else if (type.equals(DBLINDIV)) {
+							sumDlbIndiv = sumDlbIndiv + nbLgtLine;
+						} else if (type.equals(SDWELLING)) {
+							sumSDwell = sumSDwell + nbLgtLine;
+						} else if (type.equals(LDWELLING)) {
+							sumLDwell = sumLDwell + nbLgtLine;
+						}
+						break;
+
+					case "zone_de_la_construction":
+						String typeZone = lineCsv[i];
+						if (typeZone.equals("U")) {
+							sumLgtU = sumLgtU + nbLgtLine;
+						} else if (typeZone.equals("AU")) {
+							sumLgtAU = sumLgtAU + nbLgtLine;
+						} else {
+							sumLgtOther = sumLgtOther + nbLgtLine;
+						}
+						break;
+					case "densite_batie":
+						builtDensity.addValue(Double.valueOf(lineCsv[i]));
+						break;
+					}
 				}
 			}
-			// if no household in the building
-			if (nbLgtLine == 0) {
-				System.out.println("dog's house");
-				continue;
-			}
-			for (int i = 0; i < fLine.length; i++) {
-				String nameCol = fLine[i];
+			csvReader.close();
 
-				switch (nameCol) {
-				case "surface_au_sol":
-					groundAreaStat.addValue(Double.valueOf(lineCsv[i]));
-					break;
+			System.out.println("somme_de_la_surface_au_sol_des_logements" + groundAreaStat.getSum());
 
-				case "surface_de_plancher":
-					floorAreaStat.addValue(Double.valueOf(lineCsv[i]));
-					break;
-				case "type_du_logement":
-					String type = lineCsv[i];
-					if (type.equals(INDIV)) {
-						sumIndiv = sumIndiv + nbLgtLine;
-					} else if (type.equals(DBLINDIV)) {
-						sumDlbIndiv = sumDlbIndiv + nbLgtLine;
-					} else if (type.equals(SDWELLING)) {
-						sumSDwell = sumSDwell + nbLgtLine;
-					} else if (type.equals(LDWELLING)) {
-						sumLDwell = sumLDwell + nbLgtLine;
-					}
-					break;
+			int housingUnitDiff = sumLgt - GetFromGeom.getHousingUnitsGoals(new File(rootFile, "dataRegul"), zipCode);
+			String line = sumLgt + "," + sumIndiv + "," + sumDlbIndiv + "," + sumSDwell + "," + sumLDwell + "," + sumLgtU + "," + sumLgtAU + "," + sumLgtOther + ","
+					+ groundAreaStat.getSum() + "," + groundAreaStat.getMean() + "," + groundAreaStat.getStandardDeviation() + "," + floorAreaStat.getSum() + ","
+					+ floorAreaStat.getMean() + "," + floorAreaStat.getStandardDeviation() + "," + builtDensity.getMean() + "," + builtDensity.getStandardDeviation() + ","
+					+ housingUnitDiff;
 
-				case "zone_de_la_construction":
-					String typeZone = lineCsv[i];
-					if (typeZone.equals("U")) {
-						sumLgtU = sumLgtU + nbLgtLine;
-					} else if (typeZone.equals("AU")) {
-						sumLgtAU = sumLgtAU + nbLgtLine;
-					} else {
-						sumLgtOther = sumLgtOther + nbLgtLine;
-					}
-					break;
-				case "densite_batie":
-					builtDensity.addValue(Double.valueOf(lineCsv[i]));
-					break;
-				}
-			}
+			toGenCSV(simuFile,"BuildingToHouseholdByCity"+zipCode, getFirstlineGenCsv(), line);
 		}
-		csvReader.close();
-
-		System.out.println("somme_de_la_surface_au_sol_des_logements" + groundAreaStat.getSum());
-		int housingUnitDiff = sumLgt - GetFromGeom.getHousingUnitsGoals(new File(p.getString("geoFile")), zipCode);
-		String line = sumLgt + "," + sumIndiv + "," + sumDlbIndiv + "," + sumSDwell + "," + sumLDwell + "," + sumLgtU + "," + sumLgtAU + "," + sumLgtOther + ","
-				+ groundAreaStat.getSum() + "," + groundAreaStat.getMean() + "," + groundAreaStat.getStandardDeviation() + "," + floorAreaStat.getSum() + ","
-				+ floorAreaStat.getMean() + "," + floorAreaStat.getStandardDeviation() + "," + builtDensity.getMean() + "," + builtDensity.getStandardDeviation() + ","
-				+ housingUnitDiff;
-
-		toGenCSV("BuildingToHousehold", getFirstlineGenCsv(), line);
-
 	}
 
 	/**

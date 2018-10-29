@@ -163,6 +163,7 @@ public class SelectParcels {
 			}
 			selectionFile.add(listScenar);
 		}
+		SimuTool.deleteDirectoryStream(tmpFile.toPath());
 		return selectionFile;
 
 	}

@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
+import org.apache.commons.io.filefilter.FileFileFilter;
+
 import fr.ign.cogit.indicators.BuildingToHousingUnit;
 import fr.ign.cogit.util.SimuTool;
 import fr.ign.parameters.Parameters;
@@ -29,10 +31,10 @@ public class MainTask {
 		// general parameters
 
 		// list of different scenarios to test
-		//List<Parameters> listScenarios = getParamFile("MCIgn", new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet"));
+		 List<Parameters> listScenarios = getParamFile("MCIgn", new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet"));
 
-		List<Parameters> listScenarios = getParamFile("scenar0MKDom", new File("/home/mbrasebin/Documents/Code/ArtiScales/ArtiScales/src/main/resources/paramSet/"));
-		
+//		List<Parameters> listScenarios = getParamFile("scenar0MKDom", new File("/home/mbrasebin/Documents/Code/ArtiScales/ArtiScales/src/main/resources/paramSet/"));
+
 		rootFile = new File(listScenarios.get(0).getString("rootFile"));
 		geoFile = new File(rootFile, "dataGeo");
 		regulFile = new File(rootFile, "dataRegul");
@@ -93,24 +95,41 @@ public class MainTask {
 		////////////////
 		// SimPLU3D part
 		////////////////
-
+		List<List<List<File>>> buildingSimulatedPerSimu = new ArrayList<List<List<File>>>();
 		for (List<File> listVariantes : parcelPackages) {
+			List<List<File>> buildingSimulatedPerScenar = new ArrayList<List<File>>();
 			String scenarName = listVariantes.get(0).getName().split("-")[0];
 			for (File varianteFile : listVariantes) {
+				List<File> buildingSimulatedPerVariant = new ArrayList<File>();
 				Parameters p = SimuTool.getParamFile(listScenarios, scenarName);
 				for (File packFile : varianteFile.listFiles()) {
-
 					SimPLUSimulator simPluSim = new SimPLUSimulator(rootFile, packFile, p);
-					simPluSim.run();
-
-//					 BuildingToHousingUnit bTH = new BuildingToHousingUnit(batiSimu,packFile, p);
-//					 bTH.runParticularSimpleEstimation();
+					buildingSimulatedPerVariant = simPluSim.run();
 				}
+				buildingSimulatedPerScenar.add(buildingSimulatedPerVariant);
+			}
+			buildingSimulatedPerSimu.add(buildingSimulatedPerScenar);
+		}
+
+		if (buildingSimulatedPerSimu.isEmpty()) {
+			buildingSimulatedPerSimu = SimuTool.generateResultConfig(rootFile);
+		}
+
+		// Some indicators
+		for (List<List<File>> listVariantes : buildingSimulatedPerSimu) {
+			String scenarName = listVariantes.get(0).get(0).getParentFile().getParent();
+			for (List<File> buildingSimulatedPerVariant : listVariantes) {
+
+				Parameters p = SimuTool.getParamFile(listScenarios, scenarName);
+				File bTHFile = new File(rootFile, "indic/bTH/" + scenarName + "/" + buildingSimulatedPerVariant.get(0).getParent());
+				bTHFile.mkdirs();
+				BuildingToHousingUnit bTH = new BuildingToHousingUnit(buildingSimulatedPerVariant, bTHFile, p);
+				bTH.runParticularSimpleEstimation();
 			}
 		}
-		// Some indicators
-
 	}
+
+
 
 	public static Hashtable<String, String[]> prepareVariant(Parameters p) {
 		Hashtable<String, String[]> variants = new Hashtable<String, String[]>();
@@ -150,38 +169,6 @@ public class MainTask {
 		result[5] = splited[5].split("=")[1];
 		return result;
 	}
-
-	// public static File parcelManagerSelection(List<Parameters> listScenar,List<File> mupCityVectorizedOutput) throws Exception{
-	//
-	// for (Parameters p : listScenar) {
-	// //selection type
-	// List<String> listeAction = selectionType(p);
-	//
-	// //output of MUP-City
-	// List<File> outMupVariantes = new ArrayList<>();
-	// for (File f : mupCityVectorizedOutput) {
-	// if (f.getName().startsWith(p.getString("name"))){
-	// //cook something for the variantes
-	// File scenarSelecFolder = new File(rootFile, "ParcelManagerOutput/"+ p.getString("name"+"/"));
-	// for ()
-	// scenarSelecFolder.mkdirs();
-	//
-	// }
-	//
-	//
-	// SelectParcels selectParcels = new SelectParcels(rootFile, geoFile, pluFile, outMupVariantes, p.getBoolean("splitParcel"), p);
-	//
-	//
-	// }
-	// }
-	//
-	//
-	// }
-	//
-	//
-	// return geoFile;
-	//
-	// }
 
 	/**
 	 * Scan all the file from a folder and return a list of parameters, representing different scenarios TODO voir comment on gère les variantes?

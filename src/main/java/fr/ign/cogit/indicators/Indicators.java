@@ -9,7 +9,6 @@ import fr.ign.analyse.obj.ScenarAnalyse;
 import fr.ign.parameters.Parameters;
 
 public abstract class Indicators {
-	String zipCode;
 	Parameters p;
 	File rootFile;
 	File simuFile;
@@ -89,7 +88,7 @@ public abstract class Indicators {
 	 * @return
 	 */
 	protected String getFirstlineCsv() {
-		return ("name, paramètres techniques MUP-City,paramètre Scenaristique MUP-City,zipCode,type de sélection,");
+		return ("nameScenar, paramètres techniques MUP-City,paramètre Scenaristique MUP-City,variant,");
 	}
 
 	/**
@@ -101,8 +100,8 @@ public abstract class Indicators {
 	 *            : the first line (can be empty)
 	 * @throws IOException
 	 */
-	public void toGenCSV(String indicName, String firstline, String line) throws IOException {
-		File fileName = new File(rootFile, "results" + indicName + ".csv");
+	public void toGenCSV(File f, String indicName, String firstline, String line) throws IOException {
+		File fileName = new File(f, "results" + indicName + ".csv");
 		FileWriter writer = new FileWriter(fileName, true);
 		// si l'on a pas encore insrit la premiere ligne
 		if (firstLineGen) {
@@ -112,7 +111,7 @@ public abstract class Indicators {
 		}
 
 		// on cole les infos du scénario à la première ligne
-		line = getnameScenar() + "," + getMupTech() + "," + getMupScenario() + "," + zipCode + "," + getSelection() + "," + line;
+		line = getnameScenar() + "," + getMupTech() + "," + getMupScenario() + "," + getSelection() + "," + line;
 		writer.append(line);
 		writer.append("\n");
 		writer.close();

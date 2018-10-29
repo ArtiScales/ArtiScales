@@ -134,8 +134,8 @@ public class GetFromGeom {
 		throw new FileNotFoundException("Route file not found");
 	}
 
-	public static int getHousingUnitsGoals(File geoFile, String zipCode) throws IOException {
-		File donneGen = new File(geoFile, "donnecommune.csv"); // A mettre dans le fichier de paramètres?
+	public static int getHousingUnitsGoals(File regulFile, String zipCode) throws IOException {
+		File donneGen = new File(regulFile, "donnecommune.csv"); // A mettre dans le fichier de paramètres?
 		CSVReader csvReader = new CSVReader(new FileReader(donneGen));
 		List<String[]> content = csvReader.readAll();
 		int ColLog = 0;

@@ -43,7 +43,6 @@ public class MupCitySimulation {
 	}
 
 	private static void deleteDirectoryStream(Path path) throws IOException {
-		// use that?!
 		Files.walk(path).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
 	}
 

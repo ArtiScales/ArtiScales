@@ -25,7 +25,7 @@ public class DataPreparator {
 
 		// Rayon autour duquel des parcelles sont ajoutées au contexte sans être
 		// simulées.
-		ZonePackager.CONTEXT_AREA = 0.5;
+		ZonePackager.CONTEXT_AREA = 1;
 
 		// If we want to use a shapefile instead (data has to be in
 		// Lambert93)

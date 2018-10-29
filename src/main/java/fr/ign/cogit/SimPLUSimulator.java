@@ -93,67 +93,69 @@ public class SimPLUSimulator {
 
 	public static void main(String[] args) throws Exception {
 
-		 /*
-		 * String folderGeo = "/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales/donneeGeographiques/"; String zoningFile =
-		 * "/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales/donneeGeographiques/PLU/ Zonage_CAGB_INSEE_25495.shp" ; String folderOut = "/tmp/tmp/";
-		 *
-		 * File f = Vectors.snapDatas(GetFromGeom.getRoute(new File(folderGeo)), new File(zoningFile), new File(folderOut));
-		 *
-		 * System.out.println(f.getAbsolutePath());
-		 */
-		
-		 List<File> lF = new ArrayList<>();
-		 // Line to change to select the right scenario
-		
-		 String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenar0MKDom/").getPath();
-		
-		 System.out.println(rootParam);
-		
-		 lF.add(new File(rootParam + "parametreTechnique.xml"));
-		 lF.add(new File(rootParam + "parametreScenario.xml"));
-		
-		 Parameters p = Parameters.unmarshall(lF);
-		
-		 System.out.println(p.getString("nom"));
-		 // Rappel de la construction du code :
-		
-		 // 1/ Basically the parcels are filtered on the code with the following
-		 // attributes
-		 // codeDep + codeCom + comAbs + section + numero
-		
-		 // 2/ Alternatively we can decided to active an attribute (Here id)
-		 AttribNames.setATT_CODE_PARC("CODE");
-		
-		 // ID_PARCELLE_TO_SIMULATE.add("25495000AE0102"); //Test for a simulation
-		 // with 1 regulation
-		
-		 USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
-		 // ID_PARCELLE_TO_SIMULATE.add("25078000ZE01265"); // Test for a simulation with
-		 // 3 regulations on 3 sub
-		 // parcels
-		
-		 // RootFolder
-		 File rootFolder = new File(p.getString("rootFile"));
-		 // Selected parcels shapefile
-		 File selectedParcels = new File(p.getString("selectedParcelFile"));
-		
-		 SimPLUSimulator simplu = new SimPLUSimulator(rootFolder, selectedParcels, p);
-		
-		 simplu.run();
-		 // SimPLUSimulator.fillSelectedParcels(new File(rootFolder), geoFile,
-		 // pluFile, selectedParcels, 50, "25495", p);
+//		 /*
+//		 * String folderGeo = "/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales/donneeGeographiques/"; String zoningFile =
+//		 * "/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales/donneeGeographiques/PLU/ Zonage_CAGB_INSEE_25495.shp" ; String folderOut = "/tmp/tmp/";
+//		 *
+//		 * File f = Vectors.snapDatas(GetFromGeom.getRoute(new File(folderGeo)), new File(zoningFile), new File(folderOut));
+//		 *
+//		 * System.out.println(f.getAbsolutePath());
+//		 */
+//		
+//		 List<File> lF = new ArrayList<>();
+//		 // Line to change to select the right scenario
+//		
+//		 String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenar0MKDom/").getPath();
+//		
+//		 System.out.println(rootParam);
+//		
+//		 lF.add(new File(rootParam + "parametreTechnique.xml"));
+//		 lF.add(new File(rootParam + "parametreScenario.xml"));
+//		
+//		 Parameters p = Parameters.unmarshall(lF);
+//		
+//		 System.out.println(p.getString("nom"));
+//		 // Rappel de la construction du code :
+//		
+//		 // 1/ Basically the parcels are filtered on the code with the following
+//		 // attributes
+//		 // codeDep + codeCom + comAbs + section + numero
+//		
+//		 // 2/ Alternatively we can decided to active an attribute (Here id)
+//		 AttribNames.setATT_CODE_PARC("CODE");
+//		
+//		 // ID_PARCELLE_TO_SIMULATE.add("25495000AE0102"); //Test for a simulation
+//		 // with 1 regulation
+//		
+//		 USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
+//		 // ID_PARCELLE_TO_SIMULATE.add("25078000ZE01265"); // Test for a simulation with
+//		 // 3 regulations on 3 sub
+//		 // parcels
+//		
+//		 // RootFolder
+//		 File rootFolder = new File(p.getString("rootFile"));
+//		 // Selected parcels shapefile
+//		 File selectedParcels = new File(p.getString("selectedParcelFile"));
+//		
+//		 SimPLUSimulator simplu = new SimPLUSimulator(rootFolder, selectedParcels, p);
+//		
+//		 simplu.run();
+//		 // SimPLUSimulator.fillSelectedParcels(new File(rootFolder), geoFile,
+//		 // pluFile, selectedParcels, 50, "25495", p);
 
-//		File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/scenar0MCIgn");
-//		List<File> lF = new ArrayList<>();
-//		lF.add(new File(rootParam, "parametreTechnique.xml"));
-//		lF.add(new File(rootParam, "parametreScenario.xml"));
-//
-//		Parameters p = Parameters.unmarshall(lF);
-//
-//		SimPLUSimulator sim = new SimPLUSimulator(new File(p.getString("rootFile")), new File(
-//				"/home/mcolomb/informatique/ArtiScales/parcelSelectionFile/teststp/teststp-DataSys-CM20.0-S0.0-GP_915948.0_6677337.0--N5_Ba_ahpx_seed_1213-evalAnal-20.0.shp/29"),
-//				p);
-//		sim.run();
+		File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/scenar0MCIgn");
+		List<File> lF = new ArrayList<>();
+		lF.add(new File(rootParam, "parametreTechnique.xml"));
+		lF.add(new File(rootParam, "parametreScenario.xml"));
+
+		Parameters p = Parameters.unmarshall(lF);
+		 
+		AttribNames.setATT_CODE_PARC("CODE");
+		USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
+		
+		SimPLUSimulator sim = new SimPLUSimulator(new File(p.getString("rootFile")), new File(
+				"/home/mcolomb/informatique/ArtiScales/ParcelSelectionFile/teststp/teststp-DataSys-CM20.0-S0.0-GP_915948.0_6677337.0--N5_Ba_ahpx_seed_1213-evalAnal-20.0.shp/29"),p);
+		sim.run();
 	}
 
 	/**
