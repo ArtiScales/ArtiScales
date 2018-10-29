@@ -168,6 +168,9 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	 */
 	public boolean checkDistanceToGeometry(O cuboid, Geometry geom, double distMax) {
 
+		if(distMax == 99.0) {
+			return true;
+		}
 		// On vérifie la contrainte de recul par rapport au fond de parcelle
 		// Existe t il ?
 		if (geom != null) {
@@ -197,6 +200,10 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	 * @return
 	 */
 	public boolean checkDistanceBetweenCuboidandBuildings(O cuboid, BasicPropertyUnit bPU, double distanceInterBati) {
+		
+		if(distanceInterBati == 99.0) {
+			continue;
+		}
 		// Distance between existig building and cuboid
 		for (Building b : bPU.getBuildings()) {
 			if (b.getFootprint().distance(cuboid.getFootprint()) <= distanceInterBati) {
