@@ -439,7 +439,11 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		case 10:
 			slope = 4 / 3;
 			break;
-
+		case 99:
+			return true;
+		default:
+			System.out.println("Cas non traité pour art_74 : " + art_74);
+			return true;
 		}
 
 		if (jtsCurveLimiteFondParcel != null && !cuboid.prospectJTS(jtsCurveLimiteFondParcel, slope, hIni)) {
