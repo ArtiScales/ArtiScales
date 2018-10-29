@@ -3,8 +3,9 @@
 
 <!--PARAMÈTRES SCÉNARISTIQUES POUR LES SIMULATIONS AVEC ARTISCALES -->
 
-	<!-- Nom du scénario -->
-	<param key="nom" value="uncontroled sprawl" />
+<!-- Nom du scénario -->
+	<param key="nom" value="teststp" />
+
 
 	<!-- Mode de fonctionnement d'ArtiScales -->
 		<!-- Si true, le modèle s'arrête quand les objectifs de création de logement du SCoT sont atteind -->
@@ -16,15 +17,15 @@
 	
 	<!-- Dossiers et fichiers nécessaires à la simulation -->
 		<!-- Emplacement des résultats de simulation (intermédiaires et finaux) -->
-	<param key="rootFile" value="/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales-dossierType-2809/"/>
+	<param key="rootFile" value="/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales_V2610/"/>
 		<!-- Emplacement des données géographiques générales -->
 	<param key="geoFile" value="/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales-dossierType-2809/donneeGeographiques/"/>
 		<!-- Emplacement des données géographiques concernant les PLU -->
 		<param key="pluFile" value="/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales-dossierType-2809/donneeGeographiques/PLU/" />
 		<!-- Nom du fichier contenant la modélisation du règlement des PLU -->
-		<param key="pluPredicate" value="/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales-dossierType-2809/donneeGeographiques/PLU/codes/predicate.csv"/>
+		<param key="pluPredicate" value="/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales_V2610/dataRegul/predicate.csv"/>
 		<!-- Nom du fichier contenant les parcelles sélectionnées (si elles existent au préalable) -->
-		<param key="selectedParcelFile" value="/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales-dossierType-2809/donneeGeographiques/parcelle/parcelSelected.shp"/>
+		<param key="selectedParcelFile" value="/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales_V2610/parcelSelectionFile/teststp/teststp-DataSys-CM20.0-S0.0-GP_915948.0_6677337.0--N5_Ba_ahpx_seed_42-evalAnal-20.0.shp/0/"/>
 	<!-- PARAMETRES DU MODULE MUP-CITY -->
 			
 		<!-- Densité du développement résidentiel -->
@@ -111,10 +112,10 @@
 
 		<!--Bornes des dimensions des cuboïdes simulées -->
 		<!-- Largeur -->
-		<param key="minlen" value="7" />
+		<param key="minlen" value="3" />
 		<param key="maxlen" value="30" />
 		<!-- Longueur -->
-		<param key="minwid" value="5" />
+		<param key="minwid" value="3" />
 		<param key="maxwid" value="30" />
 		<!-- Hauteur -->
 		<param key="minheight" value="3" />

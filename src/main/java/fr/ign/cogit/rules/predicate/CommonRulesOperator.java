@@ -168,6 +168,9 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	 */
 	public boolean checkDistanceToGeometry(O cuboid, Geometry geom, double distMax) {
 
+		if(distMax == 99.0) {
+			return true;
+		}
 		// On vérifie la contrainte de recul par rapport au fond de parcelle
 		// Existe t il ?
 		if (geom != null) {
@@ -197,12 +200,17 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	 * @return
 	 */
 	public boolean checkDistanceBetweenCuboidandBuildings(O cuboid, BasicPropertyUnit bPU, double distanceInterBati) {
+		
+		if(distanceInterBati == 99.0) {
+			return true;
+		}
 		// Distance between existig building and cuboid
 		for (Building b : bPU.getBuildings()) {
 			if (b.getFootprint().distance(cuboid.getFootprint()) <= distanceInterBati) {
 				return false;
 			}
 		}
+		
 		return true;
 	}
 
@@ -373,11 +381,11 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 			break;
 		case 20:
 		default:
-			System.err.println("Cas de hauteur non géré : hauteur normale de "+p.getDouble(regle.getArt_10_1()));
-			max = p.getDouble(regle.getArt_10_1());
+			System.err.println("Cas de hauteur non géré : valeur ; "+ regle.getArt_10_top());
+			//max = p.getDouble(regle.getArt_10_1());
 		}
 		Double[] result = { min, max };
-		System.out.println("hauteur authorisé : "+max);
+		System.out.println("Hauteur max autorisée : "+max);
 		return result;
 	}
 
@@ -438,7 +446,11 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		case 10:
 			slope = 4 / 3;
 			break;
-
+		case 99:
+			return true;
+		default:
+			System.out.println("Cas non traité pour art_74 : " + art_74);
+			return true;
 		}
 
 		if (jtsCurveLimiteFondParcel != null && !cuboid.prospectJTS(jtsCurveLimiteFondParcel, slope, hIni)) {

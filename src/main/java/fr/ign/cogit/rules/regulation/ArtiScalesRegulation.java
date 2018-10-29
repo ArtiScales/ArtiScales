@@ -190,6 +190,10 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 		if (this.art_9 == 99) {
 			this.art_9 = 1;
 		}
+		
+		if (this.art_13 == 99) {
+			this.art_13 = 0;
+		}
 	}
 
 	public int getOap() {

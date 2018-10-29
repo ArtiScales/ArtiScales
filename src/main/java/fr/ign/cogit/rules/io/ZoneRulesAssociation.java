@@ -44,7 +44,7 @@ public class ZoneRulesAssociation {
 				if (regles.get("out-0") == null) {
 					System.out.println("Default regulation does not exist");
 				} else {
-					zone.setZoneRegulation(regles.get("999"));
+					zone.setZoneRegulation(regles.get("out-0"));
 				}
 			}
 		}

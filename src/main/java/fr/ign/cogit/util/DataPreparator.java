@@ -14,8 +14,6 @@ public class DataPreparator {
 
 		
 		ZonePackager.ATTRIBUTE_SIMUL = "DoWeSimul";
-	//	ZonePackager.eval = "eval";
-		
 
 		// Attributs pour reconstituer le IDPAR
 		ZonePackager.ATTRIBUTE_DEPARTEMENT = "CODE_DEP";
@@ -36,7 +34,8 @@ public class DataPreparator {
 		int numberOfParcels = 20;
 		double areaMax = 5000;
 
-		ZonePackager.createParcelGroupsAndExport(parcelles, numberOfParcels, areaMax, folderTemp.getAbsolutePath(), folderOut.getAbsolutePath(),true);
+		ZonePackager.createParcelGroupsAndExport(parcelles, numberOfParcels, areaMax, folderTemp.getAbsolutePath(), folderOut.getAbsolutePath(), true);
+
 
 	}
 	

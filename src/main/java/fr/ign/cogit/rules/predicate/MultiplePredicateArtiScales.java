@@ -162,8 +162,15 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 			double maxBuiltFreeSpace = 0;
 
 			for (Geometry geom : mapGeomRegulation.keySet()) {
-				maxBuiltArea = maxBuiltArea + geom.getArea() * mapGeomRegulation.get(geom).getArt_9();
-				maxBuiltFreeSpace = maxBuiltFreeSpace + geom.getArea() * mapGeomRegulation.get(geom).getArt_13();
+
+				if (mapGeomRegulation.get(geom).getArt_9() != 99) {
+					maxBuiltArea = maxBuiltArea + geom.getArea() * mapGeomRegulation.get(geom).getArt_9();
+				}
+
+				if (mapGeomRegulation.get(geom).getArt_13() != 99) {
+					maxBuiltFreeSpace = maxBuiltFreeSpace + geom.getArea() * mapGeomRegulation.get(geom).getArt_13();
+
+				}
 			}
 
 			maxCES = Math.min(maxBuiltArea / totalSubParcelArea, 1 - (maxBuiltFreeSpace / totalSubParcelArea));
@@ -198,18 +205,17 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 
 	@Override
 	protected String getArt12Value() {
-		List<String> art12 = this.mapGeomRegulation.values().stream().map(x -> x.getArt_12()).collect(Collectors.toList());
-		
-	
-		if(art12.contains("2")) {
+		List<String> art12 = this.mapGeomRegulation.values().stream().map(x -> x.getArt_12())
+				.collect(Collectors.toList());
+
+		if (art12.contains("2")) {
 			return "2";
 		}
-		
-		if(art12.contains("1+2")) {
+
+		if (art12.contains("1+2")) {
 			return "1+2";
 		}
-		
-		
+
 		return "1";
 	}
 
