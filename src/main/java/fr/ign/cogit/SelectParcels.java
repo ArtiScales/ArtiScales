@@ -32,7 +32,6 @@ import fr.ign.cogit.outputs.XmlGen;
 import fr.ign.cogit.util.DataPreparator;
 import fr.ign.cogit.util.GetFromGeom;
 import fr.ign.cogit.util.SimuTool;
-import fr.ign.cogit.util.VectorFct;
 import fr.ign.parameters.Parameters;
 
 public class SelectParcels {

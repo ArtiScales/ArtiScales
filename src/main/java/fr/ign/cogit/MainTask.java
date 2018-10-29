@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
-import fr.ign.cogit.indicators.BuildingToHousingUnit;
 import fr.ign.cogit.util.SimuTool;
 import fr.ign.parameters.Parameters;
 
