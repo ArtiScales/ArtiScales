@@ -178,7 +178,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 		// Limit Opposite
 		for (ParcelBoundary salut : bPU.getCadastralParcels().get(0).getBoundariesByType(ParcelBoundaryType.ROAD)) {
-		//	System.out.println("Number of buildings in env : " + bPU.getBuildings().size());
+			// System.out.println("Number of buildings in env : " + bPU.getBuildings().size());
 
 			if (salut.getOppositeBoundary() != null) {
 				IGeometry geom = salut.getOppositeBoundary().getGeom();
@@ -193,14 +193,12 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 		// height of the surrounding buildings
 
-		//System.out.println(bPU.getGeom().buffer(distanceHeightBuildings));
+		// System.out.println(bPU.getGeom().buffer(distanceHeightBuildings));
 		Collection<AbstractBuilding> buildingsHeightCol = env.getBuildings().select(bPU.getGeom().buffer(distanceHeightBuildings));
-		//System.out.println("Neighbour buildings :" + buildingsHeightCol.size());
+		// System.out.println("Neighbour buildings :" + buildingsHeightCol.size());
 		if (!buildingsHeightCol.isEmpty()) {
 			heighSurroundingBuildings = buildingsHeightCol.stream().mapToDouble(x -> x.height(1, 1)).sum() / buildingsHeightCol.size();
 		}
-
-
 
 		if (!curveOppositeLimit.isEmpty()) {
 			this.jtsCurveOppositeLimit = AdapterFactory.toGeometry(gf, curveOppositeLimit);
@@ -252,7 +250,6 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 	@Override
 	public boolean check(C c, M m) {
 
-		
 		// NewCuboids
 		List<O> lONewCuboids = m.getBirth();
 
@@ -299,7 +296,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 				return false;
 			}
 		}
-		
+
 		///////// Regulation that depends from the SubParcel regulation
 
 		for (O cuboid : lONewCuboids) {
@@ -339,22 +336,18 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 					break;
 				}
 
-	
 				// Distance to the bottom of the parcel
 				// Rule-art-0073
 				if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFondParcel, regle.getArt_73())) {
 					return false;
 				}
 
-				
-		
 				// Rule art-0074
 				// We check for bot limits
 				if (!cRO.checkProspectArt7(cuboid, jtsCurveLimiteFondParcel, regle.getArt_74())) {
 					return false;
 				}
-				
-			
+
 				// We check for lateral limit
 				if (!cRO.checkProspectArt7(cuboid, jtsCurveLimiteLatParcel, regle.getArt_74())) {
 					return false;
@@ -363,33 +356,36 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 				//////// Distance to the front of the parcel
 				// multiple cases of Art_6 rules
 				// Rule-art-006
-				double art_6 = regle.getArt_6();
-				switch (art_6 + "") {
-				case "1.0":
-					/*
-					 * if (cRO.checkAlignement(cuboid, jtsCurveLimiteFrontParcel)) { return false; }
-					 */
-					System.out.println("CASE NOT ESTIMATED");
-					break;
-
-				case "55.0":
-					/*
-					 * double dist = Double.valueOf(regle.getArt_6_optD().split("-")[0]); if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, dist) ||
-					 * cRO.checkAlignement(cuboid, jtsCurveLimiteFrontParcel)) { return false; }
-					 */
-					System.out.println("CASE NOT ESTIMATED");
-					break;
-				case "44.0":
-					if (!cRO.checkProspectRNU(cuboid, jtsCurveOppositeLimit)) {
+				String art_6 = regle.getArt_6();
+				if (art_6.contains("-")) {
+					double min = Double.valueOf(art_6.split("-")[0]);
+					double max = Double.valueOf(art_6.split("-")[1]);
+					if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, min) || 
+							!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, max, false)) {
 						return false;
 					}
-					break;
+				} else {
+					switch (art_6 + "") {
 
-				default:
-					if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, regle.getArt_6())) {
-						return false;
+					case "55.0":
+						/*
+						 * double dist = Double.valueOf(regle.getArt_6_optD().split("-")[0]); if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, dist) ||
+						 * cRO.checkAlignement(cuboid, jtsCurveLimiteFrontParcel)) { return false; }
+						 */
+						System.out.println("CASE NOT ESTIMATED");
+						break;
+					case "44.0":
+						if (!cRO.checkProspectRNU(cuboid, jtsCurveOppositeLimit)) {
+							return false;
+						}
+						break;
+
+					default:
+						if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, Double.valueOf(regle.getArt_6()))) {
+							return false;
+						}
+						break;
 					}
-					break;
 				}
 
 				// art_6_opt
@@ -401,7 +397,6 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 				 * }
 				 */
 
-		
 				// We check the constrain distance according to existing buildings
 				// art_8 (distance aux bâtiments existants)
 				if (!cRO.checkDistanceBetweenCuboidandBuildings(cuboid, this.currentBPU, regle.getArt_8())) {
@@ -410,34 +405,26 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 			}
 
-
-		
-
-
 			/////////// Groups or whole configuration constraints
 
 			// Getting the maxCES according to the implementation
 			// art_9 art_13
 			double maxCES = this.getMaxCES();
 			// Checking the builtRatio
-			if(maxCES != 99) {
+			if (maxCES != 99) {
 				if (!cRO.checkBuiltRatio(lAllCuboids, currentBPU, maxCES)) {
 					return false;
-				}	
+				}
 			}
-			
-		
-			
+
 			String art12 = this.getArt12Value();
-			//art_12
-			if(art12 != "99") {
-				if(! cRO.checkParking(lAllCuboids,currentBPU, art12, p)) {
+			// art_12
+			if (art12 != "99") {
+				if (!cRO.checkParking(lAllCuboids, currentBPU, art12, p)) {
 					return false;
-					
-				}			
+
+				}
 			}
-	
-	
 
 			// Width and distance between buildings constraints
 
@@ -460,7 +447,6 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 			}
 
 		}
-		
 
 		return true;
 	}
@@ -557,11 +543,10 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 	protected abstract double getMaxHeight();
 
 	protected abstract double getMinHeight();
-	
+
 	// Determine art12 most constraintful value
 	protected abstract String getArt12Value();
-	
-	
+
 	// Determine the recoils applied to a list of cuboids
 	protected abstract List<Double> determineDoubleDistanceForList(List<O> lCuboids);
 

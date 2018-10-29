@@ -148,22 +148,22 @@ public class FakeWorldGenerator {
 
 		// CAS ARTICLE 6 = 0
 		regulationDefault2.setLibelle_de_dul("U1");
-		regulationDefault2.setArt_6(0);
+		regulationDefault2.setArt_6("0");
 
 		// CAS ARTICLE 6 = 44
 		ArtiScalesRegulation regulationDefault3 = regulationDefault.clone();
 		regulationDefault3.setLibelle_de_dul("U2");
-		regulationDefault3.setArt_6(44);
+		regulationDefault3.setArt_6("44");
 
 		// CAS ARTICLE 6 = 55
 		ArtiScalesRegulation regulationDefault4 = regulationDefault.clone();
 		regulationDefault4.setLibelle_de_dul("U3");
-		regulationDefault4.setArt_6(55);
+		regulationDefault4.setArt_6("55");
 
 		// CAS ARTICLE 6 = n (ici 6)
 		ArtiScalesRegulation regulationDefault5 = regulationDefault.clone();
 		regulationDefault5.setLibelle_de_dul("U3");
-		regulationDefault5.setArt_6(6);
+		regulationDefault5.setArt_6("6");
 
 		regulations.add(regulationDefault);
 		regulations.add(regulationDefault2);

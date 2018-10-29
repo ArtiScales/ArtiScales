@@ -404,6 +404,7 @@ public class SimPLUSimulator {
 		List<Cuboid> cubes = cc.getGraph().vertexSet().stream().map(x -> x.getValue()).collect(Collectors.toList());
 		SDPCalc surfGen = new SDPCalc();
 		double surfacePlancherTotal = surfGen.process(cubes);
+		//TODO return null
 		double surfaceAuSol = surfGen.processSurface(cubes);
 
 		// get multiple zone regulation infos infos
@@ -464,12 +465,6 @@ public class SimPLUSimulator {
 			AttributeManager.addAttribute(feat, "TYPEZONE", typeZonesFinal, "String");
 			iFeatC.add(feat);
 		}
-
-		// TODO Prendre la shon (calcul dans
-		// simplu3d.experiments.openmole.diversity ? non, c'est la shob et pas
-		// la shon !! je suis ingénieur en génie civil que diable. Je ne peux
-		// pas me permettre de ne pas prendre en compte un des seuls trucs que
-		// je peux sortir de mes quatre ans d'étude pour cette these..!)
 
 		// méthode de calcul d'aire simpliste
 

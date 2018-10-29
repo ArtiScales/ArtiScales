@@ -20,9 +20,9 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 
 	// Les intitulés des colonnes
 	private int insee, oap, fonctions, zonage_coherent, correction_zonage, art_3, art_4, art_71, art_74, art_10_top;
-	private String libelle_zone, libelle_de_base, libelle_de_dul, art_6_opt, art_6_optD,  art_12, art_14,art_10_1;
+	private String libelle_zone, libelle_de_base, libelle_de_dul,art_6, art_6_opt, art_6_optD,  art_12, art_14,art_10_1;
 
-	private double art_5, art_6, art_72, art_73, art_8, art_9, art_13;
+	private double art_5, art_72, art_73, art_8, art_9, art_13;
 
 	// The UrbanZone that corresponds to the regulation
 	private UrbaZone zone;
@@ -72,7 +72,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 				art_5 = Double.valueOf(lineSplited[i]);
 				break;
 			case "art_6":
-				art_6 = Double.valueOf(lineSplited[i]);
+				art_6 = lineSplited[i];
 				break;
 			case "art_6_opt":
 				art_6_opt = lineSplited[i];
@@ -135,7 +135,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 
 	public ArtiScalesRegulation(String libelle_zone, int insee, String libelle_de_base, String libelle_de_dul,
 			int fonctions, int oap, int zonage_coherent, int correction_zonage, int art_3, int art_4, double art_5,
-			double art_6, String art_6_opt, String art_6_optD, int art_71, double art_72, double art_73, int art_74,
+			String art_6, String art_6_opt, String art_6_optD, int art_71, double art_72, double art_73, int art_74,
 			double art_8, double art_9, int art_10_top, String art_10_1,  String art_12, double art_13,
 			String art_14) {
 		super();
@@ -179,8 +179,8 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 			this.art_73 = 0;
 		}
 
-		if (this.getArt_6() == 77) {
-			this.art_6 = 0;
+		if (this.getArt_6() == "77") {
+			this.art_6 = "0";
 		}
 
 		if (this.getArt_8() == 88.0 || this.getArt_8() == 99.0) {
@@ -338,7 +338,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	// 55= alignement obligatoire OU distance => Art_6_optD 88= non renseignable,
 	// 99= non réglementé
 	// 44 = en fonction des bâtiments de l'autre coté (règle du RNU)
-	public double getArt_6() {
+	public String getArt_6() {
 		return art_6;
 	}
 
@@ -520,7 +520,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 		this.art_5 = art_5;
 	}
 
-	public void setArt_6(double art_6) {
+	public void setArt_6(String art_6) {
 		this.art_6 = art_6;
 	}
 

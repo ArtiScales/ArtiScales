@@ -159,16 +159,18 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	}
 
 	/**
-	 * Check if the distance between a cuboid and a geometry is lesser than distMax
+	 * Check if the distance between a cuboid and a geometry is lesser or more than distMax
 	 * 
 	 * @param cuboid
 	 * @param geom
-	 * @param distMax
+	 * @param dist
+	 * @param supOrInf
+	 *            if the cubiod must be superior or inferior to the limit
 	 * @return
 	 */
-	public boolean checkDistanceToGeometry(O cuboid, Geometry geom, double distMax) {
+	public boolean checkDistanceToGeometry(O cuboid, Geometry geom, double dist, boolean supOrInf) {
 
-		if(distMax == 99.0) {
+		if (dist == 99.0) {
 			return true;
 		}
 		// On vérifie la contrainte de recul par rapport au fond de parcelle
@@ -178,16 +180,35 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 			if (geomCuboid == null) {
 				System.out.println("Geometry cuboid is null " + CommonRulesOperator.class.toString());
 			}
-			// On vérifie la distance (on récupère le foot
-			if (geomCuboid.distance(geom) < distMax) {
-				// elle n'est pas respectée, on retourne faux
-				return false;
-
+			// determining if the distance in inferior or superior
+			if (supOrInf) {
+				// this distance must be superior
+				if (geomCuboid.distance(geom) < dist) {
+					// elle n'est pas respectée, on retourne faux
+					return false;
+				}
+			} else {
+				// this distance must be inferior
+				if (geomCuboid.distance(geom) > dist) {
+					// elle n'est pas respectée, on retourne faux
+					return false;
+				}
 			}
-
 		}
-
 		return true;
+	}
+
+	/**
+	 * Check if the distance between a cuboid and a geometry is lesser than distMax
+	 * 
+	 * @param cuboid
+	 * @param geom
+	 * @param distMax
+	 * @return
+	 */
+	public boolean checkDistanceToGeometry(O cuboid, Geometry geom, double distMax) {
+
+		return checkDistanceToGeometry(cuboid, geom, distMax, true);
 
 	}
 
@@ -200,8 +221,8 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	 * @return
 	 */
 	public boolean checkDistanceBetweenCuboidandBuildings(O cuboid, BasicPropertyUnit bPU, double distanceInterBati) {
-		
-		if(distanceInterBati == 99.0) {
+
+		if (distanceInterBati == 99.0) {
 			return true;
 		}
 		// Distance between existig building and cuboid
@@ -210,7 +231,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 				return false;
 			}
 		}
-		
+
 		return true;
 	}
 
@@ -350,7 +371,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		double max = p.getDouble("maxheight");
 
 		switch (regle.getArt_10_top()) {
-		
+
 		// 1 hauteur à l'étage
 		// 5 hauteur à l'égout (pour l'instant la même que le 1 vu que l'on ne prends
 		// pas en compte les toits)
@@ -370,7 +391,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		case 7:
 		case 8:
 			// si il y a des batiments TODO valeurs bizares
-			if (heighSurroundingBuildings != null && heighSurroundingBuildings!= 0.0) {
+			if (heighSurroundingBuildings != null && heighSurroundingBuildings != 0.0) {
 				min = heighSurroundingBuildings * 0.9;
 				max = heighSurroundingBuildings * 1.1;
 			}
@@ -381,11 +402,11 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 			break;
 		case 20:
 		default:
-			System.err.println("Cas de hauteur non géré : valeur ; "+ regle.getArt_10_top());
-			//max = p.getDouble(regle.getArt_10_1());
+			System.err.println("Cas de hauteur non géré : valeur ; " + regle.getArt_10_top());
+			// max = p.getDouble(regle.getArt_10_1());
 		}
 		Double[] result = { min, max };
-		System.out.println("Hauteur max autorisée : "+max);
+		System.out.println("Hauteur max autorisée : " + max);
 		return result;
 	}
 
