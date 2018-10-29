@@ -100,7 +100,7 @@ public class MainTask {
 				for (File packFile : varianteFile.listFiles()) {
 
 					SimPLUSimulator simPluSim = new SimPLUSimulator(rootFile, packFile, p);
-					List<File> batiSimu = simPluSim.run();
+					simPluSim.run();
 
 //					 BuildingToHousingUnit bTH = new BuildingToHousingUnit(batiSimu,packFile, p);
 //					 bTH.runParticularSimpleEstimation();
