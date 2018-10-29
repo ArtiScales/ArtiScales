@@ -45,6 +45,7 @@ import fr.ign.cogit.simplu3d.rjmcmc.cuboid.optimizer.cuboid.OptimisedBuildingsCu
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.optimizer.paralellcuboid.ParallelCuboidOptimizer;
 import fr.ign.cogit.simplu3d.util.SDPCalc;
 import fr.ign.cogit.util.SimpluParametersXML;
+import fr.ign.cogit.util.SimuTool;
 import fr.ign.cogit.util.VectorFct;
 import fr.ign.mpp.configuration.BirthDeathModification;
 import fr.ign.mpp.configuration.GraphConfiguration;
@@ -300,8 +301,8 @@ public class SimPLUSimulator {
 			if (file != null) {
 				listBatiSimu.add(file);
 			}
-
 		}
+		
 		// Not results
 		if (listBatiSimu.isEmpty()) {
 			System.out.println("&&&&&&&&&&&&&& Aucun bâtiment n'a été simulé &&&&&&&&&&&&&&");
@@ -470,10 +471,8 @@ public class SimPLUSimulator {
 
 		// méthode de calcul d'aire simpliste
 
-		File output = new File(simuFile, "out-parcelle_" + i + ".shp");
-
-		output.getParentFile().mkdirs();
-
+		File output = new File(SimuTool.createScenarVariantFolders(simuFile,rootFile,"SimPLUDepot"), "out-parcelle_" + bPU.getCadastralParcels().get(0).getCode() + ".shp");
+System.out.println("Output in : "+output);
 		ShapefileWriter.write(iFeatC, output.toString(), CRS.decode("EPSG:2154"));
 
 		if (!output.exists()) {

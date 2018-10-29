@@ -362,7 +362,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		case 7:
 		case 8:
 			// si il y a des batiments TODO valeurs bizares
-			if (heighSurroundingBuildings != null && heighSurroundingBuildings== 0.0) {
+			if (heighSurroundingBuildings != null && heighSurroundingBuildings!= 0.0) {
 				min = heighSurroundingBuildings * 0.9;
 				max = heighSurroundingBuildings * 1.1;
 			}

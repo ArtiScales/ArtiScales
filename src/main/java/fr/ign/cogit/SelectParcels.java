@@ -32,7 +32,6 @@ import fr.ign.cogit.outputs.XmlGen;
 import fr.ign.cogit.util.DataPreparator;
 import fr.ign.cogit.util.GetFromGeom;
 import fr.ign.cogit.util.SimuTool;
-import fr.ign.cogit.util.VectorFct;
 import fr.ign.parameters.Parameters;
 
 public class SelectParcels {
@@ -153,7 +152,7 @@ public class SelectParcels {
 //
 //				File parcelSelectedFile = Vectors.exportSFC(parcelCollection, new File(tmpFile, "parcelExport.shp"));
 				File parcelSelectedFile = new File("/home/mcolomb/informatique/ArtiScales/tmp/parcelExport.shp");
-				File packFile = new File(rootFile, "parcelSelectionFile/" + scenar.get(0).getName().split("-")[0] + "/" + varianteSpatialConf.getName() + "/");
+				File packFile = new File(rootFile, "ParcelSelectionFile/" + scenar.get(0).getName().split("-")[0] + "/" + varianteSpatialConf.getName() + "/");
 
 				packFile.mkdirs();
 
@@ -696,16 +695,18 @@ public class SelectParcels {
 	}
 
 	public void separateToDifferentPack(File parcelCollection, File fileOut) throws Exception {
-		// TODO faire une séparation de tous les objets géographiques (parcelles, batiments, routes) pour une certaine échelle (tous le même nombre de parcelle?)
-
+	
 		DataPreparator.createPackages(parcelCollection, tmpFile, fileOut);
 
 		for (File pack : fileOut.listFiles()) {
 
-			// TODO générer ça stp
 			File fBBox = new File(pack, "bbox.shp");
 
-			File snapPack = new File(pack, "snap");
+			if (!fBBox.exists()) {
+				System.err.print("bbox of pack not generated");
+			}
+			
+			File snapPack = new File(pack, "geoSnap");
 			snapPack.mkdirs();
 
 			createPackOfEmptyShp(snapPack);

@@ -101,8 +101,8 @@ public class MainTask {
 					SimPLUSimulator simPluSim = new SimPLUSimulator(rootFile, packFile, p);
 					List<File> batiSimu = simPluSim.run();
 
-//					 BuildingToHousingUnit bTH = new BuildingToHousingUnit(batiSimu,packFile, p);
-//					 bTH.runParticularSimpleEstimation();
+					 BuildingToHousingUnit bTH = new BuildingToHousingUnit(batiSimu,packFile, p);
+					 bTH.runParticularSimpleEstimation();
 				}
 			}
 		}

@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import fr.ign.cogit.GTFunctions.Rasters;
+import fr.ign.cogit.util.SimuTool;
 import fr.ign.parameters.Parameters;
 import fr.ign.task.ProjectCreationDecompTask;
 import fr.ign.task.SimulTask;
@@ -36,9 +37,7 @@ public class SelecMUPOutput {
 		rasterMupOutputList = rastermupoutputList;
 	}
 
-	private static void deleteDirectoryStream(Path path) throws IOException {
-		Files.walk(path).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
-	}
+
 
 	public static void main(String[] args) throws Exception {
 
@@ -48,7 +47,7 @@ public class SelecMUPOutput {
 
 		Thread.sleep(1000);
 
-		deleteDirectoryStream((new File(folder)).toPath());
+		SimuTool.deleteDirectoryStream((new File(folder)).toPath());
 
 		List<File> listMupOut = new ArrayList<File>();
 		long t = System.currentTimeMillis();
