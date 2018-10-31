@@ -95,7 +95,7 @@ public class SimuTool {
 		return result;
 	}
 
-	public static List<List<List<File>>> generateResultConfig(File rootFile) {
+	public static List<List<List<File>>> generateResultConfigSimPLU(File rootFile) {
 		List<List<List<File>>> buildingSimulatedPerSimu = new ArrayList<List<List<File>>>();
 
 		for (File scenarFile : new File(rootFile, "SimPLUDepot").listFiles()) {
@@ -110,6 +110,23 @@ public class SimuTool {
 				buildingSimulatedPerScenar.add(buildingSimulatedPerVar);
 			}
 			buildingSimulatedPerSimu.add(buildingSimulatedPerScenar);
+		}
+		return buildingSimulatedPerSimu;
+	}
+
+	public static List<List<File>> generateResultParcels(File rootFile) {
+		List<List<File>> buildingSimulatedPerSimu = new ArrayList<List<File>>();
+
+		for (File scenarFile : new File(rootFile, "ParcelSelectionFile").listFiles()) {
+			List<File> parcelGenPerScenar = new ArrayList<File>();
+			for (File variantFile : scenarFile.listFiles()) {
+				for (File fileFile : variantFile.listFiles()) {
+					if (fileFile.getName().endsWith(".shp") && fileFile.getName().startsWith("parcel")) {
+						parcelGenPerScenar.add(fileFile);
+					}
+				}
+			}
+			buildingSimulatedPerSimu.add(parcelGenPerScenar);
 		}
 		return buildingSimulatedPerSimu;
 	}

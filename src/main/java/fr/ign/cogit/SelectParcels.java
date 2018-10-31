@@ -156,11 +156,12 @@ public class SelectParcels {
 					}
 				}
 
-				File parcelSelectedFile = Vectors.exportSFC(parcelCollection, new File(varianteSpatialConf, "parcelGenExport.shp"));
 				// File parcelSelectedFile = new File("/home/mcolomb/informatique/ArtiScales/tmp/parcelExport.shp");
 				File packFile = new File(rootFile, "ParcelSelectionFile/" + scenarName + "/" + varianteSpatialConf.getParentFile().getName() + "/");
 
 				packFile.mkdirs();
+
+				File parcelSelectedFile = Vectors.exportSFC(parcelCollection, new File(packFile, "parcelGenExport.shp"));
 
 				separateToDifferentPack(parcelSelectedFile, packFile);
 				listScenar.add(packFile);
@@ -704,82 +705,83 @@ public class SelectParcels {
 		DataPreparator.createPackages(parcelCollection, tmpFile, fileOut);
 
 		for (File pack : fileOut.listFiles()) {
+			if (pack.isDirectory()) {
+				File fBBox = new File(pack, "bbox.shp");
 
-			File fBBox = new File(pack, "bbox.shp");
-
-			if (!fBBox.exists()) {
-				System.err.print("bbox of pack not generated");
-			}
-
-			File snapPack = new File(pack, "geoSnap");
-			snapPack.mkdirs();
-
-			// by defalut, creation of empty shapefiles (better empty than non extitant
-			createPackOfEmptyShp(snapPack);
-
-			ShapefileDataStore build_datastore = new ShapefileDataStore(GetFromGeom.getBati(geoFile).toURI().toURL());
-			SimpleFeatureCollection buildFeatures = build_datastore.getFeatureSource().getFeatures();
-			Vectors.exportSFC(Vectors.snapDatas(buildFeatures, fBBox), new File(snapPack, "building.shp"));
-			build_datastore.dispose();
-
-			ShapefileDataStore road_datastore = new ShapefileDataStore(GetFromGeom.getRoute(geoFile).toURI().toURL());
-			SimpleFeatureCollection roadFeatures = road_datastore.getFeatureSource().getFeatures();
-			Vectors.exportSFC(Vectors.snapDatas(roadFeatures, fBBox), new File(snapPack, "road.shp"));
-			road_datastore.dispose();
-
-			ShapefileDataStore zoning_datastore = new ShapefileDataStore(GetFromGeom.getZoning(regulFile).toURI().toURL());
-			SimpleFeatureCollection zoningFeatures = zoning_datastore.getFeatureSource().getFeatures();
-			Vectors.exportSFC(Vectors.snapDatas(zoningFeatures, fBBox), new File(snapPack, "zoning.shp"));
-			zoning_datastore.dispose();
-
-			ShapefileDataStore prescPonct_datastore = new ShapefileDataStore(GetFromGeom.getPrescPonct(regulFile).toURI().toURL());
-			SimpleFeatureCollection prescPonctFeatures = prescPonct_datastore.getFeatureSource().getFeatures();
-			Vectors.exportSFC(Vectors.snapDatas(prescPonctFeatures, fBBox), new File(snapPack, "prescPonct.shp"));
-			prescPonct_datastore.dispose();
-
-			ShapefileDataStore prescLin_datastore = new ShapefileDataStore(GetFromGeom.getPrescLin(regulFile).toURI().toURL());
-			SimpleFeatureCollection prescLinFeatures = prescLin_datastore.getFeatureSource().getFeatures();
-			Vectors.exportSFC(Vectors.snapDatas(prescLinFeatures, fBBox), new File(snapPack, "prescLin.shp"));
-			prescLin_datastore.dispose();
-
-			ShapefileDataStore prescSurf_datastore = new ShapefileDataStore(GetFromGeom.getPrescSurf(regulFile).toURI().toURL());
-			SimpleFeatureCollection prescSurfFeatures = prescSurf_datastore.getFeatureSource().getFeatures();
-			Vectors.exportSFC(Vectors.snapDatas(prescSurfFeatures, fBBox), new File(snapPack, "prescSurf.shp"));
-			prescSurf_datastore.dispose();
-
-			// selection of the right lives from the predicate file
-			// CSV tools
-			CSVReader predicate = new CSVReader(new FileReader(new File(rootFile, "dataRegul/predicate.csv")));
-			// CSVWriter newPredicate = new CSVWriter(new FileWriter(new File(pack, "snapPredicate.csv")),",","","");
-
-			CSVWriter newPredicate = new CSVWriter(new FileWriter(new File(pack, "snapPredicate.csv")), ',', '\0');
-
-			// get insee numbers needed
-			List<String> insee = new ArrayList<String>();
-			ShapefileDataStore sds = new ShapefileDataStore((new File(pack, "parcelle.shp")).toURI().toURL());
-			SimpleFeatureIterator itParc = sds.getFeatureSource().getFeatures().features();
-			try {
-				while (itParc.hasNext()) {
-					String inseeTemp = (String) itParc.next().getAttribute("INSEE");
-					if (!insee.contains(inseeTemp)) {
-						insee.add(inseeTemp);
-					}
+				if (!fBBox.exists()) {
+					System.err.print("bbox of pack not generated");
 				}
-			} catch (Exception problem) {
-				problem.printStackTrace();
-			} finally {
-				itParc.close();
-			}
-			sds.dispose();
-			newPredicate.writeNext(predicate.readNext());
-			for (String[] line : predicate.readAll()) {
-				for (String nIinsee : insee)
-					if (line[1].equals(nIinsee)) {
-						newPredicate.writeNext(line);
+
+				File snapPack = new File(pack, "geoSnap");
+				snapPack.mkdirs();
+
+				// by defalut, creation of empty shapefiles (better empty than non extitant
+				createPackOfEmptyShp(snapPack);
+
+				ShapefileDataStore build_datastore = new ShapefileDataStore(GetFromGeom.getBati(geoFile).toURI().toURL());
+				SimpleFeatureCollection buildFeatures = build_datastore.getFeatureSource().getFeatures();
+				Vectors.exportSFC(Vectors.snapDatas(buildFeatures, fBBox), new File(snapPack, "building.shp"));
+				build_datastore.dispose();
+
+				ShapefileDataStore road_datastore = new ShapefileDataStore(GetFromGeom.getRoute(geoFile).toURI().toURL());
+				SimpleFeatureCollection roadFeatures = road_datastore.getFeatureSource().getFeatures();
+				Vectors.exportSFC(Vectors.snapDatas(roadFeatures, fBBox), new File(snapPack, "road.shp"));
+				road_datastore.dispose();
+
+				ShapefileDataStore zoning_datastore = new ShapefileDataStore(GetFromGeom.getZoning(regulFile).toURI().toURL());
+				SimpleFeatureCollection zoningFeatures = zoning_datastore.getFeatureSource().getFeatures();
+				Vectors.exportSFC(Vectors.snapDatas(zoningFeatures, fBBox), new File(snapPack, "zoning.shp"));
+				zoning_datastore.dispose();
+
+				ShapefileDataStore prescPonct_datastore = new ShapefileDataStore(GetFromGeom.getPrescPonct(regulFile).toURI().toURL());
+				SimpleFeatureCollection prescPonctFeatures = prescPonct_datastore.getFeatureSource().getFeatures();
+				Vectors.exportSFC(Vectors.snapDatas(prescPonctFeatures, fBBox), new File(snapPack, "prescPonct.shp"));
+				prescPonct_datastore.dispose();
+
+				ShapefileDataStore prescLin_datastore = new ShapefileDataStore(GetFromGeom.getPrescLin(regulFile).toURI().toURL());
+				SimpleFeatureCollection prescLinFeatures = prescLin_datastore.getFeatureSource().getFeatures();
+				Vectors.exportSFC(Vectors.snapDatas(prescLinFeatures, fBBox), new File(snapPack, "prescLin.shp"));
+				prescLin_datastore.dispose();
+
+				ShapefileDataStore prescSurf_datastore = new ShapefileDataStore(GetFromGeom.getPrescSurf(regulFile).toURI().toURL());
+				SimpleFeatureCollection prescSurfFeatures = prescSurf_datastore.getFeatureSource().getFeatures();
+				Vectors.exportSFC(Vectors.snapDatas(prescSurfFeatures, fBBox), new File(snapPack, "prescSurf.shp"));
+				prescSurf_datastore.dispose();
+
+				// selection of the right lives from the predicate file
+				// CSV tools
+				CSVReader predicate = new CSVReader(new FileReader(new File(rootFile, "dataRegul/predicate.csv")));
+				// CSVWriter newPredicate = new CSVWriter(new FileWriter(new File(pack, "snapPredicate.csv")),",","","");
+
+				CSVWriter newPredicate = new CSVWriter(new FileWriter(new File(pack, "snapPredicate.csv")), ',', '\0');
+
+				// get insee numbers needed
+				List<String> insee = new ArrayList<String>();
+				ShapefileDataStore sds = new ShapefileDataStore((new File(pack, "parcelle.shp")).toURI().toURL());
+				SimpleFeatureIterator itParc = sds.getFeatureSource().getFeatures().features();
+				try {
+					while (itParc.hasNext()) {
+						String inseeTemp = (String) itParc.next().getAttribute("INSEE");
+						if (!insee.contains(inseeTemp)) {
+							insee.add(inseeTemp);
+						}
 					}
+				} catch (Exception problem) {
+					problem.printStackTrace();
+				} finally {
+					itParc.close();
+				}
+				sds.dispose();
+				newPredicate.writeNext(predicate.readNext());
+				for (String[] line : predicate.readAll()) {
+					for (String nIinsee : insee)
+						if (line[1].equals(nIinsee)) {
+							newPredicate.writeNext(line);
+						}
+				}
+				predicate.close();
+				newPredicate.close();
 			}
-			predicate.close();
-			newPredicate.close();
 		}
 	}
 

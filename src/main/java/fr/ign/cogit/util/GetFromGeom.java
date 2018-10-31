@@ -104,7 +104,7 @@ public class GetFromGeom {
 				String INSEE = ((String) feat.getAttribute("CODE_DEP")) + ((String) feat.getAttribute("CODE_COM"));
 
 				boolean isBuild = false;
-				if (((Geometry) feat.getDefaultGeometry()).contains(batiUnion)) {
+				if (((Geometry) feat.getDefaultGeometry()).intersects(batiUnion)) {
 					isBuild = true;
 				}
 
@@ -273,12 +273,15 @@ public class GetFromGeom {
 					case "U":
 					case "ZC":
 						result.add("U");
+						break;
 					case "AU":
 						result.add("AU");
+						break;
 					case "N":
 					case "NC":
 					case "A":
 						result.add("NC");
+						break;
 					}
 				}
 			}

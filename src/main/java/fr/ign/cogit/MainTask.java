@@ -65,7 +65,9 @@ public class MainTask {
 				}
 				mupCityOutput.add(listVariant);
 			}
-		} else {
+		} 
+		//if MUP-City simulations has already been calculated 
+		else {
 			for (File f : (new File(rootFile, "MupCityDepot")).listFiles()) {
 				if (f.isDirectory()) {
 					List<File> variante = new ArrayList<File>();
@@ -99,7 +101,6 @@ public class MainTask {
 			String scenarName = listVariantes.get(0).getParentFile().getName();
 			for (File varianteFile : listVariantes) {
 				List<File> buildingSimulatedPerVariant = new ArrayList<File>();
-				System.out.println(scenarName);
 				Parameters p = SimuTool.getParamFile(listScenarios, scenarName);
 				for (File packFile : varianteFile.listFiles()) {
 					SimPLUSimulator simPluSim = new SimPLUSimulator(rootFile, packFile, p);
@@ -110,11 +111,17 @@ public class MainTask {
 			buildingSimulatedPerSimu.add(buildingSimulatedPerScenar);
 		}
 
+		
+		////////////////
+		// Indicators 
+		////////////////
+		
+		// Building to housingUnit indicator
+		
+		//we get the hierarchy of files if the previous steps hasnt been processed
 		if (buildingSimulatedPerSimu.isEmpty()) {
-			buildingSimulatedPerSimu = SimuTool.generateResultConfig(rootFile);
+			buildingSimulatedPerSimu = SimuTool.generateResultConfigSimPLU(rootFile);
 		}
-
-		// Some indicators
 		for (List<List<File>> listVariantes : buildingSimulatedPerSimu) {
 			String scenarName = listVariantes.get(0).get(0).getParentFile().getParent();
 			for (List<File> buildingSimulatedPerVariant : listVariantes) {
@@ -125,6 +132,22 @@ public class MainTask {
 				BuildingToHousingUnit bTH = new BuildingToHousingUnit(buildingSimulatedPerVariant, bTHFile, p);
 				bTH.runParticularSimpleEstimation();
 				bTH.simpleCityEstimate();
+			}
+		}
+
+		// Parcel selected indicator
+		//we get the hierarchy of files if the previous steps hasnt been processed
+
+	List<List<File>> parcelGen = SimuTool.generateResultParcels(rootFile);
+		//we calculate
+		for (List<File> listVariantes : parcelGen) {
+			String scenarName = listVariantes.get(0).getParentFile().getParent();
+			System.out.println();
+			for (File parcelsPerVariant : listVariantes) {
+				Parameters p = SimuTool.getParamFile(listScenarios, scenarName);
+				File parcelOutFile = new File(rootFile, "indic/parcelOut/" + scenarName + "/" + parcelsPerVariant.getParent());
+				parcelOutFile.mkdirs();	
+				
 			}
 		}
 	}
@@ -169,7 +192,7 @@ public class MainTask {
 	}
 
 	/**
-	 * Scan all the file from a folder and return a list of parameters, representing different scenarios TODO voir comment on gère les variantes?
+	 * Scan all the file from a folder and return a list of parameters, representing different scenarios
 	 * 
 	 * @param fIn
 	 *            : folder where every scenarios parameters are stored
@@ -388,35 +411,6 @@ public class MainTask {
 	// }
 	// }
 
-	/**
-	 * Know which selection method to use determined by the param file
-	 * 
-	 * @return a list with all the different selections
-	 * 
-	 * @return
-	 */
-	private static List<String> varianteType(Parameters p) {
-		List<String> routine = new ArrayList<String>();
-		if (p.getBoolean("Anarchie")) {
-			// TODO sélection aléatoire de parcelles
-		} else if (p.getBoolean("JustEval")) {
-			routine.add("justEval");
-			// TODO sélection de parcelles uniquement selon l'évaluation
-		} else {
-			if (p.getBoolean("Ubuilt")) {
-				routine.add("Ubuilt");
-			}
-			if (p.getBoolean("UnotBuilt")) {
-				routine.add("UnotBuilt");
-			}
-			if (p.getBoolean("AUnotBuilt")) {
-				routine.add("AUnotBuilt");
-			}
-			if (p.getBoolean("ALLnotBuilt")) {
-				routine.add("ALLnotBuilt");
-			}
-		}
-		return routine;
-	}
+
 
 }
