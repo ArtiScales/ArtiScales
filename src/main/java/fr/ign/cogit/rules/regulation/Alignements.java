@@ -6,8 +6,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import fr.ign.cogit.geoxygene.api.spatial.geomroot.IGeometry;
+import fr.ign.cogit.rules.regulation.Alignements.AlignementType;
 import fr.ign.cogit.simplu3d.model.AbstractBuilding;
 import fr.ign.cogit.simplu3d.model.BasicPropertyUnit;
+import fr.ign.cogit.simplu3d.model.Building;
 import fr.ign.cogit.simplu3d.model.CadastralParcel;
 import fr.ign.cogit.simplu3d.model.Environnement;
 import fr.ign.cogit.simplu3d.model.ParcelBoundary;
@@ -88,13 +90,21 @@ public class Alignements {
 
 				// We have some buildings do they belong to the current CadastralParcel
 				for (AbstractBuilding currentBuilding : buildingsSel) {
-	
-						// No !!! we add the geometry and go to the next parcel boundary
-						if (!currentBuilding.getbPU().equals(currentBPU)) {
-							lGeom.add(boundary.getGeom());
-							continue boucleboundary;
 					
+					if(currentBuilding instanceof Building){
+						Building build = (Building) currentBuilding;
+								
+								// No !!! we add the geometry and go to the next parcel boundary
+								if (!build.getbPU().equals(currentBPU)) {
+									lGeom.add(boundary.getGeom());
+									continue boucleboundary;
+							
+							}
+					}else{
+						System.out.println("Alignements : Unrecognized building class : " + currentBuilding.getClass());
 					}
+	
+					
 
 				}
 
