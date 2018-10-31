@@ -33,7 +33,8 @@ public class ZoneRulesAssociation {
 
 		// For each zone we associate a regulation to the zone
 		for (UrbaZone zone : env.getUrbaZones()) {
-			regle = regles.get(zone.getLibelle() + "-" + zone.getInsee());
+			String finalLibelle = zone.getLibelle() + "-" + zone.getInsee();
+			regle = regles.get(finalLibelle);
 			if (regle != null) {
 				zone.setZoneRegulation(regle);
 				System.out.println("found : " + regle.getLibelle_de_dul());

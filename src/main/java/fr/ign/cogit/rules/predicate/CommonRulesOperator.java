@@ -403,7 +403,6 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		case 20:
 		default:
 			System.err.println("Cas de hauteur non géré : valeur ; " + regle.getArt_10_top());
-			// max = p.getDouble(regle.getArt_10_1());
 		}
 		Double[] result = { min, max };
 		System.out.println("Hauteur max autorisée : " + max);

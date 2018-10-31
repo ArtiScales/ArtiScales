@@ -1,6 +1,8 @@
 package fr.ign.cogit;
 
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,11 +29,14 @@ import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.io.ParseException;
 
+import au.com.bytecode.opencsv.CSVReader;
+import au.com.bytecode.opencsv.CSVWriter;
 import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.outputs.XmlGen;
 import fr.ign.cogit.util.DataPreparator;
 import fr.ign.cogit.util.GetFromGeom;
 import fr.ign.cogit.util.SimuTool;
+import fr.ign.cogit.util.VectorFct;
 import fr.ign.parameters.Parameters;
 
 public class SelectParcels {
@@ -90,6 +95,7 @@ public class SelectParcels {
 		spatialConfigurations = spatialconfigurations;
 		// Paramètre si l'on découpe les parcelles ou non
 		zoningFile = GetFromGeom.getZoning(new File(rootFile, "dataRegul"));
+
 	}
 
 	// public static File run(File rootfile, File testFile, String zipcode, boolean
@@ -106,64 +112,64 @@ public class SelectParcels {
 		for (List<File> scenar : spatialConfigurations) {
 
 			List<File> listScenar = new ArrayList<File>();
-			Parameters p = SimuTool.getParamFile(lP, scenar.get(0).getName().split("-")[0]);
+			String scenarName = scenar.get(0).getName().split("-")[0];
+			Parameters p = SimuTool.getParamFile(lP, scenarName);
 			List<String> listeAction = selectionType(p);
 			for (File varianteSpatialConf : scenar) {
-//				spatialConf = varianteSpatialConf;
-//				parcelFile = GetFromGeom.getParcels(geoFile, tmpFile);
-//				ShapefileDataStore shpDSparcel = new ShapefileDataStore((parcelFile).toURI().toURL());
-//				SimpleFeatureCollection parcelCollection = shpDSparcel.getFeatureSource().getFeatures();
-//
-//				// Split parcels
-//				if (p.getString("splitParcel").equals("true")) {
-//					parcelCollection = VectorFct.generateSplitedParcels(GetFromGeom.selecParcelZonePLUmergeAU(parcelCollection, zoningFile, p), p);
-//					parcelCollection = VectorFct.generateSplitedParcels(parcelCollection, p);
-//				}
-//				if (p.getString("splitParcel").equals("AU")) {
-//					parcelCollection = VectorFct.generateSplitedParcels(GetFromGeom.selecParcelZonePLUmergeAU(parcelCollection, zoningFile, p), p);
-//				}
-//
-//				for (String action : listeAction) {
-//					System.out.println("---=+Pour le remplissage " + action + "+=---");
-//					switch (action) {
-//					case "Ubuilt":
-//						parcelCollection = runBrownfieldConstructed(parcelCollection);
-//						break;
-//					case "UnotBuilt":
-//						parcelCollection = runBrownfieldUnconstructed(parcelCollection);
-//						break;
-//					case "AUnotBuilt":
-//						parcelCollection = runGreenfieldSelected(parcelCollection);
-//						break;
-//					case "ALLnotBuilt":
-//						parcelCollection = runNaturalLand(parcelCollection);
-//						break;
-//					case "justEval":
-//						parcelCollection = runAll(parcelCollection);
-//						break;
-//					case "random":
-//						parcelCollection = random(parcelCollection);
-//						break;
-//					case "JustZoning":
-//						parcelCollection = runZoningAllowed(parcelCollection);
-//						break;
-//					}
-//				}
-//
-//				File parcelSelectedFile = Vectors.exportSFC(parcelCollection, new File(tmpFile, "parcelExport.shp"));
-				File parcelSelectedFile = new File("/home/mcolomb/informatique/ArtiScales/tmp/parcelExport.shp");
-				File packFile = new File(rootFile, "ParcelSelectionFile/" + scenar.get(0).getName().split("-")[0] + "/" + varianteSpatialConf.getName() + "/");
+				spatialConf = varianteSpatialConf;
+				parcelFile = GetFromGeom.getParcels(geoFile, regulFile, tmpFile);
+				ShapefileDataStore shpDSparcel = new ShapefileDataStore((parcelFile).toURI().toURL());
+				SimpleFeatureCollection parcelCollection = shpDSparcel.getFeatureSource().getFeatures();
+				Vectors.exportSFC(parcelCollection, new File(tmpFile, "parcelGenExport.shp"));
+				// Split parcels
+				if (p.getString("splitParcel").equals("true")) {
+					parcelCollection = VectorFct.generateSplitedParcels(GetFromGeom.selecParcelZonePLUmergeAU(parcelCollection, zoningFile, p), p);
+					parcelCollection = VectorFct.generateSplitedParcels(parcelCollection, p);
+				}
+				if (p.getString("splitParcel").equals("AU")) {
+					parcelCollection = VectorFct.generateSplitedParcels(GetFromGeom.selecParcelZonePLUmergeAU(parcelCollection, zoningFile, p), p);
+				}
+				for (String action : listeAction) {
+					System.out.println("---=+Pour le remplissage " + action + "+=---");
+					switch (action) {
+					case "Ubuilt":
+						parcelCollection = runBrownfieldConstructed(parcelCollection);
+						break;
+					case "UnotBuilt":
+						parcelCollection = runBrownfieldUnconstructed(parcelCollection);
+						break;
+					case "AUnotBuilt":
+						parcelCollection = runGreenfieldSelected(parcelCollection);
+						break;
+					case "ALLnotBuilt":
+						parcelCollection = runNaturalLand(parcelCollection);
+						break;
+					case "justEval":
+						parcelCollection = runAll(parcelCollection);
+						break;
+					case "random":
+						parcelCollection = random(parcelCollection, 10000);
+						break;
+					case "JustZoning":
+						parcelCollection = runZoningAllowed(parcelCollection);
+						break;
+					}
+				}
+
+				File parcelSelectedFile = Vectors.exportSFC(parcelCollection, new File(varianteSpatialConf, "parcelGenExport.shp"));
+				// File parcelSelectedFile = new File("/home/mcolomb/informatique/ArtiScales/tmp/parcelExport.shp");
+				File packFile = new File(rootFile, "ParcelSelectionFile/" + scenarName + "/" + varianteSpatialConf.getParentFile().getName() + "/");
 
 				packFile.mkdirs();
 
 				separateToDifferentPack(parcelSelectedFile, packFile);
 				listScenar.add(packFile);
 
-				// shpDSparcel.dispose();
+				shpDSparcel.dispose();
 			}
 			selectionFile.add(listScenar);
 		}
-		SimuTool.deleteDirectoryStream(tmpFile.toPath());
+		// SimuTool.deleteDirectoryStream(tmpFile.toPath());
 		return selectionFile;
 
 	}
@@ -259,7 +265,6 @@ public class SelectParcels {
 	 * @throws Exception
 	 */
 	public SimpleFeatureCollection runBrownfieldConstructed(SimpleFeatureCollection parcelSFC) throws Exception {
-
 		SimpleFeatureIterator parcelIt = parcelSFC.features();
 
 		DefaultFeatureCollection result = new DefaultFeatureCollection();
@@ -270,8 +275,8 @@ public class SelectParcels {
 		try {
 			while (parcelIt.hasNext()) {
 				SimpleFeature parcel = parcelIt.next();
-				if (isParcelInZone(parcel, "U")) {
-					if (isParcelBuilt(parcel)) {
+				if ((boolean) parcel.getAttribute("U")) {
+					if ((boolean) parcel.getAttribute("IsBuild")) {
 						if (isParcelInCell(parcel, cellsSFS)) {
 							parcel.setAttribute("DoWeSimul", "true");
 							parcel.setAttribute("eval", getEvalInParcel(parcel));
@@ -308,8 +313,8 @@ public class SelectParcels {
 		try {
 			while (parcelIt.hasNext()) {
 				SimpleFeature parcel = parcelIt.next();
-				if (isParcelInZone(parcel, "U")) {
-					if (!isParcelBuilt(parcel)) {
+				if ((boolean) parcel.getAttribute("U")) {
+					if (!(boolean) parcel.getAttribute("IsBuild")) {
 						if (isParcelInCell(parcel, cellsSFS)) {
 							parcel.setAttribute("DoWeSimul", "true");
 							parcel.setAttribute("eval", getEvalInParcel(parcel));
@@ -340,14 +345,13 @@ public class SelectParcels {
 		try {
 			while (parcelIt.hasNext()) {
 				SimpleFeature parcel = parcelIt.next();
-				if (isParcelInZone(parcel, "U")) {
-					if (!isParcelBuilt(parcel)) {
-						if (isParcelInCell(parcel, cellsSFS)) {
-							parcel.setAttribute("DoWeSimul", "true");
-							parcel.setAttribute("eval", getEvalInParcel(parcel));
-						} else {
-							parcel.setAttribute("DoWeSimul", "false");
-						}
+				if ((boolean) parcel.getAttribute("AU")) {
+					if (isParcelInCell(parcel, cellsSFS)) {
+						parcel.setAttribute("DoWeSimul", "true");
+						parcel.setAttribute("eval", getEvalInParcel(parcel));
+					} else {
+						parcel.setAttribute("DoWeSimul", "false");
+
 					}
 				}
 				result.add(parcel);
@@ -381,7 +385,7 @@ public class SelectParcels {
 		try {
 			while (parcelIt.hasNext()) {
 				SimpleFeature parcel = parcelIt.next();
-				if (isParcelInZone(parcel, "N") || isParcelInZone(parcel, "A") || isParcelInZone(parcel, "NC")) {
+				if ((boolean) parcel.getAttribute("NC")) {
 					if (isParcelInCell(parcel, cellsSFS)) {
 						parcel.setAttribute("DoWeSimul", "true");
 						parcel.setAttribute("eval", getEvalInParcel(parcel));
@@ -440,7 +444,7 @@ public class SelectParcels {
 		return result.collection();
 	}
 
-	public SimpleFeatureCollection random(SimpleFeatureCollection parcelSFC) throws Exception {
+	public SimpleFeatureCollection random(SimpleFeatureCollection parcelSFC, int nb) throws Exception {
 		return null;
 		// TODO develop such?
 	}
@@ -461,7 +465,7 @@ public class SelectParcels {
 		try {
 			while (parcelIt.hasNext()) {
 				SimpleFeature parcel = parcelIt.next();
-				if (isParcelInZone(parcel, "U") || isParcelInZone(parcel, "AU")) {
+				if ((boolean) parcel.getAttribute("U") || (boolean) parcel.getAttribute("AU")) {
 					if (isParcelInCell(parcel, cellsSFS)) {
 						parcel.setAttribute("DoWeSimul", "true");
 						parcel.setAttribute("eval", getEvalInParcel(parcel));
@@ -502,38 +506,38 @@ public class SelectParcels {
 
 	}
 
-	public boolean isParcelInZone(SimpleFeature parcelIn, String typeZone) throws Exception {
-
-		// import of the MUP-City outputs (cache to be a lil more fast)
-		SimpleFeatureCollection zoneCollection = null;
-		if (!(parcelUFilled && parcelAUFilled)) {
-			zoneCollection = GetFromGeom.selecParcelZoning(typeZone, parcelFile, zoningFile);
-			if (typeZone.equals("U")) {
-				parcelU = zoneCollection;
-				parcelUFilled = true;
-			} else if (typeZone.equals("AU")) {
-				parcelAU = zoneCollection;
-				parcelAUFilled = true;
-			}
-		} else {
-			if (typeZone.equals("U")) {
-				zoneCollection = parcelU;
-			} else if (typeZone.equals("AU")) {
-				zoneCollection = parcelAU;
-			} else {
-				System.out.println("problem");
-			}
-		}
-
-		if (zoneCollection.contains(parcelIn)) {
-
-			return true;
-
-		} else {
-			return false;
-		}
-
-	}
+	// public boolean isParcelInZone(SimpleFeature parcelIn, String typeZone) throws Exception {
+	//
+	// // import of the MUP-City outputs (cache to be a lil more fast)
+	// SimpleFeatureCollection zoneCollection = null;
+	// if (!(parcelUFilled && parcelAUFilled)) {
+	// zoneCollection = GetFromGeom.selecParcelZoning(typeZone, parcelFile, zoningFile);
+	// if (typeZone.equals("U")) {
+	// parcelU = zoneCollection;
+	// parcelUFilled = true;
+	// } else if (typeZone.equals("AU")) {
+	// parcelAU = zoneCollection;
+	// parcelAUFilled = true;
+	// }
+	// } else {
+	// if (typeZone.equals("U")) {
+	// zoneCollection = parcelU;
+	// } else if (typeZone.equals("AU")) {
+	// zoneCollection = parcelAU;
+	// } else {
+	// System.out.println("problem");
+	// }
+	// }
+	//
+	// if (zoneCollection.contains(parcelIn)) {
+	//
+	// return true;
+	//
+	// } else {
+	// return false;
+	// }
+	//
+	// }
 
 	public SimpleFeatureCollection mergeParcels(SimpleFeatureCollection parcelIn) throws NoSuchAuthorityCodeException, FactoryException, IOException {
 
@@ -667,7 +671,7 @@ public class SelectParcels {
 
 		shpDSBati.dispose();
 
-		if (((Geometry) parcelIn.getDefaultGeometryProperty()).contains(batiUnion)) {
+		if (((Geometry) parcelIn.getDefaultGeometry()).contains(batiUnion)) {
 			return true;
 		}
 		return false;
@@ -696,7 +700,7 @@ public class SelectParcels {
 	}
 
 	public void separateToDifferentPack(File parcelCollection, File fileOut) throws Exception {
-	
+
 		DataPreparator.createPackages(parcelCollection, tmpFile, fileOut);
 
 		for (File pack : fileOut.listFiles()) {
@@ -706,10 +710,11 @@ public class SelectParcels {
 			if (!fBBox.exists()) {
 				System.err.print("bbox of pack not generated");
 			}
-			
+
 			File snapPack = new File(pack, "geoSnap");
 			snapPack.mkdirs();
 
+			// by defalut, creation of empty shapefiles (better empty than non extitant
 			createPackOfEmptyShp(snapPack);
 
 			ShapefileDataStore build_datastore = new ShapefileDataStore(GetFromGeom.getBati(geoFile).toURI().toURL());
@@ -741,6 +746,40 @@ public class SelectParcels {
 			SimpleFeatureCollection prescSurfFeatures = prescSurf_datastore.getFeatureSource().getFeatures();
 			Vectors.exportSFC(Vectors.snapDatas(prescSurfFeatures, fBBox), new File(snapPack, "prescSurf.shp"));
 			prescSurf_datastore.dispose();
+
+			// selection of the right lives from the predicate file
+			// CSV tools
+			CSVReader predicate = new CSVReader(new FileReader(new File(rootFile, "dataRegul/predicate.csv")));
+			// CSVWriter newPredicate = new CSVWriter(new FileWriter(new File(pack, "snapPredicate.csv")),",","","");
+
+			CSVWriter newPredicate = new CSVWriter(new FileWriter(new File(pack, "snapPredicate.csv")), ',', '\0');
+
+			// get insee numbers needed
+			List<String> insee = new ArrayList<String>();
+			ShapefileDataStore sds = new ShapefileDataStore((new File(pack, "parcelle.shp")).toURI().toURL());
+			SimpleFeatureIterator itParc = sds.getFeatureSource().getFeatures().features();
+			try {
+				while (itParc.hasNext()) {
+					String inseeTemp = (String) itParc.next().getAttribute("INSEE");
+					if (!insee.contains(inseeTemp)) {
+						insee.add(inseeTemp);
+					}
+				}
+			} catch (Exception problem) {
+				problem.printStackTrace();
+			} finally {
+				itParc.close();
+			}
+			sds.dispose();
+			newPredicate.writeNext(predicate.readNext());
+			for (String[] line : predicate.readAll()) {
+				for (String nIinsee : insee)
+					if (line[1].equals(nIinsee)) {
+						newPredicate.writeNext(line);
+					}
+			}
+			predicate.close();
+			newPredicate.close();
 		}
 	}
 

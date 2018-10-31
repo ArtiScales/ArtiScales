@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
-import org.apache.commons.io.filefilter.FileFileFilter;
-
 import fr.ign.cogit.indicators.BuildingToHousingUnit;
 import fr.ign.cogit.util.SimuTool;
 import fr.ign.parameters.Parameters;
@@ -31,9 +29,9 @@ public class MainTask {
 		// general parameters
 
 		// list of different scenarios to test
-		 List<Parameters> listScenarios = getParamFile("MCIgn", new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet"));
+		List<Parameters> listScenarios = getParamFile("MCIgn", new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet"));
 
-//		List<Parameters> listScenarios = getParamFile("scenar0MKDom", new File("/home/mbrasebin/Documents/Code/ArtiScales/ArtiScales/src/main/resources/paramSet/"));
+		// List<Parameters> listScenarios = getParamFile("scenar0MKDom", new File("/home/mbrasebin/Documents/Code/ArtiScales/ArtiScales/src/main/resources/paramSet/"));
 
 		rootFile = new File(listScenarios.get(0).getString("rootFile"));
 		geoFile = new File(rootFile, "dataGeo");
@@ -87,7 +85,7 @@ public class MainTask {
 		////////////////
 		// Selection and parcel management part
 		////////////////
-
+		System.out.println(mupCityOutput);
 		// File parcelPackages = parcelManagerSelectionAndPack();
 		SelectParcels selecPar = new SelectParcels(rootFile, mupCityOutput, listScenarios);
 		List<List<File>> parcelPackages = selecPar.run();
@@ -98,9 +96,10 @@ public class MainTask {
 		List<List<List<File>>> buildingSimulatedPerSimu = new ArrayList<List<List<File>>>();
 		for (List<File> listVariantes : parcelPackages) {
 			List<List<File>> buildingSimulatedPerScenar = new ArrayList<List<File>>();
-			String scenarName = listVariantes.get(0).getName().split("-")[0];
+			String scenarName = listVariantes.get(0).getParentFile().getName();
 			for (File varianteFile : listVariantes) {
 				List<File> buildingSimulatedPerVariant = new ArrayList<File>();
+				System.out.println(scenarName);
 				Parameters p = SimuTool.getParamFile(listScenarios, scenarName);
 				for (File packFile : varianteFile.listFiles()) {
 					SimPLUSimulator simPluSim = new SimPLUSimulator(rootFile, packFile, p);
@@ -125,11 +124,10 @@ public class MainTask {
 				bTHFile.mkdirs();
 				BuildingToHousingUnit bTH = new BuildingToHousingUnit(buildingSimulatedPerVariant, bTHFile, p);
 				bTH.runParticularSimpleEstimation();
+				bTH.simpleCityEstimate();
 			}
 		}
 	}
-
-
 
 	public static Hashtable<String, String[]> prepareVariant(Parameters p) {
 		Hashtable<String, String[]> variants = new Hashtable<String, String[]>();

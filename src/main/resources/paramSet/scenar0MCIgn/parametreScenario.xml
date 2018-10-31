@@ -6,26 +6,10 @@
 	<!-- Nom du scénario -->
 	<param key="nom" value="teststp" />
 
-	<!-- Mode de fonctionnement d'ArtiScales -->
-	<!-- Si true, le modèle s'arrête quand les objectifs de création de logement 
-		du SCoT sont atteind -->
-	<!-- Si false, le modèle urbanise toutes les parcelles sans tenir compte 
-		du nombre de logements construits -->
-	<param key="fill" value="false" />
-
-	<!-- Liste des villes à prendre en compte dans la simulation (séparer les 
-		codes postaux par des virgules) -->
-	<param key="listZipCode" value="25265" />
-
 	<!-- Dossiers et fichiers nécessaires à la simulation -->
-	<!-- Emplacement des résultats de simulation (intermédiaires et finaux) -->
+	<!-- Emplacement de la simulation (données d'entrée, résultats intermédiaires et finaux) -->
 	<param key="rootFile" value="/home/mcolomb/informatique/ArtiScales/" />
-	<!-- Nom du fichier contenant la modélisation du règlement des PLU -->
-	<param key="pluPredicate"
-		value="/home/mcolomb/workspace/ArtiScales/saisiePLUtxt/predicate-19-09.csv" />
-	<!-- Nom du fichier contenant les parcelles sélectionnées (si elles existent 
-		au préalable) -->
-	<param key="selectedParcelFile" value="/home/mcolomb/tmp/pau/PAU.shp" />
+
 		
 	<!-- PARAMETRES DU MODULE MUP-CITY -->
 
@@ -84,17 +68,17 @@
 
 			<!-- si "true", la sélection n'est composée que de parcelles situées dans 
 				les zones U et AU -->
-			<param key="JustZoning" value="true" />
+			<param key="JustZoning" value="false" />
 			<!-- Sélectionne les parcelles situées dans les zones U sur des terrains 
 				déjà construits -->
-			<param key="Ubuilt" value="true" />
+			<param key="Ubuilt" value="false" />
 			<!-- Sélectionne les parcelles situées dans les zones U sur des terrains 
 				non-construits -->
 			<param key="UnotBuilt" value="true" />
 			<!-- Types de sélections situées dans les zones AU -->
 			<param key="AUnotBuilt" value="true" />
 			<!-- Types de sélections situées dans les zones A et N -->
-			<param key="ALLnotBuilt" value="true" />
+			<param key="ALLnotBuilt" value="false" />
 
 			<!-- Autre types de sélection pour les modes 'fill' -->
 			<!-- Sélection de toutes les parcelles ordonnée selon l'évaluation des cellules 
@@ -130,7 +114,7 @@
 			<param key="RECOIL" value="false"/>
 			<param key="TVB" value="true"/>
 			
-			<!--Bornes des dimensions des cuboïdes simulées -->
+		<!--Bornes des dimensions des cuboïdes simulées -->
 			<!-- Largeur -->
 			<param key="minlen" value="7" />
 			<param key="maxlen" value="15" />
@@ -156,6 +140,13 @@
 		<param key="HousingUnitSize" value="100" />
 		<param key="heightStair" value="3" />
 		<param key="surfPlaceParking" value="12.5" />
+	
+	<!-- Mode de fonctionnement d'ArtiScales -->
+	<!-- Si true, le modèle s'arrête quand les objectifs de création de logement 
+		du SCoT sont atteind -->
+	<!-- Si false, le modèle urbanise toutes les parcelles sans tenir compte 
+		du nombre de logements construits -->
+	<param key="fill" value="false" />
 
 </parameters>
 

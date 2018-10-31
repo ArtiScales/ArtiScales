@@ -47,7 +47,7 @@ public class PAUDigger {
 
 	public static void main(String[] args) throws Exception {
 		
-		DirectPosition.PRECISION=4;
+		DirectPosition.PRECISION = 4;
 		
 		File outFile = new File("/media/mcolomb/Data_2/donnee/DocLocal/");
 

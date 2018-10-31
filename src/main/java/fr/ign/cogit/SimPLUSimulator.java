@@ -93,55 +93,55 @@ public class SimPLUSimulator {
 
 	public static void main(String[] args) throws Exception {
 
-//		 /*
-//		 * String folderGeo = "/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales/donneeGeographiques/"; String zoningFile =
-//		 * "/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales/donneeGeographiques/PLU/ Zonage_CAGB_INSEE_25495.shp" ; String folderOut = "/tmp/tmp/";
-//		 *
-//		 * File f = Vectors.snapDatas(GetFromGeom.getRoute(new File(folderGeo)), new File(zoningFile), new File(folderOut));
-//		 *
-//		 * System.out.println(f.getAbsolutePath());
-//		 */
-//		
-//		 List<File> lF = new ArrayList<>();
-//		 // Line to change to select the right scenario
-//		
-//		 String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenar0MKDom/").getPath();
-//		
-//		 System.out.println(rootParam);
-//		
-//		 lF.add(new File(rootParam + "parametreTechnique.xml"));
-//		 lF.add(new File(rootParam + "parametreScenario.xml"));
-//		
-//		 Parameters p = Parameters.unmarshall(lF);
-//		
-//		 System.out.println(p.getString("nom"));
-//		 // Rappel de la construction du code :
-//		
-//		 // 1/ Basically the parcels are filtered on the code with the following
-//		 // attributes
-//		 // codeDep + codeCom + comAbs + section + numero
-//		
-//		 // 2/ Alternatively we can decided to active an attribute (Here id)
-//		 AttribNames.setATT_CODE_PARC("CODE");
-//		
-//		 // ID_PARCELLE_TO_SIMULATE.add("25495000AE0102"); //Test for a simulation
-//		 // with 1 regulation
-//		
-//		 USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
-//		 // ID_PARCELLE_TO_SIMULATE.add("25078000ZE01265"); // Test for a simulation with
-//		 // 3 regulations on 3 sub
-//		 // parcels
-//		
-//		 // RootFolder
-//		 File rootFolder = new File(p.getString("rootFile"));
-//		 // Selected parcels shapefile
-//		 File selectedParcels = new File(p.getString("selectedParcelFile"));
-//		
-//		 SimPLUSimulator simplu = new SimPLUSimulator(rootFolder, selectedParcels, p);
-//		
-//		 simplu.run();
-//		 // SimPLUSimulator.fillSelectedParcels(new File(rootFolder), geoFile,
-//		 // pluFile, selectedParcels, 50, "25495", p);
+		// /*
+		// * String folderGeo = "/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales/donneeGeographiques/"; String zoningFile =
+		// * "/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales/donneeGeographiques/PLU/ Zonage_CAGB_INSEE_25495.shp" ; String folderOut = "/tmp/tmp/";
+		// *
+		// * File f = Vectors.snapDatas(GetFromGeom.getRoute(new File(folderGeo)), new File(zoningFile), new File(folderOut));
+		// *
+		// * System.out.println(f.getAbsolutePath());
+		// */
+		//
+		// List<File> lF = new ArrayList<>();
+		// // Line to change to select the right scenario
+		//
+		// String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenar0MKDom/").getPath();
+		//
+		// System.out.println(rootParam);
+		//
+		// lF.add(new File(rootParam + "parametreTechnique.xml"));
+		// lF.add(new File(rootParam + "parametreScenario.xml"));
+		//
+		// Parameters p = Parameters.unmarshall(lF);
+		//
+		// System.out.println(p.getString("nom"));
+		// // Rappel de la construction du code :
+		//
+		// // 1/ Basically the parcels are filtered on the code with the following
+		// // attributes
+		// // codeDep + codeCom + comAbs + section + numero
+		//
+		// // 2/ Alternatively we can decided to active an attribute (Here id)
+		// AttribNames.setATT_CODE_PARC("CODE");
+		//
+		// // ID_PARCELLE_TO_SIMULATE.add("25495000AE0102"); //Test for a simulation
+		// // with 1 regulation
+		//
+		// USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
+		// // ID_PARCELLE_TO_SIMULATE.add("25078000ZE01265"); // Test for a simulation with
+		// // 3 regulations on 3 sub
+		// // parcels
+		//
+		// // RootFolder
+		// File rootFolder = new File(p.getString("rootFile"));
+		// // Selected parcels shapefile
+		// File selectedParcels = new File(p.getString("selectedParcelFile"));
+		//
+		// SimPLUSimulator simplu = new SimPLUSimulator(rootFolder, selectedParcels, p);
+		//
+		// simplu.run();
+		// // SimPLUSimulator.fillSelectedParcels(new File(rootFolder), geoFile,
+		// // pluFile, selectedParcels, 50, "25495", p);
 
 		File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/scenar0MCIgn");
 		List<File> lF = new ArrayList<>();
@@ -149,13 +149,14 @@ public class SimPLUSimulator {
 		lF.add(new File(rootParam, "parametreScenario.xml"));
 
 		Parameters p = Parameters.unmarshall(lF);
-		 
 		AttribNames.setATT_CODE_PARC("CODE");
 		USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
-		
-		SimPLUSimulator sim = new SimPLUSimulator(new File(p.getString("rootFile")), new File(
-				"/home/mcolomb/informatique/ArtiScales/ParcelSelectionFile/teststp/teststp-DataSys-CM20.0-S0.0-GP_915948.0_6677337.0--N5_Ba_ahpx_seed_1213-evalAnal-20.0.shp/29"),p);
-		sim.run();
+		File f = new File("/home/mcolomb/informatique/ArtiScales/ParcelSelectionFile/teststp/variant0/");
+
+		for (File ff : f.listFiles()) {
+			SimPLUSimulator sim = new SimPLUSimulator(new File("/home/mcolomb/informatique/ArtiScales/"), ff, p);
+			sim.run();
+		}
 	}
 
 	/**
@@ -186,22 +187,21 @@ public class SimPLUSimulator {
 		this.pSaved = pa;
 		this.rootFile = rootfile;
 
-		// if it's a test mode - file could be stored into the param files
-		if (packFile == null || packFile.equals("")) {
-			packFile = new File(p.getString("simu"));
-		}
-
 		simuFile = packFile;
 		parcelsFile = new File(packFile, "/parcelle.shp");
-		zoningFile = new File(packFile, "/snap/zoning.shp");
-		buildFile = new File(packFile, "/snap/building.shp");
-		roadFile = new File(packFile, "/snap/road.shp");
+		zoningFile = new File(packFile, "/geoSnap/zoning.shp");
+		buildFile = new File(packFile, "/geoSnap/building.shp");
+		roadFile = new File(packFile, "/geoSnap/road.shp");
 
-		predicateFile = new File(rootFile, "dataRegul/predicate.csv");
+		predicateFile = new File(packFile, "snapPredicate.csv");
 
-		filePrescPonct = new File(packFile, "/snap/prescPonct.shp");
-		filePrescLin = new File(packFile, "/snap/prescLin.shp");
-		filePrescSurf = new File(packFile, "/snap/prescSurf.shp");
+		filePrescPonct = new File(packFile, "/geoSnap/prescPonct.shp");
+		filePrescLin = new File(packFile, "/geoSnap/prescLin.shp");
+		filePrescSurf = new File(packFile, "/geoSnap/prescSurf.shp");
+
+		if (!zoningFile.exists()) {
+			System.err.print("error : zoning files not found");
+		}
 
 	}
 
@@ -304,7 +304,7 @@ public class SimPLUSimulator {
 				listBatiSimu.add(file);
 			}
 		}
-		
+
 		// Not results
 		if (listBatiSimu.isEmpty()) {
 			System.out.println("&&&&&&&&&&&&&& Aucun bâtiment n'a été simulé &&&&&&&&&&&&&&");
@@ -404,40 +404,41 @@ public class SimPLUSimulator {
 		List<Cuboid> cubes = cc.getGraph().vertexSet().stream().map(x -> x.getValue()).collect(Collectors.toList());
 		SDPCalc surfGen = new SDPCalc();
 		double surfacePlancherTotal = surfGen.process(cubes);
-		//TODO return null
+		// TODO return null - fix it
 		double surfaceAuSol = surfGen.processSurface(cubes);
 
 		// get multiple zone regulation infos infos
 		List<String> typeZones = new ArrayList<>();
 		List<String> libelles = new ArrayList<>();
+		String libellesFinal = "";
+		String typeZonesFinal = "";
 
 		// if multiple parts of a parcel has been simulated, put a long name containing them all
-		for (SubParcel subParcel : bPU.getCadastralParcels().get(0).getSubParcels()) {
-			String temporaryTypeZone = subParcel.getUrbaZone().getTypeZone();
-			String temporarylibelle = subParcel.getUrbaZone().getLibelle();
-			if (!typeZones.contains(temporaryTypeZone)) {
-				typeZones.add(temporaryTypeZone);
+		try {
+			for (SubParcel subParcel : bPU.getCadastralParcels().get(0).getSubParcels()) {
+				String temporaryTypeZone = subParcel.getUrbaZone().getTypeZone();
+				String temporarylibelle = subParcel.getUrbaZone().getLibelle();
+				if (!typeZones.contains(temporaryTypeZone)) {
+					typeZones.add(temporaryTypeZone);
+				}
+				if (!libelles.contains(temporarylibelle)) {
+					libelles.add(temporarylibelle);
+				}
 			}
-			if (!libelles.contains(temporarylibelle)) {
-				libelles.add(temporarylibelle);
+			for (String typeZoneTemp : typeZones) {
+				typeZonesFinal = typeZonesFinal + typeZoneTemp + "+";
 			}
-		}
+			typeZonesFinal = typeZonesFinal.substring(0, typeZonesFinal.length() - 1);
 
-		String typeZonesFinal = "";
-		for (String typeZoneTemp : typeZones) {
-			typeZonesFinal = typeZonesFinal + typeZoneTemp + "+";
-		}
-		if (typeZonesFinal.endsWith("+")) {
-			typeZonesFinal.substring(0, typeZonesFinal.length() - 1);
-		}
-		String libellesFinal = "";
-		for (String libelleTemp : libelles) {
-			libellesFinal = libellesFinal + libelleTemp + "+";
-		}
-		if (libellesFinal.endsWith("+")) {
-			libellesFinal.substring(0, libellesFinal.length() - 1);
-		}
+			for (String libelleTemp : libelles) {
+				libellesFinal = libellesFinal + libelleTemp + "+";
+			}
+			libellesFinal = libellesFinal.substring(0, libellesFinal.length() - 1);
 
+		} catch (NullPointerException np) {
+			libellesFinal = "NC";
+			typeZonesFinal = "NC";
+		}
 		// Writting the output
 		IFeatureCollection<IFeature> iFeatC = new FT_FeatureCollection<>();
 
@@ -468,8 +469,9 @@ public class SimPLUSimulator {
 
 		// méthode de calcul d'aire simpliste
 
-		File output = new File(SimuTool.createScenarVariantFolders(simuFile,rootFile,"SimPLUDepot"), "out-parcelle_" + bPU.getCadastralParcels().get(0).getCode() + ".shp");
-System.out.println("Output in : "+output);
+		// TODO sortir ça de cette méthode
+		File output = new File(SimuTool.createScenarVariantFolders(simuFile, rootFile, "SimPLUDepot"), "out-parcelle_" + bPU.getCadastralParcels().get(0).getCode() + ".shp");
+		System.out.println("Output in : " + output);
 		ShapefileWriter.write(iFeatC, output.toString(), CRS.decode("EPSG:2154"));
 
 		if (!output.exists()) {

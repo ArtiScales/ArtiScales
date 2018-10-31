@@ -9,10 +9,8 @@ import fr.ign.cogit.simplu3d.util.distribution.ZonePackager;
 
 public class DataPreparator {
 
-	
 	public static void createPackages(File fileIn, File folderTemp, File folderOut) throws Exception {
 
-		
 		ZonePackager.ATTRIBUTE_SIMUL = "DoWeSimul";
 
 		// Attributs pour reconstituer le IDPAR
@@ -21,7 +19,6 @@ public class DataPreparator {
 		ZonePackager.ATTRIBUTE_PREFIXE = "COM_ABS";
 		ZonePackager.ATTRIBUTE_SECTION = "SECTION";
 		ZonePackager.ATTRIBUTE_NUMERO = "NUMERO";
-
 
 		// Rayon autour duquel des parcelles sont ajoutées au contexte sans être
 		// simulées.
@@ -36,7 +33,6 @@ public class DataPreparator {
 
 		ZonePackager.createParcelGroupsAndExport(parcelles, numberOfParcels, areaMax, folderTemp.getAbsolutePath(), folderOut.getAbsolutePath(), true);
 
-
 	}
-	
+
 }

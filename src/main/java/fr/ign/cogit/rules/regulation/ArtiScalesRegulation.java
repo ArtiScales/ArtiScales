@@ -20,7 +20,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 
 	// Les intitulés des colonnes
 	private int insee, oap, fonctions, zonage_coherent, correction_zonage, art_3, art_4, art_71, art_74, art_10_top;
-	private String libelle_zone, libelle_de_base, libelle_de_dul,art_6, art_6_opt, art_6_optD,  art_12, art_14,art_10_1;
+	private String libelle_zone, libelle_de_base, libelle_de_dul, art_6, art_6_opt, art_6_optD, art_12, art_14, art_10_1;
 
 	private double art_5, art_72, art_73, art_8, art_9, art_13;
 
@@ -120,24 +120,19 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	}
 
 	public ArtiScalesRegulation clone() {
-		return new ArtiScalesRegulation(libelle_zone, insee, libelle_de_base, libelle_de_dul, fonctions, oap,
-				zonage_coherent, correction_zonage, art_3, art_4, art_5, art_6, art_6_opt, art_6_optD, art_71, art_72,
-				art_73, art_74, art_8, art_9, art_10_top, art_10_1, art_12, art_13, art_14);
+		return new ArtiScalesRegulation(libelle_zone, insee, libelle_de_base, libelle_de_dul, fonctions, oap, zonage_coherent, correction_zonage, art_3, art_4, art_5, art_6,
+				art_6_opt, art_6_optD, art_71, art_72, art_73, art_74, art_8, art_9, art_10_top, art_10_1, art_12, art_13, art_14);
 	}
 
 	public String toCSVLine() {
-		return libelle_zone + "," + insee + "," + libelle_de_base + "," + libelle_de_dul + "," + fonctions + "," + oap
-				+ "," + zonage_coherent + "," + correction_zonage + "," + art_3 + "," + art_4 + "," + art_5 + ","
-				+ art_6 + "," + art_6_opt + "," + art_6_optD + "," + art_71 + "," + art_72 + "," + art_73 + "," + art_74
-				+ "," + art_8 + "," + art_9 + "," + art_10_top + "," + art_10_1 + "," +  art_12 + ","
-				+ art_13 + "," + art_14;
+		return libelle_zone + "," + insee + "," + libelle_de_base + "," + libelle_de_dul + "," + fonctions + "," + oap + "," + zonage_coherent + "," + correction_zonage + ","
+				+ art_3 + "," + art_4 + "," + art_5 + "," + art_6 + "," + art_6_opt + "," + art_6_optD + "," + art_71 + "," + art_72 + "," + art_73 + "," + art_74 + "," + art_8
+				+ "," + art_9 + "," + art_10_top + "," + art_10_1 + "," + art_12 + "," + art_13 + "," + art_14;
 	}
 
-	public ArtiScalesRegulation(String libelle_zone, int insee, String libelle_de_base, String libelle_de_dul,
-			int fonctions, int oap, int zonage_coherent, int correction_zonage, int art_3, int art_4, double art_5,
-			String art_6, String art_6_opt, String art_6_optD, int art_71, double art_72, double art_73, int art_74,
-			double art_8, double art_9, int art_10_top, String art_10_1,  String art_12, double art_13,
-			String art_14) {
+	public ArtiScalesRegulation(String libelle_zone, int insee, String libelle_de_base, String libelle_de_dul, int fonctions, int oap, int zonage_coherent, int correction_zonage,
+			int art_3, int art_4, double art_5, String art_6, String art_6_opt, String art_6_optD, int art_71, double art_72, double art_73, int art_74, double art_8, double art_9,
+			int art_10_top, String art_10_1, String art_12, double art_13, String art_14) {
 		super();
 		this.libelle_zone = libelle_zone;
 		this.insee = insee;
@@ -190,7 +185,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 		if (this.art_9 == 99) {
 			this.art_9 = 1;
 		}
-		
+
 		if (this.art_13 == 99) {
 			this.art_13 = 0;
 		}
@@ -201,9 +196,8 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	}
 
 	/**
-	 * Charge les règlements et les stockes dans une Map avec Integer = Code_Imu et
-	 * List<Regulation> = la liste des règlements (= lignes du tableau) pour un code
-	 * IMU donné utilisation avec les objets de maxou
+	 * Charge les règlements et les stockes dans une Map avec Integer = Code_Imu et List<Regulation> = la liste des règlements (= lignes du tableau) pour un code IMU donné
+	 * utilisation avec les objets de maxou
 	 * 
 	 * @param file
 	 * @return
@@ -231,7 +225,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 			ArtiScalesRegulation r = new ArtiScalesRegulation(fLine, line);
 			// On regarde si le code imu a été rencontré auparavant
 			if (r != null) {
-				table.put(r.getLibelle_de_dul()+"-"+r.getInsee(), r);
+				table.put(r.getLibelle_de_dul() + "-" + r.getInsee(), r);
 			}
 
 		}
@@ -242,9 +236,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	}
 
 	/**
-	 * Charge les règlements et les stockes dans une Map avec Integer = Code_Imu et
-	 * List<Regulation> = la liste des règlements (= lignes du tableau) pour un code
-	 * IMU donné
+	 * Charge les règlements et les stockes dans une Map avec Integer = Code_Imu et List<Regulation> = la liste des règlements (= lignes du tableau) pour un code IMU donné
 	 * 
 	 * @param file
 	 * @return
@@ -257,14 +249,11 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 
 	@Override
 	public String toString() {
-		return "ArtiScalesRegulation [libelle_zone=" + libelle_zone + ", insee=" + insee + ", libelle_de_base="
-				+ libelle_de_base + ", libelle_de_dul=" + libelle_de_dul + ", fonctions=" + fonctions + ", oap=" + oap
-				+ ", zonage_coherent=" + zonage_coherent + ", correction_zonage=" + correction_zonage + ", art_3="
-				+ art_3 + ", art_4=" + art_4 + ", art_5=" + art_5 + ", art_6=" + art_6 + ", art_6_opt=" + art_6_opt
-				+ ", art_6_optD=" + art_6_optD + ", art_71=" + art_71 + ", art_72=" + art_72 + ", art_73=" + art_73
-				+ ", art_74=" + art_74 + ", art_8=" + art_8 + ", art_9=" + art_9 + ", art_10_top=" + art_10_top
-				+ ", art_10=" + art_10_1 +  ", " + "art_12=" + art_12 + ", art_13=" + art_13
-				+ ", art_14=" + art_14 + "]";
+		return "ArtiScalesRegulation [libelle_zone=" + libelle_zone + ", insee=" + insee + ", libelle_de_base=" + libelle_de_base + ", libelle_de_dul=" + libelle_de_dul
+				+ ", fonctions=" + fonctions + ", oap=" + oap + ", zonage_coherent=" + zonage_coherent + ", correction_zonage=" + correction_zonage + ", art_3=" + art_3
+				+ ", art_4=" + art_4 + ", art_5=" + art_5 + ", art_6=" + art_6 + ", art_6_opt=" + art_6_opt + ", art_6_optD=" + art_6_optD + ", art_71=" + art_71 + ", art_72="
+				+ art_72 + ", art_73=" + art_73 + ", art_74=" + art_74 + ", art_8=" + art_8 + ", art_9=" + art_9 + ", art_10_top=" + art_10_top + ", art_10=" + art_10_1 + ", "
+				+ "art_12=" + art_12 + ", art_13=" + art_13 + ", art_14=" + art_14 + "]";
 	}
 
 	//////////// GETTERS AND SETTERS
@@ -505,8 +494,6 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	public void setArt_6_optD(String art_6_optD) {
 		this.art_6_optD = art_6_optD;
 	}
-
-
 
 	public void setArt_12(String art_12) {
 		this.art_12 = art_12;

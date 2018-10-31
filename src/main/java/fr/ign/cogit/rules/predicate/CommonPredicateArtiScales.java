@@ -360,8 +360,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 				if (art_6.contains("-")) {
 					double min = Double.valueOf(art_6.split("-")[0]);
 					double max = Double.valueOf(art_6.split("-")[1]);
-					if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, min) || 
-							!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, max, false)) {
+					if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, min) || !cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, max, false)) {
 						return false;
 					}
 				} else {

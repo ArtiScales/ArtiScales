@@ -96,12 +96,12 @@ public class MupCitySimulation {
 		dataHT.put("nU", "nonUrbaSys.shp");
 
 		System.out.println("----------Project creation and decomp----------");
-		MutablePair<String, File> projectFile = ProjectCreationDecompTask.run(name, geoFile, variantFile, xmin, ymin, width, height, 0, 0, dataHT, 14580, Double.valueOf(variant[1]),
-				Double.valueOf(variant[2]),true);
+		MutablePair<String, File> projectFile = ProjectCreationDecompTask.run(name, geoFile, variantFile, xmin, ymin, width, height, 0, 0, dataHT, 14580,
+				Double.valueOf(variant[1]), Double.valueOf(variant[2]), true);
 		System.out.println("----------Simulation task----------");
-		File result = SimulTask.run(projectFile.getRight(), projectFile.getLeft(), p.getInteger("N"), p.getBoolean("strict"), p.getDouble("ahp0"), p.getDouble("ahp1"), p.getDouble("ahp2"),
-				p.getDouble("ahp3"), p.getDouble("ahp4"), p.getDouble("ahp5"), p.getDouble("ahp6"), p.getDouble("ahp7"), p.getDouble("ahp8"), p.getBoolean("mean"),
-				Integer.valueOf(variant[5]), true);
+		File result = SimulTask.run(projectFile.getRight(), projectFile.getLeft(), p.getInteger("N"), p.getBoolean("strict"), p.getDouble("ahp0"), p.getDouble("ahp1"),
+				p.getDouble("ahp2"), p.getDouble("ahp3"), p.getDouble("ahp4"), p.getDouble("ahp5"), p.getDouble("ahp6"), p.getDouble("ahp7"), p.getDouble("ahp8"),
+				p.getBoolean("mean"), Integer.valueOf(variant[5]), true);
 		System.out.println("result : " + result);
 		System.out.println("----------End task----------");
 
@@ -109,7 +109,7 @@ public class MupCitySimulation {
 
 		double nivObs = Double.valueOf(variant[1]) * Double.valueOf(variant[4]);
 		for (File f : result.listFiles()) {
-				if (f.getName().endsWith("evalAnal-"+String.valueOf(nivObs)+".tif")) {
+			if (f.getName().endsWith("evalAnal-" + String.valueOf(nivObs) + ".tif")) {
 				System.out.println("returned : " + f);
 				return f;
 			}

@@ -15,7 +15,6 @@ import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 
 import au.com.bytecode.opencsv.CSVReader;
-import fr.ign.cogit.indicators.BuildingToHousingUnit;
 import fr.ign.parameters.Parameters;
 
 public class SimuTool {
