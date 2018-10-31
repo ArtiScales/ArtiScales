@@ -26,7 +26,7 @@ public class SimuTool {
 				return p;
 			}
 		}
-		throw new FileNotFoundException("pas de param file correspodnant");
+		throw new FileNotFoundException("no corresponding param file");
 	}
 
 	public static void deleteDirectoryStream(Path path) throws IOException {

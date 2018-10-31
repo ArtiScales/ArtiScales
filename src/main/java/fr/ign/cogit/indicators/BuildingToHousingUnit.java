@@ -244,8 +244,6 @@ public class BuildingToHousingUnit extends Indicators {
 
 					toParticularCSV(simuFile, "housingUnits.csv", getFirstlinePartCsv(), lineParticular);
 
-					// aggregate at the city's level -- find a way to make the aggregation
-
 					System.out.println("");
 				} catch (Exception problem) {
 					problem.printStackTrace();

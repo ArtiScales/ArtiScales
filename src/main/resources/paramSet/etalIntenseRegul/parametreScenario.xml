@@ -4,7 +4,7 @@
 	<!--PARAMÈTRES SCÉNARISTIQUES POUR LES SIMULATIONS AVEC ARTISCALES -->
 
 	<!-- Nom du scénario -->
-	<param key="nom" value="teststp" />
+	<param key="nom" value="intense-regulated-spread" />
 
 	<!-- Dossiers et fichiers nécessaires à la simulation -->
 	<!-- Emplacement de la simulation (données d'entrée, résultats intermédiaires et finaux) -->
@@ -17,7 +17,7 @@
 
 		<!-- Intensité du développement résidentiel. Les valeurs doivent être comprises 
 			entre 3 et 7 -->
-		<param key="N" value="5" />
+		<param key="N" value="6" />
 
 		<!-- Si "false", développement résidentiel globalement uniforme -->
 		<!-- Si "true", développement résidentiel très contrasté -->
@@ -92,9 +92,9 @@
 			toutes fondues puis décomposés -->
 		<!-- Si "AU", les parcelles situées dans les zones AU sont décomposées -->
 		<!-- Si "false", aucune parcelle ne sera décomposé -->
-		<param key="splitParcel" value="AU" />
+		<param key="splitParcel" value="false" />
 			<!-- Aire moyenne des parcelles découpées -->
-			<param key="maximalAreaSplitParcel" value="500" />
+			<param key="maximalAreaSplitParcel" value="300" />
 			<!-- Largeur minimum de la limite parcellaire donnant sur la voirie -->
 			<!-- Si aucune voirie adjacente à la parcelle, le découpage sera orienté 
 				aléatoirement -->
@@ -112,7 +112,7 @@
 			<param key="EMPLACEMENT_RESERVE" value="true"/>
 			<param key="ELEMENT_PAYSAGE" value="true"/>
 			<param key="RECOIL" value="false"/>
-			<param key="TVB" value="true"/>
+			<param key="TVB" value="false"/>
 			
 		<!--Bornes des dimensions des cuboïdes simulées -->
 			<!-- Largeur -->

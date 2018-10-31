@@ -156,12 +156,11 @@ public class SelectParcels {
 					}
 				}
 
-				// File parcelSelectedFile = new File("/home/mcolomb/informatique/ArtiScales/tmp/parcelExport.shp");
 				File packFile = new File(rootFile, "ParcelSelectionFile/" + scenarName + "/" + varianteSpatialConf.getParentFile().getName() + "/");
 
 				packFile.mkdirs();
-
 				File parcelSelectedFile = Vectors.exportSFC(parcelCollection, new File(packFile, "parcelGenExport.shp"));
+				// File parcelSelectedFile = new File("/home/mcolomb/informatique/ArtiScales/tmp/parcelExport.shp");
 
 				separateToDifferentPack(parcelSelectedFile, packFile);
 				listScenar.add(packFile);
@@ -170,7 +169,7 @@ public class SelectParcels {
 			}
 			selectionFile.add(listScenar);
 		}
-		// SimuTool.deleteDirectoryStream(tmpFile.toPath());
+		SimuTool.deleteDirectoryStream(tmpFile.toPath());
 		return selectionFile;
 
 	}

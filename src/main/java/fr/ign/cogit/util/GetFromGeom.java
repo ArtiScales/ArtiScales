@@ -34,6 +34,7 @@ import org.opengis.referencing.operation.TransformException;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryCollection;
+import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Polygon;
 
 import au.com.bytecode.opencsv.CSVReader;
@@ -55,7 +56,7 @@ public class GetFromGeom {
 	public static File getParcels(File geoFile, File regulFile, File currentFile) throws IOException, NoSuchAuthorityCodeException, FactoryException {
 		File result = new File("");
 		for (File f : geoFile.listFiles()) {
-			// TODO if full emprise : if (f.toString().contains("parcelle.shp")) {
+			// if full emprise : if (f.toString().contains("parcelle.shp")) {
 			if (f.toString().contains("parcel.shp")) {
 				result = f;
 			}
@@ -64,10 +65,6 @@ public class GetFromGeom {
 		SimpleFeatureCollection parcels = parcelSDS.getFeatureSource().getFeatures();
 
 		ShapefileDataStore shpDSBati = new ShapefileDataStore(GetFromGeom.getBati(geoFile).toURI().toURL());
-		SimpleFeatureCollection batiCollection = shpDSBati.getFeatureSource().getFeatures();
-
-		// on snap la couche de batiment et la met dans une géométrie unique
-		Geometry batiUnion = Vectors.unionSFC(batiCollection);
 
 		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
 		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
@@ -94,6 +91,7 @@ public class GetFromGeom {
 		DefaultFeatureCollection newParcel = new DefaultFeatureCollection();
 
 		int i = 0;
+		// int tot = parcels.size();
 		SimpleFeatureIterator parcelIt = parcels.features();
 		try {
 			while (parcelIt.hasNext()) {
@@ -104,8 +102,18 @@ public class GetFromGeom {
 				String INSEE = ((String) feat.getAttribute("CODE_DEP")) + ((String) feat.getAttribute("CODE_COM"));
 
 				boolean isBuild = false;
-				if (((Geometry) feat.getDefaultGeometry()).intersects(batiUnion)) {
-					isBuild = true;
+				SimpleFeatureIterator batiCollectionIt = shpDSBati.getFeatureSource().getFeatures().features();
+				try {
+					while (batiCollectionIt.hasNext()) {
+						if (((Geometry) feat.getDefaultGeometry()).intersects(((Geometry) batiCollectionIt.next().getDefaultGeometry()))) {
+							isBuild = true;
+							break;
+						}
+					}
+				} catch (Exception problem) {
+					problem.printStackTrace();
+				} finally {
+					batiCollectionIt.close();
 				}
 
 				// say if the parcel intersects a particular zoning type
@@ -137,6 +145,7 @@ public class GetFromGeom {
 
 				SimpleFeature feature = sfBuilder.buildFeature(String.valueOf(i), attr);
 				newParcel.add(feature);
+				// System.out.println(i+" on "+tot);
 				i = i + 1;
 			}
 
@@ -297,6 +306,26 @@ public class GetFromGeom {
 
 	}
 
+	public static List<String> getInsee(File parcelFile) throws IOException {
+		List<String> result = new ArrayList<String>();
+		ShapefileDataStore parcelSDS = new ShapefileDataStore(parcelFile.toURI().toURL());
+		SimpleFeatureIterator parcelFeaturesIt = parcelSDS.getFeatureSource().getFeatures().features();
+		try {
+			while (parcelFeaturesIt.hasNext()) {
+				SimpleFeature feat = parcelFeaturesIt.next();
+				if (!result.contains(feat.getAttribute("INSEE"))) {
+					result.add((String) feat.getAttribute("INSEE"));
+				}
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			parcelFeaturesIt.close();
+		}
+		parcelSDS.dispose();
+		return result;
+	}
+
 	/**
 	 * Get parcels from a Zoning file matching a certain type of zone (characterized by the field TYPEZONE)
 	 * 
@@ -357,6 +386,21 @@ public class GetFromGeom {
 		// import of the parcel file
 		ShapefileDataStore shpDSParcel = new ShapefileDataStore(parcelFile.toURI().toURL());
 		return selecParcelZoning(typeZone, shpDSParcel.getFeatureSource().getFeatures(), zoningFile);
+	}
+
+	public static void main(String[] args) throws Exception {
+		File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/scenar0MCIgn");
+		List<File> lF = new ArrayList<>();
+		lF.add(new File(rootParam, "parametreTechnique.xml"));
+		lF.add(new File(rootParam, "parametreScenario.xml"));
+
+		Parameters p = Parameters.unmarshall(lF);
+		ShapefileDataStore shpDSZone = new ShapefileDataStore(
+				(new File("/home/mcolomb/informatique/ArtiScales/ParcelSelectionFile/teststp/variant0/parcelGenExport.shp")).toURI().toURL());
+		SimpleFeatureCollection parcel = shpDSZone.getFeatureSource().getFeatures();
+
+		selecParcelZonePLUmergeAU(parcel, new File("/home/mcolomb/informatique/ArtiScales/dataRegul/zoningRegroupe.shp"), p);
+
 	}
 
 	/**
@@ -420,6 +464,10 @@ public class GetFromGeom {
 		sfTypeBuilder.add("eval", String.class);
 		sfTypeBuilder.add("DoWeSimul", String.class);
 		sfTypeBuilder.add("SPLIT", Integer.class);
+		sfTypeBuilder.add("IsBuild", Boolean.class);
+		sfTypeBuilder.add("U", Boolean.class);
+		sfTypeBuilder.add("AU", Boolean.class);
+		sfTypeBuilder.add("NC", Boolean.class);
 
 		SimpleFeatureBuilder sfBuilder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
 
@@ -429,28 +477,28 @@ public class GetFromGeom {
 
 		System.setProperty("org.geotools.referencing.forceXY", "true");
 		System.out.println(Calendar.getInstance().getTime() + " write shapefile");
-
-		// List<Polygon> polygonsFinal = FeaturePolygonizer.getPolygons(polyFiles);
-		// //delete polygon if the parcel
-		// for (Polygon poly : polygons) {
-		// SimpleFeatureIterator parcelIt = parcelsInAU.features();
-		// boolean keepPoly = false;
-		// try {
-		// while (parcelIt.hasNext()) {
-		// SimpleFeature feat = parcelIt.next();
-		// if (((Geometry) feat.getDefaultGeometry()).equals(poly)) {
-		// keepPoly = true;
-		// }
-		// }
-		// } catch (Exception problem) {
-		// problem.printStackTrace();
-		// } finally {
-		// parcelIt.close();
-		// }
-		// if (keepPoly) {
-		// polygonsFinal.add(poly);
-		// }
-		// }
+//TODO take out the public roads and co
+//		List<Polygon> polygonsFinal = FeaturePolygonizer.getPolygons(polyFiles);
+		// delete polygon if the parcel
+//		for (Polygon poly : polygons) {
+//			SimpleFeatureIterator parcelIt = parcelsInAU.features();
+//			boolean keepPoly = false;
+//			try {
+//				while (parcelIt.hasNext()) {
+//					SimpleFeature feat = parcelIt.next();
+//					if (((Geometry) feat.getDefaultGeometry()).equals(poly)) {
+//						keepPoly = true;
+//					}
+//				}
+//			} catch (Exception problem) {
+//				problem.printStackTrace();
+//			} finally {
+//				parcelIt.close();
+//			}
+//			if (keepPoly) {
+//				polygonsFinal.add(poly);
+//			}
+//		}
 		//
 		// //temp block
 		// String specs = "geom:Polygon:srid=2154";
@@ -478,16 +526,23 @@ public class GetFromGeom {
 		//
 		//
 
+		//for every polygons of U and AU parcels
 		for (Polygon poly : polygons) {
 			if (!geomAU.buffer(0.01).contains(poly)) {
-				Object[] attr = new Object[11];
+				Object[] attr = new Object[15];
 				SimpleFeatureIterator parcelIt = parcelsInAU.features();
 				try {
 					while (parcelIt.hasNext()) {
 						SimpleFeature feat = parcelIt.next();
 						if (((Geometry) feat.getDefaultGeometry()).contains(poly)) {
-							attr = feat.getAttributes().toArray();
+							for(int i = 0; i <feat.getAttributes().toArray().length;i++) {
+							attr[i] = feat.getAttributes().toArray()[i];
+							}
 							attr[10] = 0;
+							attr[11] = false;
+							attr[12] = true;
+							attr[13] = false;
+							attr[14] = false;	
 						}
 					}
 				} catch (Exception problem) {
@@ -503,33 +558,37 @@ public class GetFromGeom {
 		}
 
 		// parcel within the AU zone must be merged and prepared to be cuted (with the value 1 at the SPLIT attribute)
-		// MultiPolygon mp = (MultiPolygon) geomAU;
-		// for (int i = 0; i < mp.getNumGeometries(); i++) {
-		// SimpleFeature feature = writer.next();
-		// feature.setAttribute("SPLIT", 1);
-		// feature.setDefaultGeometry(mp.getGeometryN(i));
-		// writer.write();
-		// }
-
-		GeometryCollection collec = (GeometryCollection) geomParcAU;
-		for (int i = 0; i < collec.getNumGeometries(); i++) {
+		MultiPolygon mp = (MultiPolygon) geomAU;
+		for (int i = 0; i < mp.getNumGeometries(); i++) {
 			SimpleFeature feature = writer.next();
 			feature.setAttribute("SPLIT", 1);
-			feature.setDefaultGeometry(collec.getGeometryN(i));
+			feature.setAttribute("IsBuild",false);
+			feature.setAttribute("U", false);
+			feature.setAttribute("AU", true);
+			feature.setAttribute("NC", false);
+			feature.setDefaultGeometry(mp.getGeometryN(i));
 			writer.write();
 		}
+
+//		GeometryCollection collec = (GeometryCollection) geomParcAU;
+//		for (int i = 0; i < collec.getNumGeometries(); i++) {
+//			SimpleFeature feature = writer.next();
+//			feature.setAttribute("SPLIT", 1);
+//			feature.setDefaultGeometry(collec.getGeometryN(i));
+//			writer.write();
+//		}
 
 		writer.close();
 		dataStoreU.dispose();
 
 		double roadEpsilon = 0.5;
 		double noise = 0;
-		double maximalArea = 1500;
-		double maximalWidth = 15;
-		if (!(p == null)) {
-			maximalArea = p.getDouble("maximalAreaSplitParcel");
-			maximalWidth = p.getDouble("maximalWidthSplitParcel");
-		}
+		double maximalArea = 300;
+		double maximalWidth = 20;
+//		if (!(p == null)) {
+//			maximalArea = p.getDouble("maximalAreaSplitParcel");
+//			maximalWidth = p.getDouble("maximalWidthSplitParcel");
+//		}
 
 		// get the previously cuted and reshaped shapefile
 		ShapefileDataStore pSDS = new ShapefileDataStore(outU.toURI().toURL());

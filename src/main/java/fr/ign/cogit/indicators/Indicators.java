@@ -30,7 +30,6 @@ public abstract class Indicators {
 		}
 		sA = new ScenarAnalyse(p.getString("cm"), p.getString("emprise"), p.getString("seuil"), p.getString("data"), "N" + p.getString("N"), p.getString("ahpName"), strictStr,
 				meanStr, "seed_" + p.getString("seed"));
-
 	}
 
 	/**
@@ -88,12 +87,16 @@ public abstract class Indicators {
 	 * @return
 	 */
 	protected String getFirstlineCsv() {
-		return ("nameScenar, paramètres techniques MUP-City,paramètre Scenaristique MUP-City,variant,");
+		return ("nameScenar, paramètres techniques MUP-City,paramètre Scenaristique MUP-City,");
 	}
 
 	/**
 	 * Writing on the general .csv situated on the rootFile
 	 * 
+	 * @param f
+	 *            : where the csv must be saved
+	 * @param indicName
+	 *            : name of the indicator
 	 * @param line
 	 *            : the line to be writted
 	 * @param firstline
@@ -111,7 +114,7 @@ public abstract class Indicators {
 		}
 
 		// on cole les infos du scénario à la première ligne
-		line = getnameScenar() + "," + getMupTech() + "," + getMupScenario() + "," + getSelection() + "," + line;
+		line = getnameScenar() + "," + getMupTech() + "," + getMupScenario() + "," + line;
 		writer.append(line);
 		writer.append("\n");
 		writer.close();
