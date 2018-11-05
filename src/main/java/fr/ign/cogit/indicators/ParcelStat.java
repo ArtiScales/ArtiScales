@@ -169,5 +169,4 @@ public class ParcelStat extends Indicators {
 			}
 		}
 	}
-
 }

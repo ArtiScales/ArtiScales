@@ -4,7 +4,7 @@
 	<!--PARAMÈTRES SCÉNARISTIQUES POUR LES SIMULATIONS AVEC ARTISCALES -->
 
 	<!-- Nom du scénario -->
-	<param key="nom" value="intense-regulated-spread" />
+	<param key="nom" value="intenseRegulatedSpread" />
 
 	<!-- Dossiers et fichiers nécessaires à la simulation -->
 	<!-- Emplacement de la simulation (données d'entrée, résultats intermédiaires et finaux) -->
@@ -92,7 +92,7 @@
 			toutes fondues puis décomposés -->
 		<!-- Si "AU", les parcelles situées dans les zones AU sont décomposées -->
 		<!-- Si "false", aucune parcelle ne sera décomposé -->
-		<param key="splitParcel" value="false" />
+		<param key="splitParcel" value="AU" />
 			<!-- Aire moyenne des parcelles découpées -->
 			<param key="maximalAreaSplitParcel" value="300" />
 			<!-- Largeur minimum de la limite parcellaire donnant sur la voirie -->

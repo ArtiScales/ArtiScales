@@ -43,10 +43,7 @@ public class VectorFct {
 
 	}
 
-
-	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeatureCollection parcelIn, File filterFile,
-			Parameters p) throws Exception {
-
+	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeatureCollection parcelIn, File filterFile, Parameters p) throws Exception {
 
 		ShapefileDataStore morphoSDS = new ShapefileDataStore(filterFile.toURI().toURL());
 		SimpleFeatureCollection morphoSFC = morphoSDS.getFeatureSource().getFeatures();
@@ -59,16 +56,14 @@ public class VectorFct {
 	}
 
 	/**
-	 * Determine if the parcels need to be splited or not, based on their area. This
-	 * area is either determined by a param file, or taken as a default value of
-	 * 1200 square meters
+	 * Determine if the parcels need to be splited or not, based on their area. This area is either determined by a param file, or taken as a default value of 1200 square meters
 	 * 
-	 * @param parcelIn : Parcels collection of simple features
+	 * @param parcelIn
+	 *            : Parcels collection of simple features
 	 * @return
 	 * @throws Exception
 	 */
-	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeatureCollection parcelIn, Parameters p)
-			throws Exception {
+	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeatureCollection parcelIn, Parameters p) throws Exception {
 
 		// splitting method option
 
@@ -95,7 +90,7 @@ public class VectorFct {
 		sfTypeBuilder.add("SECTION", String.class);
 		sfTypeBuilder.add("NUMERO", String.class);
 		sfTypeBuilder.add("INSEE", String.class);
-		sfTypeBuilder.add("eval", String.class);		
+		sfTypeBuilder.add("eval", String.class);
 		sfTypeBuilder.add("DoWeSimul", String.class);
 		sfTypeBuilder.add("SPLIT", Integer.class);
 
@@ -111,20 +106,17 @@ public class VectorFct {
 				if (feat.getAttribute("CODE") != null) {
 
 					numParcelValue = feat.getAttribute("CODE").toString();
-				}
-				else if (feat.getAttribute("CODE_DEP") != null) {
-					numParcelValue = ((String) feat.getAttribute("CODE_DEP"))
-							+ (feat.getAttribute("CODE_COM").toString()) + (feat.getAttribute("COM_ABS").toString())
+				} else if (feat.getAttribute("CODE_DEP") != null) {
+					numParcelValue = ((String) feat.getAttribute("CODE_DEP")) + (feat.getAttribute("CODE_COM").toString()) + (feat.getAttribute("COM_ABS").toString())
 							+ (feat.getAttribute("SECTION").toString());
 				} else if (feat.getAttribute("NUMERO") != null) {
 					numParcelValue = feat.getAttribute("NUMERO").toString();
 				} else {
 					System.out.println("VectorFct : Other type of parcel : " + feat.getAttribute(1));
 				}
-				Object[] attr = {numParcelValue,feat.getAttribute("CODE_DEP"),feat.getAttribute("CODE_COM"),feat.getAttribute("COM_ABS")
-						,feat.getAttribute("SECTION"),feat.getAttribute("NUMERO"),feat.getAttribute("INSEE"),feat.getAttribute("eval")
-						,feat.getAttribute("DoWeSimul"),0};		
-						
+				Object[] attr = { numParcelValue, feat.getAttribute("CODE_DEP"), feat.getAttribute("CODE_COM"), feat.getAttribute("COM_ABS"), feat.getAttribute("SECTION"),
+						feat.getAttribute("NUMERO"), feat.getAttribute("INSEE"), feat.getAttribute("eval"), feat.getAttribute("DoWeSimul"), 0 };
+
 				if (((Geometry) feat.getDefaultGeometry()).getArea() > maximalArea) {
 					attr[9] = 1;
 				}
@@ -142,8 +134,7 @@ public class VectorFct {
 	}
 
 	/**
-	 * largely inspired from the simPLU. ParcelSplitting class but rewrote to work
-	 * with geotools SimpleFeatureCollection objects
+	 * largely inspired from the simPLU. ParcelSplitting class but rewrote to work with geotools SimpleFeatureCollection objects
 	 * 
 	 * @param toSplit
 	 * @param maximalArea
@@ -153,8 +144,8 @@ public class VectorFct {
 	 * @return
 	 * @throws Exception
 	 */
-	public static SimpleFeatureCollection splitParcels(SimpleFeatureCollection toSplit, double maximalArea,
-			double maximalWidth, double roadEpsilon, double noise, Parameters p) throws Exception {
+	public static SimpleFeatureCollection splitParcels(SimpleFeatureCollection toSplit, double maximalArea, double maximalWidth, double roadEpsilon, double noise, Parameters p)
+			throws Exception {
 		// TODO un truc fait bugger la sortie dans cette classe..
 
 		// TODO classe po bô du tout: faire une vraie conversion entre les types
@@ -196,11 +187,29 @@ public class VectorFct {
 				IFeatureCollection<IFeature> featCollDecomp = obb.decompParcel(noise);
 				for (IFeature featDecomp : featCollDecomp) {
 					// MAJ du numéro de la parcelle
-					String newNum = feat.getAttribute("CODE") + String.valueOf(numParcelle);
-					numParcelle++;
 					IFeature newFeat = new DefaultFeature(featDecomp.getGeom());
-					AttributeManager.addAttribute(newFeat, "CODE", newNum, "String");
+					String newCodeDep = (String) feat.getAttribute("CODE_DEP");
+					String newCodeCom = (String) feat.getAttribute("CODE_COM");
+					String newSection = (String) feat.getAttribute("SECTION");
+					String newNumero = String.valueOf(numParcelle);
+
+					AttributeManager.addAttribute(newFeat, "CODE_DEP", newCodeDep, "String");
+					AttributeManager.addAttribute(newFeat, "CODE_COM", newCodeCom, "String");
+					AttributeManager.addAttribute(newFeat, "SECTION", newSection, "String");
+					AttributeManager.addAttribute(newFeat, "COM_ABS", "000", "String");
+					AttributeManager.addAttribute(newFeat, "NUMERO", newNumero, "String");
+					String newCode = newCodeDep + newCodeCom + "000" + newSection + newNumero;
+					AttributeManager.addAttribute(newFeat, "INSEE", newCodeDep + newCodeCom, "String");
+					AttributeManager.addAttribute(newFeat, "CODE", newCode, "String");
+					AttributeManager.addAttribute(newFeat, "eval", "0", "String");
+					AttributeManager.addAttribute(newFeat, "DoWeSimul", false, "String");
+					AttributeManager.addAttribute(newFeat, "IsBuild", feat.getAttribute("IsBuild"), "String");
+					AttributeManager.addAttribute(newFeat, "U", feat.getAttribute("U"), "String");
+					AttributeManager.addAttribute(newFeat, "AU", feat.getAttribute("AU"), "String");
+					AttributeManager.addAttribute(newFeat, "NC", feat.getAttribute("NC"), "String");
+
 					ifeatCollOut.add(newFeat);
+					numParcelle++;
 				}
 			} catch (NullPointerException n) {
 				System.out.println("erreur sur le split pour la parcelle " + String.valueOf(feat.getAttribute("CODE")));
@@ -228,10 +237,10 @@ public class VectorFct {
 	}
 
 	/**
-	 * Merge all the shapefile of a folder (made for simPLU buildings) into one
-	 * shapefile
+	 * Merge all the shapefile of a folder (made for simPLU buildings) into one shapefile
 	 * 
-	 * @param file2MergeIn : list of files containing the shapefiles
+	 * @param file2MergeIn
+	 *            : list of files containing the shapefiles
 	 * @return : file where everything is saved (here whith a building name)
 	 * @throws Exception
 	 */
@@ -241,10 +250,10 @@ public class VectorFct {
 	}
 
 	/**
-	 * Merge all the shapefile of a folder (made for simPLU buildings) into one
-	 * shapefile
+	 * Merge all the shapefile of a folder (made for simPLU buildings) into one shapefile
 	 * 
-	 * @param file2MergeIn : folder containing the shapefiles
+	 * @param file2MergeIn
+	 *            : folder containing the shapefiles
 	 * @return : file where everything is saved (here whith a building name)
 	 * @throws Exception
 	 */

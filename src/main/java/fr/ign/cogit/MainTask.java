@@ -120,7 +120,7 @@ public class MainTask {
 
 		// Building to housingUnit indicator
 
-			// we get the hierarchy of files if the previous steps hasnt been processed
+		// we get the hierarchy of files if the previous steps hasnt been processed
 		if (buildingSimulatedPerSimu.isEmpty()) {
 			buildingSimulatedPerSimu = SimuTool.generateResultConfigSimPLU(rootFile);
 		}

@@ -10,7 +10,7 @@
 
 	<!-- PARAMETRES DE MUP-CITY -->
 		<!-- paramètres techniques -->	
-		<param key ="createMUPSimu" value="true" />
+		<param key ="createMUPSimu" value="false" />
 		
 		<param key="emprise" value="915948;6677337;26590;26590"/>	
 		<param key ="cm" value="20"/>
