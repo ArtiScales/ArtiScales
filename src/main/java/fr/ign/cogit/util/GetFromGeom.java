@@ -402,6 +402,55 @@ public class GetFromGeom {
 		return selecParcelZoning(typeZone, shpDSParcel.getFeatureSource().getFeatures(), zoningFile);
 	}
 
+	public static SimpleFeatureBuilder getParcelSplitSFBuilder() throws NoSuchAuthorityCodeException, FactoryException {
+		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
+		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
+		sfTypeBuilder.setName("testType");
+		sfTypeBuilder.setCRS(sourceCRS);
+		sfTypeBuilder.add("the_geom", Polygon.class);
+		sfTypeBuilder.setDefaultGeometry("the_geom");
+		sfTypeBuilder.add("CODE", String.class);
+		sfTypeBuilder.add("CODE_DEP", String.class);
+		sfTypeBuilder.add("CODE_COM", String.class);
+		sfTypeBuilder.add("COM_ABS", String.class);
+		sfTypeBuilder.add("SECTION", String.class);
+		sfTypeBuilder.add("NUMERO", String.class);
+		sfTypeBuilder.add("INSEE", String.class);
+		sfTypeBuilder.add("eval", String.class);
+		sfTypeBuilder.add("DoWeSimul", String.class);
+		sfTypeBuilder.add("SPLIT", Integer.class);
+		sfTypeBuilder.add("IsBuild", Boolean.class);
+		sfTypeBuilder.add("U", Boolean.class);
+		sfTypeBuilder.add("AU", Boolean.class);
+		sfTypeBuilder.add("NC", Boolean.class);
+
+		return new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
+	}
+
+	public static SimpleFeatureBuilder getParcelSFBuilder() throws NoSuchAuthorityCodeException, FactoryException {
+		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
+		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
+		sfTypeBuilder.setName("testType");
+		sfTypeBuilder.setCRS(sourceCRS);
+		sfTypeBuilder.add("the_geom", Polygon.class);
+		sfTypeBuilder.setDefaultGeometry("the_geom");
+		sfTypeBuilder.add("CODE", String.class);
+		sfTypeBuilder.add("CODE_DEP", String.class);
+		sfTypeBuilder.add("CODE_COM", String.class);
+		sfTypeBuilder.add("COM_ABS", String.class);
+		sfTypeBuilder.add("SECTION", String.class);
+		sfTypeBuilder.add("NUMERO", String.class);
+		sfTypeBuilder.add("INSEE", String.class);
+		sfTypeBuilder.add("eval", String.class);
+		sfTypeBuilder.add("DoWeSimul", String.class);
+		sfTypeBuilder.add("IsBuild", Boolean.class);
+		sfTypeBuilder.add("U", Boolean.class);
+		sfTypeBuilder.add("AU", Boolean.class);
+		sfTypeBuilder.add("NC", Boolean.class);
+
+		return new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
+	}
+
 	public static void main(String[] args) throws Exception {
 		File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/scenar0MCIgn");
 		List<File> lF = new ArrayList<>();
@@ -430,6 +479,8 @@ public class GetFromGeom {
 	 */
 	public static SimpleFeatureCollection selecParcelZonePLUmergeAU(SimpleFeatureCollection parcels, File tmpFile, File zoningFile, File negParcel, Parameters p) throws Exception {
 
+		// parcels to save for after
+		DefaultFeatureCollection savedParcels = new DefaultFeatureCollection();
 		// import of the zoning file
 		ShapefileDataStore shpDSZone = new ShapefileDataStore(zoningFile.toURI().toURL());
 		SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
@@ -446,8 +497,22 @@ public class GetFromGeom {
 		String geometryParcelPropertyName = parcels.getSchema().getGeometryDescriptor().getLocalName();
 		// all the AU zones
 		Geometry geomAU = Vectors.unionSFC(zoneAU);
-		Filter inter = ff.intersects(ff.property(geometryParcelPropertyName), ff.literal(geomAU));
-		SimpleFeatureCollection parcelsInAU = parcels.subCollection(inter);
+		DefaultFeatureCollection parcelsInAU = new DefaultFeatureCollection();
+		SimpleFeatureIterator parcIt = parcels.features();
+		try {
+			while (parcIt.hasNext()) {
+				SimpleFeature feat = parcIt.next();
+				if (((Geometry) feat.getDefaultGeometry()).intersects(geomAU)) {
+					parcelsInAU.add(feat);
+				} else {
+					savedParcels.add(feat);
+				}
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			parcIt.close();
+		}
 
 		// temporary shapefiles
 		File fParcelsInAU = Vectors.exportSFC(parcelsInAU, new File(tmpFile, "parcelCible.shp"));
@@ -460,29 +525,8 @@ public class GetFromGeom {
 		// parcel intersecting the U zone must not be cuted and keep their attributes
 		// intermediary result
 		File outU = new File(tmpFile, "polygonU.shp");
+		SimpleFeatureBuilder sfBuilder = getParcelSplitSFBuilder();
 
-		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
-		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
-		sfTypeBuilder.setName("testType");
-		sfTypeBuilder.setCRS(sourceCRS);
-		sfTypeBuilder.add("the_geom", Polygon.class);
-		sfTypeBuilder.setDefaultGeometry("the_geom");
-		sfTypeBuilder.add("CODE", String.class);
-		sfTypeBuilder.add("CODE_DEP", String.class);
-		sfTypeBuilder.add("CODE_COM", String.class);
-		sfTypeBuilder.add("COM_ABS", String.class);
-		sfTypeBuilder.add("SECTION", String.class);
-		sfTypeBuilder.add("NUMERO", String.class);
-		sfTypeBuilder.add("INSEE", String.class);
-		sfTypeBuilder.add("eval", String.class);
-		sfTypeBuilder.add("DoWeSimul", String.class);
-		sfTypeBuilder.add("SPLIT", Integer.class);
-		sfTypeBuilder.add("IsBuild", Boolean.class);
-		sfTypeBuilder.add("U", Boolean.class);
-		sfTypeBuilder.add("AU", Boolean.class);
-		sfTypeBuilder.add("NC", Boolean.class);
-
-		SimpleFeatureBuilder sfBuilder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
 		DefaultFeatureCollection write = new DefaultFeatureCollection();
 
 		int nFeat = 0;
@@ -600,18 +644,55 @@ public class GetFromGeom {
 
 		double roadEpsilon = 0.5;
 		double noise = 0;
-		double maximalArea = 300;
-		double maximalWidth = 20;
-
+		double maximalArea = 400;
+		double maximalWidth = 50;
+//		if (!(p == null)) {
+//			maximalArea = p.getDouble("maximalAreaSplitParcel");
+//			maximalWidth = p.getDouble("maximalWidthSplitParcel");
+//		}
+		
+		
 		// get the previously cuted and reshaped shapefile
 		ShapefileDataStore pSDS = new ShapefileDataStore(outU.toURI().toURL());
 		SimpleFeatureCollection pSFS = pSDS.getFeatureSource().getFeatures();
 
 		SimpleFeatureCollection splitedAUParcels = VectorFct.splitParcels(pSFS, maximalArea, maximalWidth, roadEpsilon, noise, p);
 		Vectors.exportSFC(splitedAUParcels, new File(tmpFile, "parcelCuted.shp"));
+		// Final, put them all in a same SHP
+		SimpleFeatureBuilder finalParcelBuilder = getParcelSFBuilder();
+		SimpleFeatureIterator finalIt = splitedAUParcels.features();
+		int cpt = 0;
+		try {
+			while (finalIt.hasNext()) {
+				SimpleFeature feat = finalIt.next();
+				finalParcelBuilder.set(geometryOutputName, (Geometry) feat.getDefaultGeometry());
+				finalParcelBuilder.set("CODE", feat.getAttribute("CODE"));
+				finalParcelBuilder.set("CODE_DEP", feat.getAttribute("CODE_DEP"));
+				finalParcelBuilder.set("CODE_COM", feat.getAttribute("CODE_COM"));
+				finalParcelBuilder.set("COM_ABS", feat.getAttribute("COM_ABS"));
+				finalParcelBuilder.set("SECTION", feat.getAttribute("SECTION"));
+				finalParcelBuilder.set("NUMERO", feat.getAttribute("NUMERO"));
+				finalParcelBuilder.set("INSEE", feat.getAttribute("INSEE"));
+				finalParcelBuilder.set("eval", feat.getAttribute("eval"));
+				finalParcelBuilder.set("DoWeSimul", feat.getAttribute("DoWeSimul"));
+				finalParcelBuilder.set("IsBuild", feat.getAttribute("IsBuild"));
+				finalParcelBuilder.set("U", feat.getAttribute("U"));
+				finalParcelBuilder.set("AU", feat.getAttribute("AU"));
+				finalParcelBuilder.set("NC", feat.getAttribute("NC"));
+				savedParcels.add(finalParcelBuilder.buildFeature(String.valueOf(cpt)));
+				cpt++;
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			it.close();
+		}
+
+		Vectors.exportSFC(savedParcels, new File(tmpFile, "parcelFinal.shp"));
 
 		shpDSZone.dispose();
-		return splitedAUParcels;
+
+		return savedParcels;
 
 	}
 
