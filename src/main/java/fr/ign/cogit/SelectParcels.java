@@ -123,11 +123,11 @@ public class SelectParcels {
 				Vectors.exportSFC(parcelCollection, new File(tmpFile, "parcelGenExport.shp"));
 				// Split parcels
 				if (p.getString("splitParcel").equals("true")) {
-					parcelCollection = VectorFct.generateSplitedParcels(GetFromGeom.selecParcelZonePLUmergeAU(parcelCollection, tmpFile, zoningFile, p), p);
+					parcelCollection = VectorFct.generateSplitedParcels(GetFromGeom.selecParcelZonePLUmergeAU(parcelCollection, tmpFile, zoningFile,GetFromGeom.getNegParcels(geoFile), p), p);
 					parcelCollection = VectorFct.generateSplitedParcels(parcelCollection, p);
 				}
 				if (p.getString("splitParcel").equals("AU")) {
-					parcelCollection = VectorFct.generateSplitedParcels(GetFromGeom.selecParcelZonePLUmergeAU(parcelCollection, tmpFile, zoningFile, p), p);
+					parcelCollection = VectorFct.generateSplitedParcels(GetFromGeom.selecParcelZonePLUmergeAU(parcelCollection, tmpFile, zoningFile,GetFromGeom.getNegParcels(geoFile), p), p);
 				}
 				for (String action : listeAction) {
 					System.out.println("---=+Pour le remplissage " + action + "+=---");
