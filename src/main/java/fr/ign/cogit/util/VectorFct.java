@@ -190,7 +190,6 @@ public class VectorFct {
 			}
 		}
 
-
 		File fileOut = new File(tmpFile, "tmp.shp");
 		ShapefileWriter.write(ifeatCollOut, fileOut.toString(), CRS.decode("EPSG:2154"));
 		// nouvelle sélection en fonction de la zone pour patir à la faible
@@ -206,7 +205,7 @@ public class VectorFct {
 		return splitedSFC;
 	}
 
-	public static SimpleFeatureBuilder sFBParDefaut(SimpleFeature feat,SimpleFeatureType schema, String geometryOutputName) {
+	public static SimpleFeatureBuilder setSFBParDefaut(SimpleFeature feat, SimpleFeatureType schema, String geometryOutputName) {
 		SimpleFeatureBuilder finalParcelBuilder = new SimpleFeatureBuilder(schema);
 		finalParcelBuilder.set(geometryOutputName, (Geometry) feat.getDefaultGeometry());
 		finalParcelBuilder.set("CODE", "unknow");
@@ -224,8 +223,38 @@ public class VectorFct {
 		finalParcelBuilder.set("NC", false);
 		return finalParcelBuilder;
 	}
-	
-	
+
+	/**
+	 * not very nice overload
+	 * 
+	 * @param feat
+	 * @param schema
+	 * @return
+	 */
+	public static SimpleFeatureBuilder setSFBWithFeat(SimpleFeature feat, SimpleFeatureType schema) {
+		return setSFBWithFeat(feat, schema, schema.getGeometryDescriptor().getName().toString());
+
+	}
+
+	public static SimpleFeatureBuilder setSFBWithFeat(SimpleFeature feat, SimpleFeatureType schema, String geometryOutputName) {
+		SimpleFeatureBuilder finalParcelBuilder = new SimpleFeatureBuilder(schema);
+		finalParcelBuilder.set(geometryOutputName, (Geometry) feat.getDefaultGeometry());
+		finalParcelBuilder.set("CODE", feat.getAttribute("CODE"));
+		finalParcelBuilder.set("CODE_DEP", feat.getAttribute("CODE_DEP"));
+		finalParcelBuilder.set("CODE_COM", feat.getAttribute("CODE_COM"));
+		finalParcelBuilder.set("COM_ABS", feat.getAttribute("COM_ABS"));
+		finalParcelBuilder.set("SECTION", feat.getAttribute("SECTION"));
+		finalParcelBuilder.set("NUMERO", feat.getAttribute("NUMERO"));
+		finalParcelBuilder.set("INSEE", feat.getAttribute("INSEE"));
+		finalParcelBuilder.set("eval", feat.getAttribute("eval"));
+		finalParcelBuilder.set("DoWeSimul", feat.getAttribute("DoWeSimul"));
+		finalParcelBuilder.set("IsBuild", feat.getAttribute("IsBuild"));
+		finalParcelBuilder.set("U", feat.getAttribute("U"));
+		finalParcelBuilder.set("AU", feat.getAttribute("AU"));
+		finalParcelBuilder.set("NC", feat.getAttribute("NC"));
+		return finalParcelBuilder;
+	}
+
 	/**
 	 * Merge all the shapefile of a folder (made for simPLU buildings) into one shapefile
 	 * 

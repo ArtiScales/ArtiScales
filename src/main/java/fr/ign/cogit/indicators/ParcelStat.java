@@ -1,33 +1,21 @@
 package fr.ign.cogit.indicators;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.List;
 
-import javax.swing.text.html.HTMLDocument.HTMLReader.PreAction;
-
 import org.geotools.data.shapefile.ShapefileDataStore;
-import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.feature.DefaultFeatureCollection;
-import org.geotools.feature.simple.SimpleFeatureBuilder;
-import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
-import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Polygon;
 
 import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.util.GetFromGeom;
-import fr.ign.cogit.util.SimuTool;
 import fr.ign.parameters.Parameters;
 
 public class ParcelStat extends Indicators {

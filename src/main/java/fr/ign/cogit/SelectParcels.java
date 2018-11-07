@@ -126,7 +126,6 @@ public class SelectParcels {
 					parcelCollection = GetFromGeom.selecParcelZonePLUmergeAUandU(parcelCollection, tmpFile, zoningFile, p);
 				}
 				if (p.getString("splitParcel").equals("AU")) {
-					System.out.println("ici");
 					parcelCollection = GetFromGeom.selecParcelZonePLUmergeAU(parcelCollection, tmpFile, zoningFile, p);
 				}
 				for (String action : listeAction) {
@@ -614,45 +613,45 @@ public class SelectParcels {
 		return bestEval;
 	}
 
-	public File selecOneParcelInCell(SimpleFeatureCollection parcelIn) throws IOException {
-		// TODO finir cette méthode : mais sert elle à quelque chose?
-		// mettre le recouvrement des cellules dans un attribut et favoriser
-		// selon le plus gros pourcentage?
-
-		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
-		String geometryParcelPropertyName = parcelIn.getSchema().getGeometryDescriptor().getLocalName();
-
-		ShapefileDataStore shpDSCells = new ShapefileDataStore(spatialConf.toURI().toURL());
-		SimpleFeatureCollection cellsCollection = shpDSCells.getFeatureSource().getFeatures();
-
-		SimpleFeatureIterator cellIt = cellsCollection.features();
-		try {
-			while (cellIt.hasNext()) {
-				SimpleFeature feat = cellIt.next();
-				Filter inter = ff.intersects(ff.property(geometryParcelPropertyName), ff.literal(feat.getDefaultGeometry()));
-				SimpleFeatureCollection parcelMultipleSelection = parcelIn.subCollection(inter);
-				if (!parcelMultipleSelection.isEmpty()) {
-					SimpleFeature bestFeature = null;
-					SimpleFeatureIterator multipleSelec = parcelMultipleSelection.features();
-					try {
-						while (multipleSelec.hasNext()) {
-							SimpleFeature featParc = multipleSelec.next();
-						}
-					} catch (Exception problem) {
-						problem.printStackTrace();
-					} finally {
-						multipleSelec.close();
-					}
-				}
-			}
-		} catch (Exception problem) {
-			problem.printStackTrace();
-		} finally {
-			cellIt.close();
-		}
-		shpDSCells.dispose();
-		return null;
-	}
+//	public File selecOneParcelInCell(SimpleFeatureCollection parcelIn) throws IOException {
+//		// TODO finir cette méthode : mais sert elle à quelque chose?
+//		// mettre le recouvrement des cellules dans un attribut et favoriser
+//		// selon le plus gros pourcentage?
+//
+//		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
+//		String geometryParcelPropertyName = parcelIn.getSchema().getGeometryDescriptor().getLocalName();
+//
+//		ShapefileDataStore shpDSCells = new ShapefileDataStore(spatialConf.toURI().toURL());
+//		SimpleFeatureCollection cellsCollection = shpDSCells.getFeatureSource().getFeatures();
+//
+//		SimpleFeatureIterator cellIt = cellsCollection.features();
+//		try {
+//			while (cellIt.hasNext()) {
+//				SimpleFeature feat = cellIt.next();
+//				Filter inter = ff.intersects(ff.property(geometryParcelPropertyName), ff.literal(feat.getDefaultGeometry()));
+//				SimpleFeatureCollection parcelMultipleSelection = parcelIn.subCollection(inter);
+//				if (!parcelMultipleSelection.isEmpty()) {
+//					SimpleFeature bestFeature = null;
+//					SimpleFeatureIterator multipleSelec = parcelMultipleSelection.features();
+//					try {
+//						while (multipleSelec.hasNext()) {
+//							SimpleFeature featParc = multipleSelec.next();
+//						}
+//					} catch (Exception problem) {
+//						problem.printStackTrace();
+//					} finally {
+//						multipleSelec.close();
+//					}
+//				}
+//			}
+//		} catch (Exception problem) {
+//			problem.printStackTrace();
+//		} finally {
+//			cellIt.close();
+//		}
+//		shpDSCells.dispose();
+//		return null;
+//	}
 
 	/**
 	 * Return a collection of constructed parcels.

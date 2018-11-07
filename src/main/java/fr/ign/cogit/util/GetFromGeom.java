@@ -469,16 +469,21 @@ public class GetFromGeom {
 
 		Geometry unionParcel = Vectors.unionSFC(parcels);
 		Vectors.exportGeom(unionParcel, new File("/home/mcolomb/tmp/parcelMerge.shp"));
-
+		String geometryParcelPropertyName = parcels.getSchema().getGeometryDescriptor().getLocalName();
+		
 		// get the AU zones from the zoning file
 		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
-		Filter filter = ff.like(ff.property("TYPEZONE"), "AU");
-		SimpleFeatureCollection zoneAU = featuresZones.subCollection(filter);
+		Filter filterTypeZone = ff.like(ff.property("TYPEZONE"), "AU");
+
+		Filter filterEmprise = ff.intersects(ff.property(geometryParcelPropertyName), ff.literal(unionParcel));
+		SimpleFeatureCollection zoneAU = featuresZones.subCollection(filterTypeZone).subCollection(filterEmprise);
 
 		// all the AU zones
 		Geometry geomAU = Vectors.unionSFC(zoneAU);
 		DefaultFeatureCollection parcelsInAU = new DefaultFeatureCollection();
 		SimpleFeatureIterator parcIt = parcels.features();
+		
+		// sort in two different collections, the ones that cares and the ones that doesnt
 		try {
 			while (parcIt.hasNext()) {
 				SimpleFeature feat = parcIt.next();
@@ -514,17 +519,12 @@ public class GetFromGeom {
 		for (Geometry poly : polygons) {
 			// if the polygons are not included on the AU zone
 			if (!geomAU.buffer(0.01).contains(poly)) {
-
 				sfBuilder.add(poly);
-				Object[] attr = new Object[14];
 				SimpleFeatureIterator parcelIt = parcelsInAU.features();
 				try {
 					while (parcelIt.hasNext()) {
 						SimpleFeature feat = parcelIt.next();
 						if (((Geometry) feat.getDefaultGeometry()).buffer(0.01).contains(poly)) {
-							for (int i = 0; i < feat.getAttributes().toArray().length; i++) {
-								attr[i] = feat.getAttributes().toArray()[i];
-							}
 							sfBuilder.set("CODE", feat.getAttribute("CODE"));
 							sfBuilder.set("CODE_DEP", feat.getAttribute("CODE_DEP"));
 							sfBuilder.set("CODE_COM", feat.getAttribute("CODE_COM"));
@@ -547,7 +547,6 @@ public class GetFromGeom {
 				} finally {
 					parcelIt.close();
 				}
-
 				write.add(sfBuilder.buildFeature(String.valueOf(nFeat)));
 				nFeat++;
 			}
@@ -634,34 +633,20 @@ public class GetFromGeom {
 		ShapefileDataStore pSDS = new ShapefileDataStore(outU.toURI().toURL());
 		SimpleFeatureCollection pSFS = pSDS.getFeatureSource().getFeatures();
 
-		SimpleFeatureCollection splitedAUParcels = VectorFct.splitParcels(pSFS, maximalArea, maximalWidth, roadEpsilon, noise,tmpFile, p);
+		SimpleFeatureCollection splitedAUParcels = VectorFct.splitParcels(pSFS, maximalArea, maximalWidth, roadEpsilon, noise, tmpFile, p);
 		Vectors.exportSFC(splitedAUParcels, new File(tmpFile, "parcelCuted.shp"));
-		// Final, put them all in a same SHP
 
+		// Finally, put them all features in a same collec
 		SimpleFeatureBuilder finalParcelBuilder = new SimpleFeatureBuilder(savedParcels.getSchema());
-		
 		SimpleFeatureIterator finalIt = splitedAUParcels.features();
 		int cpt = 0;
 		try {
 			while (finalIt.hasNext()) {
 				SimpleFeature feat = finalIt.next();
-				finalParcelBuilder.set(geometryOutputName, (Geometry) feat.getDefaultGeometry());
-				finalParcelBuilder.set("CODE", feat.getAttribute("CODE"));
-				finalParcelBuilder.set("CODE_DEP", feat.getAttribute("CODE_DEP"));
-				finalParcelBuilder.set("CODE_COM", feat.getAttribute("CODE_COM"));
-				finalParcelBuilder.set("COM_ABS", feat.getAttribute("COM_ABS"));
-				finalParcelBuilder.set("SECTION", feat.getAttribute("SECTION"));
-				finalParcelBuilder.set("NUMERO", feat.getAttribute("NUMERO"));
-				finalParcelBuilder.set("INSEE", feat.getAttribute("INSEE"));
-				finalParcelBuilder.set("eval", feat.getAttribute("eval"));
-				finalParcelBuilder.set("DoWeSimul", feat.getAttribute("DoWeSimul"));
-				finalParcelBuilder.set("IsBuild", feat.getAttribute("IsBuild"));
-				finalParcelBuilder.set("U", feat.getAttribute("U"));
-				finalParcelBuilder.set("AU", feat.getAttribute("AU"));
-				finalParcelBuilder.set("NC", feat.getAttribute("NC"));
-				if (feat.getAttribute("CODE")==null) {
+				finalParcelBuilder = VectorFct.setSFBWithFeat(feat, savedParcels.getSchema(), geometryOutputName);
+				if (feat.getAttribute("CODE") == null) {
 					System.out.println("par défaut");
-					finalParcelBuilder = VectorFct.sFBParDefaut(feat,savedParcels.getSchema(),geometryOutputName);
+					finalParcelBuilder = VectorFct.setSFBParDefaut(feat, savedParcels.getSchema(), geometryOutputName);
 				}
 				savedParcels.add(finalParcelBuilder.buildFeature(String.valueOf(cpt)));
 				cpt++;
