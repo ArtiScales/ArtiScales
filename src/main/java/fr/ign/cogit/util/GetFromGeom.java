@@ -18,6 +18,7 @@ import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.filter.text.cql2.CQLException;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory2;
 import org.opengis.geometry.MismatchedDimensionException;
@@ -435,6 +436,58 @@ public class GetFromGeom {
 		return new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
 	}
 
+	public static SimpleFeatureBuilder setSFBParDefaut(SimpleFeature feat, SimpleFeatureType schema, String geometryOutputName) {
+		SimpleFeatureBuilder finalParcelBuilder = new SimpleFeatureBuilder(schema);
+		finalParcelBuilder.set(geometryOutputName, (Geometry) feat.getDefaultGeometry());
+		finalParcelBuilder.set("CODE", "unknow");
+		finalParcelBuilder.set("CODE_DEP", "unknow");
+		finalParcelBuilder.set("CODE_COM", "unknow");
+		finalParcelBuilder.set("COM_ABS", "unknow");
+		finalParcelBuilder.set("SECTION", "unknow");
+		finalParcelBuilder.set("NUMERO", "unknow");
+		finalParcelBuilder.set("INSEE", "unknow");
+		finalParcelBuilder.set("eval", "0");
+		finalParcelBuilder.set("DoWeSimul", false);
+		finalParcelBuilder.set("IsBuild", false);
+		finalParcelBuilder.set("U", false);
+		finalParcelBuilder.set("AU", false);
+		finalParcelBuilder.set("NC", false);
+
+		return finalParcelBuilder;
+	}
+
+	/**
+	 * not very nice overload
+	 * 
+	 * @param feat
+	 * @param schema
+	 * @return
+	 */
+	public static SimpleFeatureBuilder setSFBWithFeat(SimpleFeature feat, SimpleFeatureType schema) {
+		return setSFBWithFeat(feat, schema, schema.getGeometryDescriptor().getName().toString());
+
+	}
+
+	public static SimpleFeatureBuilder setSFBWithFeat(SimpleFeature feat, SimpleFeatureType schema, String geometryOutputName) {
+		SimpleFeatureBuilder finalParcelBuilder = new SimpleFeatureBuilder(schema);
+		finalParcelBuilder.set(geometryOutputName, (Geometry) feat.getDefaultGeometry());
+		finalParcelBuilder.set("CODE", feat.getAttribute("CODE"));
+		finalParcelBuilder.set("CODE_DEP", feat.getAttribute("CODE_DEP"));
+		finalParcelBuilder.set("CODE_COM", feat.getAttribute("CODE_COM"));
+		finalParcelBuilder.set("COM_ABS", feat.getAttribute("COM_ABS"));
+		finalParcelBuilder.set("SECTION", feat.getAttribute("SECTION"));
+		finalParcelBuilder.set("NUMERO", feat.getAttribute("NUMERO"));
+		finalParcelBuilder.set("INSEE", feat.getAttribute("INSEE"));
+		finalParcelBuilder.set("eval", feat.getAttribute("eval"));
+		finalParcelBuilder.set("DoWeSimul", feat.getAttribute("DoWeSimul"));
+		finalParcelBuilder.set("IsBuild", feat.getAttribute("IsBuild"));
+		finalParcelBuilder.set("U", feat.getAttribute("U"));
+		finalParcelBuilder.set("AU", feat.getAttribute("AU"));
+		finalParcelBuilder.set("NC", feat.getAttribute("NC"));
+
+		return finalParcelBuilder;
+	}
+
 	public static void main(String[] args) throws Exception {
 		File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/scenar0MCIgn");
 		List<File> lF = new ArrayList<>();
@@ -449,8 +502,7 @@ public class GetFromGeom {
 	}
 
 	/**
-	 * Merge and recut the to urbanised (AU) zones. TODO : faire apparaitre les routes car elles ne sont pas prises en comptes et le découpage est faite indépendament d'elle. TODO
-	 * essayé avec les polygones ou en faisant le merge avec les parcelles au lieu de prendre les zones, ça ne marche pas, j'y reviendrais
+	 * Merge and recut the to urbanised (AU) zones Cut first the U parcels to keep them unsplited, then split the AU parcel and remerge them all into the original parcel file
 	 * 
 	 * @param parcels
 	 * @param zoningFile
@@ -468,9 +520,8 @@ public class GetFromGeom {
 		SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
 
 		Geometry unionParcel = Vectors.unionSFC(parcels);
-		Vectors.exportGeom(unionParcel, new File("/home/mcolomb/tmp/parcelMerge.shp"));
 		String geometryParcelPropertyName = parcels.getSchema().getGeometryDescriptor().getLocalName();
-		
+
 		// get the AU zones from the zoning file
 		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
 		Filter filterTypeZone = ff.like(ff.property("TYPEZONE"), "AU");
@@ -482,7 +533,7 @@ public class GetFromGeom {
 		Geometry geomAU = Vectors.unionSFC(zoneAU);
 		DefaultFeatureCollection parcelsInAU = new DefaultFeatureCollection();
 		SimpleFeatureIterator parcIt = parcels.features();
-		
+
 		// sort in two different collections, the ones that cares and the ones that doesnt
 		try {
 			while (parcIt.hasNext()) {
@@ -643,10 +694,10 @@ public class GetFromGeom {
 		try {
 			while (finalIt.hasNext()) {
 				SimpleFeature feat = finalIt.next();
-				finalParcelBuilder = VectorFct.setSFBWithFeat(feat, savedParcels.getSchema(), geometryOutputName);
+				finalParcelBuilder = setSFBWithFeat(feat, savedParcels.getSchema(), geometryOutputName);
 				if (feat.getAttribute("CODE") == null) {
 					System.out.println("par défaut");
-					finalParcelBuilder = VectorFct.setSFBParDefaut(feat, savedParcels.getSchema(), geometryOutputName);
+					finalParcelBuilder = setSFBParDefaut(feat, savedParcels.getSchema(), geometryOutputName);
 				}
 				savedParcels.add(finalParcelBuilder.buildFeature(String.valueOf(cpt)));
 				cpt++;
@@ -656,20 +707,20 @@ public class GetFromGeom {
 		} finally {
 			it.close();
 		}
-
-		Vectors.exportSFC(savedParcels, new File(tmpFile, "parcelFinal.shp"));
+		SimpleFeatureCollection result = savedParcels.collection();
+		Vectors.exportSFC(result, new File(tmpFile, "parcelFinal.shp"));
 
 		shpDSZone.dispose();
 		pSDS.dispose();
 
-		return savedParcels;
+		return result;
 
 	}
 
 	public static SimpleFeatureCollection selecParcelZonePLUmergeAUandU(SimpleFeatureCollection parcelCollection, File tmpFile, File zoningFile, Parameters p) throws Exception {
 		SimpleFeatureCollection result = selecParcelZonePLUmergeAU(parcelCollection, tmpFile, zoningFile, p);
-		result=VectorFct.generateSplitedParcels(parcelCollection, tmpFile, p);
-		return result ;
+		result = VectorFct.generateSplitedParcels(parcelCollection, tmpFile, p);
+		return result;
 	}
 
 }

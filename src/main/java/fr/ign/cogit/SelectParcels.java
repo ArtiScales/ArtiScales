@@ -36,7 +36,6 @@ import fr.ign.cogit.outputs.XmlGen;
 import fr.ign.cogit.util.DataPreparator;
 import fr.ign.cogit.util.GetFromGeom;
 import fr.ign.cogit.util.SimuTool;
-import fr.ign.cogit.util.VectorFct;
 import fr.ign.parameters.Parameters;
 
 public class SelectParcels {
@@ -126,6 +125,7 @@ public class SelectParcels {
 					parcelCollection = GetFromGeom.selecParcelZonePLUmergeAUandU(parcelCollection, tmpFile, zoningFile, p);
 				}
 				if (p.getString("splitParcel").equals("AU")) {
+					//TODO leave a lock from I don't know where
 					parcelCollection = GetFromGeom.selecParcelZonePLUmergeAU(parcelCollection, tmpFile, zoningFile, p);
 				}
 				for (String action : listeAction) {

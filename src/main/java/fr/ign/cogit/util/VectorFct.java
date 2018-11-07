@@ -13,7 +13,6 @@ import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory2;
 import org.opengis.filter.expression.PropertyName;
@@ -179,7 +178,6 @@ public class VectorFct {
 					AttributeManager.addAttribute(newFeat, "U", feat.getAttribute("U"), "String");
 					AttributeManager.addAttribute(newFeat, "AU", feat.getAttribute("AU"), "String");
 					AttributeManager.addAttribute(newFeat, "NC", feat.getAttribute("NC"), "String");
-
 					ifeatCollOut.add(newFeat);
 					numParcelle++;
 				}
@@ -203,56 +201,6 @@ public class VectorFct {
 		// return
 		// GeOxygeneGeoToolsTypes.convert2FeatureCollection(ifeatCollOut);
 		return splitedSFC;
-	}
-
-	public static SimpleFeatureBuilder setSFBParDefaut(SimpleFeature feat, SimpleFeatureType schema, String geometryOutputName) {
-		SimpleFeatureBuilder finalParcelBuilder = new SimpleFeatureBuilder(schema);
-		finalParcelBuilder.set(geometryOutputName, (Geometry) feat.getDefaultGeometry());
-		finalParcelBuilder.set("CODE", "unknow");
-		finalParcelBuilder.set("CODE_DEP", "unknow");
-		finalParcelBuilder.set("CODE_COM", "unknow");
-		finalParcelBuilder.set("COM_ABS", "unknow");
-		finalParcelBuilder.set("SECTION", "unknow");
-		finalParcelBuilder.set("NUMERO", "unknow");
-		finalParcelBuilder.set("INSEE", "unknow");
-		finalParcelBuilder.set("eval", "0");
-		finalParcelBuilder.set("DoWeSimul", false);
-		finalParcelBuilder.set("IsBuild", false);
-		finalParcelBuilder.set("U", false);
-		finalParcelBuilder.set("AU", false);
-		finalParcelBuilder.set("NC", false);
-		return finalParcelBuilder;
-	}
-
-	/**
-	 * not very nice overload
-	 * 
-	 * @param feat
-	 * @param schema
-	 * @return
-	 */
-	public static SimpleFeatureBuilder setSFBWithFeat(SimpleFeature feat, SimpleFeatureType schema) {
-		return setSFBWithFeat(feat, schema, schema.getGeometryDescriptor().getName().toString());
-
-	}
-
-	public static SimpleFeatureBuilder setSFBWithFeat(SimpleFeature feat, SimpleFeatureType schema, String geometryOutputName) {
-		SimpleFeatureBuilder finalParcelBuilder = new SimpleFeatureBuilder(schema);
-		finalParcelBuilder.set(geometryOutputName, (Geometry) feat.getDefaultGeometry());
-		finalParcelBuilder.set("CODE", feat.getAttribute("CODE"));
-		finalParcelBuilder.set("CODE_DEP", feat.getAttribute("CODE_DEP"));
-		finalParcelBuilder.set("CODE_COM", feat.getAttribute("CODE_COM"));
-		finalParcelBuilder.set("COM_ABS", feat.getAttribute("COM_ABS"));
-		finalParcelBuilder.set("SECTION", feat.getAttribute("SECTION"));
-		finalParcelBuilder.set("NUMERO", feat.getAttribute("NUMERO"));
-		finalParcelBuilder.set("INSEE", feat.getAttribute("INSEE"));
-		finalParcelBuilder.set("eval", feat.getAttribute("eval"));
-		finalParcelBuilder.set("DoWeSimul", feat.getAttribute("DoWeSimul"));
-		finalParcelBuilder.set("IsBuild", feat.getAttribute("IsBuild"));
-		finalParcelBuilder.set("U", feat.getAttribute("U"));
-		finalParcelBuilder.set("AU", feat.getAttribute("AU"));
-		finalParcelBuilder.set("NC", feat.getAttribute("NC"));
-		return finalParcelBuilder;
 	}
 
 	/**
