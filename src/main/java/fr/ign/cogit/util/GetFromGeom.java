@@ -181,22 +181,6 @@ public class GetFromGeom {
 		throw new FileNotFoundException("Route file not found");
 	}
 
-	/**
-	 * get the negative file of the parcels (ugly method to deal with it)
-	 * 
-	 * @param geoFile
-	 * @return
-	 * @throws FileNotFoundException
-	 */
-	public static File getNegParcels(File geoFile) throws FileNotFoundException {
-		for (File f : geoFile.listFiles()) {
-			if (f.getName().startsWith("negParcel") && f.getName().endsWith(".shp")) {
-				return f;
-			}
-		}
-		throw new FileNotFoundException("Building file not found");
-	}
-
 	public static int getHousingUnitsGoals(File regulFile, String zipCode) throws IOException {
 		File donneGen = new File(regulFile, "donnecommune.csv"); // A mettre dans le fichier de paramètres?
 		CSVReader csvReader = new CSVReader(new FileReader(donneGen));
@@ -461,9 +445,7 @@ public class GetFromGeom {
 		ShapefileDataStore shpDSZone = new ShapefileDataStore((new File("/home/mcolomb/informatique/ArtiScales/tmp/parcelGenExport.shp")).toURI().toURL());
 		SimpleFeatureCollection parcel = shpDSZone.getFeatureSource().getFeatures();
 
-		selecParcelZonePLUmergeAU(parcel, new File("/home/mcolomb/informatique/ArtiScales/tmp"), new File("/home/mcolomb/informatique/ArtiScales/dataRegul/zoningRegroupe.shp"),
-				new File("/home/mcolomb/informatique/ArtiScales/dataGeo/negParcel.shp"), p);
-
+		selecParcelZonePLUmergeAU(parcel, new File("/home/mcolomb/informatique/ArtiScales/tmp"), new File("/home/mcolomb/informatique/ArtiScales/dataRegul/zoningRegroupe.shp"), p);
 	}
 
 	/**
@@ -477,7 +459,7 @@ public class GetFromGeom {
 	 * @return
 	 * @throws Exception
 	 */
-	public static SimpleFeatureCollection selecParcelZonePLUmergeAU(SimpleFeatureCollection parcels, File tmpFile, File zoningFile, File negParcel, Parameters p) throws Exception {
+	public static SimpleFeatureCollection selecParcelZonePLUmergeAU(SimpleFeatureCollection parcels, File tmpFile, File zoningFile, Parameters p) throws Exception {
 
 		// parcels to save for after
 		DefaultFeatureCollection savedParcels = new DefaultFeatureCollection();
@@ -493,8 +475,6 @@ public class GetFromGeom {
 		Filter filter = ff.like(ff.property("TYPEZONE"), "AU");
 		SimpleFeatureCollection zoneAU = featuresZones.subCollection(filter);
 
-		// Filter to select parcels that intersects the selected zonnig zone
-		String geometryParcelPropertyName = parcels.getSchema().getGeometryDescriptor().getLocalName();
 		// all the AU zones
 		Geometry geomAU = Vectors.unionSFC(zoneAU);
 		DefaultFeatureCollection parcelsInAU = new DefaultFeatureCollection();
@@ -601,7 +581,6 @@ public class GetFromGeom {
 				Geometry intersectedGeom = ((Geometry) zone.getDefaultGeometry()).intersection(unionParcel);
 				if (!intersectedGeom.isEmpty()) {
 					if (intersectedGeom instanceof MultiPolygon) {
-						System.out.println("multi" + intersectedGeom);
 						for (int i = 0; i < intersectedGeom.getNumGeometries(); i++) {
 							sfBuilder.set(geometryOutputName, intersectedGeom.getGeometryN(i));
 							write.add(sfBuilder.buildFeature(String.valueOf(nFeat)));
@@ -646,20 +625,21 @@ public class GetFromGeom {
 		double noise = 0;
 		double maximalArea = 400;
 		double maximalWidth = 50;
-//		if (!(p == null)) {
-//			maximalArea = p.getDouble("maximalAreaSplitParcel");
-//			maximalWidth = p.getDouble("maximalWidthSplitParcel");
-//		}
-		
-		
+		if (!(p == null)) {
+			maximalArea = p.getDouble("maximalAreaSplitParcel");
+			maximalWidth = p.getDouble("maximalWidthSplitParcel");
+		}
+
 		// get the previously cuted and reshaped shapefile
 		ShapefileDataStore pSDS = new ShapefileDataStore(outU.toURI().toURL());
 		SimpleFeatureCollection pSFS = pSDS.getFeatureSource().getFeatures();
 
-		SimpleFeatureCollection splitedAUParcels = VectorFct.splitParcels(pSFS, maximalArea, maximalWidth, roadEpsilon, noise, p);
+		SimpleFeatureCollection splitedAUParcels = VectorFct.splitParcels(pSFS, maximalArea, maximalWidth, roadEpsilon, noise,tmpFile, p);
 		Vectors.exportSFC(splitedAUParcels, new File(tmpFile, "parcelCuted.shp"));
 		// Final, put them all in a same SHP
-		SimpleFeatureBuilder finalParcelBuilder = getParcelSFBuilder();
+
+		SimpleFeatureBuilder finalParcelBuilder = new SimpleFeatureBuilder(savedParcels.getSchema());
+		
 		SimpleFeatureIterator finalIt = splitedAUParcels.features();
 		int cpt = 0;
 		try {
@@ -679,6 +659,10 @@ public class GetFromGeom {
 				finalParcelBuilder.set("U", feat.getAttribute("U"));
 				finalParcelBuilder.set("AU", feat.getAttribute("AU"));
 				finalParcelBuilder.set("NC", feat.getAttribute("NC"));
+				if (feat.getAttribute("CODE")==null) {
+					System.out.println("par défaut");
+					finalParcelBuilder = VectorFct.sFBParDefaut(feat,savedParcels.getSchema(),geometryOutputName);
+				}
 				savedParcels.add(finalParcelBuilder.buildFeature(String.valueOf(cpt)));
 				cpt++;
 			}
@@ -691,9 +675,16 @@ public class GetFromGeom {
 		Vectors.exportSFC(savedParcels, new File(tmpFile, "parcelFinal.shp"));
 
 		shpDSZone.dispose();
+		pSDS.dispose();
 
 		return savedParcels;
 
+	}
+
+	public static SimpleFeatureCollection selecParcelZonePLUmergeAUandU(SimpleFeatureCollection parcelCollection, File tmpFile, File zoningFile, Parameters p) throws Exception {
+		SimpleFeatureCollection result = selecParcelZonePLUmergeAU(parcelCollection, tmpFile, zoningFile, p);
+		result=VectorFct.generateSplitedParcels(parcelCollection, tmpFile, p);
+		return result ;
 	}
 
 }

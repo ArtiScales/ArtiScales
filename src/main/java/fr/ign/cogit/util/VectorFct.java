@@ -11,16 +11,14 @@ import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.factory.GeoTools;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
-import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory2;
 import org.opengis.filter.expression.PropertyName;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.MultiPolygon;
 
 import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
@@ -43,7 +41,7 @@ public class VectorFct {
 
 	}
 
-	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeatureCollection parcelIn, File filterFile, Parameters p) throws Exception {
+	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeatureCollection parcelIn, File filterFile, File tmpFile, Parameters p) throws Exception {
 
 		ShapefileDataStore morphoSDS = new ShapefileDataStore(filterFile.toURI().toURL());
 		SimpleFeatureCollection morphoSFC = morphoSDS.getFeatureSource().getFeatures();
@@ -51,8 +49,9 @@ public class VectorFct {
 		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
 		PropertyName pName = ff.property(parcelIn.getSchema().getGeometryDescriptor().getLocalName());
 		Filter filter = ff.intersects(pName, ff.literal(morphoUnion));
-		System.out.println("number of parcels " + parcelIn.subCollection(filter).size());
-		return generateSplitedParcels(parcelIn.subCollection(filter), p);
+
+		morphoSDS.dispose();
+		return generateSplitedParcels(parcelIn.subCollection(filter), tmpFile, p);
 	}
 
 	/**
@@ -63,7 +62,7 @@ public class VectorFct {
 	 * @return
 	 * @throws Exception
 	 */
-	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeatureCollection parcelIn, Parameters p) throws Exception {
+	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeatureCollection parcelIn, File tmpFile, Parameters p) throws Exception {
 
 		// splitting method option
 
@@ -77,24 +76,8 @@ public class VectorFct {
 		}
 
 		// putting the need of splitting into attribute
-		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
-		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
-		sfTypeBuilder.setName("testType");
-		sfTypeBuilder.setCRS(sourceCRS);
-		sfTypeBuilder.add("the_geom", MultiPolygon.class);
-		sfTypeBuilder.setDefaultGeometry("the_geom");
-		sfTypeBuilder.add("CODE", String.class);
-		sfTypeBuilder.add("CODE_DEP", String.class);
-		sfTypeBuilder.add("CODE_COM", String.class);
-		sfTypeBuilder.add("COM_ABS", String.class);
-		sfTypeBuilder.add("SECTION", String.class);
-		sfTypeBuilder.add("NUMERO", String.class);
-		sfTypeBuilder.add("INSEE", String.class);
-		sfTypeBuilder.add("eval", String.class);
-		sfTypeBuilder.add("DoWeSimul", String.class);
-		sfTypeBuilder.add("SPLIT", Integer.class);
 
-		SimpleFeatureBuilder sfBuilder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
+		SimpleFeatureBuilder sfBuilder = GetFromGeom.getParcelSFBuilder();
 
 		DefaultFeatureCollection toSplit = new DefaultFeatureCollection();
 		int i = 0;
@@ -130,7 +113,7 @@ public class VectorFct {
 			parcelIt.close();
 		}
 
-		return splitParcels(toSplit, maximalArea, maximalWidth, roadEpsilon, noise, p);
+		return splitParcels(toSplit, maximalArea, maximalWidth, roadEpsilon, noise, tmpFile, p);
 	}
 
 	/**
@@ -144,8 +127,8 @@ public class VectorFct {
 	 * @return
 	 * @throws Exception
 	 */
-	public static SimpleFeatureCollection splitParcels(SimpleFeatureCollection toSplit, double maximalArea, double maximalWidth, double roadEpsilon, double noise, Parameters p)
-			throws Exception {
+	public static SimpleFeatureCollection splitParcels(SimpleFeatureCollection toSplit, double maximalArea, double maximalWidth, double roadEpsilon, double noise, File tmpFile,
+			Parameters p) throws Exception {
 		// TODO un truc fait bugger la sortie dans cette classe..
 
 		// TODO classe po bô du tout: faire une vraie conversion entre les types
@@ -153,16 +136,6 @@ public class VectorFct {
 		// trouvé pour que ça fonctionne)
 		String attNameToTransform = "SPLIT";
 
-		// IFeatureCollection<?> ifeatColl =
-		// GeOxygeneGeoToolsTypes.convert2IFeatureCollection(toSplit);
-		File tmpFile = new File("");
-		if (p != null) {
-			tmpFile = new File(p.getString("rootFile"), "/temp/");
-
-		} else {
-			tmpFile = new File("/tmp/");
-		}
-		tmpFile.mkdir();
 		File shpIn = new File(tmpFile, "temp-In.shp");
 
 		Vectors.exportSFC(toSplit, shpIn);
@@ -192,7 +165,6 @@ public class VectorFct {
 					String newCodeCom = (String) feat.getAttribute("CODE_COM");
 					String newSection = (String) feat.getAttribute("SECTION");
 					String newNumero = String.valueOf(numParcelle);
-
 					AttributeManager.addAttribute(newFeat, "CODE_DEP", newCodeDep, "String");
 					AttributeManager.addAttribute(newFeat, "CODE_COM", newCodeCom, "String");
 					AttributeManager.addAttribute(newFeat, "SECTION", newSection, "String");
@@ -218,6 +190,7 @@ public class VectorFct {
 			}
 		}
 
+
 		File fileOut = new File(tmpFile, "tmp.shp");
 		ShapefileWriter.write(ifeatCollOut, fileOut.toString(), CRS.decode("EPSG:2154"));
 		// nouvelle sélection en fonction de la zone pour patir à la faible
@@ -227,15 +200,32 @@ public class VectorFct {
 		ShapefileDataStore SSD = new ShapefileDataStore(fileOut.toURI().toURL());
 		SimpleFeatureCollection splitedSFC = SSD.getFeatureSource().getFeatures();
 
-		// splitedSFC = selecParcelZonePLU(typeZone, splitedSFC, SSD);
-
-		// pareil, il serait peut être mieux d'échanger des shp?!
-		// SSD.dispose();
+		SSD.dispose();
 		// return
 		// GeOxygeneGeoToolsTypes.convert2FeatureCollection(ifeatCollOut);
 		return splitedSFC;
 	}
 
+	public static SimpleFeatureBuilder sFBParDefaut(SimpleFeature feat,SimpleFeatureType schema, String geometryOutputName) {
+		SimpleFeatureBuilder finalParcelBuilder = new SimpleFeatureBuilder(schema);
+		finalParcelBuilder.set(geometryOutputName, (Geometry) feat.getDefaultGeometry());
+		finalParcelBuilder.set("CODE", "unknow");
+		finalParcelBuilder.set("CODE_DEP", "unknow");
+		finalParcelBuilder.set("CODE_COM", "unknow");
+		finalParcelBuilder.set("COM_ABS", "unknow");
+		finalParcelBuilder.set("SECTION", "unknow");
+		finalParcelBuilder.set("NUMERO", "unknow");
+		finalParcelBuilder.set("INSEE", "unknow");
+		finalParcelBuilder.set("eval", "0");
+		finalParcelBuilder.set("DoWeSimul", false);
+		finalParcelBuilder.set("IsBuild", false);
+		finalParcelBuilder.set("U", false);
+		finalParcelBuilder.set("AU", false);
+		finalParcelBuilder.set("NC", false);
+		return finalParcelBuilder;
+	}
+	
+	
 	/**
 	 * Merge all the shapefile of a folder (made for simPLU buildings) into one shapefile
 	 * 
