@@ -304,7 +304,7 @@ public class SimPLUSimulator {
 		for (int i = 0; i < nbBPU; i++) {
 			// if parcel has been marked an non simulable, return null
 			if (!isParcelSimulable(env.getBpU().get(i).getCadastralParcels().get(0).getCode())) {
-				System.out.println(env.getBpU().get(i).getCadastralParcels().get(0).getCode() + " : je l'ai stopé net la tep");
+				System.out.println(env.getBpU().get(i).getCadastralParcels().get(0).getCode() + " : je l'ai stopé net coz pas selec");
 				return null;
 			}
 			p = pSaved;
