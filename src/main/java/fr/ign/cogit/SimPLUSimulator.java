@@ -47,6 +47,7 @@ import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.Cuboid;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.optimizer.cuboid.OptimisedBuildingsCuboidFinalDirectRejection;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.optimizer.paralellcuboid.ParallelCuboidOptimizer;
 import fr.ign.cogit.simplu3d.util.SDPCalc;
+import fr.ign.cogit.util.GetFromGeom;
 import fr.ign.cogit.util.SimpluParametersXML;
 import fr.ign.cogit.util.SimuTool;
 import fr.ign.cogit.util.VectorFct;
@@ -286,7 +287,7 @@ public class SimPLUSimulator {
 		IFeatureCollection<Prescription> prescriptions = env.getPrescriptions();
 		IFeatureCollection<Prescription> prescriptionUse = PrescriptionPreparator.preparePrescription(prescriptions, p);
 
-		boolean association = ZoneRulesAssociation.associate(env, predicateFile);
+		boolean association = ZoneRulesAssociation.associate(env, predicateFile, GetFromGeom.rnuZip(new File(rootFile, "dataRegul")));
 
 		if (!association) {
 			System.out.println("Association between rules and UrbanZone failed");
@@ -301,7 +302,7 @@ public class SimPLUSimulator {
 		// ?
 		int nbBPU = env.getBpU().size();
 		for (int i = 0; i < nbBPU; i++) {
-			//if parcel has been marked an non simulable, return null
+			// if parcel has been marked an non simulable, return null
 			if (!isParcelSimulable(env.getBpU().get(i).getCadastralParcels().get(0).getCode())) {
 				System.out.println(env.getBpU().get(i).getCadastralParcels().get(0).getCode() + " : je l'ai stopé net la tep");
 				return null;
@@ -318,7 +319,7 @@ public class SimPLUSimulator {
 			System.out.println("&&&&&&&&&&&&&& Aucun bâtiment n'a été simulé &&&&&&&&&&&&&&");
 			return null;
 		}
-		
+
 		VectorFct.mergeBatis(listBatiSimu);
 
 		return listBatiSimu;

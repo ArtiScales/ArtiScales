@@ -1,6 +1,7 @@
 package fr.ign.cogit;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -125,7 +126,7 @@ public class SelectParcels {
 					parcelCollection = GetFromGeom.selecParcelZonePLUmergeAUandU(parcelCollection, tmpFile, zoningFile, p);
 				}
 				if (p.getString("splitParcel").equals("AU")) {
-					//TODO problème de lock que je n'arrive pas à résoudre..
+					// TODO problème de lock que je n'arrive pas à résoudre..
 					parcelCollection = GetFromGeom.selecParcelZonePLUmergeAU(parcelCollection, tmpFile, zoningFile, p);
 					Vectors.exportSFC(parcelCollection, new File(tmpFile, "parcelGenExportCuted.shp"));
 				}
@@ -612,45 +613,45 @@ public class SelectParcels {
 		return bestEval;
 	}
 
-//	public File selecOneParcelInCell(SimpleFeatureCollection parcelIn) throws IOException {
-//		// TODO finir cette méthode : mais sert elle à quelque chose?
-//		// mettre le recouvrement des cellules dans un attribut et favoriser
-//		// selon le plus gros pourcentage?
-//
-//		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
-//		String geometryParcelPropertyName = parcelIn.getSchema().getGeometryDescriptor().getLocalName();
-//
-//		ShapefileDataStore shpDSCells = new ShapefileDataStore(spatialConf.toURI().toURL());
-//		SimpleFeatureCollection cellsCollection = shpDSCells.getFeatureSource().getFeatures();
-//
-//		SimpleFeatureIterator cellIt = cellsCollection.features();
-//		try {
-//			while (cellIt.hasNext()) {
-//				SimpleFeature feat = cellIt.next();
-//				Filter inter = ff.intersects(ff.property(geometryParcelPropertyName), ff.literal(feat.getDefaultGeometry()));
-//				SimpleFeatureCollection parcelMultipleSelection = parcelIn.subCollection(inter);
-//				if (!parcelMultipleSelection.isEmpty()) {
-//					SimpleFeature bestFeature = null;
-//					SimpleFeatureIterator multipleSelec = parcelMultipleSelection.features();
-//					try {
-//						while (multipleSelec.hasNext()) {
-//							SimpleFeature featParc = multipleSelec.next();
-//						}
-//					} catch (Exception problem) {
-//						problem.printStackTrace();
-//					} finally {
-//						multipleSelec.close();
-//					}
-//				}
-//			}
-//		} catch (Exception problem) {
-//			problem.printStackTrace();
-//		} finally {
-//			cellIt.close();
-//		}
-//		shpDSCells.dispose();
-//		return null;
-//	}
+	// public File selecOneParcelInCell(SimpleFeatureCollection parcelIn) throws IOException {
+	// // TODO finir cette méthode : mais sert elle à quelque chose?
+	// // mettre le recouvrement des cellules dans un attribut et favoriser
+	// // selon le plus gros pourcentage?
+	//
+	// FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
+	// String geometryParcelPropertyName = parcelIn.getSchema().getGeometryDescriptor().getLocalName();
+	//
+	// ShapefileDataStore shpDSCells = new ShapefileDataStore(spatialConf.toURI().toURL());
+	// SimpleFeatureCollection cellsCollection = shpDSCells.getFeatureSource().getFeatures();
+	//
+	// SimpleFeatureIterator cellIt = cellsCollection.features();
+	// try {
+	// while (cellIt.hasNext()) {
+	// SimpleFeature feat = cellIt.next();
+	// Filter inter = ff.intersects(ff.property(geometryParcelPropertyName), ff.literal(feat.getDefaultGeometry()));
+	// SimpleFeatureCollection parcelMultipleSelection = parcelIn.subCollection(inter);
+	// if (!parcelMultipleSelection.isEmpty()) {
+	// SimpleFeature bestFeature = null;
+	// SimpleFeatureIterator multipleSelec = parcelMultipleSelection.features();
+	// try {
+	// while (multipleSelec.hasNext()) {
+	// SimpleFeature featParc = multipleSelec.next();
+	// }
+	// } catch (Exception problem) {
+	// problem.printStackTrace();
+	// } finally {
+	// multipleSelec.close();
+	// }
+	// }
+	// }
+	// } catch (Exception problem) {
+	// problem.printStackTrace();
+	// } finally {
+	// cellIt.close();
+	// }
+	// shpDSCells.dispose();
+	// return null;
+	// }
 
 	/**
 	 * Return a collection of constructed parcels.
@@ -701,6 +702,20 @@ public class SelectParcels {
 
 		DataPreparator.createPackages(parcelCollection, tmpFile, fileOut);
 
+		// if the city is following the RNU
+		List<String> rnuZip = GetFromGeom.rnuZip(regulFile);
+
+		CSVReader predicate = new CSVReader(new FileReader(GetFromGeom.getPredicate(regulFile)));
+		predicate.readNext();
+		String[] rnu = null;
+		for (String[] line : predicate.readAll()) {
+			if (line[0].equals("RNU")) {
+				rnu = line;
+			}
+		}
+		// rewind
+		predicate.close();
+
 		for (File pack : fileOut.listFiles()) {
 			if (pack.isDirectory()) {
 				File fBBox = new File(pack, "bbox.shp");
@@ -746,8 +761,6 @@ public class SelectParcels {
 				prescSurf_datastore.dispose();
 
 				// selection of the right lives from the predicate file
-				// CSV tools
-				CSVReader predicate = new CSVReader(new FileReader(new File(rootFile, "dataRegul/predicate.csv")));
 				// CSVWriter newPredicate = new CSVWriter(new FileWriter(new File(pack, "snapPredicate.csv")),",","","");
 
 				CSVWriter newPredicate = new CSVWriter(new FileWriter(new File(pack, "snapPredicate.csv")), ',', '\0');
@@ -769,17 +782,26 @@ public class SelectParcels {
 					itParc.close();
 				}
 				sds.dispose();
+				predicate = new CSVReader(new FileReader(GetFromGeom.getPredicate(regulFile)));
+
 				newPredicate.writeNext(predicate.readNext());
+				for (String nIinsee : insee) {
+					if (rnuZip.contains(nIinsee)) {
+						newPredicate.writeNext(rnu);
+						break;
+					}
+				}
 				for (String[] line : predicate.readAll()) {
-					for (String nIinsee : insee)
+					for (String nIinsee : insee) {
 						if (line[1].equals(nIinsee)) {
 							newPredicate.writeNext(line);
 						}
+					}
 				}
-				predicate.close();
 				newPredicate.close();
 			}
 		}
+		predicate.close();
 	}
 
 	/**

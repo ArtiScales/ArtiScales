@@ -38,6 +38,31 @@ import fr.ign.parameters.Parameters;
 
 public class GetFromGeom {
 
+	public static void main(String[] args) throws Exception {
+		System.out.println(rnuZip(new File("/home/mcolomb/informatique/ArtiScales/dataRegul")));
+	}
+
+	
+	public static List<String> rnuZip(File regulFile) throws IOException{
+		List<String> result = new ArrayList<String>();
+		File fCsv = new File("");
+		for (File f : regulFile.listFiles()) {
+			if (f.getName().equals("listRNUCities.csv")) {
+				fCsv = f;
+				break;
+			}
+		}
+		CSVReader read = new CSVReader(new FileReader(fCsv));
+		//entete
+		read.readNext();
+		for (String[]line : read.readAll()) {
+			result.add(line[1]);
+		}
+		read.close();
+		return result;
+	}
+	
+	
 	/**
 	 * get the parcel file and add necessary attributes and informations for an ArtiScales Simulation
 	 * 
@@ -217,6 +242,14 @@ public class GetFromGeom {
 			}
 		}
 		throw new FileNotFoundException("Zoning file not found");
+	}
+	public static File getPredicate(File regulFile) throws FileNotFoundException {
+		for (File f : regulFile.listFiles()) {
+			if (f.getName().startsWith("predicate") && f.getName().endsWith(".csv")) {
+				return f;
+			}
+		}
+		throw new FileNotFoundException("Predicate not found");
 	}
 
 	public static File getPrescPonct(File regulFile) throws FileNotFoundException {
@@ -486,19 +519,6 @@ public class GetFromGeom {
 		finalParcelBuilder.set("NC", feat.getAttribute("NC"));
 
 		return finalParcelBuilder;
-	}
-
-	public static void main(String[] args) throws Exception {
-		File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/scenar0MCIgn");
-		List<File> lF = new ArrayList<>();
-		lF.add(new File(rootParam, "parametreTechnique.xml"));
-		lF.add(new File(rootParam, "parametreScenario.xml"));
-
-		Parameters p = Parameters.unmarshall(lF);
-		ShapefileDataStore shpDSZone = new ShapefileDataStore((new File("/home/mcolomb/informatique/ArtiScales/tmp/parcelGenExport.shp")).toURI().toURL());
-		SimpleFeatureCollection parcel = shpDSZone.getFeatureSource().getFeatures();
-
-		selecParcelZonePLUmergeAU(parcel, new File("/home/mcolomb/informatique/ArtiScales/tmp"), new File("/home/mcolomb/informatique/ArtiScales/dataRegul/zoningRegroupe.shp"), p);
 	}
 
 	/**

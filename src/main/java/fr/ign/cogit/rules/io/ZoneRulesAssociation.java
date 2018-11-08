@@ -2,11 +2,15 @@ package fr.ign.cogit.rules.io;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
+
+import com.vividsolutions.jts.geom.Geometry;
 
 import fr.ign.cogit.rules.regulation.ArtiScalesRegulation;
 import fr.ign.cogit.simplu3d.model.Environnement;
 import fr.ign.cogit.simplu3d.model.UrbaZone;
+import fr.ign.cogit.util.GetFromGeom;
 
 public class ZoneRulesAssociation {
 
@@ -18,7 +22,7 @@ public class ZoneRulesAssociation {
 	 * @return
 	 * @throws IOException
 	 */
-	public static boolean associate(Environnement env, File predicateFile) throws IOException {
+	public static boolean associate(Environnement env, File predicateFile, List<String> listRNU) throws IOException {
 		// We associate regulation to UrbanZone
 
 		// Rules parameters
@@ -33,7 +37,13 @@ public class ZoneRulesAssociation {
 
 		// For each zone we associate a regulation to the zone
 		for (UrbaZone zone : env.getUrbaZones()) {
+
 			String finalLibelle = zone.getLibelle() + "-" + zone.getInsee();
+			
+			//if the city is at the rnu, insee code's the same
+			if (listRNU.contains(zone.getInsee())) {
+				finalLibelle = zone.getLibelle() + "-" + "7";
+			}
 			regle = regles.get(finalLibelle);
 			if (regle != null) {
 				zone.setZoneRegulation(regle);
