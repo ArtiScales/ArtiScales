@@ -1,6 +1,7 @@
 package fr.ign.cogit;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -12,6 +13,8 @@ import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeature;
+
+import com.vividsolutions.jts.geom.Geometry;
 
 import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
@@ -298,6 +301,11 @@ public class SimPLUSimulator {
 		// ?
 		int nbBPU = env.getBpU().size();
 		for (int i = 0; i < nbBPU; i++) {
+			//if parcel has been marked an non simulable, return null
+			if (!isParcelSimulable(env.getBpU().get(i).getCadastralParcels().get(0).getCode())) {
+				System.out.println(env.getBpU().get(i).getCadastralParcels().get(0).getCode() + " : je l'ai stopé net la tep");
+				return null;
+			}
 			p = pSaved;
 			File file = runSimulation(env, i, p, prescriptionUse);
 			if (file != null) {
@@ -310,8 +318,33 @@ public class SimPLUSimulator {
 			System.out.println("&&&&&&&&&&&&&& Aucun bâtiment n'a été simulé &&&&&&&&&&&&&&");
 			return null;
 		}
+		
+		VectorFct.mergeBatis(listBatiSimu);
 
 		return listBatiSimu;
+	}
+
+	public boolean isParcelSimulable(String codeParcel) throws IOException {
+		boolean result = true;
+		ShapefileDataStore sds = new ShapefileDataStore(parcelsFile.toURI().toURL());
+		SimpleFeatureIterator it = sds.getFeatureSource().getFeatures().features();
+		try {
+			while (it.hasNext()) {
+				SimpleFeature feat = it.next();
+				if (feat.getAttribute("CODE").equals(codeParcel)) {
+					if (feat.getAttribute("DoWeSimul").equals("false")) {
+						result = false;
+					}
+					break;
+				}
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			it.close();
+		}
+		sds.dispose();
+		return result;
 	}
 
 	/**
@@ -357,8 +390,8 @@ public class SimPLUSimulator {
 			return null;
 		}
 
-		if (!(pred.isCanBeSimulated())) {
-			System.out.println("Parcel is not simulable according to the rules");
+		if (!pred.isCanBeSimulated()) {
+			System.out.println("Parcel is not simulable according to the predicate");
 			return null;
 		}
 		// We compute the parcel area
@@ -469,7 +502,7 @@ public class SimPLUSimulator {
 
 		// méthode de calcul d'aire simpliste
 
-		// TODO sortir ça de cette méthode
+		// TODO sortir ça de cette méthode?
 		File output = new File(SimuTool.createScenarVariantFolders(simuFile, rootFile, "SimPLUDepot"), "out-parcelle_" + bPU.getCadastralParcels().get(0).getCode() + ".shp");
 		System.out.println("Output in : " + output);
 		ShapefileWriter.write(iFeatC, output.toString(), CRS.decode("EPSG:2154"));
@@ -584,7 +617,7 @@ public class SimPLUSimulator {
 		SubParcel sPBiggest = sP.get(sP.size() - 1);
 
 		if (sPBiggest.getUrbaZone() == null) {
-			System.out.println("Regulation is null for : " + bPU);
+			System.out.println("Regulation is null for : " + bPU.getCadastralParcels().get(0).getCode());
 			return null;
 
 		}
@@ -592,7 +625,7 @@ public class SimPLUSimulator {
 		ArtiScalesRegulation regle = (ArtiScalesRegulation) sPBiggest.getUrbaZone().getZoneRegulation();
 
 		if (regle == null) {
-			System.out.println("Regulation is null for : " + bPU);
+			System.out.println("Regulation is null for : " + bPU.getCadastralParcels().get(0).getCode());
 			return null;
 		}
 

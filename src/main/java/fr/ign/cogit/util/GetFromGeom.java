@@ -685,6 +685,7 @@ public class GetFromGeom {
 		SimpleFeatureCollection pSFS = pSDS.getFeatureSource().getFeatures();
 
 		SimpleFeatureCollection splitedAUParcels = VectorFct.splitParcels(pSFS, maximalArea, maximalWidth, roadEpsilon, noise, tmpFile, p);
+
 		Vectors.exportSFC(splitedAUParcels, new File(tmpFile, "parcelCuted.shp"));
 
 		// Finally, put them all features in a same collec

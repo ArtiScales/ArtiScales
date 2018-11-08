@@ -19,7 +19,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	private static Logger log = Logger.getLogger(ArtiScalesRegulation.class);
 
 	// Les intitulés des colonnes
-	private int insee, oap, fonctions, zonage_coherent, correction_zonage, art_3, art_4, art_71, art_74, art_10_top;
+	private int insee, oap, bonus_densite, art_3, art_4, art_71, art_74, art_10_top;
 	private String libelle_zone, libelle_de_base, libelle_de_dul, art_6, art_6_opt, art_6_optD, art_12, art_14, art_10_1;
 
 	private double art_5, art_72, art_73, art_8, art_9, art_13;
@@ -50,17 +50,11 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 			case "libelle_de_dul":
 				libelle_de_dul = lineSplited[i];
 				break;
-			case "fonctions":
-				fonctions = Integer.parseInt(lineSplited[i]);
-				break;
-			case "zonage_coherent":
-				zonage_coherent = Integer.parseInt(lineSplited[i]);
-				break;
-			case "correction_zonage":
-				correction_zonage = Integer.parseInt(lineSplited[i]);
-				break;
 			case "oap":
 				oap = Integer.valueOf(lineSplited[i]);
+				break;
+			case "bonus_densite":
+				bonus_densite = Integer.valueOf(lineSplited[i]);
 				break;
 			case "art_3":
 				art_3 = Integer.valueOf(lineSplited[i]);
@@ -120,28 +114,26 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	}
 
 	public ArtiScalesRegulation clone() {
-		return new ArtiScalesRegulation(libelle_zone, insee, libelle_de_base, libelle_de_dul, fonctions, oap, zonage_coherent, correction_zonage, art_3, art_4, art_5, art_6,
-				art_6_opt, art_6_optD, art_71, art_72, art_73, art_74, art_8, art_9, art_10_top, art_10_1, art_12, art_13, art_14);
+		return new ArtiScalesRegulation(libelle_zone, insee, libelle_de_base, libelle_de_dul, oap, bonus_densite, art_3, art_4, art_5, art_6, art_6_opt, art_6_optD, art_71, art_72,
+				art_73, art_74, art_8, art_9, art_10_top, art_10_1, art_12, art_13, art_14);
 	}
 
 	public String toCSVLine() {
-		return libelle_zone + "," + insee + "," + libelle_de_base + "," + libelle_de_dul + "," + fonctions + "," + oap + "," + zonage_coherent + "," + correction_zonage + ","
-				+ art_3 + "," + art_4 + "," + art_5 + "," + art_6 + "," + art_6_opt + "," + art_6_optD + "," + art_71 + "," + art_72 + "," + art_73 + "," + art_74 + "," + art_8
-				+ "," + art_9 + "," + art_10_top + "," + art_10_1 + "," + art_12 + "," + art_13 + "," + art_14;
+		return libelle_zone + "," + insee + "," + libelle_de_base + "," + libelle_de_dul + "," + oap + "," + bonus_densite + "," + art_3 + "," + art_4 + "," + art_5 + "," + art_6
+				+ "," + art_6_opt + "," + art_6_optD + "," + art_71 + "," + art_72 + "," + art_73 + "," + art_74 + "," + art_8 + "," + art_9 + "," + art_10_top + "," + art_10_1
+				+ "," + art_12 + "," + art_13 + "," + art_14;
 	}
 
-	public ArtiScalesRegulation(String libelle_zone, int insee, String libelle_de_base, String libelle_de_dul, int fonctions, int oap, int zonage_coherent, int correction_zonage,
-			int art_3, int art_4, double art_5, String art_6, String art_6_opt, String art_6_optD, int art_71, double art_72, double art_73, int art_74, double art_8, double art_9,
-			int art_10_top, String art_10_1, String art_12, double art_13, String art_14) {
+	public ArtiScalesRegulation(String libelle_zone, int insee, String libelle_de_base, String libelle_de_dul, int oap, int bonus_densite, int art_3, int art_4, double art_5,
+			String art_6, String art_6_opt, String art_6_optD, int art_71, double art_72, double art_73, int art_74, double art_8, double art_9, int art_10_top, String art_10_1,
+			String art_12, double art_13, String art_14) {
 		super();
 		this.libelle_zone = libelle_zone;
 		this.insee = insee;
 		this.libelle_de_base = libelle_de_base;
 		this.libelle_de_dul = libelle_de_dul;
-		this.fonctions = fonctions;
+		this.bonus_densite = bonus_densite;
 		this.oap = oap;
-		this.zonage_coherent = zonage_coherent;
-		this.correction_zonage = correction_zonage;
 		this.art_3 = art_3;
 		this.art_4 = art_4;
 		this.art_5 = art_5;
@@ -165,6 +157,10 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	 * Replace some fake value by value used in simulator
 	 */
 	public void clean() {
+
+		if (this.getArt_72() == 88 || this.getArt_72() == 99) {
+			this.art_72 = 0;
+		}
 
 		if (this.getArt_72() == 88 || this.getArt_72() == 99) {
 			this.art_72 = 0;
@@ -250,10 +246,10 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	@Override
 	public String toString() {
 		return "ArtiScalesRegulation [libelle_zone=" + libelle_zone + ", insee=" + insee + ", libelle_de_base=" + libelle_de_base + ", libelle_de_dul=" + libelle_de_dul
-				+ ", fonctions=" + fonctions + ", oap=" + oap + ", zonage_coherent=" + zonage_coherent + ", correction_zonage=" + correction_zonage + ", art_3=" + art_3
-				+ ", art_4=" + art_4 + ", art_5=" + art_5 + ", art_6=" + art_6 + ", art_6_opt=" + art_6_opt + ", art_6_optD=" + art_6_optD + ", art_71=" + art_71 + ", art_72="
-				+ art_72 + ", art_73=" + art_73 + ", art_74=" + art_74 + ", art_8=" + art_8 + ", art_9=" + art_9 + ", art_10_top=" + art_10_top + ", art_10=" + art_10_1 + ", "
-				+ "art_12=" + art_12 + ", art_13=" + art_13 + ", art_14=" + art_14 + "]";
+				+ ", bonus_densite=" + bonus_densite + ", oap=" + oap + ", zonage_coherent=" + ", art_3=" + art_3 + ", art_4=" + art_4 + ", art_5=" + art_5 + ", art_6=" + art_6
+				+ ", art_6_opt=" + art_6_opt + ", art_6_optD=" + art_6_optD + ", art_71=" + art_71 + ", art_72=" + art_72 + ", art_73=" + art_73 + ", art_74=" + art_74 + ", art_8="
+				+ art_8 + ", art_9=" + art_9 + ", art_10_top=" + art_10_top + ", art_10=" + art_10_1 + ", " + "art_12=" + art_12 + ", art_13=" + art_13 + ", art_14=" + art_14
+				+ "]";
 	}
 
 	//////////// GETTERS AND SETTERS
@@ -277,23 +273,11 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 		return libelle_de_dul;
 	}
 
-	// FONCTIONS Fonction de la zone 0 : logements uniquement ; 1 : activité
-	// mais possibilité de logements ; 2 : exclusivement activité
-	public int getFonctions() {
-		return fonctions;
-	}
-
-	// ZONAGE_COHERENT Zonage cohérent entre la base et le plan de zonage du DUL
-	// 0 : NON // 1 : OUI
-	public int getZonage_coherent() {
-		return zonage_coherent;
-	}
-
-	// CORRECTION_ZONAGE Indicateur du zonage à faire prévaloir en cas
-	// d'incohérence des zonages 0 : Conserver le dessin de zonage de Carto PLU
-	// 1 : Numeriser le zonage du PLU analysé
-	public int getCorrection_zonage() {
-		return correction_zonage;
+	// BONUS DENSITE : if the scenario wants to change certain parameters to produce extra housing unit density on that zone
+	//0 : no
+	//1 : yes 
+	public int getBonusDensite() {
+		return bonus_densite;
 	}
 
 	// SERVITUDE DE PASSAGE 1 : La parcelle qui n’a pas acces à la voirie doit
@@ -439,17 +423,10 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 		this.oap = oap;
 	}
 
-	public void setFonctions(int fonctions) {
-		this.fonctions = fonctions;
+	public void setBonusDensite(int bonus) {
+		this.bonus_densite = bonus;
 	}
 
-	public void setZonage_coherent(int zonage_coherent) {
-		this.zonage_coherent = zonage_coherent;
-	}
-
-	public void setCorrection_zonage(int correction_zonage) {
-		this.correction_zonage = correction_zonage;
-	}
 
 	public void setArt_3(int art_3) {
 		this.art_3 = art_3;

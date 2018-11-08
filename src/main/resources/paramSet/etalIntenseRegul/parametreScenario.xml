@@ -92,7 +92,7 @@
 			toutes fondues puis décomposés -->
 		<!-- Si "AU", les parcelles situées dans les zones AU sont décomposées -->
 		<!-- Si "false", aucune parcelle ne sera décomposé -->
-		<param key="splitParcel" value="AU" />
+		<param key="splitParcel" value="false" />
 			<!-- Aire moyenne des parcelles découpées -->
 			<param key="maximalAreaSplitParcel" value="300" />
 			<!-- Largeur minimum de la limite parcellaire donnant sur la voirie -->
@@ -108,7 +108,7 @@
 			<param key="NUISANCES_RISQUES" value="true"/>
 			<!-- quel niveau de nuisance/risque retirons nous de l'urbanisation? -->
 				<!-- uniquement les zones les plus graves (dont le libelle contient les mots-clefs suivants : grave,fort , 					Maximal, rouge -->
-				<param key="NUISANCES_RISQUES-MAX" value="true"/>
+			<param key="NUISANCES_RISQUES-MAX" value="true"/>
 			<param key="EMPLACEMENT_RESERVE" value="true"/>
 			<param key="ELEMENT_PAYSAGE" value="true"/>
 			<param key="RECOIL" value="false"/>

@@ -1,6 +1,7 @@
 package fr.ign.cogit.util;
 
 import java.io.File;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -190,14 +191,17 @@ public class VectorFct {
 
 		File fileOut = new File(tmpFile, "tmp.shp");
 		ShapefileWriter.write(ifeatCollOut, fileOut.toString(), CRS.decode("EPSG:2154"));
+	//	ShapefileWriter.write(ifeatCollOut, "/home/mcolomb/tmp/tmp.shp", CRS.decode("EPSG:2154"));
 		// nouvelle sélection en fonction de la zone pour patir à la faible
 		// qualité de la sélection spatiale quand les polygones touchent les
 		// zones (oui je sais, pas bô encore une fois..)
 
 		ShapefileDataStore SSD = new ShapefileDataStore(fileOut.toURI().toURL());
-		SimpleFeatureCollection splitedSFC = SSD.getFeatureSource().getFeatures();
 
+		SimpleFeatureCollection splitedSFC = SSD.getFeatureSource().getFeatures();
+		//fileOut.delete();
 		SSD.dispose();
+		
 		// return
 		// GeOxygeneGeoToolsTypes.convert2FeatureCollection(ifeatCollOut);
 		return splitedSFC;

@@ -106,7 +106,10 @@ public class MainTask {
 				for (File packFile : varianteFile.listFiles()) {
 					if (packFile.isDirectory()) {
 						SimPLUSimulator simPluSim = new SimPLUSimulator(rootFile, packFile, p);
-						buildingSimulatedPerVariant = simPluSim.run();
+						List<File> listFilesSimul = simPluSim.run();
+						if (!(listFilesSimul == null)) {
+							buildingSimulatedPerVariant.addAll(listFilesSimul);
+						}
 					}
 				}
 				buildingSimulatedPerScenar.add(buildingSimulatedPerVariant);

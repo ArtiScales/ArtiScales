@@ -125,8 +125,9 @@ public class SelectParcels {
 					parcelCollection = GetFromGeom.selecParcelZonePLUmergeAUandU(parcelCollection, tmpFile, zoningFile, p);
 				}
 				if (p.getString("splitParcel").equals("AU")) {
-					//TODO leave a lock from I don't know where
+					//TODO problème de lock que je n'arrive pas à résoudre..
 					parcelCollection = GetFromGeom.selecParcelZonePLUmergeAU(parcelCollection, tmpFile, zoningFile, p);
+					Vectors.exportSFC(parcelCollection, new File(tmpFile, "parcelGenExportCuted.shp"));
 				}
 				for (String action : listeAction) {
 					System.out.println("---=+Pour le remplissage " + action + "+=---");
@@ -159,7 +160,6 @@ public class SelectParcels {
 
 				packFile.mkdirs();
 				File parcelSelectedFile = Vectors.exportSFC(parcelCollection, new File(packFile, "parcelGenExport.shp"));
-				// File parcelSelectedFile = new File("/home/mcolomb/informatique/ArtiScales/tmp/parcelExport.shp");
 
 				separateToDifferentPack(parcelSelectedFile, packFile);
 				listScenar.add(packFile);
@@ -170,7 +170,6 @@ public class SelectParcels {
 		}
 		SimuTool.deleteDirectoryStream(tmpFile.toPath());
 		return selectionFile;
-
 	}
 
 	/**
@@ -801,10 +800,10 @@ public class SelectParcels {
 		sfTypeBuilder.add("the_geom", MultiPolygon.class);
 		sfTypeBuilder.setDefaultGeometry("the_geom");
 
-		DefaultFeatureCollection vide = new DefaultFeatureCollection();
+		SimpleFeatureCollection vide = (new DefaultFeatureCollection()).collection();
 		String[] stuffs = { "building.shp", "road.shp", "zoning.shp", "prescPonct.shp", "prescLin.shp", "prescSurf.shp" };
 		for (String object : stuffs) {
-			Vectors.exportSFC(vide.collection(), new File(f, object));
+			Vectors.exportSFC(vide, new File(f, object));
 
 		}
 	}

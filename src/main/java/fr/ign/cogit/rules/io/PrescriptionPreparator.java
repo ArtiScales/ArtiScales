@@ -7,16 +7,17 @@ import fr.ign.cogit.simplu3d.model.Prescription;
 import fr.ign.parameters.Parameters;
 
 public class PrescriptionPreparator {
-	
-	
-	
+
 	/**
-	 * Convert prescriptions directely loaded from SimPLU3D to a slection of really used prescription
+	 * Convert prescriptions directly loaded from SimPLU3D to a selection of the prescription chosen by the scenario
+	 * 
 	 * @param prescriptions
+	 *            : collection of prescriptions
 	 * @param p
+	 *            : Parameter file
 	 * @return
 	 */
-	public static IFeatureCollection<Prescription> preparePrescription(IFeatureCollection<Prescription> prescriptions, Parameters p){
+	public static IFeatureCollection<Prescription> preparePrescription(IFeatureCollection<Prescription> prescriptions, Parameters p) {
 		IFeatureCollection<Prescription> prescriptionUse = new FT_FeatureCollection<>();
 
 		for (Prescription prescription : prescriptions) {
@@ -66,8 +67,7 @@ public class PrescriptionPreparator {
 				break;
 			}
 		}
-		
-		
+
 		return prescriptionUse;
 
 	}
