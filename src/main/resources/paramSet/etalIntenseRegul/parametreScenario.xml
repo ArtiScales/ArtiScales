@@ -92,7 +92,7 @@
 			toutes fondues puis décomposés -->
 		<!-- Si "AU", les parcelles situées dans les zones AU sont décomposées -->
 		<!-- Si "false", aucune parcelle ne sera décomposé -->
-		<param key="splitParcel" value="false" />
+		<param key="splitParcel" value="true" />
 			<!-- Aire moyenne des parcelles découpées -->
 			<param key="maximalAreaSplitParcel" value="300" />
 			<!-- Largeur minimum de la limite parcellaire donnant sur la voirie -->

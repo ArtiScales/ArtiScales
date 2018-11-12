@@ -110,7 +110,6 @@ public class SelectParcels {
 		List<List<File>> selectionFile = new ArrayList<List<File>>();
 
 		for (List<File> scenar : spatialConfigurations) {
-
 			List<File> listScenar = new ArrayList<File>();
 			String scenarName = scenar.get(0).getName().split("-")[0];
 			Parameters p = SimuTool.getParamFile(lP, scenarName);
@@ -126,7 +125,6 @@ public class SelectParcels {
 					parcelCollection = GetFromGeom.selecParcelZonePLUmergeAUandU(parcelCollection, tmpFile, zoningFile, p);
 				}
 				if (p.getString("splitParcel").equals("AU")) {
-					// TODO problème de lock que je n'arrive pas à résoudre..
 					parcelCollection = GetFromGeom.selecParcelZonePLUmergeAU(parcelCollection, tmpFile, zoningFile, p);
 					Vectors.exportSFC(parcelCollection, new File(tmpFile, "parcelGenExportCuted.shp"));
 				}

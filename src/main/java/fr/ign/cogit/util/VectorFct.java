@@ -18,6 +18,7 @@ import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory2;
 import org.opengis.filter.expression.PropertyName;
 
+import com.google.common.io.Files;
 import com.vividsolutions.jts.geom.Geometry;
 
 import fr.ign.cogit.GTFunctions.Vectors;
@@ -41,7 +42,7 @@ public class VectorFct {
 
 	}
 
-	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeatureCollection parcelIn, File filterFile, File tmpFile, Parameters p) throws Exception {
+	public static File generateSplitedParcels(SimpleFeatureCollection parcelIn, File filterFile, File tmpFile, Parameters p) throws Exception {
 
 		ShapefileDataStore morphoSDS = new ShapefileDataStore(filterFile.toURI().toURL());
 		SimpleFeatureCollection morphoSFC = morphoSDS.getFeatureSource().getFeatures();
@@ -62,7 +63,7 @@ public class VectorFct {
 	 * @return
 	 * @throws Exception
 	 */
-	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeatureCollection parcelIn, File tmpFile, Parameters p) throws Exception {
+	public static File generateSplitedParcels(SimpleFeatureCollection parcelIn, File tmpFile, Parameters p) throws Exception {
 
 		// splitting method option
 
@@ -112,7 +113,7 @@ public class VectorFct {
 		} finally {
 			parcelIt.close();
 		}
-
+		
 		return splitParcels(toSplit, maximalArea, maximalWidth, roadEpsilon, noise, tmpFile, p);
 	}
 
@@ -127,7 +128,7 @@ public class VectorFct {
 	 * @return
 	 * @throws Exception
 	 */
-	public static SimpleFeatureCollection splitParcels(SimpleFeatureCollection toSplit, double maximalArea, double maximalWidth, double roadEpsilon, double noise, File tmpFile,
+	public static File splitParcels(SimpleFeatureCollection toSplit, double maximalArea, double maximalWidth, double roadEpsilon, double noise, File tmpFile,
 			Parameters p) throws Exception {
 		// TODO un truc fait bugger la sortie dans cette classe..
 
@@ -189,22 +190,10 @@ public class VectorFct {
 			}
 		}
 
-		File fileOut = new File(tmpFile, "tmp.shp");
+		File fileOut = new File(tmpFile, "tmp_split.shp");
 		ShapefileWriter.write(ifeatCollOut, fileOut.toString(), CRS.decode("EPSG:2154"));
-	//	ShapefileWriter.write(ifeatCollOut, "/home/mcolomb/tmp/tmp.shp", CRS.decode("EPSG:2154"));
-		// nouvelle sélection en fonction de la zone pour patir à la faible
-		// qualité de la sélection spatiale quand les polygones touchent les
-		// zones (oui je sais, pas bô encore une fois..)
 
-		ShapefileDataStore SSD = new ShapefileDataStore(fileOut.toURI().toURL());
-
-		SimpleFeatureCollection splitedSFC = SSD.getFeatureSource().getFeatures();
-		//fileOut.delete();
-		SSD.dispose();
-		
-		// return
-		// GeOxygeneGeoToolsTypes.convert2FeatureCollection(ifeatCollOut);
-		return splitedSFC;
+		return fileOut;
 	}
 
 	/**

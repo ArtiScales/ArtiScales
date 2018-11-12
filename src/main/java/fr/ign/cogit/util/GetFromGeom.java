@@ -549,6 +549,12 @@ public class GetFromGeom {
 		Filter filterEmprise = ff.intersects(ff.property(geometryParcelPropertyName), ff.literal(unionParcel));
 		SimpleFeatureCollection zoneAU = featuresZones.subCollection(filterTypeZone).subCollection(filterEmprise);
 
+		//If no AU zones, we won't bother
+		if (zoneAU.isEmpty()) {
+			System.out.println("no AU zones");
+			return parcels;
+		}
+		
 		// all the AU zones
 		Geometry geomAU = Vectors.unionSFC(zoneAU);
 		DefaultFeatureCollection parcelsInAU = new DefaultFeatureCollection();
@@ -688,9 +694,11 @@ public class GetFromGeom {
 		} finally {
 			it.close();
 		}
-
+	
 		Vectors.exportSFC(write.collection(), outU);
 
+		shpDSZone.dispose();
+		
 		double roadEpsilon = 0.5;
 		double noise = 0;
 		double maximalArea = 400;
@@ -704,20 +712,22 @@ public class GetFromGeom {
 		ShapefileDataStore pSDS = new ShapefileDataStore(outU.toURI().toURL());
 		SimpleFeatureCollection pSFS = pSDS.getFeatureSource().getFeatures();
 
-		SimpleFeatureCollection splitedAUParcels = VectorFct.splitParcels(pSFS, maximalArea, maximalWidth, roadEpsilon, noise, tmpFile, p);
+		File splitedAUParcelsFile = VectorFct.splitParcels(pSFS, maximalArea, maximalWidth, roadEpsilon, noise, tmpFile, p);
 
-		Vectors.exportSFC(splitedAUParcels, new File(tmpFile, "parcelCuted.shp"));
+		pSDS.dispose();
+		
+		ShapefileDataStore SSD = new ShapefileDataStore(splitedAUParcelsFile.toURI().toURL());
+
+		SimpleFeatureCollection splitedAUParcels = SSD.getFeatureSource().getFeatures();
 
 		// Finally, put them all features in a same collec
-		SimpleFeatureBuilder finalParcelBuilder = new SimpleFeatureBuilder(savedParcels.getSchema());
 		SimpleFeatureIterator finalIt = splitedAUParcels.features();
 		int cpt = 0;
 		try {
 			while (finalIt.hasNext()) {
 				SimpleFeature feat = finalIt.next();
-				finalParcelBuilder = setSFBWithFeat(feat, savedParcels.getSchema(), geometryOutputName);
+				SimpleFeatureBuilder finalParcelBuilder = setSFBWithFeat(feat, savedParcels.getSchema(), geometryOutputName);
 				if (feat.getAttribute("CODE") == null) {
-					System.out.println("par défaut");
 					finalParcelBuilder = setSFBParDefaut(feat, savedParcels.getSchema(), geometryOutputName);
 				}
 				savedParcels.add(finalParcelBuilder.buildFeature(String.valueOf(cpt)));
@@ -726,21 +736,22 @@ public class GetFromGeom {
 		} catch (Exception problem) {
 			problem.printStackTrace();
 		} finally {
-			it.close();
+			finalIt.close();
 		}
+		SSD.dispose();
+
+
 		SimpleFeatureCollection result = savedParcels.collection();
 		Vectors.exportSFC(result, new File(tmpFile, "parcelFinal.shp"));
 
-		shpDSZone.dispose();
-		pSDS.dispose();
-
 		return result;
-
 	}
 
 	public static SimpleFeatureCollection selecParcelZonePLUmergeAUandU(SimpleFeatureCollection parcelCollection, File tmpFile, File zoningFile, Parameters p) throws Exception {
 		SimpleFeatureCollection result = selecParcelZonePLUmergeAU(parcelCollection, tmpFile, zoningFile, p);
-		result = VectorFct.generateSplitedParcels(parcelCollection, tmpFile, p);
+		ShapefileDataStore parcCutedsds = new ShapefileDataStore(VectorFct.generateSplitedParcels(result, tmpFile, p).toURI().toURL());
+		result = parcCutedsds.getFeatureSource().getFeatures();
+		parcCutedsds.dispose();
 		return result;
 	}
 
