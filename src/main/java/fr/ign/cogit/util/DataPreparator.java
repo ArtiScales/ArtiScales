@@ -8,16 +8,15 @@ import fr.ign.cogit.geoxygene.util.conversion.ShapefileReader;
 import fr.ign.cogit.simplu3d.util.distribution.ZonePackager;
 
 public class DataPreparator {
-	
 
-	public static void main(String[] args) throws Exception{
-		File fileIn = new File("");
-		File folderTemp = new File("/tmp/");
-		File folderOut = new File("");
+	public static void main(String[] args) throws Exception {
+		File fileIn = new File("/home/mickael/Bureau/Temp/parcel/parcel.shp");
+		File folderTemp = new File("/tmp/tmp");
+		File folderOut = new File("/home/mickael/Bureau/Temp/out/");
+
 		createPackages(fileIn, folderTemp, folderOut);
-		
-	}
 
+	}
 
 	public static void createPackages(File fileIn, File folderTemp, File folderOut) throws Exception {
 
@@ -41,7 +40,8 @@ public class DataPreparator {
 		int numberOfParcels = 20;
 		double areaMax = 5000;
 
-		ZonePackager.createParcelGroupsAndExport(parcelles, numberOfParcels, areaMax, folderTemp.getAbsolutePath(), folderOut.getAbsolutePath(), true);
+		ZonePackager.createParcelGroupsAndExport(parcelles, numberOfParcels, areaMax, folderTemp.getAbsolutePath(),
+				folderOut.getAbsolutePath(), true);
 
 	}
 
