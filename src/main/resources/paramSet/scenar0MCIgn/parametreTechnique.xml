@@ -70,7 +70,7 @@
 		<!-- Indique si il s'agit d'un nombre absolu d'itérations true ou un nombre 
 			relatif à la non amélioration de la configuration -->
 		<param key="end_test_type" value="absolute" />
-		<param key="absolute_nb_iter" value="20000" />
+		<param key="absolute_nb_iter" value="2000000" />
 		<param key="relative_nb_iter" value="100000" />
 		<param key="delta" value="5" />
 		<param key="poisson" value="20" />
@@ -98,7 +98,7 @@
 		<!-- Sortie ShapeFileWriter -->
 		<param key="shapefilewriter" value="false" />
 		<!-- Sortie Statsvisitor -->
-		<param key="statsvisitor" value="false" />
+		<param key="statsvisitor" value="true" />
 		<!-- Sortie FilmVisitor -->
 		<param key="filmvisitor" value="false" />
 		<param key="filmvisitorx" value="1051180.7261527262" />

@@ -66,7 +66,7 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 			}
 
 			// ##Rule-art-003
-			double valArt3 = ((ArtiScalesRegulation) uZ.getZoneRegulation()).getArt_5();
+			double valArt3 = ((ArtiScalesRegulation) uZ.getZoneRegulation()).getArt_3();
 			if (valArt3 == 1) {
 				if (currentBPU.getCadastralParcels().get(0).getBoundariesByType(ParcelBoundaryType.ROAD).isEmpty()) {
 					canBeSimulated = false;

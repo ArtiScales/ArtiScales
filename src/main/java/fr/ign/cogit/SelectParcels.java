@@ -98,13 +98,6 @@ public class SelectParcels {
 
 	}
 
-	// public static File run(File rootfile, File testFile, String zipcode, boolean
-	// notbuilt, boolean splitparcel) throws Exception {
-	// SelectParcels sp = new SelectParcels(rootfile, testFile, zipcode, notbuilt,
-	// splitparcel);
-	// return sp.runBrownfield();
-	// }
-
 	public List<List<File>> run() throws Exception {
 
 		List<List<File>> selectionFile = new ArrayList<List<File>>();
@@ -115,8 +108,13 @@ public class SelectParcels {
 			Parameters p = SimuTool.getParamFile(lP, scenarName);
 			List<String> listeAction = selectionType(p);
 			for (File varianteSpatialConf : scenar) {
+				//if we simul on one city (debug) or the whole area
 				spatialConf = varianteSpatialConf;
-				parcelFile = GetFromGeom.getParcels(geoFile, regulFile, tmpFile);
+				if (p.getString("singleCity").equals("true")) {
+					parcelFile = GetFromGeom.getParcels(geoFile, regulFile, tmpFile,p.getString("zip"));
+				} else {
+					parcelFile = GetFromGeom.getParcels(geoFile, regulFile, tmpFile);
+				}
 				ShapefileDataStore shpDSparcel = new ShapefileDataStore((parcelFile).toURI().toURL());
 				SimpleFeatureCollection parcelCollection = shpDSparcel.getFeatureSource().getFeatures();
 				Vectors.exportSFC(parcelCollection, new File(tmpFile, "parcelGenExport.shp"));
