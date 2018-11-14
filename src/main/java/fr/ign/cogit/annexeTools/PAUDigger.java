@@ -46,9 +46,9 @@ public class PAUDigger {
 	public static File tmpFile = new File("/home/mcolomb/tmp/");
 
 	public static void main(String[] args) throws Exception {
-		
+
 		DirectPosition.PRECISION = 4;
-		
+
 		File outFile = new File("/media/mcolomb/Data_2/donnee/DocLocal/");
 
 		File buildFile = new File("/media/mcolomb/Data_2/donnee/autom/besac2/dataIn/bati/BATI_INDIFFERENCIE.SHP");
@@ -87,32 +87,32 @@ public class PAUDigger {
 		ShapefileDataStore morphoSDS = new ShapefileDataStore(morphoLimFile.toURI().toURL());
 		SimpleFeatureCollection morphoSFC = morphoSDS.getFeatureSource().getFeatures();
 		Geometry morphoUnion = Vectors.unionSFC(morphoSFC);
-		
+
 		// selection with geographical filters
 		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
 		PropertyName pName = ff.property(clusterSFC.getSchema().getGeometryDescriptor().getLocalName());
 		Filter filCluster = ff.intersects(pName, ff.literal(clusterUnion));
 		Filter filMorpho = ff.intersects(pName, ff.literal(morphoUnion));
 		Filter filNU = ff.disjoint(pName, ff.literal(unionNU));
-		
+
 		// parcels
 		ShapefileDataStore parcelSDS = new ShapefileDataStore(parcelFile.toURI().toURL());
 		SimpleFeatureCollection parcelSFC = parcelSDS.getFeatureSource().getFeatures();
 		SimpleFeatureCollection parcelPreSelected = parcelSFC.subCollection(filCluster).subCollection(filMorpho);
 
-//Vectors.exportSFC(parcelPreSelected, new File("/home/mcolomb/tmp/parcelsBeforeCuting.shp"));		
-		
-		SimpleFeatureCollection parcelSplitted = VectorFct.generateSplitedParcels(parcelPreSelected, rnuCityFiles, null);
+		// Vectors.exportSFC(parcelPreSelected, new File("/home/mcolomb/tmp/parcelsBeforeCuting.shp"));
 
+		ShapefileDataStore splitSDS = new ShapefileDataStore(VectorFct.generateSplitedParcels(parcelPreSelected, rnuCityFiles, null).toURI().toURL());
+		SimpleFeatureCollection parcelSplitted = splitSDS.getFeatureSource().getFeatures();
 		SimpleFeatureCollection pau = parcelSplitted.subCollection(filCluster).subCollection(filMorpho).subCollection(filNU);
 		Vectors.exportSFC(makeEnvelopePAU(pau), new File(outFile, "zonePAU"));
 
 		nUSDS.dispose();
+		splitSDS.dispose();
 		clusterSDS.dispose();
 		parcelSDS.dispose();
 		morphoSDS.dispose();
-		
-		
+
 	}
 
 	private static SimpleFeatureCollection makeEnvelopePAU(SimpleFeatureCollection pau) throws NoSuchAuthorityCodeException, FactoryException, IOException, SchemaException {
@@ -144,59 +144,58 @@ public class PAUDigger {
 		}
 
 		return df.collection();
-		
-		//TODO découper et mettre le numero de l'IRIS (champ INSEE)
-		
-//		ShapefileDataStore communesSDS = new ShapefileDataStore(communes.toURI().toURL());
-//		SimpleFeatureIterator communesIt = communesSDS.getFeatureSource().getFeatures().features();
-//		
-//		
-//		
-//		DefaultFeatureCollection df = new DefaultFeatureCollection();
-//
-//		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
-//		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
-//		sfTypeBuilder.setName("PAU");
-//		sfTypeBuilder.setCRS(sourceCRS);
-//		sfTypeBuilder.add("the_geom", Polygon.class);
-//		sfTypeBuilder.setDefaultGeometry("the_geom");
-//		sfTypeBuilder.add("nom_zone", String.class);
-//		sfTypeBuilder.add("LIBELLE", String.class);
-//		sfTypeBuilder.add("LIBELONG", String.class);
-//		sfTypeBuilder.add("INSEE", String.class);
-//		SimpleFeatureBuilder sfBuilder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
-//		Object[] attr = new Object[4];
-//
-//		MultiPolygon mp = (MultiPolygon) Vectors.unionSFC(pau).buffer(3).buffer(-3);
-//		int nbGeom = mp.getNumGeometries();
-//
-//		int count = 0;
-//		for (int i = 0; i < nbGeom; i++) {
-//			String insee ="";
-//			try {
-//				while (communesIt.hasNext()) {
-//					SimpleFeature com = communesIt.next();
-//					if (((Geometry)com.getDefaultGeometry()).(mp.getGeometryN(i))) {
-//						
-//					}
-//				}
-//			} catch (Exception problem) {
-//				problem.printStackTrace();
-//			} finally {
-//				communesIt.close();
-//			}
-//			attr = { "RNU", "ZC", "ZC","dd" };
-//			
-//			sfBuilder.add(mp.getGeometryN(i));
-//
-//			SimpleFeature feature = sfBuilder.buildFeature(String.valueOf(count), attr);
-//			df.add(feature);
-//			count++;
-//		}
-//		
-//		
 
-		
+		// TODO découper et mettre le numero de l'IRIS (champ INSEE)
+
+		// ShapefileDataStore communesSDS = new ShapefileDataStore(communes.toURI().toURL());
+		// SimpleFeatureIterator communesIt = communesSDS.getFeatureSource().getFeatures().features();
+		//
+		//
+		//
+		// DefaultFeatureCollection df = new DefaultFeatureCollection();
+		//
+		// SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
+		// CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
+		// sfTypeBuilder.setName("PAU");
+		// sfTypeBuilder.setCRS(sourceCRS);
+		// sfTypeBuilder.add("the_geom", Polygon.class);
+		// sfTypeBuilder.setDefaultGeometry("the_geom");
+		// sfTypeBuilder.add("nom_zone", String.class);
+		// sfTypeBuilder.add("LIBELLE", String.class);
+		// sfTypeBuilder.add("LIBELONG", String.class);
+		// sfTypeBuilder.add("INSEE", String.class);
+		// SimpleFeatureBuilder sfBuilder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
+		// Object[] attr = new Object[4];
+		//
+		// MultiPolygon mp = (MultiPolygon) Vectors.unionSFC(pau).buffer(3).buffer(-3);
+		// int nbGeom = mp.getNumGeometries();
+		//
+		// int count = 0;
+		// for (int i = 0; i < nbGeom; i++) {
+		// String insee ="";
+		// try {
+		// while (communesIt.hasNext()) {
+		// SimpleFeature com = communesIt.next();
+		// if (((Geometry)com.getDefaultGeometry()).(mp.getGeometryN(i))) {
+		//
+		// }
+		// }
+		// } catch (Exception problem) {
+		// problem.printStackTrace();
+		// } finally {
+		// communesIt.close();
+		// }
+		// attr = { "RNU", "ZC", "ZC","dd" };
+		//
+		// sfBuilder.add(mp.getGeometryN(i));
+		//
+		// SimpleFeature feature = sfBuilder.buildFeature(String.valueOf(count), attr);
+		// df.add(feature);
+		// count++;
+		// }
+		//
+		//
+
 	}
 
 	private static File prepareLimit(File roadFile, File riverFile, File railFile) throws IOException, NoSuchAuthorityCodeException, FactoryException {

@@ -132,7 +132,8 @@ public class SimPLUSimulator {
 		// // with 1 regulation
 		//
 		// USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
-		// // ID_PARCELLE_TO_SIMULATE.add("25078000ZE01265"); // Test for a simulation with
+		ID_PARCELLE_TO_SIMULATE.add("25381000NewSection213"); // Test for a simulation with
+		AttribNames.setATT_HAS_TO_BE_SIMULATED("DoWeSimul");
 		// // 3 regulations on 3 sub
 		// // parcels
 		//
@@ -155,11 +156,17 @@ public class SimPLUSimulator {
 		Parameters p = Parameters.unmarshall(lF);
 		AttribNames.setATT_CODE_PARC("CODE");
 		USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
-		File f = new File("/home/mcolomb/informatique/ArtiScales/ParcelSelectionFile/teststp/variant0/");
+		File f = new File("/home/mcolomb/informatique/ArtiScales/ParcelSelectionFile/intenseRegulatedSpread/variant0");
 
 		for (File ff : f.listFiles()) {
+			if (ff.isDirectory()) {
+			
+				if( ! ff.getName().equals("80")){
+					continue;
+				}
 			SimPLUSimulator sim = new SimPLUSimulator(new File("/home/mcolomb/informatique/ArtiScales/"), ff, p);
 			sim.run();
+		}
 		}
 	}
 
@@ -303,9 +310,13 @@ public class SimPLUSimulator {
 		int nbBPU = env.getBpU().size();
 		for (int i = 0; i < nbBPU; i++) {
 			// if parcel has been marked an non simulable, return null
-			if (!isParcelSimulable(env.getBpU().get(i).getCadastralParcels().get(0).getCode())) {
+			
+			System.out.println("Parcel : " + env.getBpU().get(i).getCadastralParcels().get(0).hasToBeSimulated() + "  -  Code : " + env.getBpU().get(i).getCadastralParcels().get(0).getCode());
+			if (! env.getBpU().get(i).getCadastralParcels().get(0).hasToBeSimulated()) {
+				
+			//if (!isParcelSimulable(env.getBpU().get(i).getCadastralParcels().get(0).getCode())) {
 				System.out.println(env.getBpU().get(i).getCadastralParcels().get(0).getCode() + " : je l'ai stopé net coz pas selec");
-				return null;
+				continue;
 			}
 			p = pSaved;
 			File file = runSimulation(env, i, p, prescriptionUse);

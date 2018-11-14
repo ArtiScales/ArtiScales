@@ -62,6 +62,9 @@ public class GetFromGeom {
 		return result;
 	}
 	
+	public static File getParcels(File geoFile, File regulFile, File currentFile) throws IOException, NoSuchAuthorityCodeException, FactoryException {
+	 return getParcels( geoFile,  regulFile,  currentFile,"") ;
+	}
 	
 	/**
 	 * get the parcel file and add necessary attributes and informations for an ArtiScales Simulation
@@ -77,17 +80,27 @@ public class GetFromGeom {
 	 * @throws FactoryException
 	 * @throws NoSuchAuthorityCodeException
 	 */
-	public static File getParcels(File geoFile, File regulFile, File currentFile) throws IOException, NoSuchAuthorityCodeException, FactoryException {
+	public static File getParcels(File geoFile, File regulFile, File currentFile,String zip) throws IOException, NoSuchAuthorityCodeException, FactoryException {
 		File result = new File("");
 		for (File f : geoFile.listFiles()) {
-			// if (f.toString().contains("parcelle.shp")) {
-			if (f.toString().contains("parcel.shp")) {
+			if (f.toString().contains("parcelle.shp")) {
 				result = f;
 			}
 		}
+		
 		ShapefileDataStore parcelSDS = new ShapefileDataStore(result.toURI().toURL());
 		SimpleFeatureCollection parcels = parcelSDS.getFeatureSource().getFeatures();
 
+		//if we decided to work on a single city
+		if (!zip.equals("")) {
+			FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
+			String codep = zip.substring(0, 2);
+			String cocom = zip.substring(2, 5);
+			Filter filterDep = ff.like(ff.property("CODE_DEP"), codep);
+			Filter filterCom = ff.like(ff.property("CODE_COM"), cocom);
+			parcels = parcels.subCollection(filterDep).subCollection(filterCom);
+		}
+		
 		ShapefileDataStore shpDSBati = new ShapefileDataStore(GetFromGeom.getBati(geoFile).toURI().toURL());
 
 		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
@@ -182,7 +195,7 @@ public class GetFromGeom {
 		parcelSDS.dispose();
 		shpDSBati.dispose();
 
-		return Vectors.exportSFC(newParcel.collection(), new File(currentFile, "parcels.shp"));
+		return Vectors.exportSFC(newParcel.collection(), new File(currentFile, "parcelle.shp"));
 	}
 
 	// TODO préciser quelle couche de batiment on utilise (si l'on explore plein de

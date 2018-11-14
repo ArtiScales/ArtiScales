@@ -5,14 +5,12 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
 
 import fr.ign.cogit.simplu3d.model.IZoneRegulation;
 import fr.ign.cogit.simplu3d.model.UrbaZone;
-import fr.ign.cogit.util.GetFromGeom;
 
 public class ArtiScalesRegulation implements IZoneRegulation {
 

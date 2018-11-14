@@ -9,13 +9,15 @@ import fr.ign.cogit.simplu3d.util.distribution.ZonePackager;
 
 public class DataPreparator {
 	
-	public static void main(String[] args){
+
+	public static void main(String[] args) throws Exception{
 		File fileIn = new File("");
 		File folderTemp = new File("/tmp/");
 		File folderOut = new File("");
-		createPackages();
+		createPackages(fileIn, folderTemp, folderOut);
 		
 	}
+
 
 	public static void createPackages(File fileIn, File folderTemp, File folderOut) throws Exception {
 
