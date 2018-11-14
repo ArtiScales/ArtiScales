@@ -8,6 +8,14 @@ import fr.ign.cogit.geoxygene.util.conversion.ShapefileReader;
 import fr.ign.cogit.simplu3d.util.distribution.ZonePackager;
 
 public class DataPreparator {
+	
+	public static void main(String[] args){
+		File fileIn = new File("");
+		File folderTemp = new File("/tmp/");
+		File folderOut = new File("");
+		createPackages();
+		
+	}
 
 	public static void createPackages(File fileIn, File folderTemp, File folderOut) throws Exception {
 
