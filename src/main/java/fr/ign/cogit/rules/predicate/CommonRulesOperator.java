@@ -15,7 +15,7 @@ import fr.ign.cogit.simplu3d.model.PrescriptionType;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.AbstractSimpleBuilding;
 import fr.ign.cogit.simplu3d.rjmcmc.generic.object.ISimPLU3DPrimitive;
 import fr.ign.cogit.simplu3d.util.CuboidGroupCreation;
-import fr.ign.cogit.simplu3d.util.SDPCalc;
+import fr.ign.cogit.simplu3d.util.merge.SDPCalc;
 import fr.ign.parameters.Parameters;
 
 public class CommonRulesOperator<O extends AbstractSimpleBuilding> {

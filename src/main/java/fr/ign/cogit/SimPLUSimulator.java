@@ -46,7 +46,7 @@ import fr.ign.cogit.simplu3d.model.SubParcel;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.Cuboid;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.optimizer.cuboid.OptimisedBuildingsCuboidFinalDirectRejection;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.optimizer.paralellcuboid.ParallelCuboidOptimizer;
-import fr.ign.cogit.simplu3d.util.SDPCalc;
+import fr.ign.cogit.simplu3d.util.merge.SDPCalc;
 import fr.ign.cogit.util.GetFromGeom;
 import fr.ign.cogit.util.SimpluParametersXML;
 import fr.ign.cogit.util.SimuTool;
