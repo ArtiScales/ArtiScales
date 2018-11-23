@@ -132,7 +132,7 @@ public class SimPLUSimulator {
 		// // with 1 regulation
 		//
 		// USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
-		ID_PARCELLE_TO_SIMULATE.add("25381000NewSection213"); // Test for a simulation with
+		//ID_PARCELLE_TO_SIMULATE.add("25381000NewSection213"); // Test for a simulation with
 		AttribNames.setATT_HAS_TO_BE_SIMULATED("DoWeSimul");
 		// // 3 regulations on 3 sub
 		// // parcels
@@ -159,14 +159,9 @@ public class SimPLUSimulator {
 		File f = new File("/home/mcolomb/informatique/ArtiScales/ParcelSelectionFile/intenseRegulatedSpread/variant0");
 
 		for (File ff : f.listFiles()) {
-			if (ff.isDirectory()) {
-			
-				if( ! ff.getName().equals("80")){
-					continue;
-				}
 			SimPLUSimulator sim = new SimPLUSimulator(new File("/home/mcolomb/informatique/ArtiScales/"), ff, p);
 			sim.run();
-		}
+		
 		}
 	}
 

@@ -42,8 +42,7 @@ public class GetFromGeom {
 		System.out.println(rnuZip(new File("/home/mcolomb/informatique/ArtiScales/dataRegul")));
 	}
 
-	
-	public static List<String> rnuZip(File regulFile) throws IOException{
+	public static List<String> rnuZip(File regulFile) throws IOException {
 		List<String> result = new ArrayList<String>();
 		File fCsv = new File("");
 		for (File f : regulFile.listFiles()) {
@@ -53,19 +52,19 @@ public class GetFromGeom {
 			}
 		}
 		CSVReader read = new CSVReader(new FileReader(fCsv));
-		//entete
+		// entete
 		read.readNext();
-		for (String[]line : read.readAll()) {
+		for (String[] line : read.readAll()) {
 			result.add(line[1]);
 		}
 		read.close();
 		return result;
 	}
-	
+
 	public static File getParcels(File geoFile, File regulFile, File currentFile) throws IOException, NoSuchAuthorityCodeException, FactoryException {
-	 return getParcels( geoFile,  regulFile,  currentFile,"") ;
+		return getParcels(geoFile, regulFile, currentFile, "");
 	}
-	
+
 	/**
 	 * get the parcel file and add necessary attributes and informations for an ArtiScales Simulation
 	 * 
@@ -80,18 +79,18 @@ public class GetFromGeom {
 	 * @throws FactoryException
 	 * @throws NoSuchAuthorityCodeException
 	 */
-	public static File getParcels(File geoFile, File regulFile, File currentFile,String zip) throws IOException, NoSuchAuthorityCodeException, FactoryException {
+	public static File getParcels(File geoFile, File regulFile, File tmpFile, String zip) throws IOException, NoSuchAuthorityCodeException, FactoryException {
 		File result = new File("");
 		for (File f : geoFile.listFiles()) {
 			if (f.toString().contains("parcelle.shp")) {
 				result = f;
 			}
 		}
-		
+
 		ShapefileDataStore parcelSDS = new ShapefileDataStore(result.toURI().toURL());
 		SimpleFeatureCollection parcels = parcelSDS.getFeatureSource().getFeatures();
 
-		//if we decided to work on a single city
+		// if we decided to work on a single city
 		if (!zip.equals("")) {
 			FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
 			String codep = zip.substring(0, 2);
@@ -100,7 +99,7 @@ public class GetFromGeom {
 			Filter filterCom = ff.like(ff.property("CODE_COM"), cocom);
 			parcels = parcels.subCollection(filterDep).subCollection(filterCom);
 		}
-		
+
 		ShapefileDataStore shpDSBati = new ShapefileDataStore(GetFromGeom.getBati(geoFile).toURI().toURL());
 
 		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
@@ -195,7 +194,7 @@ public class GetFromGeom {
 		parcelSDS.dispose();
 		shpDSBati.dispose();
 
-		return Vectors.exportSFC(newParcel.collection(), new File(currentFile, "parcelle.shp"));
+		return Vectors.exportSFC(newParcel.collection(), new File(tmpFile, "parcelle.shp"));
 	}
 
 	// TODO préciser quelle couche de batiment on utilise (si l'on explore plein de
@@ -256,6 +255,7 @@ public class GetFromGeom {
 		}
 		throw new FileNotFoundException("Zoning file not found");
 	}
+
 	public static File getPredicate(File regulFile) throws FileNotFoundException {
 		for (File f : regulFile.listFiles()) {
 			if (f.getName().startsWith("predicate") && f.getName().endsWith(".csv")) {
@@ -562,12 +562,12 @@ public class GetFromGeom {
 		Filter filterEmprise = ff.intersects(ff.property(geometryParcelPropertyName), ff.literal(unionParcel));
 		SimpleFeatureCollection zoneAU = featuresZones.subCollection(filterTypeZone).subCollection(filterEmprise);
 
-		//If no AU zones, we won't bother
+		// If no AU zones, we won't bother
 		if (zoneAU.isEmpty()) {
 			System.out.println("no AU zones");
 			return parcels;
 		}
-		
+
 		// all the AU zones
 		Geometry geomAU = Vectors.unionSFC(zoneAU);
 		DefaultFeatureCollection parcelsInAU = new DefaultFeatureCollection();
@@ -707,11 +707,11 @@ public class GetFromGeom {
 		} finally {
 			it.close();
 		}
-	
+
 		Vectors.exportSFC(write.collection(), outU);
 
 		shpDSZone.dispose();
-		
+
 		double roadEpsilon = 0.5;
 		double noise = 0;
 		double maximalArea = 400;
@@ -728,7 +728,7 @@ public class GetFromGeom {
 		File splitedAUParcelsFile = VectorFct.splitParcels(pSFS, maximalArea, maximalWidth, roadEpsilon, noise, tmpFile, p);
 
 		pSDS.dispose();
-		
+
 		ShapefileDataStore SSD = new ShapefileDataStore(splitedAUParcelsFile.toURI().toURL());
 
 		SimpleFeatureCollection splitedAUParcels = SSD.getFeatureSource().getFeatures();
@@ -752,7 +752,6 @@ public class GetFromGeom {
 			finalIt.close();
 		}
 		SSD.dispose();
-
 
 		SimpleFeatureCollection result = savedParcels.collection();
 		Vectors.exportSFC(result, new File(tmpFile, "parcelFinal.shp"));

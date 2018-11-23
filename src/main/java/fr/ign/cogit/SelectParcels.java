@@ -108,35 +108,38 @@ public class SelectParcels {
 			Parameters p = SimuTool.getParamFile(lP, scenarName);
 			List<String> listeAction = selectionType(p);
 			for (File varianteSpatialConf : scenar) {
-				//if we simul on one city (debug) or the whole area
+				// if we simul on one city (debug) or the whole area
 				spatialConf = varianteSpatialConf;
 				if (p.getString("singleCity").equals("true")) {
-					parcelFile = GetFromGeom.getParcels(geoFile, regulFile, tmpFile,p.getString("zip"));
+					parcelFile = GetFromGeom.getParcels(geoFile, regulFile, tmpFile, p.getString("zip"));
 				} else {
 					parcelFile = GetFromGeom.getParcels(geoFile, regulFile, tmpFile);
 				}
 				ShapefileDataStore shpDSparcel = new ShapefileDataStore((parcelFile).toURI().toURL());
 				SimpleFeatureCollection parcelCollection = shpDSparcel.getFeatureSource().getFeatures();
-				Vectors.exportSFC(parcelCollection, new File(tmpFile, "parcelGenExport.shp"));
 				// Split parcels
 				if (p.getString("splitParcel").equals("true")) {
+					//TODO problem of attribute makes the calcul crash
 					parcelCollection = GetFromGeom.selecParcelZonePLUmergeAUandU(parcelCollection, tmpFile, zoningFile, p);
+					Vectors.exportSFC(parcelCollection, new File(tmpFile, "parcelGenExportCuted.shp"));
 				}
 				if (p.getString("splitParcel").equals("AU")) {
 					parcelCollection = GetFromGeom.selecParcelZonePLUmergeAU(parcelCollection, tmpFile, zoningFile, p);
-					Vectors.exportSFC(parcelCollection, new File(tmpFile, "parcelGenExportCuted.shp"));
 				}
 				for (String action : listeAction) {
 					System.out.println("---=+Pour le remplissage " + action + "+=---");
 					switch (action) {
 					case "Ubuilt":
 						parcelCollection = runBrownfieldConstructed(parcelCollection);
+						System.out.println("size after Ub"+parcelCollection.size());
 						break;
 					case "UnotBuilt":
 						parcelCollection = runBrownfieldUnconstructed(parcelCollection);
+						System.out.println("size after Unotb"+parcelCollection.size());
 						break;
 					case "AUnotBuilt":
 						parcelCollection = runGreenfieldSelected(parcelCollection);
+						System.out.println("size after AUb"+parcelCollection.size());
 						break;
 					case "ALLnotBuilt":
 						parcelCollection = runNaturalLand(parcelCollection);
@@ -165,7 +168,7 @@ public class SelectParcels {
 			}
 			selectionFile.add(listScenar);
 		}
-		SimuTool.deleteDirectoryStream(tmpFile.toPath());
+	//	SimuTool.deleteDirectoryStream(tmpFile.toPath());
 		return selectionFile;
 	}
 
@@ -236,21 +239,6 @@ public class SelectParcels {
 
 		moyEval = sommeEval / i;
 
-	}
-
-	/**
-	 * create a folder form the type of action
-	 * 
-	 * @param action
-	 * @return
-	 */
-	private void makeDirSelection(String selectionType) {
-		for (List<File> scenar : spatialConfigurations) {
-			for (File variante : scenar) {
-				File fileSelection = new File(variante, selectionType);
-				fileSelection.mkdirs();
-			}
-		}
 	}
 
 	/**
