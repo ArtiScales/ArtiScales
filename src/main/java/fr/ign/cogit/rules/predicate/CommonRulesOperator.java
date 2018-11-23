@@ -501,6 +501,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		// 1m60_2 : un stationnement pour un batiment dont la surface est inférieure à 60m² , 2 pour les
 		// logements plus grands
 		//
+		// 1x50 : une place par 50m² de logements
 
 		// Parking place surface
 		double surfPlace = p.getDouble("surfPlaceParking");
@@ -547,6 +548,11 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 			} else {
 				multiplierParking = Integer.valueOf(art12.split("l")[1].split("_")[1]);
 			}
+		} else if (art12.contains("x")) {
+
+			double limit = Double.valueOf(art12.split("x")[1]);
+			multiplierParking = (int) Math.round(shon / limit);
+
 		}
 
 		// Surface of parking places
