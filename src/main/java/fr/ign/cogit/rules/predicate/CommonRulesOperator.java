@@ -495,8 +495,12 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		//
 		// 2 : deux stationnements par logement
 		//
-		// 20_1-60_2 : un stationnement pour un logement en dessous de 60m2, 2 pour les
-		// logements plus
+		// 1l2_2 : un stationnement pour un logement par batiment 60m2, 2 pour les
+		// logements à 2 et plus
+		//
+		// 1m60_2 : un stationnement pour un batiment dont la surface est inférieure à 60m² , 2 pour les
+		// logements plus grands
+		//
 
 		// Parking place surface
 		double surfPlace = p.getDouble("surfPlaceParking");
@@ -510,6 +514,12 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		// Buildings height is used to assess SDP
 		SDPCalc c = new SDPCalc(p.getInteger("heightStair"));
 
+		// We assess the SHON
+		double shon = c.process(lAllCuboids);
+
+		// Number of dwellings
+		int nbDwellings = (int) Math.round((shon / surfLogement));
+
 		int multiplierParking = 1;
 
 		if (art12 == "1") {
@@ -522,15 +532,22 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		} else if (art12 == "2") {
 			//////// Cas 2 : 2 : deux stationnements par logement
 			multiplierParking = 2;
-		} else {
+		} else if (art12.contains("m")) {
+			double limit = Double.valueOf(art12.split("l")[1].split("_")[0]);
+			if (nbDwellings < limit) {
+				multiplierParking = Integer.valueOf(art12.split("l")[0]);
+			} else {
+				multiplierParking = Integer.valueOf(art12.split("l")[1].split("_")[1]);
+			}
+		} else if (art12.contains("l")) {
 
+			double limit = Double.valueOf(art12.split("l")[1].split("_")[0]);
+			if (shon < limit) {
+				multiplierParking = Integer.valueOf(art12.split("l")[0]);
+			} else {
+				multiplierParking = Integer.valueOf(art12.split("l")[1].split("_")[1]);
+			}
 		}
-
-		// We assess the SHON
-		double shon = c.process(lAllCuboids);
-
-		// Number of dwellings
-		int nbDwellings = (int) Math.round((shon / surfLogement));
 
 		// Surface of parking places
 		double surfaceParking = multiplierParking * nbDwellings * surfPlace;

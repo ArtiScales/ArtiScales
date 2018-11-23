@@ -290,7 +290,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 			 */
 
 			// We check if the cuboids intersects the forbiddent zone
-			// ATTENTION : Ons renvoie faux lorsque l'intersection a lieu
+			// ATTENTION : On renvoie faux lorsque l'intersection a lieu
 			// Rule-sup-002
 			if (cRO.checkIfIntersectsGeometry(cuboid, this.forbiddenZone)) {
 				return false;
@@ -421,9 +421,9 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 			if (art12 != "99") {
 				if (!cRO.checkParking(lAllCuboids, currentBPU, art12, p)) {
 					return false;
-
 				}
 			}
+
 
 			// Width and distance between buildings constraints
 

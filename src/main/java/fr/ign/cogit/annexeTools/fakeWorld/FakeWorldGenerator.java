@@ -421,22 +421,22 @@ public class FakeWorldGenerator {
 		// The list of regulation for which building generation will be testsed
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
 
-		// CAS ARTICLE 9 = 0.333
+		// SIMPLE CASE
 		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, defaultRegulation);
 		ArtiScalesRegulation regulationDefault2 = regulationDefault.clone();
 		// Important to change to get the right regulation recognized
 		regulationDefault2.setLibelle_de_dul("U1");
 		regulationDefault2.setArt_12("1");
 
-		// CAS ARTICLE 9 = 0.6666
+		// CASE ARTICLE 12 related to housing unit limit
 		ArtiScalesRegulation regulationDefault3 = regulationDefault.clone();
 		regulationDefault3.setLibelle_de_dul("U2");
-		regulationDefault3.setArt_12("1+2");
+		regulationDefault3.setArt_12("0l2_2");
 
-		// CAS ARTICLE 8 = 0
+		// CAS ARTICLE 12 related to building surface 
 		ArtiScalesRegulation regulationDefault4 = regulationDefault.clone();
 		regulationDefault4.setLibelle_de_dul("U3");
-		regulationDefault4.setArt_12("2");
+		regulationDefault4.setArt_12("1m60_2");
 
 		regulations.add(regulationDefault);
 		regulations.add(regulationDefault2);

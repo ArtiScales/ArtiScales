@@ -132,7 +132,7 @@ public class SimPLUSimulator {
 		// // with 1 regulation
 		//
 		// USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
-		//ID_PARCELLE_TO_SIMULATE.add("25381000NewSection213"); // Test for a simulation with
+		// ID_PARCELLE_TO_SIMULATE.add("25381000NewSection213"); // Test for a simulation with
 		AttribNames.setATT_HAS_TO_BE_SIMULATED("DoWeSimul");
 		// // 3 regulations on 3 sub
 		// // parcels
@@ -159,9 +159,10 @@ public class SimPLUSimulator {
 		File f = new File("/home/mcolomb/informatique/ArtiScales/ParcelSelectionFile/intenseRegulatedSpread/variant0");
 
 		for (File ff : f.listFiles()) {
-			SimPLUSimulator sim = new SimPLUSimulator(new File("/home/mcolomb/informatique/ArtiScales/"), ff, p);
-			sim.run();
-		
+			if (ff.isDirectory()) {
+				SimPLUSimulator sim = new SimPLUSimulator(new File("/home/mcolomb/informatique/ArtiScales/"), ff, p);
+				sim.run();
+			}
 		}
 	}
 
@@ -282,7 +283,7 @@ public class SimPLUSimulator {
 
 		// Loading of configuration file that contains sampling space
 		// information and simulated annealing configuration
-
+		System.out.println(parcelsFile);
 		Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile, parcelsFile, roadFile, buildFile, filePrescPonct, filePrescLin, filePrescSurf, null);
 
 		// Prescription setting
@@ -305,11 +306,12 @@ public class SimPLUSimulator {
 		int nbBPU = env.getBpU().size();
 		for (int i = 0; i < nbBPU; i++) {
 			// if parcel has been marked an non simulable, return null
-			
-			System.out.println("Parcel : " + env.getBpU().get(i).getCadastralParcels().get(0).hasToBeSimulated() + "  -  Code : " + env.getBpU().get(i).getCadastralParcels().get(0).getCode());
-			if (! env.getBpU().get(i).getCadastralParcels().get(0).hasToBeSimulated()) {
-				
-			//if (!isParcelSimulable(env.getBpU().get(i).getCadastralParcels().get(0).getCode())) {
+
+			System.out.println("Parcel : " + env.getBpU().get(i).getCadastralParcels().get(0).hasToBeSimulated() + "  -  Code : "
+					+ env.getBpU().get(i).getCadastralParcels().get(0).getCode());
+			if (!env.getBpU().get(i).getCadastralParcels().get(0).hasToBeSimulated()) {
+
+				// if (!isParcelSimulable(env.getBpU().get(i).getCadastralParcels().get(0).getCode())) {
 				System.out.println(env.getBpU().get(i).getCadastralParcels().get(0).getCode() + " : je l'ai stopé net coz pas selec");
 				continue;
 			}

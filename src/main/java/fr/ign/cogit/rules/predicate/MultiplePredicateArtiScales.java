@@ -33,15 +33,18 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 
 	/**
 	 * 
-	 * @param currentBPU current bPU
-	 * @param align      Alignement to prescription
-	 * @param p          Parametrs
-	 * @param presc      Considered prescription
+	 * @param currentBPU
+	 *            current bPU
+	 * @param align
+	 *            Alignement to prescription
+	 * @param p
+	 *            Parametrs
+	 * @param presc
+	 *            Considered prescription
 	 * @param env
 	 * @throws Exception
 	 */
-	public MultiplePredicateArtiScales(BasicPropertyUnit currentBPU, boolean align, Parameters p,
-			IFeatureCollection<Prescription> presc, Environnement env) throws Exception {
+	public MultiplePredicateArtiScales(BasicPropertyUnit currentBPU, boolean align, Parameters p, IFeatureCollection<Prescription> presc, Environnement env) throws Exception {
 		/*
 		 * All the job is done in the abstract class
 		 */
@@ -52,8 +55,7 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 		for (SubParcel sp : currentBPU.getCadastralParcels().get(0).getSubParcels()) {
 			IGeometry subParcelGeometry = sp.getGeom();
 			UrbaZone uZ = sp.getUrbaZone();
-			mapGeomRegulation.put(AdapterFactory.toGeometry(gf, subParcelGeometry),
-					(ArtiScalesRegulation) uZ.getZoneRegulation());
+			mapGeomRegulation.put(AdapterFactory.toGeometry(gf, subParcelGeometry), (ArtiScalesRegulation) uZ.getZoneRegulation());
 
 			double aireMinimale = ((ArtiScalesRegulation) uZ.getZoneRegulation()).getArt_5();
 
@@ -87,8 +89,7 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 	 * If necessary ....
 	 * 
 	 * 
-	 * @Override public boolean check(C c, M m) { if (!super.check(c, m)) { return
-	 * false; } //Implement some special function return true;
+	 * @Override public boolean check(C c, M m) { if (!super.check(c, m)) { return false; } //Implement some special function return true;
 	 * 
 	 * }
 	 */
@@ -151,8 +152,7 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 
 	@Override
 	/**
-	 * Determine the maxCES value (a ponderated average according to the SubParcel
-	 * surfaces) #art_13 #art_5
+	 * Determine the maxCES value (a ponderated average according to the SubParcel surfaces) #art_13 #art_5
 	 */
 	protected double getMaxCES() {
 		if (maxCES == -1) {
@@ -194,8 +194,7 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 
 	@Override
 	protected double getMinHeight() {
-		return mapGeomRegulation.values().stream().mapToDouble(x -> cRO.hauteur(p, x, heighSurroundingBuildings)[1])
-				.max().getAsDouble();
+		return mapGeomRegulation.values().stream().mapToDouble(x -> cRO.hauteur(p, x, heighSurroundingBuildings)[1]).max().getAsDouble();
 	}
 
 	@Override
@@ -203,10 +202,17 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 		return new ArrayList<>(mapGeomRegulation.values());
 	}
 
+	/**
+	 * return the most restrictive rule
+	 */
 	@Override
 	protected String getArt12Value() {
-		List<String> art12 = this.mapGeomRegulation.values().stream().map(x -> x.getArt_12())
-				.collect(Collectors.toList());
+		List<String> art12 = this.mapGeomRegulation.values().stream().map(x -> x.getArt_12()).collect(Collectors.toList());
+		for (String line : art12) {
+			if (line.contains("l") || line.contains("m")) {
+				return line;
+			}
+		}
 
 		if (art12.contains("2")) {
 			return "2";

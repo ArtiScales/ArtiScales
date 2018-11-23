@@ -313,7 +313,13 @@ public class GetFromGeom {
 
 		return totalParcel.collection();
 	}
-
+/**
+ * return the typezones that a parcels intersect
+ * @param parcelIn
+ * @param regulFile
+ * @return
+ * @throws Exception
+ */
 	public static List<String> bigZoneinParcel(SimpleFeature parcelIn, File regulFile) throws Exception {
 		List<String> result = new ArrayList<String>();
 		ShapefileDataStore shpDSZone = new ShapefileDataStore(getZoning(regulFile).toURI().toURL());
@@ -321,8 +327,8 @@ public class GetFromGeom {
 		try {
 			while (featuresZones.hasNext()) {
 				SimpleFeature feat = featuresZones.next();
-				if (((Geometry) feat.getDefaultGeometry()).intersects((Geometry) parcelIn.getDefaultGeometry())) {
-					// TODO prendre en compte le multizone et fermer le sds
+				if (((Geometry) feat.getDefaultGeometry()).intersects((Geometry) parcelIn.getDefaultGeometry()) && !((Geometry) feat.getDefaultGeometry()).touches((Geometry)parcelIn.getDefaultGeometry())) {
+					// TODO prendre en compte le multizone 
 					switch ((String) feat.getAttribute("TYPEZONE")) {
 					case "U":
 					case "ZC":
