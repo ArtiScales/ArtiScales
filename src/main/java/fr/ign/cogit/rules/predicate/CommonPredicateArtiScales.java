@@ -343,7 +343,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 				}
 
 				// Rule art-0074
-				// We check for bot limits
+				// We check for bottom limits
 				if (!cRO.checkProspectArt7(cuboid, jtsCurveLimiteFondParcel, regle.getArt_74())) {
 					return false;
 				}
@@ -357,6 +357,9 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 				// multiple cases of Art_6 rules
 				// Rule-art-006
 				String art_6 = regle.getArt_6();
+				String typeArt_6 = regle.getArt_6_opt();
+				
+				if (typeArt_6.equals("99")) {
 				if (art_6.contains("-")) {
 					double min = Double.valueOf(art_6.split("-")[0]);
 					double max = Double.valueOf(art_6.split("-")[1]);
@@ -371,7 +374,6 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 						 * double dist = Double.valueOf(regle.getArt_6_optD().split("-")[0]); if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, dist) ||
 						 * cRO.checkAlignement(cuboid, jtsCurveLimiteFrontParcel)) { return false; }
 						 */
-						System.out.println("CASE NOT ESTIMATED");
 						break;
 					case "44.0":
 						if (!cRO.checkProspectRNU(cuboid, jtsCurveOppositeLimit)) {
@@ -380,11 +382,20 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 						break;
 
 					default:
-						if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, Double.valueOf(regle.getArt_6()))) {
+						if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, Double.valueOf(art_6))) {
 							return false;
 						}
 						break;
 					}
+				}
+				}
+				else if(typeArt_6.equals("10")){
+					if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, Double.valueOf(art_6)) ) {
+						return false;
+					}
+				}
+				else {
+					System.out.println("Art-6 optionel: cas non traité");
 				}
 
 				// art_6_opt

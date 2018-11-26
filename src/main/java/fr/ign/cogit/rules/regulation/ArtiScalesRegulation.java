@@ -19,7 +19,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	private static Logger log = Logger.getLogger(ArtiScalesRegulation.class);
 
 	// Les intitulés des colonnes
-	private int insee, oap, bonus_densite, art_3, art_4, art_71, art_74, art_10_top;
+	private int insee, oap, fonction, art_3, art_4, art_71, art_74, art_10_top;
 	private String libelle_zone, libelle_de_base, libelle_de_dul, art_6, art_6_opt, art_6_optD, art_12, art_14, art_10_1;
 
 	private double art_5, art_72, art_73, art_8, art_9, art_13;
@@ -53,8 +53,8 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 			case "oap":
 				oap = Integer.valueOf(lineSplited[i]);
 				break;
-			case "bonus_densite":
-				bonus_densite = Integer.valueOf(lineSplited[i]);
+			case "fonction":
+				fonction = Integer.valueOf(lineSplited[i]);
 				break;
 			case "art_3":
 				art_3 = Integer.valueOf(lineSplited[i]);
@@ -114,17 +114,17 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	}
 
 	public ArtiScalesRegulation clone() {
-		return new ArtiScalesRegulation(libelle_zone, insee, libelle_de_base, libelle_de_dul, oap, bonus_densite, art_3, art_4, art_5, art_6, art_6_opt, art_6_optD, art_71, art_72,
+		return new ArtiScalesRegulation(libelle_zone, insee, libelle_de_base, libelle_de_dul, oap, fonction, art_3, art_4, art_5, art_6, art_6_opt, art_6_optD, art_71, art_72,
 				art_73, art_74, art_8, art_9, art_10_top, art_10_1, art_12, art_13, art_14);
 	}
 
 	public String toCSVLine() {
-		return libelle_zone + "," + insee + "," + libelle_de_base + "," + libelle_de_dul + "," + oap + "," + bonus_densite + "," + art_3 + "," + art_4 + "," + art_5 + "," + art_6
+		return libelle_zone + "," + insee + "," + libelle_de_base + "," + libelle_de_dul + "," + oap + "," + fonction + "," + art_3 + "," + art_4 + "," + art_5 + "," + art_6
 				+ "," + art_6_opt + "," + art_6_optD + "," + art_71 + "," + art_72 + "," + art_73 + "," + art_74 + "," + art_8 + "," + art_9 + "," + art_10_top + "," + art_10_1
 				+ "," + art_12 + "," + art_13 + "," + art_14;
 	}
 
-	public ArtiScalesRegulation(String libelle_zone, int insee, String libelle_de_base, String libelle_de_dul, int oap, int bonus_densite, int art_3, int art_4, double art_5,
+	public ArtiScalesRegulation(String libelle_zone, int insee, String libelle_de_base, String libelle_de_dul, int oap, int fonction, int art_3, int art_4, double art_5,
 			String art_6, String art_6_opt, String art_6_optD, int art_71, double art_72, double art_73, int art_74, double art_8, double art_9, int art_10_top, String art_10_1,
 			String art_12, double art_13, String art_14) {
 		super();
@@ -132,7 +132,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 		this.insee = insee;
 		this.libelle_de_base = libelle_de_base;
 		this.libelle_de_dul = libelle_de_dul;
-		this.bonus_densite = bonus_densite;
+		this.fonction = fonction;
 		this.oap = oap;
 		this.art_3 = art_3;
 		this.art_4 = art_4;
@@ -246,7 +246,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	@Override
 	public String toString() {
 		return "ArtiScalesRegulation [libelle_zone=" + libelle_zone + ", insee=" + insee + ", libelle_de_base=" + libelle_de_base + ", libelle_de_dul=" + libelle_de_dul
-				+ ", bonus_densite=" + bonus_densite + ", oap=" + oap + ", zonage_coherent=" + ", art_3=" + art_3 + ", art_4=" + art_4 + ", art_5=" + art_5 + ", art_6=" + art_6
+				+ ", bonus_densite=" + fonction + ", oap=" + oap + ", zonage_coherent=" + ", art_3=" + art_3 + ", art_4=" + art_4 + ", art_5=" + art_5 + ", art_6=" + art_6
 				+ ", art_6_opt=" + art_6_opt + ", art_6_optD=" + art_6_optD + ", art_71=" + art_71 + ", art_72=" + art_72 + ", art_73=" + art_73 + ", art_74=" + art_74 + ", art_8="
 				+ art_8 + ", art_9=" + art_9 + ", art_10_top=" + art_10_top + ", art_10=" + art_10_1 + ", " + "art_12=" + art_12 + ", art_13=" + art_13 + ", art_14=" + art_14
 				+ "]";
@@ -276,8 +276,8 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	// BONUS DENSITE : if the scenario wants to change certain parameters to produce extra housing unit density on that zone
 	//0 : no
 	//1 : yes 
-	public int getBonusDensite() {
-		return bonus_densite;
+	public int fonction() {
+		return fonction;
 	}
 
 	// SERVITUDE DE PASSAGE 1 : La parcelle qui n’a pas acces à la voirie doit
@@ -423,8 +423,8 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 		this.oap = oap;
 	}
 
-	public void setBonusDensite(int bonus) {
-		this.bonus_densite = bonus;
+	public void fonction(int bonus) {
+		this.fonction = bonus;
 	}
 
 

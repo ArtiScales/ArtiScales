@@ -1,12 +1,10 @@
 article 13 biotopes : pas des % mais des val entre 0 et 1 (Maxime) (fait, mais vérifier)
 
-
-Si c'est trop lourd Mickaël fait la découpe par Ilot (brancher l'algo de découpe)
 Faire un fichier de parcelles en sorties, différenciant les sous-parcelles et avec en attribut les règles appliquées provenant du predicate.csv.  
 
 problème avec le calcul des aires des bâtiments. (fixed?) I think so (vérifier)
 
-parcelles fondues ont le même nom
+parcelles fondues ont le même nom?!
 
 toujours des problèmes avec certains import de routes (regarder ça avec Mickael)
 
@@ -21,4 +19,9 @@ Envoyer les cartes souhaitées à Julien
 Faire les cartes automatiques - après avoir fixé les sorties et le format (Julien)
 
 sup et l'insimulation se déclanche parfois sans raison (remarqué sur parcelles de la commune 25524) (non? autre règle s'est appliquée ?)
+
+
+
+log 
+improve parcel selection
 
