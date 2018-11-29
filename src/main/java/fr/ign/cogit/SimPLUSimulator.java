@@ -213,38 +213,6 @@ public class SimPLUSimulator {
 	}
 
 	/**
-	 * Constructor to make a new object to run SimPLU3D simulations. Concerns a single parcel (mainly for the filling method)
-	 * 
-	 * @param rootfile
-	 *            : main folder of an artiscale simulation
-	 * @param geoFile
-	 *            : folder for geographic data
-	 * @param pluFile
-	 *            : folder for PLU data
-	 * @param selectedParcels
-	 *            : Folder containing the selection of parcels
-	 * @param feat
-	 *            : single parcel to simulate
-	 * @param zipcode
-	 *            : zipcode of the city that is simulated
-	 * @param pa
-	 *            : parameters file
-	 * @throws Exception
-	 */
-
-	public SimPLUSimulator(File rootfile, File selectedParcels, SimpleFeature feat, Parameters pa) throws Exception {
-		this(rootfile, selectedParcels, pa);
-		singleFeat = feat;
-		isSingleFeat = true;
-
-	}
-
-	/*
-	 * public static List<File> run(File rootFile, File geoFile, File pluFile, File parcelfiles, String zipcode, Parameters p) throws Exception { SimPLUSimulator SPLUS = new
-	 * SimPLUSimulator(rootFile, geoFile, pluFile, parcelfiles, null, zipcode, p); return SPLUS.run(); }
-	 */
-
-	/**
 	 * Run a SimPLU3D simulation on all the parcel stored in the parcelFile's SimpleFeatureCollection
 	 * 
 	 * @return a list of shapefile containing the simulated buildings
@@ -603,7 +571,6 @@ public class SimPLUSimulator {
 		if (sPBiggest.getUrbaZone() == null) {
 			System.out.println("Regulation is null for : " + bPU.getCadastralParcels().get(0).getCode());
 			return null;
-
 		}
 
 		ArtiScalesRegulation regle = (ArtiScalesRegulation) sPBiggest.getUrbaZone().getZoneRegulation();
