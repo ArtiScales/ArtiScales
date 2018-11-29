@@ -37,9 +37,9 @@ public class ZoneRulesAssociation {
 
 		// For each zone we associate a regulation to the zone
 		for (UrbaZone zone : env.getUrbaZones()) {
-System.out.println("NSEEEEEE "+zone.getInsee());
+System.out.println("Insee "+zone.getInsee());
 			String finalLibelle = zone.getLibelle() + "-" + zone.getInsee();
-System.out.println("finalLibelle  df : "+finalLibelle);
+
 			// if the city is at the rnu, insee code's the same
 			if (listRNU != null) {
 				if (listRNU.contains(zone.getInsee())) {

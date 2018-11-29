@@ -7,7 +7,7 @@
 	<!-- Configuration générales des simulations ArtiScales -->
 	<param key="seed" value="42"/>
 	<param key = "singleCity" value = "true"/>
-	<param key="zip" value ="25454"/>
+	<param key="zip" value ="25197"/>
 
 	<!-- PARAMETRES DE MUP-CITY -->
 		<!-- paramètres techniques -->	

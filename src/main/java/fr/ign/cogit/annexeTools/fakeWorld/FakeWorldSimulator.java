@@ -20,13 +20,13 @@ public class FakeWorldSimulator {
 
 		for (String pathSubFolder : rootFolderFile.list()) {
 			
-			 if(! pathSubFolder.contains("art8")) { continue; }
+			 if(! pathSubFolder.contains("art71")) { continue; }
 			 
 
 			List<File> lF = new ArrayList<>();
 			// Line to change to select the right scenario
 
-			String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenarFakeWorld/")
+			String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenarFakeWorldMax/")
 					.getPath();
 
 			lF.add(new File(rootParam + "parametreTechnique.xml"));

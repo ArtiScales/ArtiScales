@@ -386,7 +386,6 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 							 */
 							break;
 						case "44":
-							System.out.println("here dogg");
 							if (!cRO.checkProspectRNU(cuboid, jtsCurveOppositeLimit)) {
 								return false;
 							}

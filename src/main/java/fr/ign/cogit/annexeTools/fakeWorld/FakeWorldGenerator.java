@@ -22,6 +22,10 @@ import fr.ign.cogit.rules.regulation.ArtiScalesRegulation;
 public class FakeWorldGenerator {
 
 	static FileWriter in;
+	static String basicRow = "0,42400,U,U0,0,0,0,1,99,3,99,99,3,3,3,2,3,99,3,6,1m60_2,0.15,99";
+
+//	static String basicRow =   "0,42400,U,U0,0,0,0,0,99,4,99,99,0,3,3,2,3,99,6,9,1m60_2,99,99" ;
+//	String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
 
 	// Default line for regulation (to parse the list and to export the regulation)
 	public final static String fLine = "libelle_zone,insee,libelle_de_base,libelle_de_dul,OAP,fonction,art_3,art_4,art_5,art_6,art_6_opt,art_6_optD,art_71,art_72,art_73,art_74,art_8,art_9,art_10_top,art_101,art_12,art_13,art_14";
@@ -51,12 +55,12 @@ public class FakeWorldGenerator {
 		in.write(fLine + "\n");
 
 		// Having a default regulation is very pratical to see the influence of varying a parameter
-		String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
+	//	String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
 
 		// The list of regulation for which building generation will be testsed
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
 
-		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, defaultRegulation);
+		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, basicRow);
 		ArtiScalesRegulation regulationDefault2 = regulationDefault.clone();
 		// Important to change to get the right regulation recognized
 		regulationDefault2.setLibelle_de_dul("U1");
@@ -67,8 +71,8 @@ public class FakeWorldGenerator {
 		regulationDefault3.setArt_5("99");
 
 		ArtiScalesRegulation regulationDefault4 = regulationDefault.clone();
-		regulationDefault3.setLibelle_de_dul("U3");
-		regulationDefault3.setArt_5("_225");
+		regulationDefault4.setLibelle_de_dul("U3");
+		regulationDefault4.setArt_5("_225");
 		
 		regulations.add(regulationDefault);
 		regulations.add(regulationDefault2);
@@ -86,12 +90,12 @@ public class FakeWorldGenerator {
 		in.write(fLine + "\n");
 
 		// Having a default regulation is very pratical to see the influence of varying a parameter
-		String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
+	//	String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
 
 		// The list of regulation for which building generation will be testsed
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
 
-		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, defaultRegulation);
+		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, basicRow);
 		ArtiScalesRegulation regulationDefault2 = regulationDefault.clone();
 		// Important to change to get the right regulation recognized
 
@@ -142,12 +146,12 @@ public class FakeWorldGenerator {
 		in.write(fLine + "\n");
 
 		// Having a default regulation is very pratical to see the influence of varying a parameter
-		String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
+//		String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
 
 		// The list of regulation for which building generation will be testsed
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
 
-		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, defaultRegulation);
+		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, basicRow);
 		ArtiScalesRegulation regulationDefault2 = regulationDefault.clone();
 		// Important to change to get the right regulation recognized
 
@@ -196,13 +200,13 @@ public class FakeWorldGenerator {
 		in.write(fLine + "\n");
 
 		// Having a default regulation is very pratical to see the influence of varying a parameter
-		String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
+//		String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
 
 		// The list of regulation for which building generation will be testsed
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
 
 		// CAS ARTICLE 71 = 1
-		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, defaultRegulation);
+		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, basicRow);
 		ArtiScalesRegulation regulationDefault2 = regulationDefault.clone();
 		// Important to change to get the right regulation recognized
 		regulationDefault2.setLibelle_de_dul("U1");
@@ -235,13 +239,13 @@ public class FakeWorldGenerator {
 		in.write(fLine + "\n");
 
 		// Having a default regulation is very pratical to see the influence of varying a parameter
-		String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
+//		String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
 
 		// The list of regulation for which building generation will be testsed
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
 
 		// CAS ARTICLE 72 = 0
-		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, defaultRegulation);
+		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, basicRow);
 		ArtiScalesRegulation regulationDefault2 = regulationDefault.clone();
 		// Important to change to get the right regulation recognized
 		regulationDefault2.setLibelle_de_dul("U1");
@@ -274,13 +278,13 @@ public class FakeWorldGenerator {
 		in.write(fLine + "\n");
 
 		// Having a default regulation is very pratical to see the influence of varying a parameter
-		String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
+//		String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
 
 		// The list of regulation for which building generation will be testsed
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
 
 		// CAS ARTICLE 73 = 0
-		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, defaultRegulation);
+		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, basicRow);
 		ArtiScalesRegulation regulationDefault2 = regulationDefault.clone();
 		// Important to change to get the right regulation recognized
 		regulationDefault2.setLibelle_de_dul("U1");
@@ -313,13 +317,13 @@ public class FakeWorldGenerator {
 		in.write(fLine + "\n");
 
 		// Having a default regulation is very pratical to see the influence of varying a parameter
-		String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
+	//	String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
 
 		// The list of regulation for which building generation will be testsed
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
 
 		// CAS ARTICLE 74 = 1
-		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, defaultRegulation);
+		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, basicRow);
 		ArtiScalesRegulation regulationDefault2 = regulationDefault.clone();
 		// Important to change to get the right regulation recognized
 		regulationDefault2.setLibelle_de_dul("U1");
@@ -351,13 +355,13 @@ public class FakeWorldGenerator {
 		in.write(fLine + "\n");
 
 		// Having a default regulation is very pratical to see the influence of varying a parameter
-		String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
+	//	String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
 
 		// The list of regulation for which building generation will be testsed
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
 
 		// CAS ARTICLE 8 = 0
-		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, defaultRegulation);
+		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, basicRow);
 		ArtiScalesRegulation regulationDefault2 = regulationDefault.clone();
 		// Important to change to get the right regulation recognized
 		regulationDefault2.setLibelle_de_dul("U1");
@@ -390,13 +394,13 @@ public class FakeWorldGenerator {
 		in.write(fLine + "\n");
 
 		// Having a default regulation is very pratical to see the influence of varying a parameter
-		String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
+//		String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
 
 		// The list of regulation for which building generation will be testsed
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
 
 		// CAS ARTICLE 9 = 0.333
-		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, defaultRegulation);
+		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, basicRow);
 		ArtiScalesRegulation regulationDefault2 = regulationDefault.clone();
 		// Important to change to get the right regulation recognized
 		regulationDefault2.setLibelle_de_dul("U1");
@@ -429,13 +433,13 @@ public class FakeWorldGenerator {
 		in.write(fLine + "\n");
 
 		// Having a default regulation is very pratical to see the influence of varying a parameter
-		String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
+	//	String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
 
 		// The list of regulation for which building generation will be testsed
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
 
 		// SIMPLE CASE
-		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, defaultRegulation);
+		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, basicRow);
 		ArtiScalesRegulation regulationDefault2 = regulationDefault.clone();
 		// Important to change to get the right regulation recognized
 		regulationDefault2.setLibelle_de_dul("U1");
@@ -467,13 +471,13 @@ public class FakeWorldGenerator {
 		in.write(fLine + "\n");
 
 		// Having a default regulation is very pratical to see the influence of varying a parameter
-		String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
+//		String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
 
 		// The list of regulation for which building generation will be testsed
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
 
 		// CAS ARTICLE 13 = 0.333
-		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, defaultRegulation);
+		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, basicRow);
 		ArtiScalesRegulation regulationDefault2 = regulationDefault.clone();
 		// Important to change to get the right regulation recognized
 		regulationDefault2.setLibelle_de_dul("U1");

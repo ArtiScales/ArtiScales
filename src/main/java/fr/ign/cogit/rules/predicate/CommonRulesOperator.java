@@ -557,11 +557,13 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 
 		double multiplierParking = 1;
 
-	if (art12.equals("1")) {
+		if (art12.equals("1")) {
 			//////// Cas 1 : 1 : un stationnement par logement
 			multiplierParking = 1;
 		} else if (art12.equals("3")) {
 			multiplierParking = 3;
+		} else if (art12.equals("0.5")) {
+			multiplierParking = 0.5;
 		} else if (art12.equals("2")) {
 			//////// Cas 2 : 2 : deux stationnements par logement
 			multiplierParking = 2;
@@ -569,11 +571,11 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 			//////// Cas 2 : 2 : deux stationnements par logement
 			multiplierParking = 2.5;
 		} else if (art12.contains("m")) {
-			double limit = Double.valueOf(art12.split("l")[1].split("_")[0]);
+			double limit = Double.valueOf(art12.split("m")[1].split("_")[0]);
 			if (nbDwellings < limit) {
-				multiplierParking = Integer.valueOf(art12.split("l")[0]);
+				multiplierParking = Integer.valueOf(art12.split("m")[0]);
 			} else {
-				multiplierParking = Integer.valueOf(art12.split("l")[1].split("_")[1]);
+				multiplierParking = Integer.valueOf(art12.split("m")[1].split("_")[1]);
 			}
 		} else if (art12.contains("l")) {
 

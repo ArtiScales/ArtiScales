@@ -170,9 +170,9 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 			this.art_73 = 0;
 		}
 
-		if (this.getArt_6() == "99") {
-			this.art_6 = "0";
-		}
+//		if (this.getArt_6() == "99") {
+//			this.art_6 = "0";
+//		}
 
 		if (this.getArt_8() == 88.0 || this.getArt_8() == 99.0) {
 			this.art_8 = 3;
@@ -182,7 +182,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 			this.art_9 = 1;
 		}
 
-		if (this.art_13 == "99") {
+		if (this.art_13.equals("99")) {
 			this.art_13 = "0";
 		}
 	}
@@ -219,7 +219,6 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 			log.info(line);
 			// On instancier la réglementation
 			ArtiScalesRegulation r = new ArtiScalesRegulation(fLine, line);
-			System.out.println("ArtiScalesRegulation" + r);
 			// On regarde si le code imu a été rencontré auparavant
 			if (r != null) {
 				table.put(r.getLibelle_de_dul() + "-" + r.getInsee(), r);
