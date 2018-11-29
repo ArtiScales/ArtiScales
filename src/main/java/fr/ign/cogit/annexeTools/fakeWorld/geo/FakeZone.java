@@ -104,11 +104,20 @@ public class FakeZone {
 		AttributeManager.addAttribute(parcel2, "CODE", shift + "000" + 2, "String");
 		AttributeManager.addAttribute(parcel3, "CODE", shift + "000" + 3, "String");
 		AttributeManager.addAttribute(parcel0, "CODE", shift + "000" + 0, "String");
+		AttributeManager.addAttribute(parcel0, "CODE", shift + "000" + 0, "String");
 		
-		
+		AttributeManager.addAttribute(parcel1, "DoWeSimul", "true", "String");
+		AttributeManager.addAttribute(parcel2, "DoWeSimul", "true", "String");
+		AttributeManager.addAttribute(parcel3, "DoWeSimul", "true", "String");
+		AttributeManager.addAttribute(parcel0, "DoWeSimul", "true", "String");
+		AttributeManager.addAttribute(parcel0, "DoWeSimul", "true", "String");
 
 		
-	
+		AttributeManager.addAttribute(parcel1, "INSEE", "42400", "String");
+		AttributeManager.addAttribute(parcel2, "INSEE", "42400", "String");
+		AttributeManager.addAttribute(parcel3, "INSEE", "42400", "String");
+		AttributeManager.addAttribute(parcel0, "INSEE", "42400", "String");
+		AttributeManager.addAttribute(parcel0, "INSEE", "42400", "String");
 		
 		//The building geometry (inside the lower left parcel)
 		
@@ -154,7 +163,7 @@ public class FakeZone {
 		IDirectPositionList dplFaceUrbaZone = new DirectPositionList(dpRoad0, dpRoad1, dpRoad3, dpRoad2, dpRoad0);
 		IFeature urbaZone = new DefaultFeature(new GM_Polygon(new GM_LineString(dplFaceUrbaZone)));
 		AttributeManager.addAttribute(urbaZone, "LIBELLE", libelle, "String");
-		
+		AttributeManager.addAttribute(urbaZone, "INSEE", "42400", "String");
 		
 		AttributeManager.addAttribute(road1, "LARGEUR", 5, "Double");
 		AttributeManager.addAttribute(road2, "LARGEUR", 2.5, "Double");

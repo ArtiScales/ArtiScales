@@ -48,14 +48,16 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 
 		this.p.set("maxheight", this.getMaxHeight());
 		this.p.set("minheight", this.getMinHeight());
-
-		double aireMinimale = regle.getArt_5();
-
-		// ##Rule-art-005
-		if (aireMinimale != 99.0) {
-
-			if (currentBPU.getArea() < aireMinimale) {
-				canBeSimulated = false;
+		
+		if (!(regle.getArt_5().startsWith("_"))) {
+			double aireMinimale = Double.valueOf(regle.getArt_5());
+	
+			// ##Rule-art-005
+			if (aireMinimale != 99.0) {
+	
+				if (currentBPU.getArea() < aireMinimale) {
+					canBeSimulated = false;
+				}
 			}
 		}
 		// has acces to road?
@@ -102,7 +104,18 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 	// The max CES is directly stored in the regulation object
 	// #art_13 #art_9
 	protected double getMaxCES() {
-		return Math.min(regles.getArt_9(), 1 - regles.getArt_13());
+		//if there's a condition
+		double coeff13 = 0;
+		if (regles.getArt_13().contains(">")) {
+			if (currentBPU.getArea() < Double.valueOf(regles.getArt_13().split(">")[1])) {
+				coeff13 = Double.valueOf(regles.getArt_13().split(">")[0]);
+			}
+		}
+		else {
+			coeff13= Double.valueOf(regles.getArt_13());
+		}
+		
+		return Math.min(regles.getArt_9(), 1 - coeff13);
 	}
 
 	@Override

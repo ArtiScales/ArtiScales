@@ -57,17 +57,17 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 			UrbaZone uZ = sp.getUrbaZone();
 			mapGeomRegulation.put(AdapterFactory.toGeometry(gf, subParcelGeometry), (ArtiScalesRegulation) uZ.getZoneRegulation());
 
-			double aireMinimale = ((ArtiScalesRegulation) uZ.getZoneRegulation()).getArt_5();
-
-			// ##Rule-art-005
-			if (aireMinimale != 99.0) {
-
-				if (currentBPU.getArea() < aireMinimale) {
-					canBeSimulated = false;
+			if (!((ArtiScalesRegulation) uZ.getZoneRegulation()).getArt_5().startsWith("_")) {
+				double aireMinimale = Double.valueOf(((ArtiScalesRegulation) uZ.getZoneRegulation()).getArt_5());
+				// ##Rule-art-005
+				if (aireMinimale != 99.0) {
+					if (currentBPU.getArea() < aireMinimale) {
+						canBeSimulated = false;
+					}
 				}
 			}
 
-			// ##Rule-art-003
+			// ##Rule-art-003 road access
 			double valArt3 = ((ArtiScalesRegulation) uZ.getZoneRegulation()).getArt_3();
 			if (valArt3 == 1) {
 				if (currentBPU.getCadastralParcels().get(0).getBoundariesByType(ParcelBoundaryType.ROAD).isEmpty()) {
@@ -166,10 +166,15 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 				if (mapGeomRegulation.get(geom).getArt_9() != 99) {
 					maxBuiltArea = maxBuiltArea + geom.getArea() * mapGeomRegulation.get(geom).getArt_9();
 				}
-
-				if (mapGeomRegulation.get(geom).getArt_13() != 99) {
-					maxBuiltFreeSpace = maxBuiltFreeSpace + geom.getArea() * mapGeomRegulation.get(geom).getArt_13();
-
+			
+				//if rule 13 has a parcel size condition
+				if (mapGeomRegulation.get(geom).getArt_13().contains(">")) {
+					if (totalSubParcelArea > Double.valueOf(mapGeomRegulation.get(geom).getArt_13().split(">")[1])) {
+						maxBuiltFreeSpace = maxBuiltFreeSpace + geom.getArea() * Double.valueOf(mapGeomRegulation.get(geom).getArt_13().split(">")[0]);
+					}
+				}
+				else if (!mapGeomRegulation.get(geom).getArt_13().equals("99")) {
+					maxBuiltFreeSpace = maxBuiltFreeSpace + geom.getArea() * Double.valueOf(mapGeomRegulation.get(geom).getArt_13());
 				}
 			}
 
@@ -209,17 +214,20 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 	protected String getArt12Value() {
 		List<String> art12 = this.mapGeomRegulation.values().stream().map(x -> x.getArt_12()).collect(Collectors.toList());
 		for (String line : art12) {
-			if (line.contains("l") || line.contains("m")) {
+			if (line.contains("l") || line.contains("m") || line.contains("x") ) {
 				return line;
 			}
 		}
 
+		if (art12.contains("3")) {
+			return "3";
+		}
+		if (art12.contains("2.5")) {
+			return "2.5";
+		}
+		
 		if (art12.contains("2")) {
 			return "2";
-		}
-
-		if (art12.contains("1+2")) {
-			return "1+2";
 		}
 
 		return "1";

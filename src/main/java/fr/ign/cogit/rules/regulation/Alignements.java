@@ -28,7 +28,7 @@ public class Alignements {
 
 
 	public enum AlignementType {
-		ART7112(0), ART713(1), NONE(99);
+		ART7112(0), ART713(1), ART6(2), NONE(99);
 
 		private int value;
 
@@ -47,6 +47,8 @@ public class Alignements {
 		ArtiScalesRegulation regulation = allRegulation.get(0);
 		this.currentBPU = currentBPU;
 		this.env = env;
+		
+		
 
 		if (regulation.getArt_71() == 1 || regulation.getArt_71() == 2 ) {
 			hasAlignement = true;
@@ -58,12 +60,16 @@ public class Alignements {
 			hasAlignement = true;
 			this.type = AlignementType.ART713;
 		}
+		
 
+		if(regulation.getArt_6().equals("0")) {
+			hasAlignement = true;
+			this.type = AlignementType.ART6;
+		}
 	}
 
 	public IGeometry[] getRightSide() {
 		return getSide(ParcelBoundarySide.RIGHT);
-
 	}
 
 	public IGeometry[] getLeftSide() {
@@ -89,23 +95,37 @@ public class Alignements {
 
 				// We have some buildings do they belong to the current CadastralParcel
 				for (AbstractBuilding currentBuilding : buildingsSel) {
-					
 					if(currentBuilding instanceof Building){
 						Building build = (Building) currentBuilding;
-								
 								// No !!! we add the geometry and go to the next parcel boundary
 								if (!build.getbPU().equals(currentBPU)) {
 									lGeom.add(boundary.getGeom());
 									continue boucleboundary;
-							
 							}
 					}else{
 						System.out.println("Alignements : Unrecognized building class : " + currentBuilding.getClass());
 					}
-	
-					
-
 				}
+			}
+		}
+
+		IGeometry[] geometryArray = new IGeometry[lGeom.size()];
+		geometryArray = lGeom.toArray(geometryArray);
+
+		return geometryArray;
+	}
+	
+	
+	public IGeometry[] getRoadGeom() {
+
+		List<IGeometry> lGeom = new ArrayList<>();
+
+		// For each parcel
+		for (CadastralParcel cO : currentBPU.getCadastralParcels()) {
+			// For each boundary
+			 for (ParcelBoundary boundary : cO.getBoundariesByType(ParcelBoundaryType.ROAD)) {
+
+				 lGeom.add(boundary.getGeom());
 
 			}
 
@@ -117,6 +137,7 @@ public class Alignements {
 		return geometryArray;
 
 	}
+
 
 	private IGeometry[] getSide(ParcelBoundarySide side) {
 

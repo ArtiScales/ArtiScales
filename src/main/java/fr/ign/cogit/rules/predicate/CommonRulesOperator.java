@@ -279,6 +279,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 
 		double builtArea = assesBuiltArea(lCuboid);
 
+		// what is that for?
 		List<AbstractSimpleBuilding> lBatIni = new ArrayList<>();
 		for (ISimPLU3DPrimitive s : lCuboid) {
 			lBatIni.add((AbstractSimpleBuilding) s);
@@ -291,6 +292,27 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		}
 
 		return ((builtArea / airePAr) <= maxValue);
+	}
+
+	/**
+	 * Check if an n-m² element fits in the parcel
+	 * 
+	 * @param lCuboid
+	 * @param currentBPU
+	 * @param eltValue
+	 * @return
+	 */
+	public boolean checkEltFits(List<O> lCuboid, BasicPropertyUnit currentBPU, double eltValue) {
+
+		double builtArea = assesBuiltArea(lCuboid);
+
+		// On récupère la superficie de la basic propertyUnit
+		double areaPar = 0;
+		for (CadastralParcel cP : currentBPU.getCadastralParcels()) {
+			areaPar = areaPar + cP.getArea();
+		}
+
+		return ((builtArea + eltValue) - areaPar > 0);
 	}
 
 	///////////////// Checked zone
@@ -370,39 +392,55 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		double min = p.getDouble("minheight");
 		double max = p.getDouble("maxheight");
 
+		// make the value look good
+
+		double h = 0;
+
+		if (regle.getArt_10_1().contains("-")) {
+			System.out.println("case not programmed : only one height for the building");
+			h = Double.valueOf(regle.getArt_10_1().split("-")[0]);
+		} else {
+			h = Double.valueOf(regle.getArt_10_1());
+		}
+
 		switch (regle.getArt_10_top()) {
 
 		// 1 hauteur à l'étage
 		// 5 hauteur à l'égout (pour l'instant la même que le 1 vu que l'on ne prends
 		// pas en compte les toits)
 		case 1:
-			max = p.getDouble(regle.getArt_10_1()) * p.getDouble("heightStair");
+			max = h * p.getDouble("heightStair");
 			break;
 		// hauteur en metre
 		case 2:
 		case 3:
 		case 4:
 		case 5:
-			max = Double.valueOf(regle.getArt_10_1());
+			max = h;
 			break;
 
 		// hauteur harmonisé avec les batiments des alentours (+/- 10 %)
 		case 6:
 		case 7:
 		case 8:
+		case 9:
 			// si il y a des batiments TODO valeurs bizares
 			if (heighSurroundingBuildings != null && heighSurroundingBuildings != 0.0) {
+				System.out.println("surrounding height values : " + heighSurroundingBuildings);
 				min = heighSurroundingBuildings * 0.9;
 				max = heighSurroundingBuildings * 1.1;
 			}
 			// si pas de batiments aux alentours, on se rabat sur différentes options
-			else {
+			else if (h != 0) {
+				max = h;
+			} else if (regle.getArt_10_top() == 9) {
+				max = h * p.getDouble("heightStair");
+			} else {
 				max = p.getDouble("maxheight");
 			}
 			break;
-		case 20:
 		default:
-			System.err.println("Cas de hauteur non géré : valeur ; " + regle.getArt_10_top());
+			System.err.println("Cas de hauteur inconnu");
 		}
 		Double[] result = { min, max };
 		System.out.println("Hauteur max autorisée : " + max);
@@ -481,17 +519,13 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	}
 
 	public boolean checkParking(List<O> lAllCuboids, BasicPropertyUnit currentBPU, String art12, Parameters p) {
-		if (art12.equals("99")) {
+		if (art12.equals("99") || art12.equals("0")) {
 			return true;
 		}
 
 		// Règle de stationnement
 		//
 		// 1 : un stationnement par logement .
-		//
-		// 1+2 : 2 places de stationnement par logement (dont 1 hors clôture pour les
-		// maisons individuelles) ; 1 place par logement (pour les immeubles
-		// collectifs).
 		//
 		// 2 : deux stationnements par logement
 		//
@@ -521,18 +555,19 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		// Number of dwellings
 		int nbDwellings = (int) Math.round((shon / surfLogement));
 
-		int multiplierParking = 1;
+		double multiplierParking = 1;
 
-		if (art12 == "1") {
+	if (art12.equals("1")) {
 			//////// Cas 1 : 1 : un stationnement par logement
 			multiplierParking = 1;
-		} else if (art12 == "1+2") {
-			/////// Cas 1+2 : places de stationnement par logement (dont 1 hors clôture pour
-			/////// les maisons
-			multiplierParking = 1;
-		} else if (art12 == "2") {
+		} else if (art12.equals("3")) {
+			multiplierParking = 3;
+		} else if (art12.equals("2")) {
 			//////// Cas 2 : 2 : deux stationnements par logement
 			multiplierParking = 2;
+		} else if (art12.equals("2.5")) {
+			//////// Cas 2 : 2 : deux stationnements par logement
+			multiplierParking = 2.5;
 		} else if (art12.contains("m")) {
 			double limit = Double.valueOf(art12.split("l")[1].split("_")[0]);
 			if (nbDwellings < limit) {
@@ -553,6 +588,8 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 			double limit = Double.valueOf(art12.split("x")[1]);
 			multiplierParking = (int) Math.round(shon / limit);
 
+		} else {
+			System.out.println("parking case unreckognized " + art12);
 		}
 
 		// Surface of parking places

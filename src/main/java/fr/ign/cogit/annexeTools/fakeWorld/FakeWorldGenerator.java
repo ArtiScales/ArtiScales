@@ -24,7 +24,7 @@ public class FakeWorldGenerator {
 	static FileWriter in;
 
 	// Default line for regulation (to parse the list and to export the regulation)
-	public final static String fLine = "libelle_zone,insee,libelle_de_base,libelle_de_dul,fonctions,oap,zonage_coherent,correction_zonage,art_3,art_4,art_5,art_6,art_6_opt,art_6_optD,art_71,art_72,art_73,art_74,art_8,art_9,art_10_top,art_101,art_12,art_13,art_14";
+	public final static String fLine = "libelle_zone,insee,libelle_de_base,libelle_de_dul,OAP,fonction,art_3,art_4,art_5,art_6,art_6_opt,art_6_optD,art_71,art_72,art_73,art_74,art_8,art_9,art_10_top,art_101,art_12,art_13,art_14";
 
 	public static void main(String[] args) throws IOException {
 		// Folder where to generate the fake data
@@ -47,11 +47,11 @@ public class FakeWorldGenerator {
 
 		(new File(folderOut)).mkdirs();
 
-		in = new FileWriter(new File(folderOut + "predicate.csv"));
+		in = new FileWriter(new File(folderOut + "snapPredicate.csv"));
 		in.write(fLine + "\n");
 
 		// Having a default regulation is very pratical to see the influence of varying a parameter
-		String defaultRegulation = "0,0,U0,U0,0,0,0,0,0,0,0,0.1,0,0,0,0,0,0,0,1.0,2,10,0,0,10";
+		String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
 
 		// The list of regulation for which building generation will be testsed
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
@@ -60,16 +60,21 @@ public class FakeWorldGenerator {
 		ArtiScalesRegulation regulationDefault2 = regulationDefault.clone();
 		// Important to change to get the right regulation recognized
 		regulationDefault2.setLibelle_de_dul("U1");
-		regulationDefault2.setArt_5(25000);
+		regulationDefault2.setArt_5("25000");
 
 		ArtiScalesRegulation regulationDefault3 = regulationDefault.clone();
 		regulationDefault3.setLibelle_de_dul("U2");
-		regulationDefault3.setArt_5(99);
+		regulationDefault3.setArt_5("99");
 
+		ArtiScalesRegulation regulationDefault4 = regulationDefault.clone();
+		regulationDefault3.setLibelle_de_dul("U3");
+		regulationDefault3.setArt_5("_225");
+		
 		regulations.add(regulationDefault);
 		regulations.add(regulationDefault2);
 		regulations.add(regulationDefault3);
-
+		regulations.add(regulationDefault4);
+		
 		generateFakeData(regulations, folderOut);
 
 	}
@@ -77,11 +82,11 @@ public class FakeWorldGenerator {
 	public static void generateTestForArticle10(String folderOut) throws IOException {
 		(new File(folderOut)).mkdirs();
 
-		in = new FileWriter(new File(folderOut + "predicate.csv"));
+		in = new FileWriter(new File(folderOut + "snapPredicate.csv"));
 		in.write(fLine + "\n");
 
 		// Having a default regulation is very pratical to see the influence of varying a parameter
-		String defaultRegulation = "0,0,U0,U0,0,0,0,0,0,0,0,0.1,0,0,0,0,0,0,0,1.0,2,10,0,0,10";
+		String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
 
 		// The list of regulation for which building generation will be testsed
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
@@ -95,25 +100,25 @@ public class FakeWorldGenerator {
 		regulationDefault2.setArt_10("5");
 		regulationDefault2.setArt_10_top(1);
 
-		// CAS ARTICLE 10 = 2 && ARTICLE_10_2 = 12
+		// CAS ARTICLE 10 = 2 && ARTICLE_10_1 = 12
 		ArtiScalesRegulation regulationDefault3 = regulationDefault.clone();
 		regulationDefault3.setLibelle_de_dul("U2");
 		regulationDefault3.setArt_10("12");
 		regulationDefault3.setArt_10_top(2);
 
-		// CAS ARTICLE 10 = 6 && ARTICLE_10_2 = 12
+		// CAS ARTICLE 10 = 6 && ARTICLE_10_1 = 12
 		ArtiScalesRegulation regulationDefault4 = regulationDefault.clone();
 		regulationDefault4.setLibelle_de_dul("U3");
 		regulationDefault4.setArt_10("12");
 		regulationDefault4.setArt_10_top(6);
 
-		// CAS ARTICLE 10 = 7 && ARTICLE_10_2 = 12
+		// CAS ARTICLE 10 = 7 && ARTICLE_10_1 = 12
 		ArtiScalesRegulation regulationDefault5 = regulationDefault.clone();
 		regulationDefault5.setLibelle_de_dul("U3");
 		regulationDefault5.setArt_10("12");
 		regulationDefault5.setArt_10_top(7);
 
-		// CAS ARTICLE 10 = 8 && ARTICLE_10_2 = 12
+		// CAS ARTICLE 10 = 8 && ARTICLE_10_1 = 12
 		ArtiScalesRegulation regulationDefault6 = regulationDefault.clone();
 		regulationDefault6.setLibelle_de_dul("U4");
 		regulationDefault6.setArt_10("12");
@@ -133,11 +138,11 @@ public class FakeWorldGenerator {
 
 		(new File(folderOut)).mkdirs();
 
-		in = new FileWriter(new File(folderOut + "predicate.csv"));
+		in = new FileWriter(new File(folderOut + "snapPredicate.csv"));
 		in.write(fLine + "\n");
 
 		// Having a default regulation is very pratical to see the influence of varying a parameter
-		String defaultRegulation = "0,0,U0,U0,0,0,0,0,0,0,0,0.1,0,0,0,0,0,0,0,1.0,2,10,0,0,10";
+		String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
 
 		// The list of regulation for which building generation will be testsed
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
@@ -149,27 +154,35 @@ public class FakeWorldGenerator {
 		// CAS ARTICLE 6 = 0
 		regulationDefault2.setLibelle_de_dul("U1");
 		regulationDefault2.setArt_6("0");
-
+		regulationDefault2.setArt_6_opt("99");
+		regulationDefault2.setArt_6_optD("99");
+		
 		// CAS ARTICLE 6 = 44
 		ArtiScalesRegulation regulationDefault3 = regulationDefault.clone();
 		regulationDefault3.setLibelle_de_dul("U2");
 		regulationDefault3.setArt_6("44");
+		regulationDefault3.setArt_6_opt("99");
+		regulationDefault3.setArt_6_optD("99");
 
-		// CAS ARTICLE 6 = 55
+		// CAS ARTICLE 6 = 3
 		ArtiScalesRegulation regulationDefault4 = regulationDefault.clone();
 		regulationDefault4.setLibelle_de_dul("U3");
-		regulationDefault4.setArt_6("55");
+		regulationDefault4.setArt_6("3");
+		regulationDefault4.setArt_6_opt("99");
+		regulationDefault4.setArt_6_optD("99");
 
-		// CAS ARTICLE 6 = n (ici 6)
-		ArtiScalesRegulation regulationDefault5 = regulationDefault.clone();
-		regulationDefault5.setLibelle_de_dul("U3");
-		regulationDefault5.setArt_6("6");
+		// CAS ARTICLE 6 = aligné or reculé (ici 6)
+//		ArtiScalesRegulation regulationDefault5 = regulationDefault.clone();
+//		regulationDefault5.setLibelle_de_dul("U4");
+//		regulationDefault2.setArt_6("3");
+//		regulationDefault2.setArt_6_opt("10");
+//		regulationDefault2.setArt_6_optD("99");
 
 		regulations.add(regulationDefault);
 		regulations.add(regulationDefault2);
 		regulations.add(regulationDefault3);
 		regulations.add(regulationDefault4);
-		regulations.add(regulationDefault5);
+//		regulations.add(regulationDefault5);
 
 		generateFakeData(regulations, folderOut);
 
@@ -179,11 +192,11 @@ public class FakeWorldGenerator {
 
 		(new File(folderOut)).mkdirs();
 
-		in = new FileWriter(new File(folderOut + "predicate.csv"));
+		in = new FileWriter(new File(folderOut + "snapPredicate.csv"));
 		in.write(fLine + "\n");
 
 		// Having a default regulation is very pratical to see the influence of varying a parameter
-		String defaultRegulation = "0,0,U0,U0,0,0,0,0,0,0,0,0.1,0,0,0,0,0,0,0,1.0,2,10,0,0,10";
+		String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
 
 		// The list of regulation for which building generation will be testsed
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
@@ -218,11 +231,11 @@ public class FakeWorldGenerator {
 
 		(new File(folderOut)).mkdirs();
 
-		in = new FileWriter(new File(folderOut + "predicate.csv"));
+		in = new FileWriter(new File(folderOut + "snapPredicate.csv"));
 		in.write(fLine + "\n");
 
 		// Having a default regulation is very pratical to see the influence of varying a parameter
-		String defaultRegulation = "0,0,U0,U0,0,0,0,0,0,0,0,0.1,0,0,0,0,0,0,0,1.0,2,10,0,0,10";
+		String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
 
 		// The list of regulation for which building generation will be testsed
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
@@ -257,11 +270,11 @@ public class FakeWorldGenerator {
 
 		(new File(folderOut)).mkdirs();
 
-		in = new FileWriter(new File(folderOut + "predicate.csv"));
+		in = new FileWriter(new File(folderOut + "snapPredicate.csv"));
 		in.write(fLine + "\n");
 
 		// Having a default regulation is very pratical to see the influence of varying a parameter
-		String defaultRegulation = "0,0,U0,U0,0,0,0,0,0,0,0,0.1,0,0,0,0,0,0,0,1.0,2,10,0,0,10";
+		String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
 
 		// The list of regulation for which building generation will be testsed
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
@@ -296,11 +309,11 @@ public class FakeWorldGenerator {
 
 		(new File(folderOut)).mkdirs();
 
-		in = new FileWriter(new File(folderOut + "predicate.csv"));
+		in = new FileWriter(new File(folderOut + "snapPredicate.csv"));
 		in.write(fLine + "\n");
 
 		// Having a default regulation is very pratical to see the influence of varying a parameter
-		String defaultRegulation = "0,0,U0,U0,0,0,0,0,0,0,0,0.1,0,0,0,0,0,0,0,1.0,2,10,0,0,10";
+		String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
 
 		// The list of regulation for which building generation will be testsed
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
@@ -334,11 +347,11 @@ public class FakeWorldGenerator {
 	public static void generateTestForArticle8(String folderOut) throws IOException {
 		(new File(folderOut)).mkdirs();
 
-		in = new FileWriter(new File(folderOut + "predicate.csv"));
+		in = new FileWriter(new File(folderOut + "snapPredicate.csv"));
 		in.write(fLine + "\n");
 
 		// Having a default regulation is very pratical to see the influence of varying a parameter
-		String defaultRegulation = "0,0,U0,U0,0,0,0,0,0,0,0,0.1,0,0,0,0,0,0,0,1.0,2,10,0,0,10";
+		String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
 
 		// The list of regulation for which building generation will be testsed
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
@@ -373,11 +386,11 @@ public class FakeWorldGenerator {
 
 		(new File(folderOut)).mkdirs();
 
-		in = new FileWriter(new File(folderOut + "predicate.csv"));
+		in = new FileWriter(new File(folderOut + "snapPredicate.csv"));
 		in.write(fLine + "\n");
 
 		// Having a default regulation is very pratical to see the influence of varying a parameter
-		String defaultRegulation = "0,0,U0,U0,0,0,0,0,0,0,0,0.1,0,0,0,0,0,0,0,1.0,2,10,0,0,10";
+		String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
 
 		// The list of regulation for which building generation will be testsed
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
@@ -412,11 +425,11 @@ public class FakeWorldGenerator {
 
 		(new File(folderOut)).mkdirs();
 
-		in = new FileWriter(new File(folderOut + "predicate.csv"));
+		in = new FileWriter(new File(folderOut + "snapPredicate.csv"));
 		in.write(fLine + "\n");
 
 		// Having a default regulation is very pratical to see the influence of varying a parameter
-		String defaultRegulation = "0,0,U0,U0,0,0,0,0,0,0,0,0.1,0,0,0,0,0,0,0,1.0,2,10,0,0,10";
+		String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
 
 		// The list of regulation for which building generation will be testsed
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
@@ -450,36 +463,43 @@ public class FakeWorldGenerator {
 	public static void generateTestForArticle13(String folderOut) throws IOException {
 		(new File(folderOut)).mkdirs();
 
-		in = new FileWriter(new File(folderOut + "predicate.csv"));
+		in = new FileWriter(new File(folderOut + "snapPredicate.csv"));
 		in.write(fLine + "\n");
 
 		// Having a default regulation is very pratical to see the influence of varying a parameter
-		String defaultRegulation = "0,0,U0,U0,0,0,0,0,0,0,0,0.1,0,0,0,0,0,0,0,1.0,2,10,0,0,10";
+		String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
 
 		// The list of regulation for which building generation will be testsed
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
 
-		// CAS ARTICLE 9 = 0.333
+		// CAS ARTICLE 13 = 0.333
 		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, defaultRegulation);
 		ArtiScalesRegulation regulationDefault2 = regulationDefault.clone();
 		// Important to change to get the right regulation recognized
 		regulationDefault2.setLibelle_de_dul("U1");
-		regulationDefault2.setArt_13(0.333);
+		regulationDefault2.setArt_13("0.333");
 
-		// CAS ARTICLE 9 = 0.6666
+		// CAS ARTICLE 13 = 0.6666
 		ArtiScalesRegulation regulationDefault3 = regulationDefault.clone();
 		regulationDefault3.setLibelle_de_dul("U2");
-		regulationDefault3.setArt_13(0.666);
+		regulationDefault3.setArt_13("0.666");
 
-		// CAS ARTICLE 8 = 0
+		// CAS ARTICLE 13 = 0
 		ArtiScalesRegulation regulationDefault4 = regulationDefault.clone();
 		regulationDefault4.setLibelle_de_dul("U3");
-		regulationDefault4.setArt_13(0);
+		regulationDefault4.setArt_13("0");
+		
+		// CAS ARTICLE 13 = 0
+		ArtiScalesRegulation regulationDefault5 = regulationDefault.clone();
+		regulationDefault4.setLibelle_de_dul("U4");
+		regulationDefault4.setArt_13("0.7>300");
+		
 
 		regulations.add(regulationDefault);
 		regulations.add(regulationDefault2);
 		regulations.add(regulationDefault3);
 		regulations.add(regulationDefault4);
+		regulations.add(regulationDefault5);
 
 		generateFakeData(regulations, folderOut);
 
@@ -512,11 +532,11 @@ public class FakeWorldGenerator {
 		}
 
 		in.close();
-
+		new File ( folderOut + "/geoSnap").mkdirs();
 		ShapefileWriter.write(parcels, folderOut + "parcelle.shp");
-		ShapefileWriter.write(buildings, folderOut + "batiment.shp");
-		ShapefileWriter.write(zones, folderOut + "zoneUrba.shp");
-		ShapefileWriter.write(roads, folderOut + "route.shp");
+		ShapefileWriter.write(buildings, folderOut + "/geoSnap/building.shp");
+		ShapefileWriter.write(zones, folderOut + "/geoSnap/zoning.shp");
+		ShapefileWriter.write(roads, folderOut + "/geoSnap/road.shp");
 
 	}
 

@@ -45,11 +45,18 @@ public class GetFromGeom {
 	public static List<String> rnuZip(File regulFile) throws IOException {
 		List<String> result = new ArrayList<String>();
 		File fCsv = new File("");
-		for (File f : regulFile.listFiles()) {
+		try {
+			for (File f : regulFile.listFiles()) {
+		
 			if (f.getName().equals("listRNUCities.csv")) {
 				fCsv = f;
 				break;
 			}
+		}
+		}
+		catch (NullPointerException np) {
+			System.out.println("no RNU list");
+			return null;
 		}
 		CSVReader read = new CSVReader(new FileReader(fCsv));
 		// entete

@@ -63,7 +63,7 @@ public class PrescriptionPreparator {
 				}
 				break;
 			default:
-				System.out.println(SimPLUSimulator.class.toString() + "  :  Other case " + prescription.getLabel() + " Code : " + prescription.getType());
+				System.out.println(SimPLUSimulator.class.toString() + " SUP mgmt :  Other case " + prescription.getLabel() + " Code : " + prescription.getType());
 				break;
 			}
 		}

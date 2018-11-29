@@ -61,8 +61,7 @@ public class FakeWorldSimulator {
 			// RootFolder
 			File rootFolder = new File(p.getString("rootFile"));
 			// Selected parcels shapefile
-			
-			SimPLUSimulator simplu = new SimPLUSimulator(rootFolder, null, p);
+			SimPLUSimulator simplu = new SimPLUSimulator(rootFolder, rootFolder, p);
 
 			simplu.run();
 		}

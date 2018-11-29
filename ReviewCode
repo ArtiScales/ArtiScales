@@ -8,6 +8,8 @@ parcelles fondues ont le même nom?!
 
 toujours des problèmes avec certains import de routes (regarder ça avec Mickael)
 
+ou est fait l'alignement pour la règle 6? 
+
 INDICATORS
 
 (maxime)
@@ -25,3 +27,4 @@ sup et l'insimulation se déclanche parfois sans raison (remarqué sur parcelles
 log 
 improve parcel selection
 
+déplacer Audeux dans la liste de communes au RNU (recalculer les PAU... remplacer le zonage POS principal... ... et tout et tout. Mais ne le faire que quand je serais sur que d'autre POS ne se sont pas glissées dans mes données). 

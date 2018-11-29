@@ -16,7 +16,7 @@
 	
 	<!-- Dossiers et fichiers nécessaires à la simulation -->
 		<!-- Emplacement des résultats de simulation (intermédiaires et finaux) -->
-	<param key="rootFile" value="/home/mcolomb/tmp/"/>
+	<param key="rootFile" value="/tmp/"/>
 		<!-- Emplacement des données géographiques générales -->
 	<param key="geoFile" value="/home/mcolomb/tmp/fakeworld/"/>
 		<!-- Emplacement des données géographiques concernant les PLU -->

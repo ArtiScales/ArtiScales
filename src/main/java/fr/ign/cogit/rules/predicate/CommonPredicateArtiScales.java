@@ -306,6 +306,13 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 			for (ArtiScalesRegulation regle : lRegles) {
 
+				// is there space enough to put art5 elements in argument?
+				if (regle.getArt_5().startsWith("_")) {
+					if (!cRO.checkEltFits(lAllCuboids, currentBPU, Double.valueOf(regle.getArt_5().replace("_", "")))) {
+						return false;
+					}
+				}
+
 				// Distance to the front of the parcel
 				// Rule-art-0072 && art-0071
 				switch (this.getSide()) {
@@ -358,42 +365,62 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 				// Rule-art-006
 				String art_6 = regle.getArt_6();
 				String typeArt_6 = regle.getArt_6_opt();
-				
-				if (typeArt_6.equals("99")) {
-				if (art_6.contains("-")) {
-					double min = Double.valueOf(art_6.split("-")[0]);
-					double max = Double.valueOf(art_6.split("-")[1]);
-					if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, min) || !cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, max, false)) {
-						return false;
-					}
-				} else {
-					switch (art_6 + "") {
 
-					case "55.0":
-						/*
-						 * double dist = Double.valueOf(regle.getArt_6_optD().split("-")[0]); if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, dist) ||
-						 * cRO.checkAlignement(cuboid, jtsCurveLimiteFrontParcel)) { return false; }
-						 */
-						break;
-					case "44.0":
-						if (!cRO.checkProspectRNU(cuboid, jtsCurveOppositeLimit)) {
+				// case where there's only one condition
+//				if (typeArt_6.equals("99")) {
+				//not normal case
+				if (typeArt_6.equals("99")||typeArt_6.equals("30")||typeArt_6.equals("1")) {
+					if (art_6.contains("-")) {
+						double min = Double.valueOf(art_6.split("-")[0]);
+						double max = Double.valueOf(art_6.split("-")[1]);
+						if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, min) || !cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, max, false)) {
 							return false;
 						}
-						break;
+					} else {
+						switch (art_6 + "") {
 
-					default:
-						if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, Double.valueOf(art_6))) {
-							return false;
+						case "55":
+							/*
+							 * double dist = Double.valueOf(regle.getArt_6_optD().split("-")[0]); if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, dist) ||
+							 * cRO.checkAlignement(cuboid, jtsCurveLimiteFrontParcel)) { return false; }
+							 */
+							break;
+						case "44":
+							System.out.println("here dogg");
+							if (!cRO.checkProspectRNU(cuboid, jtsCurveOppositeLimit)) {
+								return false;
+							}
+							break;
+						case "99":
+							break;
+						default:
+							if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, Double.valueOf(art_6))) {
+								return false;
+							}
+							break;
 						}
-						break;
 					}
-				}
-				}
-				else if(typeArt_6.equals("10")){
-					if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, Double.valueOf(art_6)) ) {
+				} else if (typeArt_6.equals("10")) {
+					if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, Double.valueOf(art_6))) {// TODO OR. ..??
+						// TODO comment est gérée l'alignement?
 						return false;
 					}
-				}
+//				} else if (typeArt_6.equals("30")) {
+//					//
+//					//if (TODO tester l'alignement avec les autres facades){
+//					//}
+//				//else {
+//					//si pas d'enchainement de facade, regarde art_6 : si 0, regarde art_6typeD pour voir si possibilité de retrait 
+//				//}
+//				}
+//			 else if (typeArt_6.equals("1")) {
+//				//
+//				//if (TODO tester l'alignement avec les autres facades){
+//				//}
+//			//else {
+//				//si pas d'enchainement de facade, regarde art_6 : si 0, regarde art_6typeD pour voir si possibilité de retrait 
+//			//}
+			}
 				else {
 					System.out.println("Art-6 optionel: cas non traité");
 				}
@@ -434,7 +461,6 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 					return false;
 				}
 			}
-
 
 			// Width and distance between buildings constraints
 

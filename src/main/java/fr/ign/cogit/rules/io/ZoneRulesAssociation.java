@@ -37,12 +37,15 @@ public class ZoneRulesAssociation {
 
 		// For each zone we associate a regulation to the zone
 		for (UrbaZone zone : env.getUrbaZones()) {
-
+System.out.println("NSEEEEEE "+zone.getInsee());
 			String finalLibelle = zone.getLibelle() + "-" + zone.getInsee();
-			
-			//if the city is at the rnu, insee code's the same
-			if (listRNU.contains(zone.getInsee())) {
-				finalLibelle = zone.getLibelle() + "-" + "7";
+System.out.println("finalLibelle  df : "+finalLibelle);
+			// if the city is at the rnu, insee code's the same
+			if (listRNU != null) {
+				if (listRNU.contains(zone.getInsee())) {
+					System.out.println("city follows RNU");
+					finalLibelle = zone.getLibelle() + "-" + "7";
+				}
 			}
 			regle = regles.get(finalLibelle);
 			if (regle != null) {

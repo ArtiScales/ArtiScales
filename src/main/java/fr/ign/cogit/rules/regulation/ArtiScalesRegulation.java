@@ -20,9 +20,9 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 
 	// Les intitulés des colonnes
 	private int insee, oap, fonction, art_3, art_4, art_71, art_74, art_10_top;
-	private String libelle_zone, libelle_de_base, libelle_de_dul, art_6, art_6_opt, art_6_optD, art_12, art_14, art_10_1;
+	private String libelle_zone, libelle_de_base, libelle_de_dul,art_5, art_6, art_6_opt, art_6_optD, art_12,art_13, art_14, art_10_1;
 
-	private double art_5, art_72, art_73, art_8, art_9, art_13;
+	private double art_72, art_73, art_8, art_9;
 
 	// The UrbanZone that corresponds to the regulation
 	private UrbaZone zone;
@@ -63,7 +63,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 				art_4 = Integer.valueOf(lineSplited[i]);
 				break;
 			case "art_5":
-				art_5 = Double.valueOf(lineSplited[i]);
+				art_5 = lineSplited[i];
 				break;
 			case "art_6":
 				art_6 = lineSplited[i];
@@ -102,7 +102,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 				art_12 = lineSplited[i];
 				break;
 			case "art_13":
-				art_13 = Double.valueOf(lineSplited[i]);
+				art_13 = lineSplited[i];
 				break;
 			case "art_14":
 				art_14 = lineSplited[i];
@@ -124,9 +124,9 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 				+ "," + art_12 + "," + art_13 + "," + art_14;
 	}
 
-	public ArtiScalesRegulation(String libelle_zone, int insee, String libelle_de_base, String libelle_de_dul, int oap, int fonction, int art_3, int art_4, double art_5,
+	public ArtiScalesRegulation(String libelle_zone, int insee, String libelle_de_base, String libelle_de_dul, int oap, int fonction, int art_3, int art_4, String art_5,
 			String art_6, String art_6_opt, String art_6_optD, int art_71, double art_72, double art_73, int art_74, double art_8, double art_9, int art_10_top, String art_10_1,
-			String art_12, double art_13, String art_14) {
+			String art_12, String art_13, String art_14) {
 		super();
 		this.libelle_zone = libelle_zone;
 		this.insee = insee;
@@ -158,8 +158,8 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	 */
 	public void clean() {
 
-		if (this.getArt_72() == 88 || this.getArt_72() == 99) {
-			this.art_72 = 0;
+		if (this.getArt_71() == 88 || this.getArt_71() == 99) {
+			this.art_71 = 1;
 		}
 
 		if (this.getArt_72() == 88 || this.getArt_72() == 99) {
@@ -170,7 +170,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 			this.art_73 = 0;
 		}
 
-		if (this.getArt_6() == "77") {
+		if (this.getArt_6() == "99") {
 			this.art_6 = "0";
 		}
 
@@ -182,8 +182,8 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 			this.art_9 = 1;
 		}
 
-		if (this.art_13 == 99) {
-			this.art_13 = 0;
+		if (this.art_13 == "99") {
+			this.art_13 = "0";
 		}
 	}
 
@@ -219,6 +219,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 			log.info(line);
 			// On instancier la réglementation
 			ArtiScalesRegulation r = new ArtiScalesRegulation(fLine, line);
+			System.out.println("ArtiScalesRegulation" + r);
 			// On regarde si le code imu a été rencontré auparavant
 			if (r != null) {
 				table.put(r.getLibelle_de_dul() + "-" + r.getInsee(), r);
@@ -302,7 +303,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 
 	// ART_5 Superficie minimale 88= non renseignable, 99= non réglementé
 
-	public double getArt_5() {
+	public String getArt_5() {
 		return art_5;
 	}
 
@@ -400,7 +401,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	// ART_13 Part minimale d'espaces libre de toute construction exprimée par
 	// rapport à la surface totale de la parcelle Valeur comprise de 0 à 1, 88
 	// si non renseignable, 99 si non règlementé
-	public double getArt_13() {
+	public String getArt_13() {
 		return art_13;
 	}
 
@@ -480,7 +481,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 		this.art_14 = art_14;
 	}
 
-	public void setArt_5(double art_5) {
+	public void setArt_5(String art_5) {
 		this.art_5 = art_5;
 	}
 
@@ -504,7 +505,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 		this.art_9 = art_9;
 	}
 
-	public void setArt_13(double art_13) {
+	public void setArt_13(String art_13) {
 		this.art_13 = art_13;
 	}
 

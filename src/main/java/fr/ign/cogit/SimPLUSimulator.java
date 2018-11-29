@@ -10,13 +10,9 @@ import java.util.stream.Collectors;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureIterator;
-import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeature;
 
-import com.vividsolutions.jts.geom.Geometry;
-
-import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
 import fr.ign.cogit.geoxygene.api.spatial.geomaggr.IMultiSurface;
@@ -28,7 +24,6 @@ import fr.ign.cogit.geoxygene.feature.FT_FeatureCollection;
 import fr.ign.cogit.geoxygene.spatial.geomaggr.GM_MultiSurface;
 import fr.ign.cogit.geoxygene.util.attribute.AttributeManager;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileWriter;
-import fr.ign.cogit.indicators.BuildingToHousingUnit;
 import fr.ign.cogit.rules.io.PrescriptionPreparator;
 import fr.ign.cogit.rules.io.ZoneRulesAssociation;
 import fr.ign.cogit.rules.predicate.CommonPredicateArtiScales;
@@ -156,14 +151,14 @@ public class SimPLUSimulator {
 		Parameters p = Parameters.unmarshall(lF);
 		AttribNames.setATT_CODE_PARC("CODE");
 		USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
-		File f = new File("/home/mcolomb/informatique/ArtiScales/ParcelSelectionFile/intenseRegulatedSpread/variant0");
+		File f = new File("/home/mcolomb/informatique/ArtiScales/ParcelSelectionFile/intenseRegulatedSpread/variant0/12");
 
-		for (File ff : f.listFiles()) {
-			if (ff.isDirectory()) {
-				SimPLUSimulator sim = new SimPLUSimulator(new File("/home/mcolomb/informatique/ArtiScales/"), ff, p);
+//		for (File ff : f.listFiles()) {
+//			if (ff.isDirectory()) {
+				SimPLUSimulator sim = new SimPLUSimulator(new File("/home/mcolomb/informatique/ArtiScales/"), f, p);
 				sim.run();
-			}
-		}
+//			}
+//		}
 	}
 
 	/**
@@ -222,13 +217,12 @@ public class SimPLUSimulator {
 
 		// Loading of configuration file that contains sampling space
 		// information and simulated annealing configuration
-		System.out.println(parcelsFile);
 		Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile, parcelsFile, roadFile, buildFile, filePrescPonct, filePrescLin, filePrescSurf, null);
 
 		// Prescription setting
 		IFeatureCollection<Prescription> prescriptions = env.getPrescriptions();
 		IFeatureCollection<Prescription> prescriptionUse = PrescriptionPreparator.preparePrescription(prescriptions, p);
-
+		System.out.println(env.getUrbaZones().get(0).getInsee());
 		boolean association = ZoneRulesAssociation.associate(env, predicateFile, GetFromGeom.rnuZip(new File(rootFile, "dataRegul")));
 
 		if (!association) {
@@ -244,13 +238,15 @@ public class SimPLUSimulator {
 		// ?
 		int nbBPU = env.getBpU().size();
 		for (int i = 0; i < nbBPU; i++) {
+			
+			System.out.println("Parcel code : " + env.getBpU().get(i).getCadastralParcels().get(0).getCode());
+			
 			// if parcel has been marked an non simulable, return null
-
-			System.out.println("Parcel : " + env.getBpU().get(i).getCadastralParcels().get(0).hasToBeSimulated() + "  -  Code : "
-					+ env.getBpU().get(i).getCadastralParcels().get(0).getCode());
-			if (!env.getBpU().get(i).getCadastralParcels().get(0).hasToBeSimulated()) {
-
-				// if (!isParcelSimulable(env.getBpU().get(i).getCadastralParcels().get(0).getCode())) {
+			if (env.getBpU().get(i).getCadastralParcels().get(0).getCode() == null) {
+				continue;
+			}
+			if (!isParcelSimulable(env.getBpU().get(i).getCadastralParcels().get(0).getCode())) {
+				env.getBpU().get(i).getCadastralParcels().get(0).setHasToBeSimulated(false);
 				System.out.println(env.getBpU().get(i).getCadastralParcels().get(0).getCode() + " : je l'ai stopé net coz pas selec");
 				continue;
 			}
@@ -318,9 +314,7 @@ public class SimPLUSimulator {
 				return null;
 			}
 		}
-
-		System.out.println("Parcelle code : " + bPU.getCadastralParcels().get(0).getCode());
-
+		
 		CommonPredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = null;
 
 		// According to the case, different predicates may be used
@@ -465,10 +459,10 @@ public class SimPLUSimulator {
 	}
 
 	private GraphConfiguration<Cuboid> graphConfigurationWithAlignements(Alignements alignementsGeometries,
-			CommonPredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred, Environnement env, int i, BasicPropertyUnit bPU, IGeometry[] geoms ) throws Exception {
+			CommonPredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred, Environnement env, int i, BasicPropertyUnit bPU, IGeometry[] geoms)
+			throws Exception {
 
 		GraphConfiguration<Cuboid> cc = null;
-
 
 		if (geoms.length == 0) {
 			OptimisedBuildingsCuboidFinalDirectRejection oCB = new OptimisedBuildingsCuboidFinalDirectRejection();
@@ -489,8 +483,6 @@ public class SimPLUSimulator {
 
 		return cc;
 	}
-	
-	
 
 	private GraphConfiguration<Cuboid> article71Case12(Alignements alignementsGeometries,
 			CommonPredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred, Environnement env, int i, BasicPropertyUnit bPU) throws Exception {
@@ -569,12 +561,11 @@ public class SimPLUSimulator {
 		SubParcel sPBiggest = sP.get(sP.size() - 1);
 
 		if (sPBiggest.getUrbaZone() == null) {
-			System.out.println("Regulation is null for : " + bPU.getCadastralParcels().get(0).getCode());
+			System.out.println("Regulation is nulll for : " + bPU.getCadastralParcels().get(0).getCode());
 			return null;
 		}
 
 		ArtiScalesRegulation regle = (ArtiScalesRegulation) sPBiggest.getUrbaZone().getZoneRegulation();
-
 		if (regle == null) {
 			System.out.println("Regulation is null for : " + bPU.getCadastralParcels().get(0).getCode());
 			return null;
