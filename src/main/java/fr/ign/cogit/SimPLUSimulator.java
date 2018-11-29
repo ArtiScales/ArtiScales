@@ -245,35 +245,6 @@ public class SimPLUSimulator {
 	 */
 
 	/**
-	 * Run a SimPLU simulation on a single parcel
-	 * 
-	 * @param f
-	 *            main folder
-	 * @param p
-	 * @return
-	 * @throws Exception
-	 */
-	public File runOneSim(int numParcel) throws Exception {
-		// The file that store the results
-		File featFile = new File(simuFile, "tmp.shp");
-		DefaultFeatureCollection tmp = new DefaultFeatureCollection();
-		tmp.add(singleFeat);
-		Vectors.exportSFC(tmp.collection(), featFile);
-
-		// SimPLU3D-rules geographic loader
-		Environnement env = LoaderSHP.load(simuFile, null, zoningFile, featFile, roadFile, buildFile, filePrescPonct, filePrescLin, filePrescSurf, null);
-
-		// Prescription setting
-		IFeatureCollection<Prescription> prescriptions = env.getPrescriptions();
-		IFeatureCollection<Prescription> prescriptionUse = PrescriptionPreparator.preparePrescription(prescriptions, p);
-
-		// Simulation on one parcel
-		File out = runSimulation(env, numParcel, p, prescriptionUse);
-		featFile.delete();
-		return out;
-	}
-
-	/**
 	 * Run a SimPLU3D simulation on all the parcel stored in the parcelFile's SimpleFeatureCollection
 	 * 
 	 * @return a list of shapefile containing the simulated buildings
@@ -419,7 +390,10 @@ public class SimPLUSimulator {
 				break;
 			// #Art71 case 1 or 3
 			case ART713:
-				cc = article71Case3(alignementsGeometries, pred, env, i, bPU);
+				cc = graphConfigurationWithAlignements(alignementsGeometries, pred, env, i, bPU, alignementsGeometries.getSideWithBuilding());
+				break;
+			case ART6:
+				cc = graphConfigurationWithAlignements(alignementsGeometries, pred, env, i, bPU, alignementsGeometries.getRoadGeom());
 				break;
 			case NONE:
 				System.out.println(this.getClass().getName() + " : Normally not possible case");
@@ -522,12 +496,11 @@ public class SimPLUSimulator {
 		return output;
 	}
 
-	private GraphConfiguration<Cuboid> article71Case3(Alignements alignementsGeometries,
-			CommonPredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred, Environnement env, int i, BasicPropertyUnit bPU) throws Exception {
+	private GraphConfiguration<Cuboid> graphConfigurationWithAlignements(Alignements alignementsGeometries,
+			CommonPredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred, Environnement env, int i, BasicPropertyUnit bPU, IGeometry[] geoms ) throws Exception {
 
 		GraphConfiguration<Cuboid> cc = null;
 
-		IGeometry[] geoms = alignementsGeometries.getSideWithBuilding();
 
 		if (geoms.length == 0) {
 			OptimisedBuildingsCuboidFinalDirectRejection oCB = new OptimisedBuildingsCuboidFinalDirectRejection();
@@ -548,6 +521,8 @@ public class SimPLUSimulator {
 
 		return cc;
 	}
+	
+	
 
 	private GraphConfiguration<Cuboid> article71Case12(Alignements alignementsGeometries,
 			CommonPredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred, Environnement env, int i, BasicPropertyUnit bPU) throws Exception {
@@ -644,65 +619,6 @@ public class SimPLUSimulator {
 
 		return pred;
 
-	}
-
-	/**
-	 * Class used to fill a parcel file containing multiple parcels with buildings simulated with SimPLU TODO verify
-	 * 
-	 * @param rootFile
-	 *            : main file of the ArtiScales's simulation
-	 * @param geoFile
-	 *            : file containing geographical informations
-	 * @param pluFile
-	 *            : file containnin
-	 * @param selectedParcels
-	 * @param missingHousingUnits
-	 * @param zipcode
-	 * @param p
-	 * @return
-	 * @throws Exception
-	 */
-
-	protected static int fillSelectedParcels(File rootFile, File geoFile, File pluFile, File selectedParcels, int missingHousingUnits, String zipcode, Parameters p, List<File> lF)
-			throws Exception {
-		// Itérateurs sur les parcelles où l'on peut construire
-		ShapefileDataStore parcelDS = new ShapefileDataStore(selectedParcels.toURI().toURL());
-		SimpleFeatureIterator iterator = parcelDS.getFeatureSource().getFeatures().features();
-
-		try {
-			// Tant qu'il y a besoin de logements et qu'il y a des parcelles
-			// disponibles
-			while (missingHousingUnits > 0 && iterator.hasNext()) {
-				SimpleFeature sinlgeParcel = iterator.next();
-				// On créer un nouveau simulateur
-				SimPLUSimulator simPLUsimu = new SimPLUSimulator(rootFile, selectedParcels, sinlgeParcel, p);
-
-				// On lance la simulation
-				File batiSimulatedFile = simPLUsimu.runOneSim((int) sinlgeParcel.getAttribute("CODE"));
-
-				List<File> listSimulatedFile = new ArrayList<File>();
-				listSimulatedFile.add(batiSimulatedFile);
-
-				// On met à jour le compteur du nombre de logements avec
-				// l'indicateur
-				// buildingToHousehold
-
-				BuildingToHousingUnit bTH = new BuildingToHousingUnit(listSimulatedFile, selectedParcels, p);
-				System.out.println("--- missingHousingUnits  " + missingHousingUnits);
-
-				missingHousingUnits = missingHousingUnits - bTH.runParticularSimpleEstimation();
-				if (!iterator.hasNext()) {
-					System.out.println(" STILL MISSING : " + missingHousingUnits + " HOUSING UNITS");
-				}
-			}
-		} finally {
-			iterator.close();
-		}
-		// On fusionne les sorties des simulations (c'est plus pratique)
-		VectorFct.mergeBatis(new File(selectedParcels.getParentFile(), "simu0"));
-
-		parcelDS.dispose();
-		return missingHousingUnits;
 	}
 
 }
