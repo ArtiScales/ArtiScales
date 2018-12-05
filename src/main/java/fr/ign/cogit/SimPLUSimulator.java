@@ -222,7 +222,8 @@ public class SimPLUSimulator {
 		// Prescription setting
 		IFeatureCollection<Prescription> prescriptions = env.getPrescriptions();
 		IFeatureCollection<Prescription> prescriptionUse = PrescriptionPreparator.preparePrescription(prescriptions, p);
-		boolean association = ZoneRulesAssociation.associate(env, predicateFile, GetFromGeom.rnuZip(new File(rootFile, "dataRegul")));
+		
+		boolean association = ZoneRulesAssociation.associate(env, predicateFile, GetFromGeom.rnuZip(new File(rootFile, "dataRegul")),willWeAssociateAnyway(p));
 
 		if (!association) {
 			System.out.println("Association between rules and UrbanZone failed");
@@ -251,6 +252,7 @@ public class SimPLUSimulator {
 			}
 			p = pSaved;
 			File file = runSimulation(env, i, p, prescriptionUse);
+			System.out.println("");
 			if (file != null) {
 				listBatiSimu.add(file);
 			}
@@ -266,7 +268,30 @@ public class SimPLUSimulator {
 
 		return listBatiSimu;
 	}
+	
+	/**
+	 * small method to know if we need to perform the simulation on zones that are not open to the urbanization.  
+	 * @param p2 : paramterer file, containing the answer to our question
+	 * @return boolean : true if we do 
+	 */
+private boolean willWeAssociateAnyway(Parameters p2) {
+		
+	if (p.getBoolean("AUnotBuilt")) {
+		return true;
+	}
+	if (p.getBoolean("ALLnotBuilt")) {
+		return true;
+	}
+	
+		return false;
+	}
 
+/**
+ * TODO fix a problem here
+ * @param codeParcel
+ * @return
+ * @throws IOException
+ */
 	public boolean isParcelSimulable(String codeParcel) throws IOException {
 		boolean result = true;
 		ShapefileDataStore sds = new ShapefileDataStore(parcelsFile.toURI().toURL());
@@ -357,10 +382,10 @@ public class SimPLUSimulator {
 				cc = graphConfigurationWithAlignements(alignementsGeometries, pred, env, i, bPU, alignementsGeometries.getRoadGeom());
 				break;
 			case NONE:
-				System.out.println(this.getClass().getName() + " : Normally not possible case");
+				System.err.println(this.getClass().getName() + " : Normally not possible case");
 				return null;
 			default:
-				System.out.println(this.getClass().getName() + " : Normally not possible case" + alignementsGeometries.getType());
+				System.err.println(this.getClass().getName() + " : Normally not possible case" + alignementsGeometries.getType());
 				return null;
 
 			}
@@ -529,10 +554,9 @@ public class SimPLUSimulator {
 
 		if (cc2 != null) {
 			if (cc.getEnergy() < cc2.getEnergy()) {
-				// We keep the configuratino with the best energy
+				// We keep the configuration with the best energy
 				cc = cc2;
 			}
-
 		}
 
 		return cc;

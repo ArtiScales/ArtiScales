@@ -131,15 +131,12 @@ public class SelectParcels {
 					switch (action) {
 					case "Ubuilt":
 						parcelCollection = runBrownfieldConstructed(parcelCollection);
-						System.out.println("size after Ub"+parcelCollection.size());
 						break;
 					case "UnotBuilt":
 						parcelCollection = runBrownfieldUnconstructed(parcelCollection);
-						System.out.println("size after Unotb"+parcelCollection.size());
 						break;
 					case "AUnotBuilt":
 						parcelCollection = runGreenfieldSelected(parcelCollection);
-						System.out.println("size after AUb"+parcelCollection.size());
 						break;
 					case "ALLnotBuilt":
 						parcelCollection = runNaturalLand(parcelCollection);
@@ -697,6 +694,12 @@ public class SelectParcels {
 				rnu = line;
 			}
 		}
+		String[] out = null;
+		for (String[] line : predicate.readAll()) {
+			if (line[0].equals("out")) {
+				out = line;
+			}
+		}
 		// rewind
 		predicate.close();
 
@@ -744,7 +747,7 @@ public class SelectParcels {
 				Vectors.exportSFC(Vectors.snapDatas(prescSurfFeatures, fBBox), new File(snapPack, "prescSurf.shp"));
 				prescSurf_datastore.dispose();
 
-				// selection of the right lives from the predicate file
+				// selection of the right lines from the predicate file
 				// CSVWriter newPredicate = new CSVWriter(new FileWriter(new File(pack, "snapPredicate.csv")),",","","");
 
 				CSVWriter newPredicate = new CSVWriter(new FileWriter(new File(pack, "snapPredicate.csv")), ',', '\0');
@@ -782,6 +785,7 @@ public class SelectParcels {
 						}
 					}
 				}
+				newPredicate.writeNext(out);
 				newPredicate.close();
 			}
 		}

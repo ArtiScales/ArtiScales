@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.citygml4j.model.citygml.transportation.Road;
+
 import fr.ign.cogit.geoxygene.api.spatial.geomroot.IGeometry;
 import fr.ign.cogit.simplu3d.model.AbstractBuilding;
 import fr.ign.cogit.simplu3d.model.BasicPropertyUnit;
@@ -62,7 +64,7 @@ public class Alignements {
 		}
 		
 
-		if(regulation.getArt_6().equals("0")) {
+		if(regulation.getArt_6_defaut().equals("0") || regulation.getArt_6_type()==10) {
 			hasAlignement = true;
 			this.type = AlignementType.ART6;
 		}
@@ -124,7 +126,9 @@ public class Alignements {
 		for (CadastralParcel cO : currentBPU.getCadastralParcels()) {
 			// For each boundary
 			 for (ParcelBoundary boundary : cO.getBoundariesByType(ParcelBoundaryType.ROAD)) {
-
+				 
+				 //Road r = (Road) boundary.getFeatAdj();
+				 //filtre r.getName()
 				 lGeom.add(boundary.getGeom());
 
 			}

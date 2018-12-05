@@ -304,15 +304,16 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	 */
 	public boolean checkEltFits(List<O> lCuboid, BasicPropertyUnit currentBPU, double eltValue) {
 
+		// build area
 		double builtArea = assesBuiltArea(lCuboid);
 
-		// On récupère la superficie de la basic propertyUnit
+		// On récupère la superficie de la basic property Unit
 		double areaPar = 0;
 		for (CadastralParcel cP : currentBPU.getCadastralParcels()) {
 			areaPar = areaPar + cP.getArea();
 		}
 
-		return ((builtArea + eltValue) - areaPar > 0);
+		return ((builtArea + eltValue) - areaPar < 0);
 	}
 
 	///////////////// Checked zone
@@ -403,6 +404,10 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 			h = Double.valueOf(regle.getArt_10_1());
 		}
 
+		if (h == 99) {
+			h = p.getDouble("maxheight");
+		}
+
 		switch (regle.getArt_10_top()) {
 
 		// 1 hauteur à l'étage
@@ -423,7 +428,6 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		case 6:
 		case 7:
 		case 8:
-		case 9:
 			// si il y a des batiments TODO valeurs bizares
 			if (heighSurroundingBuildings != null && heighSurroundingBuildings != 0.0) {
 				System.out.println("surrounding height values : " + heighSurroundingBuildings);
@@ -431,16 +435,17 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 				max = heighSurroundingBuildings * 1.1;
 			}
 			// si pas de batiments aux alentours, on se rabat sur différentes options
-			else if (h != 0) {
-				max = h;
-			} else if (regle.getArt_10_top() == 9) {
+			else if (regle.getArt_10_top() == 8) {
 				max = h * p.getDouble("heightStair");
+			} else if (h != 0 || h != 99) {
+				max = h;
 			} else {
 				max = p.getDouble("maxheight");
 			}
 			break;
 		default:
 			System.err.println("Cas de hauteur inconnu");
+			min = p.getDouble("maxheight");
 		}
 		Double[] result = { min, max };
 		System.out.println("Hauteur max autorisée : " + max);

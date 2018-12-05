@@ -19,8 +19,8 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	private static Logger log = Logger.getLogger(ArtiScalesRegulation.class);
 
 	// Les intitulés des colonnes
-	private int insee, oap, fonction, art_3, art_4, art_71, art_74, art_10_top;
-	private String libelle_zone, libelle_de_base, libelle_de_dul,art_5, art_6, art_6_opt, art_6_optD, art_12,art_13, art_14, art_10_1;
+	private int insee, oap, fonction, art_3, art_4, art_6_type, art_71, art_74, art_10_top;
+	private String libelle_zone, libelle_de_base, libelle_de_dul,art_5, art_6_defaut, art_6_optionel, art_12,art_13, art_14, art_10_1;
 
 	private double art_72, art_73, art_8, art_9;
 
@@ -65,14 +65,14 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 			case "art_5":
 				art_5 = lineSplited[i];
 				break;
-			case "art_6":
-				art_6 = lineSplited[i];
+			case "art_6_defaut":
+				art_6_defaut = lineSplited[i];
 				break;
-			case "art_6_opt":
-				art_6_opt = lineSplited[i];
+			case "art_6_type":
+				art_6_type = Integer.valueOf(lineSplited[i]);
 				break;
-			case "art_6_optd":
-				art_6_optD = lineSplited[i];
+			case "art_6_optionel":
+				art_6_optionel = lineSplited[i];
 				break;
 			case "art_71":
 				art_71 = Integer.valueOf(lineSplited[i]);
@@ -114,18 +114,18 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	}
 
 	public ArtiScalesRegulation clone() {
-		return new ArtiScalesRegulation(libelle_zone, insee, libelle_de_base, libelle_de_dul, oap, fonction, art_3, art_4, art_5, art_6, art_6_opt, art_6_optD, art_71, art_72,
+		return new ArtiScalesRegulation(libelle_zone, insee, libelle_de_base, libelle_de_dul, oap, fonction, art_3, art_4, art_5, art_6_defaut, art_6_type, art_6_optionel, art_71, art_72,
 				art_73, art_74, art_8, art_9, art_10_top, art_10_1, art_12, art_13, art_14);
 	}
 
 	public String toCSVLine() {
-		return libelle_zone + "," + insee + "," + libelle_de_base + "," + libelle_de_dul + "," + oap + "," + fonction + "," + art_3 + "," + art_4 + "," + art_5 + "," + art_6
-				+ "," + art_6_opt + "," + art_6_optD + "," + art_71 + "," + art_72 + "," + art_73 + "," + art_74 + "," + art_8 + "," + art_9 + "," + art_10_top + "," + art_10_1
+		return libelle_zone + "," + insee + "," + libelle_de_base + "," + libelle_de_dul + "," + oap + "," + fonction + "," + art_3 + "," + art_4 + "," + art_5 + "," + art_6_defaut
+				+ "," + art_6_type + "," + art_6_optionel + "," + art_71 + "," + art_72 + "," + art_73 + "," + art_74 + "," + art_8 + "," + art_9 + "," + art_10_top + "," + art_10_1
 				+ "," + art_12 + "," + art_13 + "," + art_14;
 	}
 
 	public ArtiScalesRegulation(String libelle_zone, int insee, String libelle_de_base, String libelle_de_dul, int oap, int fonction, int art_3, int art_4, String art_5,
-			String art_6, String art_6_opt, String art_6_optD, int art_71, double art_72, double art_73, int art_74, double art_8, double art_9, int art_10_top, String art_10_1,
+			String art_6_defaut, int art_6_type, String art_6_optionel, int art_71, double art_72, double art_73, int art_74, double art_8, double art_9, int art_10_top, String art_10_1,
 			String art_12, String art_13, String art_14) {
 		super();
 		this.libelle_zone = libelle_zone;
@@ -137,9 +137,9 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 		this.art_3 = art_3;
 		this.art_4 = art_4;
 		this.art_5 = art_5;
-		this.art_6 = art_6;
-		this.art_6_opt = art_6_opt;
-		this.art_6_optD = art_6_optD;
+		this.art_6_defaut = art_6_defaut;
+		this.art_6_type = art_6_type;
+		this.art_6_optionel = art_6_optionel;
 		this.art_71 = art_71;
 		this.art_72 = art_72;
 		this.art_73 = art_73;
@@ -246,8 +246,8 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	@Override
 	public String toString() {
 		return "ArtiScalesRegulation [libelle_zone=" + libelle_zone + ", insee=" + insee + ", libelle_de_base=" + libelle_de_base + ", libelle_de_dul=" + libelle_de_dul
-				+ ", bonus_densite=" + fonction + ", oap=" + oap + ", zonage_coherent=" + ", art_3=" + art_3 + ", art_4=" + art_4 + ", art_5=" + art_5 + ", art_6=" + art_6
-				+ ", art_6_opt=" + art_6_opt + ", art_6_optD=" + art_6_optD + ", art_71=" + art_71 + ", art_72=" + art_72 + ", art_73=" + art_73 + ", art_74=" + art_74 + ", art_8="
+				+ ", bonus_densite=" + fonction + ", oap=" + oap + ", zonage_coherent=" + ", art_3=" + art_3 + ", art_4=" + art_4 + ", art_5=" + art_5 + ", art_6_defaut=" + art_6_defaut
+				+ ", art_6_type=" + art_6_type + ", art_6_optionel=" + art_6_optionel+ ", art_71=" + art_71 + ", art_72=" + art_72 + ", art_73=" + art_73 + ", art_74=" + art_74 + ", art_8="
 				+ art_8 + ", art_9=" + art_9 + ", art_10_top=" + art_10_top + ", art_10=" + art_10_1 + ", " + "art_12=" + art_12 + ", art_13=" + art_13 + ", art_14=" + art_14
 				+ "]";
 	}
@@ -311,16 +311,16 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	// 55= alignement obligatoire OU distance => Art_6_optD 88= non renseignable,
 	// 99= non réglementé
 	// 44 = en fonction des bâtiments de l'autre coté (règle du RNU)
-	public String getArt_6() {
-		return art_6;
+	public String getArt_6_defaut() {
+		return art_6_defaut;
 	}
 
-	public String getArt_6_optD() {
-		return art_6_optD;
+	public String getArt_6_optionel() {
+		return art_6_optionel;
 	}
 
-	public String getArt_6_opt() {
-		return art_6_opt;
+	public int getArt_6_type() {
+		return art_6_type;
 	}
 
 	// Implantation en limite séparative
@@ -464,12 +464,12 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 		this.libelle_de_dul = libelle_de_dul;
 	}
 
-	public void setArt_6_opt(String art_6_opt) {
-		this.art_6_opt = art_6_opt;
+	public void setArt_6_type(int art_6_type) {
+		this.art_6_type = art_6_type;
 	}
 
-	public void setArt_6_optD(String art_6_optD) {
-		this.art_6_optD = art_6_optD;
+	public void setArt_6_optionel(String art_6_optionel) {
+		this.art_6_optionel = art_6_optionel;
 	}
 
 	public void setArt_12(String art_12) {
@@ -484,8 +484,8 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 		this.art_5 = art_5;
 	}
 
-	public void setArt_6(String art_6) {
-		this.art_6 = art_6;
+	public void setArt_6_defaut(String art_6) {
+		this.art_6_defaut = art_6;
 	}
 
 	public void setArt_72(double art_72) {

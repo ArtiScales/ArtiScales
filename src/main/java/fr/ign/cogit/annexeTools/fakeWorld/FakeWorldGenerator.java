@@ -22,20 +22,22 @@ import fr.ign.cogit.rules.regulation.ArtiScalesRegulation;
 public class FakeWorldGenerator {
 
 	static FileWriter in;
-	static String basicRow = "0,42400,U,U0,0,0,0,1,99,3,99,99,3,3,3,2,3,99,3,6,1m60_2,0.15,99";
+	//RNU rule (which is the basicalest basic)
+	static String basicRow = "0,42400,U,U0,0,0,0,0,99,44,99,99,0,3,3,2,3,99,7,9,1,99,99";
 
 //	static String basicRow =   "0,42400,U,U0,0,0,0,0,99,4,99,99,0,3,3,2,3,99,6,9,1m60_2,99,99" ;
 //	String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
 
 	// Default line for regulation (to parse the list and to export the regulation)
-	public final static String fLine = "libelle_zone,insee,libelle_de_base,libelle_de_dul,OAP,fonction,art_3,art_4,art_5,art_6,art_6_opt,art_6_optD,art_71,art_72,art_73,art_74,art_8,art_9,art_10_top,art_101,art_12,art_13,art_14";
+	public final static String fLine = "libelle_zone,insee,libelle_de_base,libelle_de_dul,OAP,fonction,art_3,art_4,art_5,art_6_defaut,art_6_type,art_6_optionel,art_71,art_72,art_73,art_74,art_8,art_9,art_10_top,art_101,art_12,art_13,art_14";
 
 	public static void main(String[] args) throws IOException {
 		// Folder where to generate the fake data
-		String folderOut = "/tmp/tmp/";
+		String folderOut = "/home/mcolomb/informatique/ArtiScales/fakeWorld/";
 		(new File(folderOut)).mkdirs();
 		generateTestForArticle5(folderOut + "art5/");
 		generateTestForArticle6(folderOut + "art6/");
+		generateTestForArticle6spec(folderOut + "art6spec/");
 		generateTestForArticle71(folderOut + "art71/");
 		generateTestForArticle72(folderOut + "art72/");
 		generateTestForArticle73(folderOut + "art73/");
@@ -64,7 +66,7 @@ public class FakeWorldGenerator {
 		ArtiScalesRegulation regulationDefault2 = regulationDefault.clone();
 		// Important to change to get the right regulation recognized
 		regulationDefault2.setLibelle_de_dul("U1");
-		regulationDefault2.setArt_5("25000");
+		regulationDefault2.setArt_5("11000");
 
 		ArtiScalesRegulation regulationDefault3 = regulationDefault.clone();
 		regulationDefault3.setLibelle_de_dul("U2");
@@ -118,13 +120,13 @@ public class FakeWorldGenerator {
 
 		// CAS ARTICLE 10 = 7 && ARTICLE_10_1 = 12
 		ArtiScalesRegulation regulationDefault5 = regulationDefault.clone();
-		regulationDefault5.setLibelle_de_dul("U3");
+		regulationDefault5.setLibelle_de_dul("U4");
 		regulationDefault5.setArt_10("12");
 		regulationDefault5.setArt_10_top(7);
 
 		// CAS ARTICLE 10 = 8 && ARTICLE_10_1 = 12
 		ArtiScalesRegulation regulationDefault6 = regulationDefault.clone();
-		regulationDefault6.setLibelle_de_dul("U4");
+		regulationDefault6.setLibelle_de_dul("U5");
 		regulationDefault6.setArt_10("12");
 		regulationDefault6.setArt_10_top(8);
 
@@ -156,36 +158,84 @@ public class FakeWorldGenerator {
 		// Important to change to get the right regulation recognized
 
 		// CAS ARTICLE 6 = 0
+		//TODO tout les coboides doivent être collées.. Est ce bien logique?
 		regulationDefault2.setLibelle_de_dul("U1");
-		regulationDefault2.setArt_6("0");
-		regulationDefault2.setArt_6_opt("99");
-		regulationDefault2.setArt_6_optD("99");
+		regulationDefault2.setArt_6_defaut("0");
+		regulationDefault2.setArt_6_type(99);
+		regulationDefault2.setArt_6_optionel("99");
 		
 		// CAS ARTICLE 6 = 44
 		ArtiScalesRegulation regulationDefault3 = regulationDefault.clone();
 		regulationDefault3.setLibelle_de_dul("U2");
-		regulationDefault3.setArt_6("44");
-		regulationDefault3.setArt_6_opt("99");
-		regulationDefault3.setArt_6_optD("99");
+		regulationDefault3.setArt_6_defaut("44");
+		regulationDefault3.setArt_6_type(99);
+		regulationDefault3.setArt_6_optionel("99");
 
-		// CAS ARTICLE 6 = 3
+		// CAS ARTICLE 6 = normal number
 		ArtiScalesRegulation regulationDefault4 = regulationDefault.clone();
 		regulationDefault4.setLibelle_de_dul("U3");
-		regulationDefault4.setArt_6("3");
-		regulationDefault4.setArt_6_opt("99");
-		regulationDefault4.setArt_6_optD("99");
-
-		// CAS ARTICLE 6 = aligné or reculé (ici 6)
-//		ArtiScalesRegulation regulationDefault5 = regulationDefault.clone();
-//		regulationDefault5.setLibelle_de_dul("U4");
-//		regulationDefault2.setArt_6("3");
-//		regulationDefault2.setArt_6_opt("10");
-//		regulationDefault2.setArt_6_optD("99");
+		regulationDefault4.setArt_6_defaut("3");
+		regulationDefault4.setArt_6_type(99);
+		regulationDefault4.setArt_6_optionel("99");
 
 		regulations.add(regulationDefault);
 		regulations.add(regulationDefault2);
 		regulations.add(regulationDefault3);
 		regulations.add(regulationDefault4);
+
+
+		generateFakeData(regulations, folderOut);
+
+	}
+	
+	public static void generateTestForArticle6spec(String folderOut) throws IOException {
+
+		(new File(folderOut)).mkdirs();
+
+		in = new FileWriter(new File(folderOut + "snapPredicate.csv"));
+		in.write(fLine + "\n");
+
+		// Having a default regulation is very pratical to see the influence of varying a parameter
+//		String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
+
+		// The list of regulation for which building generation will be testsed
+		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
+
+		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, basicRow);
+
+		// Important to change to get the right regulation recognized
+
+		// CAS ARTICLE 6 is either sticked on the edge or has a recoil of 3 meters
+		ArtiScalesRegulation regulationDefault2 = regulationDefault.clone();
+		regulationDefault2.setLibelle_de_dul("U1");
+		regulationDefault2.setArt_6_defaut("0");
+		regulationDefault2.setArt_6_type(10);
+		regulationDefault2.setArt_6_optionel("3");
+		
+		ArtiScalesRegulation regulationDefault3 = regulationDefault.clone();
+		regulationDefault3.setLibelle_de_dul("U2");
+		regulationDefault3.setArt_6_defaut("0");
+		regulationDefault3.setArt_6_type(10);
+		regulationDefault3.setArt_6_optionel("30");
+		
+//		// CAS ARTICLE 6 must follow one side building, or a 3 meters recoil
+//		ArtiScalesRegulation regulationDefault3 = regulationDefault.clone();
+//		regulationDefault3.setLibelle_de_dul("U2");
+//		regulationDefault3.setArt_6("3");
+//		regulationDefault3.setArt_6_opt("20");
+//		regulationDefault3.setArt_6_optD("99");
+//
+//		// CAS ARTICLE 6 must follow the current alignment, or a 3 meters recoil
+//		ArtiScalesRegulation regulationDefault4 = regulationDefault.clone();
+//		regulationDefault4.setLibelle_de_dul("U3");
+//		regulationDefault4.setArt_6("3");
+//		regulationDefault4.setArt_6_opt("30");
+//		regulationDefault4.setArt_6_optD("99");
+
+		regulations.add(regulationDefault);
+		regulations.add(regulationDefault2);
+		regulations.add(regulationDefault3);
+//		regulations.add(regulationDefault4);
 //		regulations.add(regulationDefault5);
 
 		generateFakeData(regulations, folderOut);
@@ -219,7 +269,7 @@ public class FakeWorldGenerator {
 
 		// CAS ARTICLE 71 = 3
 		ArtiScalesRegulation regulationDefault4 = regulationDefault.clone();
-		regulationDefault4.setLibelle_de_dul("U2");
+		regulationDefault4.setLibelle_de_dul("U3");
 		regulationDefault4.setArt_71(3);
 
 		regulations.add(regulationDefault);
@@ -334,10 +384,10 @@ public class FakeWorldGenerator {
 		regulationDefault3.setLibelle_de_dul("U2");
 		regulationDefault3.setArt_74(3);
 
-		// CAS ARTICLE 74 = 5
+		// CAS ARTICLE 74 has no limitation
 		ArtiScalesRegulation regulationDefault4 = regulationDefault.clone();
 		regulationDefault4.setLibelle_de_dul("U3");
-		regulationDefault4.setArt_74(5);
+		regulationDefault4.setArt_74(99);
 
 		regulations.add(regulationDefault);
 		regulations.add(regulationDefault2);
@@ -350,13 +400,11 @@ public class FakeWorldGenerator {
 
 	public static void generateTestForArticle8(String folderOut) throws IOException {
 		(new File(folderOut)).mkdirs();
-
+//TODO problem
 		in = new FileWriter(new File(folderOut + "snapPredicate.csv"));
 		in.write(fLine + "\n");
-
-		// Having a default regulation is very pratical to see the influence of varying a parameter
-	//	String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
-
+	
+	
 		// The list of regulation for which building generation will be testsed
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
 
@@ -375,7 +423,7 @@ public class FakeWorldGenerator {
 		// CAS ARTICLE 8 = 6
 		ArtiScalesRegulation regulationDefault4 = regulationDefault.clone();
 		regulationDefault4.setLibelle_de_dul("U3");
-		regulationDefault4.setArt_8(99);
+		regulationDefault4.setArt_8(10);
 
 		regulations.add(regulationDefault);
 		regulations.add(regulationDefault2);
@@ -414,7 +462,7 @@ public class FakeWorldGenerator {
 		// CAS ARTICLE 8 = 0
 		ArtiScalesRegulation regulationDefault4 = regulationDefault.clone();
 		regulationDefault4.setLibelle_de_dul("U3");
-		regulationDefault4.setArt_9(0);
+		regulationDefault4.setArt_9(99);
 
 		regulations.add(regulationDefault);
 		regulations.add(regulationDefault2);
@@ -483,27 +531,20 @@ public class FakeWorldGenerator {
 		regulationDefault2.setLibelle_de_dul("U1");
 		regulationDefault2.setArt_13("0.333");
 
-		// CAS ARTICLE 13 = 0.6666
+		// CAS ARTICLE 13 has a area constraint
 		ArtiScalesRegulation regulationDefault3 = regulationDefault.clone();
 		regulationDefault3.setLibelle_de_dul("U2");
-		regulationDefault3.setArt_13("0.666");
-
+		regulationDefault3.setArt_13("0.7>300");
+		
 		// CAS ARTICLE 13 = 0
 		ArtiScalesRegulation regulationDefault4 = regulationDefault.clone();
 		regulationDefault4.setLibelle_de_dul("U3");
 		regulationDefault4.setArt_13("0");
-		
-		// CAS ARTICLE 13 = 0
-		ArtiScalesRegulation regulationDefault5 = regulationDefault.clone();
-		regulationDefault4.setLibelle_de_dul("U4");
-		regulationDefault4.setArt_13("0.7>300");
-		
 
 		regulations.add(regulationDefault);
 		regulations.add(regulationDefault2);
 		regulations.add(regulationDefault3);
 		regulations.add(regulationDefault4);
-		regulations.add(regulationDefault5);
 
 		generateFakeData(regulations, folderOut);
 

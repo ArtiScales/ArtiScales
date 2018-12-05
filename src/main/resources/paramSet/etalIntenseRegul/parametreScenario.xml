@@ -78,7 +78,7 @@
 			<!-- Types de sélections situées dans les zones AU -->
 			<param key="AUnotBuilt" value="true" />
 			<!-- Types de sélections situées dans les zones A et N -->
-			<param key="ALLnotBuilt" value="false" />
+			<param key="ALLnotBuilt" value="true" />
 
 			<!-- Autre types de sélection pour les modes 'fill' -->
 			<!-- Sélection de toutes les parcelles ordonnée selon l'évaluation des cellules 
@@ -139,7 +139,7 @@
 		<!-- Taille moyenne d'un logement -->
 		<param key="HousingUnitSize" value="100" />
 		<param key="heightStair" value="3" />
-		<param key="surfPlaceParking" value="12.5" />
+		<param key="surfPlaceParking" value="25" />
 	
 	<!-- Mode de fonctionnement d'ArtiScales -->
 	<!-- Si true, le modèle s'arrête quand les objectifs de création de logement 

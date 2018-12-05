@@ -1,6 +1,8 @@
 package fr.ign.cogit.util;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,13 +13,19 @@ import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.factory.GeoTools;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory2;
 import org.opengis.filter.expression.PropertyName;
+import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.NoSuchAuthorityCodeException;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.MultiPolygon;
+import com.vividsolutions.jts.geom.Polygon;
 
 import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
@@ -34,10 +42,53 @@ import fr.ign.parameters.Parameters;
 
 public class VectorFct {
 
-	public static void main(String[] args) throws Exception {
-		mergeBatis(new File(
-				"/home/yo/Documents/these/ArtiScales/output/Stability-dataAutomPhy-CM20.0-S0.0-GP_915948.0_6677337.0--N6_St_Moy_ahpx_seed_9015629222324914404-evalAnal-20.0/25495/ZoningAllowed/simu0/"));
+	public static void main(String[] args) throws NoSuchAuthorityCodeException, FactoryException, IOException {
+	}
+	
+ public static void diffParcel(File parcelOG, File parcelToSort, File parcelOut) throws IOException {
+		ShapefileDataStore sds = new ShapefileDataStore(parcelToSort.toURI().toURL());
+		SimpleFeatureCollection parcelUnclean = sds.getFeatureSource().getFeatures();
 
+		ShapefileDataStore sdsclean = new ShapefileDataStore(parcelOG.toURI().toURL());
+		SimpleFeatureCollection parcelClean = sdsclean.getFeatureSource().getFeatures();
+		SimpleFeatureIterator itClean = parcelClean.features();
+
+		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
+		PropertyName pName = ff.property(parcelUnclean.getSchema().getGeometryDescriptor().getLocalName());
+		
+		
+		DefaultFeatureCollection result = new DefaultFeatureCollection();
+		int i = 0;
+		try {
+			while (itClean.hasNext()) {
+				SimpleFeature clean = itClean.next();
+		
+				Filter filter = ff.bbox(pName, clean.getBounds());
+				
+				SimpleFeatureIterator itUnclean = parcelUnclean.subCollection(filter).features();
+				try {
+					while (itUnclean.hasNext()) {
+						SimpleFeature unclean = itUnclean.next();
+						if (clean.getDefaultGeometry().equals(unclean.getDefaultGeometry())) {
+							result.add(unclean);
+							break;
+						}
+					}
+				} catch (Exception problem) {
+					problem.printStackTrace();
+				} finally {
+					itUnclean.close();
+				}
+				System.out.println(i + " on " + parcelClean.size());
+				i++;
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			itClean.close();
+		}
+
+		Vectors.exportSFC(result, parcelOut);
 	}
 
 	public static File generateSplitedParcels(SimpleFeatureCollection parcelIn, File filterFile, File tmpFile, Parameters p) throws Exception {
@@ -97,14 +148,14 @@ public class VectorFct {
 					System.out.println("VectorFct : Other type of parcel : " + feat.getAttribute(1));
 				}
 				Object[] attr = { numParcelValue, feat.getAttribute("CODE_DEP"), feat.getAttribute("CODE_COM"), feat.getAttribute("COM_ABS"), feat.getAttribute("SECTION"),
-							feat.getAttribute("NUMERO"), feat.getAttribute("INSEE"), feat.getAttribute("eval"), feat.getAttribute("DoWeSimul"), 0 };
+						feat.getAttribute("NUMERO"), feat.getAttribute("INSEE"), feat.getAttribute("eval"), feat.getAttribute("DoWeSimul"), 0 };
 
-//				if(){
-//					Object[] attr = { numParcelValue, feat.getAttribute("CODE_DEP"), feat.getAttribute("CODE_COM"), feat.getAttribute("COM_ABS"), feat.getAttribute("SECTION"),
-//							feat.getAttribute("NUMERO"), feat.getAttribute("INSEE"), feat.getAttribute("eval"), feat.getAttribute("DoWeSimul"), 0 };
-//					
-//				}
-				
+				// if(){
+				// Object[] attr = { numParcelValue, feat.getAttribute("CODE_DEP"), feat.getAttribute("CODE_COM"), feat.getAttribute("COM_ABS"), feat.getAttribute("SECTION"),
+				// feat.getAttribute("NUMERO"), feat.getAttribute("INSEE"), feat.getAttribute("eval"), feat.getAttribute("DoWeSimul"), 0 };
+				//
+				// }
+
 				if (((Geometry) feat.getDefaultGeometry()).getArea() > maximalArea) {
 					attr[9] = 1;
 				}
@@ -117,7 +168,7 @@ public class VectorFct {
 		} finally {
 			parcelIt.close();
 		}
-		
+
 		return splitParcels(toSplit, maximalArea, maximalWidth, roadEpsilon, noise, tmpFile, p);
 	}
 
@@ -132,8 +183,8 @@ public class VectorFct {
 	 * @return
 	 * @throws Exception
 	 */
-	public static File splitParcels(SimpleFeatureCollection toSplit, double maximalArea, double maximalWidth, double roadEpsilon, double noise, File tmpFile,
-			Parameters p) throws Exception {
+	public static File splitParcels(SimpleFeatureCollection toSplit, double maximalArea, double maximalWidth, double roadEpsilon, double noise, File tmpFile, Parameters p)
+			throws Exception {
 		// TODO un truc fait bugger la sortie dans cette classe..
 
 		// TODO classe po bô du tout: faire une vraie conversion entre les types

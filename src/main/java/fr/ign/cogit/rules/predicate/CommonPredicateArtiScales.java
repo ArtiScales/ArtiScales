@@ -363,13 +363,15 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 				//////// Distance to the front of the parcel
 				// multiple cases of Art_6 rules
 				// Rule-art-006
-				String art_6 = regle.getArt_6();
-				String typeArt_6 = regle.getArt_6_opt();
+				String art_6 = regle.getArt_6_defaut();
+				int typeArt_6 = regle.getArt_6_type();
 
 				// case where there's only one condition
-//				if (typeArt_6.equals("99")) {
-				//not normal case
-				if (typeArt_6.equals("99")||typeArt_6.equals("30")||typeArt_6.equals("1")) {
+				// if (typeArt_6.equals("99")) {
+
+				// temporary case (not everything is calculated)
+				if (typeArt_6 == 99 || typeArt_6 == 30 || typeArt_6 == 20 || typeArt_6 == 1) {
+					// case there's a min and a max
 					if (art_6.contains("-")) {
 						double min = Double.valueOf(art_6.split("-")[0]);
 						double max = Double.valueOf(art_6.split("-")[1]);
@@ -378,13 +380,6 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 						}
 					} else {
 						switch (art_6 + "") {
-
-						case "55":
-							/*
-							 * double dist = Double.valueOf(regle.getArt_6_optD().split("-")[0]); if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, dist) ||
-							 * cRO.checkAlignement(cuboid, jtsCurveLimiteFrontParcel)) { return false; }
-							 */
-							break;
 						case "44":
 							if (!cRO.checkProspectRNU(cuboid, jtsCurveOppositeLimit)) {
 								return false;
@@ -399,28 +394,29 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 							break;
 						}
 					}
-				} else if (typeArt_6.equals("10")) {
-					if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, Double.valueOf(art_6))) {// TODO OR. ..??
-						// TODO comment est gérée l'alignement?
+				}
+				// case buildings must be either aligned or having a recoil
+				else if (typeArt_6 == 10) {
+					if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, Double.valueOf(regle.getArt_6_optionel()))
+							|| !cRO.checkAlignement(cuboid, jtsCurveLimiteFrontParcel)) {
 						return false;
 					}
-//				} else if (typeArt_6.equals("30")) {
-//					//
-//					//if (TODO tester l'alignement avec les autres facades){
-//					//}
-//				//else {
-//					//si pas d'enchainement de facade, regarde art_6 : si 0, regarde art_6typeD pour voir si possibilité de retrait 
-//				//}
-//				}
-//			 else if (typeArt_6.equals("1")) {
-//				//
-//				//if (TODO tester l'alignement avec les autres facades){
-//				//}
-//			//else {
-//				//si pas d'enchainement de facade, regarde art_6 : si 0, regarde art_6typeD pour voir si possibilité de retrait 
-//			//}
-			}
-				else {
+					// } else if (typeArt_6.equals("30")) {
+					// //
+					// //if (TODO tester l'alignement avec les autres facades){
+					// //}
+					// //else {
+					// //si pas d'enchainement de facade, regarde art_6 : si 0, regarde art_6typeD pour voir si possibilité de retrait
+					// //}
+					// }
+					// else if (typeArt_6.equals("1")) {
+					// //
+					// //if (TODO tester l'alignement avec les autres facades){
+					// //}
+					// //else {
+					// //si pas d'enchainement de facade, regarde art_6 : si 0, regarde art_6typeD pour voir si possibilité de retrait
+					// //}
+				} else {
 					System.out.println("Art-6 optionel: cas non traité");
 				}
 

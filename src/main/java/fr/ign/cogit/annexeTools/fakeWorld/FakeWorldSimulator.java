@@ -14,14 +14,14 @@ public class FakeWorldSimulator {
 
 		//TODO try before push
 		// Parent folder with all subfolder
-		String absoluteRootFolder = "/tmp/tmp/";
+		String absoluteRootFolder = "/home/mcolomb/informatique/ArtiScales/fakeWorld/";
 
 		File rootFolderFile = new File(absoluteRootFolder);
 
-		for (String pathSubFolder : rootFolderFile.list()) {
+		for (File pathSubFolder : rootFolderFile.listFiles()) {
 			
-			 if(! pathSubFolder.contains("art71")) { continue; }
-			 
+			 if(! pathSubFolder.getName().contains("art8")) { continue; }
+			if (pathSubFolder.isDirectory()) {
 
 			List<File> lF = new ArrayList<>();
 			// Line to change to select the right scenario
@@ -44,19 +44,21 @@ public class FakeWorldSimulator {
 			// 2/ Alternatively we can decided to active an attribute (Here id)
 			AttribNames.setATT_CODE_PARC("CODE");
 
-			String currentFolder = absoluteRootFolder + pathSubFolder + "/";
+			System.out.println(pathSubFolder);
 
-			System.out.println(currentFolder);
+			p.set("rootFile", pathSubFolder);
+			p.set("selectedParcelFile", pathSubFolder + "parcelle.shp");
+			p.set("geoFile", pathSubFolder);
+			p.set("pluFile", pathSubFolder);
+			p.set("pluPredicate", pathSubFolder + "predicate.csv");
 
-			p.set("rootFile", currentFolder);
-			p.set("selectedParcelFile", currentFolder + "parcelle.shp");
-			p.set("geoFile", currentFolder);
-			p.set("pluFile", currentFolder);
-			p.set("pluPredicate", currentFolder + "predicate.csv");
-
-			String simulOut = currentFolder + "/out/";
-			(new File(simulOut)).mkdirs();
-			p.set("simu", simulOut);
+			if (pathSubFolder.getName().contains("art8")) {
+				p.set("intersection", false);
+			}
+			
+//			String simulOut = pathSubFolder + "/out/";
+//			(new File(simulOut)).mkdirs();
+//			p.set("simu", simulOut);
 
 			// RootFolder
 			File rootFolder = new File(p.getString("rootFile"));
@@ -64,6 +66,7 @@ public class FakeWorldSimulator {
 			SimPLUSimulator simplu = new SimPLUSimulator(rootFolder, rootFolder, p);
 
 			simplu.run();
+		}
 		}
 
 	}

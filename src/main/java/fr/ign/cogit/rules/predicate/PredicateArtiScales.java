@@ -107,7 +107,7 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 		//if there's a condition
 		double coeff13 = 0;
 		if (regles.getArt_13().contains(">")) {
-			if (currentBPU.getArea() < Double.valueOf(regles.getArt_13().split(">")[1])) {
+			if (currentBPU.getArea() > Double.valueOf(regles.getArt_13().split(">")[1])) {
 				coeff13 = Double.valueOf(regles.getArt_13().split(">")[0]);
 			}
 		}
