@@ -20,7 +20,7 @@ public class FakeWorldSimulator {
 
 		for (File pathSubFolder : rootFolderFile.listFiles()) {
 			
-			 if(! pathSubFolder.getName().contains("art8")) { continue; }
+			 if(! pathSubFolder.getName().contains("art71")) { continue; }
 			if (pathSubFolder.isDirectory()) {
 
 			List<File> lF = new ArrayList<>();
@@ -59,7 +59,7 @@ public class FakeWorldSimulator {
 //			String simulOut = pathSubFolder + "/out/";
 //			(new File(simulOut)).mkdirs();
 //			p.set("simu", simulOut);
-
+//			SimPLUSimulator.ID_PARCELLE_TO_SIMULATE.add("30000");
 			// RootFolder
 			File rootFolder = new File(p.getString("rootFile"));
 			// Selected parcels shapefile

@@ -222,8 +222,8 @@ public class SimPLUSimulator {
 		// Prescription setting
 		IFeatureCollection<Prescription> prescriptions = env.getPrescriptions();
 		IFeatureCollection<Prescription> prescriptionUse = PrescriptionPreparator.preparePrescription(prescriptions, p);
-		
-		boolean association = ZoneRulesAssociation.associate(env, predicateFile, GetFromGeom.rnuZip(new File(rootFile, "dataRegul")),willWeAssociateAnyway(p));
+
+		boolean association = ZoneRulesAssociation.associate(env, predicateFile, GetFromGeom.rnuZip(new File(rootFile, "dataRegul")), willWeAssociateAnyway(p));
 
 		if (!association) {
 			System.out.println("Association between rules and UrbanZone failed");
@@ -233,14 +233,11 @@ public class SimPLUSimulator {
 		List<File> listBatiSimu = new ArrayList<File>();
 
 		// We run a simulation for each bPU with a different file for each bPU
-		// @TODO : on garde 1 fichier par bPU ? Tu t'en sors après ou c'est pas trop
-		// dur
-		// ?
 		int nbBPU = env.getBpU().size();
 		for (int i = 0; i < nbBPU; i++) {
-			
+
 			System.out.println("Parcel code : " + env.getBpU().get(i).getCadastralParcels().get(0).getCode());
-			
+
 			// if parcel has been marked an non simulable, return null
 			if (env.getBpU().get(i).getCadastralParcels().get(0).getCode() == null) {
 				continue;
@@ -268,30 +265,33 @@ public class SimPLUSimulator {
 
 		return listBatiSimu;
 	}
-	
+
 	/**
-	 * small method to know if we need to perform the simulation on zones that are not open to the urbanization.  
-	 * @param p2 : paramterer file, containing the answer to our question
-	 * @return boolean : true if we do 
+	 * small method to know if we need to perform the simulation on zones that are not open to the urbanization.
+	 * 
+	 * @param p2
+	 *            : paramterer file, containing the answer to our question
+	 * @return boolean : true if we do
 	 */
-private boolean willWeAssociateAnyway(Parameters p2) {
-		
-	if (p.getBoolean("AUnotBuilt")) {
-		return true;
-	}
-	if (p.getBoolean("ALLnotBuilt")) {
-		return true;
-	}
-	
+	private boolean willWeAssociateAnyway(Parameters p2) {
+
+		if (p.getBoolean("AUnotBuilt")) {
+			return true;
+		}
+		if (p.getBoolean("ALLnotBuilt")) {
+			return true;
+		}
+
 		return false;
 	}
 
-/**
- * TODO fix a problem here
- * @param codeParcel
- * @return
- * @throws IOException
- */
+	/**
+	 * TODO fix a problem here
+	 * 
+	 * @param codeParcel
+	 * @return
+	 * @throws IOException
+	 */
 	public boolean isParcelSimulable(String codeParcel) throws IOException {
 		boolean result = true;
 		ShapefileDataStore sds = new ShapefileDataStore(parcelsFile.toURI().toURL());
@@ -338,7 +338,7 @@ private boolean willWeAssociateAnyway(Parameters p2) {
 				return null;
 			}
 		}
-		
+
 		CommonPredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = null;
 
 		// According to the case, different predicates may be used
@@ -374,7 +374,7 @@ private boolean willWeAssociateAnyway(Parameters p2) {
 			case ART7112:
 				cc = article71Case12(alignementsGeometries, pred, env, i, bPU);
 				break;
-			// #Art71 case 1 or 3
+			// #Art71 case 3
 			case ART713:
 				cc = graphConfigurationWithAlignements(alignementsGeometries, pred, env, i, bPU, alignementsGeometries.getSideWithBuilding());
 				break;
@@ -406,7 +406,7 @@ private boolean willWeAssociateAnyway(Parameters p2) {
 		// Getting cuboid into list (we have to redo it because the cuboids are dissapearing during this procces)
 		List<Cuboid> cubes = cc.getGraph().vertexSet().stream().map(x -> x.getValue()).collect(Collectors.toList());
 		double surfacePlancherTotal = surfGen.process(cubes);
-		cubes = cc.getGraph().vertexSet().stream().map(x -> x.getValue()).collect(Collectors.toList());
+	//	cubes = cc.getGraph().vertexSet().stream().map(x -> x.getValue()).collect(Collectors.toList());
 		double surfaceAuSol = surfGen.processSurface(cubes);
 
 		// get multiple zone regulation infos infos

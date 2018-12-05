@@ -250,7 +250,7 @@ public class FakeWorldGenerator {
 		in.write(fLine + "\n");
 
 		// Having a default regulation is very pratical to see the influence of varying a parameter
-//		String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
+//		String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,3,3,2,0,1.0,0,0,0,0,0";
 
 		// The list of regulation for which building generation will be testsed
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
@@ -344,12 +344,16 @@ public class FakeWorldGenerator {
 		ArtiScalesRegulation regulationDefault3 = regulationDefault.clone();
 		regulationDefault3.setLibelle_de_dul("U2");
 		regulationDefault3.setArt_73(10);
+		regulationDefault3.setArt_71(1);
 
 		// CAS ARTICLE 73 = 99
 		ArtiScalesRegulation regulationDefault4 = regulationDefault.clone();
 		regulationDefault4.setLibelle_de_dul("U3");
+		
 		regulationDefault4.setArt_73(99);
+		regulationDefault4.setArt_71(1);
 
+		
 		regulations.add(regulationDefault);
 		regulations.add(regulationDefault2);
 		regulations.add(regulationDefault3);
@@ -379,15 +383,16 @@ public class FakeWorldGenerator {
 		regulationDefault2.setLibelle_de_dul("U1");
 		regulationDefault2.setArt_74(1);
 
-		// CAS ARTICLE 74 = 3
+		// CAS ARTICLE 74 = 2
 		ArtiScalesRegulation regulationDefault3 = regulationDefault.clone();
 		regulationDefault3.setLibelle_de_dul("U2");
-		regulationDefault3.setArt_74(3);
+		regulationDefault3.setArt_74(2);
 
 		// CAS ARTICLE 74 has no limitation
 		ArtiScalesRegulation regulationDefault4 = regulationDefault.clone();
 		regulationDefault4.setLibelle_de_dul("U3");
-		regulationDefault4.setArt_74(99);
+		regulationDefault4.setArt_71(1);
+		regulationDefault4.setArt_74(2);
 
 		regulations.add(regulationDefault);
 		regulations.add(regulationDefault2);

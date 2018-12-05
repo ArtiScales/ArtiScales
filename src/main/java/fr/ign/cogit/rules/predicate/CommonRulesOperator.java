@@ -6,6 +6,7 @@ import java.util.List;
 import com.vividsolutions.jts.geom.Geometry;
 
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
+import fr.ign.cogit.geoxygene.api.spatial.geomroot.IGeometry;
 import fr.ign.cogit.rules.regulation.ArtiScalesRegulation;
 import fr.ign.cogit.simplu3d.model.BasicPropertyUnit;
 import fr.ign.cogit.simplu3d.model.Building;
@@ -332,14 +333,23 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		return true;
 	}
 
-	// TODO a expérimenter (trouver une autre manière de le faire) (snapper aux
-	// limites ou faire un buffer)
+	// TODO methode assez imparfaite. Parfaire?
 	public boolean checkAlignement(O cuboid, Geometry jtsCurveLimiteFrontParcel) {
 		// On vérifie que le batiment est compris dans la zone d'alignement (surfacique)
 		if (jtsCurveLimiteFrontParcel != null && !cuboid.toGeometry().touches(jtsCurveLimiteFrontParcel)) {
 			return false;
 		}
 
+		return true;
+	}
+
+	public boolean checkAlignement(O cuboid, IGeometry jtsCurveLimiteParcel) {
+		// TODO a thing here doesn't work 
+		if (jtsCurveLimiteParcel != null && jtsCurveLimiteParcel.toString() !="") {
+			if (!cuboid.getGeom().touches(jtsCurveLimiteParcel)) {
+				return false;
+			}
+		}
 		return true;
 	}
 
@@ -489,8 +499,8 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		case 6:
 			// 6 : Retrait égal à la hauteur divisé par deux moins trois
 			// mètres
-			hIni = 2;
-			slope = 6;
+			hIni = 3;
+			slope = 2;
 			break;
 		case 7:
 			// 7 : Retrait égal à la hauteur moins trois mètres divisé par

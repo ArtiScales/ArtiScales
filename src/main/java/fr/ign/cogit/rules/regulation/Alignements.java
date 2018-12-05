@@ -148,7 +148,13 @@ public class Alignements {
 		List<IGeometry> lGeom = new ArrayList<>();
 
 		for (CadastralParcel cO : currentBPU.getCadastralParcels()) {
-			lGeom.addAll(cO.getBoundariesBySide(side).stream().map(x -> x.getGeom()).collect(Collectors.toList()));
+			
+			List<ParcelBoundary> boundaries = cO.getBoundariesByType(ParcelBoundaryType.LAT);
+			for(ParcelBoundary b: boundaries) {
+				if(b.getSide().equals(side)) {
+					lGeom.add(b.getGeom());
+				}
+			}
 		}
 
 		IGeometry[] geometryArray = new IGeometry[lGeom.size()];
