@@ -78,7 +78,7 @@
 			<!-- Types de sélections situées dans les zones AU -->
 			<param key="AU" value="true" />
 			<!-- Types de sélections situées dans les zones A et N -->
-			<param key="ALL" value="false" />
+			<param key="ALL" value="true" />
 
 			<!-- Autre types de sélection pour les modes 'fill' -->
 			<!-- Sélection de toutes les parcelles ordonnée selon l'évaluation des cellules 
@@ -92,7 +92,7 @@
 			toutes fondues puis décomposés -->
 		<!-- Si "AU", les parcelles situées dans les zones AU sont décomposées -->
 		<!-- Si "false", aucune parcelle ne sera décomposé -->
-		<param key="splitParcel" value="AU" />
+		<param key="splitParcel" value="true" />
 			<!-- Aire moyenne des parcelles découpées -->
 			<param key="maximalAreaSplitParcel" value="300" />
 			<!-- Largeur minimum de la limite parcellaire donnant sur la voirie -->

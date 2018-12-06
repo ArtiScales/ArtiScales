@@ -678,11 +678,11 @@ public class GetFromGeom {
 				// get the insee number for that zone
 				String insee = "";
 				insee = (String) zone.getAttribute("INSEE");
-				sfBuilder.set("CODE", insee + "000" + "NewSection" + numZone);
+				sfBuilder.set("CODE", insee + "000" + "New"+numZone+"Section");
 				sfBuilder.set("CODE_DEP", insee.substring(0, 2));
 				sfBuilder.set("CODE_COM", insee.substring(2, 5));
 				sfBuilder.set("COM_ABS", "000");
-				sfBuilder.set("SECTION", "NewSection" + numZone);
+				sfBuilder.set("SECTION", "New"+numZone+"Section");
 				sfBuilder.set("NUMERO", "");
 				sfBuilder.set("INSEE", insee);
 				sfBuilder.set("eval", "0");
@@ -701,11 +701,11 @@ public class GetFromGeom {
 							write.add(sfBuilder.buildFeature(String.valueOf(nFeat)));
 							nFeat++;
 							// ugly, but have to do it
-							sfBuilder.set("CODE", insee + "000" + "NewSection" + numZone);
+							sfBuilder.set("CODE", insee + "000" + "New"+numZone+"Section");
 							sfBuilder.set("CODE_DEP", insee.substring(0, 2));
 							sfBuilder.set("CODE_COM", insee.substring(2, 5));
 							sfBuilder.set("COM_ABS", "000");
-							sfBuilder.set("SECTION", "NewSection" + numZone);
+							sfBuilder.set("SECTION", "New"+numZone+"Section");
 							sfBuilder.set("NUMERO", "");
 							sfBuilder.set("INSEE", insee);
 							sfBuilder.set("eval", "0");

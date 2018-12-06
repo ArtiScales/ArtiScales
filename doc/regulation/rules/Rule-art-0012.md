@@ -2,7 +2,7 @@
 
 ## Modèle de phrase
 
-> La création de nouveaux logements imposent la création d'un certain nombre de places de parking. Ce nombre est fixé par la valeur : **{{ART_12}}**.
+> La création de nouveaux logements imposent la création d'un certain nombre de places de parking. Ce nombre est fixé par la valeur **{{ART_12}}** et peut employer différentes méthodes de calcul.
 
 ## Paramètres
 
@@ -10,12 +10,10 @@
 
 Désigne comment est calculé le nombre de places de parkings sur la parcelle. Les valeurs possibles sont :
 - **1** : un stationnement par logement ;
-- **1+2** :  2 places de stationnement par logement (dont 1 hors clôture pour les maisons individuelles) ; 1 place par logement (pour les immeubles collectifs) ;
--  **2** : deux stationnements par logement ;
-- **20_1-60_2** : un stationnement pour un logement en dessous de 60m2, 2 pour les logements plus **(Cas non traité)** ;
-- **99** : Non renseigné.        
-
-
+- **2** : deux stationnements par logement ;
+- **1m60_2** : un stationnement pour par logement en dessous de 60m2, 2 pour les logements plus spacieux ;
+- **0l2_2** : un stationnement par logement si le bâtiment ne contiens qu'un seul logement, 2 pour les bâtiments contenant plus de logements ;
+- **1x50** : un stationnement par tranche de 50m² de logement. 
 ## Explications
 
 Suivant la valeur de **{{ART_12}}** un ratio **r** = (places de parking) / (logements)  est déterminé.

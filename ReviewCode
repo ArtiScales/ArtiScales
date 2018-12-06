@@ -1,14 +1,9 @@
-article 13 biotopes : pas des % mais des val entre 0 et 1 (Maxime) (fait, mais vérifier)
-
 Faire un fichier de parcelles en sorties, différenciant les sous-parcelles et avec en attribut les règles appliquées provenant du predicate.csv.  
 
-problème avec le calcul des aires des bâtiments. (fixed?) I think so (vérifier)
-
-parcelles fondues ont le même nom?!
+certaines parcelles fondues puis redécoupées ont le même nom, ce n'est pas normal
 
 toujours des problèmes avec certains import de routes (regarder ça avec Mickael)
 
-ou est fait l'alignement pour la règle 6? 
 
 INDICATORS
 
@@ -20,11 +15,7 @@ result.csv : mauvaises colones (split avec des tirets..)
 Envoyer les cartes souhaitées à Julien 
 Faire les cartes automatiques - après avoir fixé les sorties et le format (Julien)
 
-sup et l'insimulation se déclanche parfois sans raison (remarqué sur parcelles de la commune 25524) (non? autre règle s'est appliquée ?)
-
-
-
 log 
 improve parcel selection
 
-déplacer Audeux dans la liste de communes au RNU (recalculer les PAU... remplacer le zonage POS principal... ... et tout et tout. Mais ne le faire que quand je serais sur que d'autre POS ne se sont pas glissées dans mes données). 
+

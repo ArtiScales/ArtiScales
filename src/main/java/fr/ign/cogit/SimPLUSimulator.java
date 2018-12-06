@@ -143,19 +143,20 @@ public class SimPLUSimulator {
 		// // SimPLUSimulator.fillSelectedParcels(new File(rootFolder), geoFile,
 		// // pluFile, selectedParcels, 50, "25495", p);
 
-		File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/scenar0MCIgn");
+		File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/etalIntenseRegul");
 		List<File> lF = new ArrayList<>();
 		lF.add(new File(rootParam, "parametreTechnique.xml"));
 		lF.add(new File(rootParam, "parametreScenario.xml"));
 
 		Parameters p = Parameters.unmarshall(lF);
-		AttribNames.setATT_CODE_PARC("CODE");
-		USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
+		// AttribNames.setATT_CODE_PARC("CODE");
+		// USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
+
 		File f = new File("/home/mcolomb/informatique/ArtiScales/ParcelSelectionFile/intenseRegulatedSpread/variant0");
 
 		for (File ff : f.listFiles()) {
 			if (ff.isDirectory()) {
-				SimPLUSimulator sim = new SimPLUSimulator(new File("/home/mcolomb/informatique/ArtiScales/"), f, p);
+				SimPLUSimulator sim = new SimPLUSimulator(new File("/home/mcolomb/informatique/ArtiScales/"), ff, p);
 				sim.run();
 			}
 		}
@@ -236,17 +237,18 @@ public class SimPLUSimulator {
 		int nbBPU = env.getBpU().size();
 		for (int i = 0; i < nbBPU; i++) {
 
-			System.out.println("Parcel code : " + env.getBpU().get(i).getCadastralParcels().get(0).getCode());
-
-			// if parcel has been marked an non simulable, return null
+			// if this parcel contains no attributes, it means that it has been put here just to express its boundaries
 			if (env.getBpU().get(i).getCadastralParcels().get(0).getCode() == null) {
 				continue;
 			}
+			// if parcel has been marked an non simulable, return null
 			if (!isParcelSimulable(env.getBpU().get(i).getCadastralParcels().get(0).getCode())) {
 				env.getBpU().get(i).getCadastralParcels().get(0).setHasToBeSimulated(false);
 				System.out.println(env.getBpU().get(i).getCadastralParcels().get(0).getCode() + " : je l'ai stopé net coz pas selec");
 				continue;
 			}
+			System.out.println("Parcel code : " + env.getBpU().get(i).getCadastralParcels().get(0).getCode());
+
 			p = pSaved;
 			File file = runSimulation(env, i, p, prescriptionUse);
 			System.out.println("");
@@ -286,7 +288,7 @@ public class SimPLUSimulator {
 	}
 
 	/**
-	 * TODO fix a problem here
+	 * for a given parcel, seek if the parcel general file has said that it could be simulated
 	 * 
 	 * @param codeParcel
 	 * @return
@@ -299,11 +301,13 @@ public class SimPLUSimulator {
 		try {
 			while (it.hasNext()) {
 				SimpleFeature feat = it.next();
-				if (feat.getAttribute("CODE").equals(codeParcel)) {
-					if (feat.getAttribute("DoWeSimul").equals("false")) {
-						result = false;
+				if (feat.getAttribute("CODE") != null) {
+					if (feat.getAttribute("CODE").equals(codeParcel)) {
+						if (feat.getAttribute("DoWeSimul").equals("false")) {
+							result = false;
+						}
+						break;
 					}
-					break;
 				}
 			}
 		} catch (Exception problem) {
@@ -406,7 +410,7 @@ public class SimPLUSimulator {
 		// Getting cuboid into list (we have to redo it because the cuboids are dissapearing during this procces)
 		List<Cuboid> cubes = cc.getGraph().vertexSet().stream().map(x -> x.getValue()).collect(Collectors.toList());
 		double surfacePlancherTotal = surfGen.process(cubes);
-	//	cubes = cc.getGraph().vertexSet().stream().map(x -> x.getValue()).collect(Collectors.toList());
+		// cubes = cc.getGraph().vertexSet().stream().map(x -> x.getValue()).collect(Collectors.toList());
 		double surfaceAuSol = surfGen.processSurface(cubes);
 
 		// get multiple zone regulation infos infos
