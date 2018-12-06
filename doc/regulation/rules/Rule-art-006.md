@@ -1,24 +1,26 @@
-# Rule-art-006 -  Distance minimale Ã  la voirie
+# Rule- art-006 -  Distance minimale à la voirie
 
-## ModÃ¨le de phrase
+Valeur par défaut du recul des constructions par rapport à la voirie en mètres
 
-> Les bÃ¢timents ne doivent pas Ãªtre construits Ã  une distance infÃ©rieure Ã  **{{ART_6}}** de la voirie.
+## Modèle de phrase
 
-## ParamÃ¨tres
+> Les bâtiments ne doivent pas être construits à une distance inférieure à **{{ART_6}}** de la voirie.
+
+## Paramètres
 
 ### ART_6
 
-DiffÃ©rentes valeurs sont possibles :
-- **-1.0** : Alignement du bÃ¢timent le long de la voirie (Non implÃ©mentÃ© puisque ne semble pas nÃ©cessaire, mais Ã  confirmer)
-- **44.0** : Application d'un prospect par rapport Ã  la voirie d'aprÃ¨s le RNU
-- **Autres valeurs** : valeur en m du recul du bÃ¢timent par rapport Ã  la voirie
+Différentes valeurs sont possibles :
+- **0** : Alignement du bâtiment le long de la voirie
+- **n** : recul imposé de **n** mètres au minimum par rapport à la voirie
+- **n1-n2** : recul imposé de **n1** mètres au minimum et ne devant pas être supérieur à **n2**
 
 
 ## Explications
 
 
-![Image illustrant le recul par rapport Ã  la voirie](img/rule-art-006.png)
+![Image illustrant le recul par rapport à la voirie](img/rule-art-006.png)
 
-## ImplÃ©mentation
+## Implémentation
 
-La vÃ©rification du ratio s'effectue dans la classe CommonPredicateArtiScales.
+La vérification du ratio s'effectue dans la méthode CommonPredicateArtiScales.check

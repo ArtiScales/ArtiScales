@@ -1,4 +1,4 @@
-# Rule- art_6_opt -  Autres contraintes de recul par rapport à la voirie
+# Rule- art_6_type -  Type de contraintes de recul par rapport à la voirie
 
 ## Modèle de phrase
 
@@ -7,16 +7,14 @@
 ### ART_6
 
 Autre contrainte de recul :
--  **1**:  Distance en fonction du numéro d’une route. Distance contenue dans le champ
-- **art6_optD** ( a voir si l’on peut retrouver ce numéro)
-- **20** : Doit respecter les alignements de l’une des construction voisine. Si aucune, voir Art6_optD ou Art6
-- **30** : Doit respecter les alignements des deux constructions voisines. Si aucune, voir Art6_optD ou Art6
+-  **n** : recul imposé de \textit{n} mètres au minimum
+- **n-RD42** : recul imposé de **n** mètres à route départementale 42. Peut être séparé du symbole **_** pour définir des reculs à plusieurs routes. Dans le cas où l'on impose un retrait à toutes les routes départementales, le symbole RD* est employée.
 
-
-Distance minimale en mètres de la construction par rapport à la voirie.
 
 ## Explications
 
-
+![Image illustrant le recul par rapport à la voirie](img/rule-art-006type.png)
 
 ## Implémentation
+
+
