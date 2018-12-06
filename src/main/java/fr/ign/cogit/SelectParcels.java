@@ -1,7 +1,6 @@
 package fr.ign.cogit;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -111,7 +110,19 @@ public class SelectParcels {
 				// if we simul on one city (debug) or the whole area
 				spatialConf = varianteSpatialConf;
 				if (p.getString("singleCity").equals("true")) {
-					parcelFile = GetFromGeom.getParcels(geoFile, regulFile, tmpFile, p.getString("zip"));
+					String zips = p.getString("zip");
+					//if multiple zips 
+					if (zips.contains(",")){
+						List<String> listZip = new ArrayList<String>();
+						for (String z : zips.split(",")) {
+							listZip.add(z);
+						}
+						parcelFile = GetFromGeom.getParcels(geoFile, regulFile, tmpFile, listZip);
+					}
+					
+					else {
+					parcelFile = GetFromGeom.getParcels(geoFile, regulFile, tmpFile, zips);
+					}
 				} else {
 					parcelFile = GetFromGeom.getParcels(geoFile, regulFile, tmpFile);
 				}
@@ -135,10 +146,10 @@ public class SelectParcels {
 					case "UnotBuilt":
 						parcelCollection = runBrownfieldUnconstructed(parcelCollection);
 						break;
-					case "AUnotBuilt":
+					case "AU":
 						parcelCollection = runGreenfieldSelected(parcelCollection);
 						break;
-					case "ALLnotBuilt":
+					case "ALL":
 						parcelCollection = runNaturalLand(parcelCollection);
 						break;
 					case "justEval":
@@ -189,11 +200,11 @@ public class SelectParcels {
 			if (p.getBoolean("UnotBuilt")) {
 				routine.add("UnotBuilt");
 			}
-			if (p.getBoolean("AUnotBuilt")) {
-				routine.add("AUnotBuilt");
+			if (p.getBoolean("AU")) {
+				routine.add("AU");
 			}
-			if (p.getBoolean("ALLnotBuilt")) {
-				routine.add("ALLnotBuilt");
+			if (p.getBoolean("ALL")) {
+				routine.add("ALL");
 			}
 		}
 		return routine;

@@ -275,10 +275,10 @@ public class SimPLUSimulator {
 	 */
 	private boolean willWeAssociateAnyway(Parameters p2) {
 
-		if (p.getBoolean("AUnotBuilt")) {
+		if (p.getBoolean("AU")) {
 			return true;
 		}
-		if (p.getBoolean("ALLnotBuilt")) {
+		if (p.getBoolean("ALL")) {
 			return true;
 		}
 

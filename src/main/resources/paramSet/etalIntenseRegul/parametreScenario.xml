@@ -76,9 +76,9 @@
 				non-construits -->
 			<param key="UnotBuilt" value="true" />
 			<!-- Types de sélections situées dans les zones AU -->
-			<param key="AUnotBuilt" value="true" />
+			<param key="AU" value="true" />
 			<!-- Types de sélections situées dans les zones A et N -->
-			<param key="ALLnotBuilt" value="true" />
+			<param key="ALL" value="false" />
 
 			<!-- Autre types de sélection pour les modes 'fill' -->
 			<!-- Sélection de toutes les parcelles ordonnée selon l'évaluation des cellules 
@@ -129,7 +129,7 @@
 			<param key="fctOpt" value="" />
 
 			<!-- Si "true", l'intersection entre les cuboïdes est permise -->
-			<param key="intersection" value="true" />
+			<param key="intersection" value="false" />
 
 			<!-- Nombre de cuboïde maximal -->
 			<param key="nbCuboid" value="20" />
@@ -137,7 +137,7 @@
 	<!--PARAMETRE DU MODULE BÂTIMENT À MÉNAGE (BUILDING TO HOUSEHOLD) -->
 
 		<!-- Taille moyenne d'un logement -->
-		<param key="HousingUnitSize" value="100" />
+		<param key="HousingUnitSize" value="70" />
 		<param key="heightStair" value="3" />
 		<param key="surfPlaceParking" value="25" />
 	

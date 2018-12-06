@@ -47,14 +47,13 @@ public class GetFromGeom {
 		File fCsv = new File("");
 		try {
 			for (File f : regulFile.listFiles()) {
-		
-			if (f.getName().equals("listRNUCities.csv")) {
-				fCsv = f;
-				break;
+
+				if (f.getName().equals("listRNUCities.csv")) {
+					fCsv = f;
+					break;
+				}
 			}
-		}
-		}
-		catch (NullPointerException np) {
+		} catch (NullPointerException np) {
 			System.out.println("no RNU list");
 			return null;
 		}
@@ -69,7 +68,7 @@ public class GetFromGeom {
 	}
 
 	public static File getParcels(File geoFile, File regulFile, File currentFile) throws IOException, NoSuchAuthorityCodeException, FactoryException {
-		return getParcels(geoFile, regulFile, currentFile, "");
+		return getParcels(geoFile, regulFile, currentFile, new ArrayList<String>());
 	}
 
 	/**
@@ -87,6 +86,13 @@ public class GetFromGeom {
 	 * @throws NoSuchAuthorityCodeException
 	 */
 	public static File getParcels(File geoFile, File regulFile, File tmpFile, String zip) throws IOException, NoSuchAuthorityCodeException, FactoryException {
+		List<String> lZip = new ArrayList<String>();
+		lZip.add(zip);
+		return getParcels(geoFile, regulFile, tmpFile, lZip);
+	}
+
+	public static File getParcels(File geoFile, File regulFile, File tmpFile, List<String> listZip) throws IOException, NoSuchAuthorityCodeException, FactoryException {
+
 		File result = new File("");
 		for (File f : geoFile.listFiles()) {
 			if (f.toString().contains("parcelle.shp")) {
@@ -97,14 +103,18 @@ public class GetFromGeom {
 		ShapefileDataStore parcelSDS = new ShapefileDataStore(result.toURI().toURL());
 		SimpleFeatureCollection parcels = parcelSDS.getFeatureSource().getFeatures();
 
-		// if we decided to work on a single city
-		if (!zip.equals("")) {
+		// if we decided to work on a set of cities
+		if (!listZip.isEmpty()) {
 			FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
-			String codep = zip.substring(0, 2);
-			String cocom = zip.substring(2, 5);
-			Filter filterDep = ff.like(ff.property("CODE_DEP"), codep);
-			Filter filterCom = ff.like(ff.property("CODE_COM"), cocom);
-			parcels = parcels.subCollection(filterDep).subCollection(filterCom);
+			DefaultFeatureCollection df = new DefaultFeatureCollection();
+			for (String zip : listZip) {
+				String codep = zip.substring(0, 2);
+				String cocom = zip.substring(2, 5);
+				Filter filterDep = ff.like(ff.property("CODE_DEP"), codep);
+				Filter filterCom = ff.like(ff.property("CODE_COM"), cocom);
+				df.addAll(parcels.subCollection(filterDep).subCollection(filterCom));
+			}
+			parcels = df.collection();
 		}
 
 		ShapefileDataStore shpDSBati = new ShapefileDataStore(GetFromGeom.getBati(geoFile).toURI().toURL());
@@ -320,13 +330,15 @@ public class GetFromGeom {
 
 		return totalParcel.collection();
 	}
-/**
- * return the typezones that a parcels intersect
- * @param parcelIn
- * @param regulFile
- * @return
- * @throws Exception
- */
+
+	/**
+	 * return the typezones that a parcels intersect
+	 * 
+	 * @param parcelIn
+	 * @param regulFile
+	 * @return
+	 * @throws Exception
+	 */
 	public static List<String> bigZoneinParcel(SimpleFeature parcelIn, File regulFile) throws Exception {
 		List<String> result = new ArrayList<String>();
 		ShapefileDataStore shpDSZone = new ShapefileDataStore(getZoning(regulFile).toURI().toURL());
@@ -334,8 +346,9 @@ public class GetFromGeom {
 		try {
 			while (featuresZones.hasNext()) {
 				SimpleFeature feat = featuresZones.next();
-				if (((Geometry) feat.getDefaultGeometry()).intersects((Geometry) parcelIn.getDefaultGeometry()) && !((Geometry) feat.getDefaultGeometry()).touches((Geometry)parcelIn.getDefaultGeometry())) {
-					// TODO prendre en compte le multizone 
+				if (((Geometry) feat.getDefaultGeometry()).intersects((Geometry) parcelIn.getDefaultGeometry())
+						&& !((Geometry) feat.getDefaultGeometry()).touches((Geometry) parcelIn.getDefaultGeometry())) {
+					// TODO prendre en compte le multizone
 					switch ((String) feat.getAttribute("TYPEZONE")) {
 					case "U":
 					case "ZC":
