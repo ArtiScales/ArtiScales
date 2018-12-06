@@ -384,7 +384,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 						break;
 					// can be either aligned or having a recoil (we haven't developped something specific for sitcked on the other side buildings, so if one is sticked, he has the
 					// right to
-					
+
 					case 1:
 						// check back parcel
 						if ((!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFondParcel, regle.getArt_73())
@@ -426,20 +426,20 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 							break;
 						}
 						break;
-//					case 3:
-//						// check back parcel
-//						if ((!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFondParcel, regle.getArt_73())
-//								|| !cRO.checkProspectArt7(cuboid, jtsCurveLimiteFondParcel, regle.getArt_74())) && !checkBackAlignmentWithBuilding(cRO, cuboid)) {
-//							return false;
-//						}
-//
-//						// check side parcels
-//						if ((!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteLatParcel, regle.getArt_72())
-//								|| !cRO.checkProspectArt7(cuboid, jtsCurveLimiteLatParcel, regle.getArt_74())) && !(checkBackAlignmentWithBuilding(cRO, cuboid))) {
-//							return false;
-//						}
-//						break;
-//					}
+					// case 3:
+					// // check back parcel
+					// if ((!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFondParcel, regle.getArt_73())
+					// || !cRO.checkProspectArt7(cuboid, jtsCurveLimiteFondParcel, regle.getArt_74())) && !checkBackAlignmentWithBuilding(cRO, cuboid)) {
+					// return false;
+					// }
+					//
+					// // check side parcels
+					// if ((!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteLatParcel, regle.getArt_72())
+					// || !cRO.checkProspectArt7(cuboid, jtsCurveLimiteLatParcel, regle.getArt_74())) && !(checkBackAlignmentWithBuilding(cRO, cuboid))) {
+					// return false;
+					// }
+					// break;
+					}
 				}
 
 				//////// Distance to the front of the parcel
@@ -461,22 +461,20 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 							return false;
 						}
 					} else {
-						switch (art_6 + "") {
-						case "44":
-							if (!cRO.checkProspectRNU(cuboid, jtsCurveOppositeLimit)) {
-								return false;
-							}
-							break;
-						case "99":
-							break;
-						default:
+						if (art_6 != "99") {
 							if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, Double.valueOf(art_6))) {
 								return false;
 							}
-							break;
 						}
 					}
 				}
+
+				else if (typeArt_6 == 44) {
+					if (!cRO.checkProspectRNU(cuboid, jtsCurveOppositeLimit)) {
+						return false;
+					}
+				}
+
 				// case buildings must be either aligned or having a recoil
 				else if (typeArt_6 == 10) {
 					if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, Double.valueOf(regle.getArt_6_optionel()))
