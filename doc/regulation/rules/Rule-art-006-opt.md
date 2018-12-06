@@ -1,4 +1,4 @@
-# Rule- art_6_type -  Type de contraintes de recul par rapport à la voirie
+# Rule- art_6_optionnel -  contraintes de recul optionnelles par rapport à la voirie
 
 ## Modèle de phrase
 
@@ -13,7 +13,6 @@ Autre contrainte de recul :
 
 ## Explications
 
-![Image illustrant le recul par rapport à la voirie](img/rule-art-006type.png)
 
 ## Implémentation
 
