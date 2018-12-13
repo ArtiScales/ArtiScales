@@ -34,6 +34,8 @@ import com.vividsolutions.jts.geom.Polygon;
 import au.com.bytecode.opencsv.CSVReader;
 import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.annexeTools.FeaturePolygonizer;
+import fr.ign.cogit.geoxygene.api.spatial.geomaggr.IMultiCurve;
+import fr.ign.cogit.geoxygene.api.spatial.geomprim.IOrientableCurve;
 import fr.ign.parameters.Parameters;
 
 public class GetFromGeom {
@@ -742,6 +744,19 @@ public class GetFromGeom {
 		double noise = 0;
 		double maximalArea = 400;
 		double maximalWidth = 50;
+		
+		
+		// Exterior from the UrbanBlock if necessary or null
+		IMultiCurve<IOrientableCurve> extBlock = null;
+		// Roads are created for this number of decomposition level
+		int decompositionLevelWithRoad = 2;
+		// Road width
+		double roadWidth = 5.0;
+		// Boolean forceRoadaccess
+		boolean forceRoadAccess = false;
+		
+		
+		
 		if (!(p == null)) {
 			maximalArea = p.getDouble("maximalAreaSplitParcel");
 			maximalWidth = p.getDouble("maximalWidthSplitParcel");
@@ -751,7 +766,7 @@ public class GetFromGeom {
 		ShapefileDataStore pSDS = new ShapefileDataStore(outU.toURI().toURL());
 		SimpleFeatureCollection pSFS = pSDS.getFeatureSource().getFeatures();
 
-		File splitedAUParcelsFile = VectorFct.splitParcels(pSFS, maximalArea, maximalWidth, roadEpsilon, noise, tmpFile, p);
+		File splitedAUParcelsFile = VectorFct.splitParcels(pSFS, maximalArea, maximalWidth, roadEpsilon, noise, extBlock, decompositionLevelWithRoad, roadWidth, forceRoadAccess,tmpFile, p);
 
 		pSDS.dispose();
 
