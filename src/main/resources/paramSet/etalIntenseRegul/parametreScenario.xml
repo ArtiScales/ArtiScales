@@ -71,14 +71,14 @@
 			<param key="JustZoning" value="false" />
 			<!-- Sélectionne les parcelles situées dans les zones U sur des terrains 
 				déjà construits -->
-			<param key="Ubuilt" value="true" />
+			<param key="Ubuilt" value="false" />
 			<!-- Sélectionne les parcelles situées dans les zones U sur des terrains 
 				non-construits -->
-			<param key="UnotBuilt" value="true" />
+			<param key="UnotBuilt" value="false" />
 			<!-- Types de sélections situées dans les zones AU -->
 			<param key="AU" value="true" />
 			<!-- Types de sélections situées dans les zones A et N -->
-			<param key="NC" value="false" />
+			<param key="NC" value="true" />
 
 			<!-- Autre types de sélection pour les modes 'fill' -->
 			<!-- Sélection de toutes les parcelles ordonnée selon l'évaluation des cellules 

@@ -169,13 +169,13 @@ public class SelectParcels {
 				// Split parcel processes
 
 				// AU Parcels are generally merged and joined (for now, with the simple cut method)
-				// if (zAU) {
-				// parcelCollection = VectorFct.generateSplitedParcelsAU(parcelCollection, tmpFile, zoningFile, p);
-				// }
-				// if (zU) {
-				// // For each U parcel, we decide whether it can be cuted and how
-				// parcelCollection = VectorFct.generateSplitedParcelsU(parcelCollection, geoFile, p);
-				// }
+				 if (zAU) {
+				 parcelCollection = VectorFct.generateSplitedParcelsAU(parcelCollection, tmpFile, zoningFile, p);
+				 }
+				 if (zU) {
+				 // For each U parcel, we decide whether it can be cuted and how
+				 parcelCollection = VectorFct.generateSplitedParcelsU(parcelCollection, geoFile, p);
+				 }
 
 				////// Packing the parcels for SimPLU3D distribution
 				File packFile = new File(rootFile, "ParcelSelectionFile/" + scenarName + "/" + varianteSpatialConf.getParentFile().getName() + "/");
@@ -516,6 +516,7 @@ public class SelectParcels {
 		////////////////
 		// fourth step : selection of the parcels intersecting the cells
 		////////////////
+	
 		int i = 0;
 		SimpleFeatureIterator parcelFinal = cutedParcels.features();
 		try {
