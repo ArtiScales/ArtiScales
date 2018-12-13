@@ -392,7 +392,7 @@ public class GetFromGeom {
 		try {
 			while (featuresZones.hasNext()) {
 				SimpleFeature feat = featuresZones.next();
-				if (((Geometry) feat.getDefaultGeometry()).buffer(0.1).contains((Geometry) parcelIn.getDefaultGeometry())) {
+				if (((Geometry) feat.getDefaultGeometry()).buffer(1).contains((Geometry) parcelIn.getDefaultGeometry())) {
 					switch ((String) feat.getAttribute("TYPEZONE")) {
 					case "U":
 					case "ZC":

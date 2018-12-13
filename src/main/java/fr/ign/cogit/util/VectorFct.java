@@ -67,7 +67,7 @@ public class VectorFct {
 		SimpleFeature waiting = null;
 		while (it.hasNext()) {
 			SimpleFeature feat = it.next();
-			if (((String) feat.getAttribute("CODE")).equals("25557000ZA0280")) {
+			if (((String) feat.getAttribute("CODE")).equals("25557000AB0117")) {
 				waiting = feat;
 			}
 		}
