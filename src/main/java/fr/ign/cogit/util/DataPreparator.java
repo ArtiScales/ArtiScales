@@ -21,6 +21,7 @@ public class DataPreparator {
 	public static void createPackages(File fileIn, File folderTemp, File folderOut) throws Exception {
 
 		ZonePackager.ATTRIBUTE_SIMUL = "DoWeSimul";
+		ZonePackager.ATTRIBUTE_SIMUL_TYPE = "String";
 
 		// Attributs pour reconstituer le IDPAR
 		ZonePackager.ATTRIBUTE_DEPARTEMENT = "CODE_DEP";

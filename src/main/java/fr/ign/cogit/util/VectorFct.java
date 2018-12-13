@@ -1,3 +1,4 @@
+
 package fr.ign.cogit.util;
 
 import java.io.File;
@@ -31,9 +32,11 @@ import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
 import fr.ign.cogit.geoxygene.api.spatial.coordgeom.IPolygon;
 import fr.ign.cogit.geoxygene.api.spatial.geomaggr.IMultiCurve;
 import fr.ign.cogit.geoxygene.api.spatial.geomprim.IOrientableCurve;
+
 import fr.ign.cogit.geoxygene.api.spatial.geomprim.IOrientableSurface;
 import fr.ign.cogit.geoxygene.api.spatial.geomroot.IGeometry;
 import fr.ign.cogit.geoxygene.convert.FromGeomToLineString;
+
 import fr.ign.cogit.geoxygene.convert.FromGeomToSurface;
 import fr.ign.cogit.geoxygene.feature.DefaultFeature;
 import fr.ign.cogit.geoxygene.feature.FT_FeatureCollection;
@@ -111,7 +114,7 @@ public class VectorFct {
 	 * @return
 	 * @throws Exception
 	 */
-	public static SimpleFeatureCollection generateSplitedParcelsAU(SimpleFeatureCollection parcels, File tmpFile, File zoningFile, Parameters p) throws Exception {
+	public static SimpleFeatureCollection generateSplitedParcelsAU(SimpleFeatureCollection parcels, File tmpFile, File zoningFile,IMultiCurve<IOrientableCurve> extBlock, Parameters p) throws Exception {
 
 		// parcels to save for after
 		DefaultFeatureCollection savedParcels = new DefaultFeatureCollection();
@@ -292,7 +295,7 @@ public class VectorFct {
 		ShapefileDataStore pSDS = new ShapefileDataStore(outU.toURI().toURL());
 		SimpleFeatureCollection pSFS = pSDS.getFeatureSource().getFeatures();
 
-		SimpleFeatureCollection splitedAUParcels = VectorFct.splitParcels(pSFS, maximalArea, maximalWidth, roadEpsilon, noise, tmpFile, p);
+		SimpleFeatureCollection splitedAUParcels = splitParcels(pSFS, maximalArea, maximalWidth, roadEpsilon, noise, extBlock, 2, p.getDouble("largeurRouteAccess"), true, tmpFile, p);
 
 		// Finally, put them all features in a same collec
 		SimpleFeatureIterator finalIt = splitedAUParcels.features();
@@ -320,6 +323,14 @@ public class VectorFct {
 		return result;
 	}
 
+	/**
+	 * method that compares two set of parcels and export only the ones that are in common Useless for not but will be used to determine the cleaned parcels
+	 * 
+	 * @param parcelOG
+	 * @param parcelToSort
+	 * @param parcelOut
+	 * @throws IOException
+	 */
 	public static void diffParcel(File parcelOG, File parcelToSort, File parcelOut) throws IOException {
 		ShapefileDataStore sds = new ShapefileDataStore(parcelToSort.toURI().toURL());
 		SimpleFeatureCollection parcelUnclean = sds.getFeatureSource().getFeatures();
@@ -470,7 +481,7 @@ public class VectorFct {
 		sfBuilder.add(parcelIn.getDefaultGeometry());
 		toSplit.add(sfBuilder.buildFeature(String.valueOf(0), attr));
 
-		return splitParcels(toSplit, maximalArea, maximalWidth, roadEpsilon, noise, tmpFile, p);
+		return splitParcels(toSplit, maximalArea, maximalWidth, roadEpsilon, noise, null, 0, maximalWidth, false, tmpFile, p);
 	}
 
 	/**
@@ -489,6 +500,16 @@ public class VectorFct {
 		double noise = 0;
 		double maximalArea = 1200;
 		double maximalWidth = 50;
+
+		// Exterior from the UrbanBlock if necessary or null
+		IMultiCurve<IOrientableCurve> extBlock = null;
+		// Roads are created for this number of decomposition level
+		int decompositionLevelWithRoad = 2;
+		// Road width
+		double roadWidth = 5.0;
+		// Boolean forceRoadaccess
+		boolean forceRoadAccess = false;
+
 		if (!(p == null)) {
 			maximalArea = p.getDouble("maximalAreaSplitParcel");
 			maximalWidth = p.getDouble("maximalWidthSplitParcel");
@@ -538,7 +559,7 @@ public class VectorFct {
 			parcelIt.close();
 		}
 
-		return splitParcels(toSplit, maximalArea, maximalWidth, roadEpsilon, noise, tmpFile, p);
+		return splitParcels(toSplit, maximalArea, maximalWidth, roadEpsilon, noise, extBlock, decompositionLevelWithRoad, roadWidth, forceRoadAccess, tmpFile, p);
 	}
 
 	/**
@@ -552,8 +573,9 @@ public class VectorFct {
 	 * @return
 	 * @throws Exception
 	 */
-	public static SimpleFeatureCollection splitParcels(SimpleFeatureCollection toSplit, double maximalArea, double maximalWidth, double roadEpsilon, double noise, File tmpFile,
-			Parameters p) throws Exception {
+
+	public static SimpleFeatureCollection splitParcels(SimpleFeatureCollection toSplit, double maximalArea, double maximalWidth, double roadEpsilon, double noise,
+			IMultiCurve<IOrientableCurve> extBlock, int decompositionLevelWithRoad, double roadWidth, boolean forceRoadAccess, File tmpFile, Parameters p) throws Exception {
 		// TODO un truc fait bugger la sortie dans cette classe..
 
 		// TODO classe po bô du tout: faire une vraie conversion entre les types
@@ -579,7 +601,9 @@ public class VectorFct {
 			IPolygon pol = (IPolygon) FromGeomToSurface.convertGeom(feat.getGeom()).get(0);
 
 			int numParcelle = 1;
-			OBBBlockDecomposition obb = new OBBBlockDecomposition(pol, maximalArea, maximalWidth, roadEpsilon,false);
+
+			OBBBlockDecomposition obb = new OBBBlockDecomposition(pol, maximalArea, maximalWidth, roadEpsilon, extBlock, decompositionLevelWithRoad, roadWidth, forceRoadAccess);
+
 			// TODO erreures récurentes sur le split
 			try {
 				IFeatureCollection<IFeature> featCollDecomp = obb.decompParcel(noise);

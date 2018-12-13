@@ -34,16 +34,8 @@ import com.vividsolutions.jts.geom.Polygon;
 import au.com.bytecode.opencsv.CSVReader;
 import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.annexeTools.FeaturePolygonizer;
-import fr.ign.cogit.geoxygene.api.feature.IFeature;
-import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
 import fr.ign.cogit.geoxygene.api.spatial.geomaggr.IMultiCurve;
 import fr.ign.cogit.geoxygene.api.spatial.geomprim.IOrientableCurve;
-import fr.ign.cogit.geoxygene.convert.FromGeomToLineString;
-import fr.ign.cogit.geoxygene.feature.FT_FeatureCollection;
-import fr.ign.cogit.geoxygene.spatial.geomaggr.GM_MultiCurve;
-import fr.ign.cogit.geoxygene.util.conversion.GeOxygeneGeoToolsTypes;
-import fr.ign.cogit.geoxygene.util.conversion.ShapefileReader;
-import fr.ign.cogit.geoxygene.util.conversion.ShapefileWriter;
 import fr.ign.parameters.Parameters;
 
 public class GetFromGeom {
@@ -353,12 +345,14 @@ public class GetFromGeom {
 
 		return totalParcel.collection();
 	}
-/**
- * get the insee number from a Simplefeature (that is most of the time, a parcel)
- * @param cities
- * @param parcel
- * @return
- */
+
+	/**
+	 * get the insee number from a Simplefeature (that is most of the time, a parcel)
+	 * 
+	 * @param cities
+	 * @param parcel
+	 * @return
+	 */
 	public static String getInseeFromParcel(SimpleFeatureCollection cities, SimpleFeature parcel) {
 		SimpleFeature City = null;
 		SimpleFeatureIterator citIt = cities.features();
@@ -625,6 +619,237 @@ public class GetFromGeom {
 		finalParcelBuilder.set("NC", feat.getAttribute("NC"));
 
 		return finalParcelBuilder;
+	}
+
+	/**
+	 * Merge and recut the to urbanised (AU) zones Cut first the U parcels to keep them unsplited, then split the AU parcel and remerge them all into the original parcel file
+	 * 
+	 * @param parcels
+	 * @param zoningFile
+	 * @param p
+	 *            : parametre file s
+	 * @return
+	 * @throws Exception
+	 */
+	public static SimpleFeatureCollection selecParcelZonePLUmergeAU(SimpleFeatureCollection parcels, File tmpFile, File zoningFile, Parameters p) throws Exception {
+
+		// parcels to save for after
+		DefaultFeatureCollection savedParcels = new DefaultFeatureCollection();
+		// import of the zoning file
+		ShapefileDataStore shpDSZone = new ShapefileDataStore(zoningFile.toURI().toURL());
+		SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
+
+		Geometry unionParcel = Vectors.unionSFC(parcels);
+		String geometryParcelPropertyName = parcels.getSchema().getGeometryDescriptor().getLocalName();
+
+		// get the AU zones from the zoning file
+		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
+		Filter filterTypeZone = ff.like(ff.property("TYPEZONE"), "AU");
+
+		Filter filterEmprise = ff.intersects(ff.property(geometryParcelPropertyName), ff.literal(unionParcel));
+		SimpleFeatureCollection zoneAU = featuresZones.subCollection(filterTypeZone).subCollection(filterEmprise);
+
+		// If no AU zones, we won't bother
+		if (zoneAU.isEmpty()) {
+			System.out.println("no AU zones");
+			return parcels;
+		}
+
+		// all the AU zones
+		Geometry geomAU = Vectors.unionSFC(zoneAU);
+		DefaultFeatureCollection parcelsInAU = new DefaultFeatureCollection();
+		SimpleFeatureIterator parcIt = parcels.features();
+
+		// sort in two different collections, the ones that cares and the ones that doesnt
+		try {
+			while (parcIt.hasNext()) {
+				SimpleFeature feat = parcIt.next();
+				if (((Geometry) feat.getDefaultGeometry()).intersects(geomAU)) {
+					parcelsInAU.add(feat);
+				} else {
+					savedParcels.add(feat);
+				}
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			parcIt.close();
+		}
+
+		// temporary shapefiles
+		File fParcelsInAU = Vectors.exportSFC(parcelsInAU, new File(tmpFile, "parcelCible.shp"));
+		File fZoneAU = Vectors.exportSFC(zoneAU, new File(tmpFile, "oneAU.shp"));
+
+		// cut and separate parcel according to their spatial relation with the zonnig zones
+		File[] polyFiles = { fParcelsInAU, fZoneAU };
+		List<Polygon> polygons = FeaturePolygonizer.getPolygons(polyFiles);
+
+		// parcel intersecting the U zone must not be cuted and keep their attributes
+		// intermediary result
+		File outU = new File(tmpFile, "polygonU.shp");
+		SimpleFeatureBuilder sfBuilder = getParcelSplitSFBuilder();
+
+		DefaultFeatureCollection write = new DefaultFeatureCollection();
+
+		int nFeat = 0;
+		// for every polygons situated in between U and AU zones, we cut the parcels regarding to the zone and copy them attributes to keep the existing U parcels
+		for (Geometry poly : polygons) {
+			// if the polygons are not included on the AU zone
+			if (!geomAU.buffer(0.01).contains(poly)) {
+				sfBuilder.add(poly);
+				SimpleFeatureIterator parcelIt = parcelsInAU.features();
+				try {
+					while (parcelIt.hasNext()) {
+						SimpleFeature feat = parcelIt.next();
+						if (((Geometry) feat.getDefaultGeometry()).buffer(0.01).contains(poly)) {
+							sfBuilder.set("CODE", feat.getAttribute("CODE"));
+							sfBuilder.set("CODE_DEP", feat.getAttribute("CODE_DEP"));
+							sfBuilder.set("CODE_COM", feat.getAttribute("CODE_COM"));
+							sfBuilder.set("COM_ABS", feat.getAttribute("COM_ABS"));
+							sfBuilder.set("SECTION", feat.getAttribute("SECTION"));
+							sfBuilder.set("NUMERO", feat.getAttribute("NUMERO"));
+							sfBuilder.set("INSEE", feat.getAttribute("INSEE"));
+							sfBuilder.set("eval", feat.getAttribute("eval"));
+							sfBuilder.set("DoWeSimul", feat.getAttribute("DoWeSimul"));
+							sfBuilder.set("SPLIT", 0);
+							// @warning the AU Parcels are mostly unbuilt, but maybe not?
+							sfBuilder.set("IsBuild", feat.getAttribute("IsBuild"));
+							sfBuilder.set("U", feat.getAttribute("U"));
+							sfBuilder.set("AU", feat.getAttribute("AU"));
+							sfBuilder.set("NC", feat.getAttribute("NC"));
+						}
+					}
+				} catch (Exception problem) {
+					problem.printStackTrace();
+				} finally {
+					parcelIt.close();
+				}
+				write.add(sfBuilder.buildFeature(String.valueOf(nFeat)));
+				nFeat++;
+			}
+		}
+		String geometryOutputName = write.getSchema().getGeometryDescriptor().getLocalName();
+		SimpleFeatureIterator it = zoneAU.features();
+		int numZone = 0;
+
+		// mark the AU zones
+		try {
+			while (it.hasNext()) {
+				SimpleFeature zone = it.next();
+				// get the insee number for that zone
+				String insee = "";
+				insee = (String) zone.getAttribute("INSEE");
+				sfBuilder.set("CODE", insee + "000" + "New" + numZone + "Section");
+				sfBuilder.set("CODE_DEP", insee.substring(0, 2));
+				sfBuilder.set("CODE_COM", insee.substring(2, 5));
+				sfBuilder.set("COM_ABS", "000");
+				sfBuilder.set("SECTION", "New" + numZone + "Section");
+				sfBuilder.set("NUMERO", "");
+				sfBuilder.set("INSEE", insee);
+				sfBuilder.set("eval", "0");
+				sfBuilder.set("DoWeSimul", false);
+				sfBuilder.set("SPLIT", 1);
+				// @warning the AU Parcels are mostly unbuilt, but maybe not?
+				sfBuilder.set("IsBuild", false);
+				sfBuilder.set("U", false);
+				sfBuilder.set("AU", true);
+				sfBuilder.set("NC", false);
+				Geometry intersectedGeom = ((Geometry) zone.getDefaultGeometry()).intersection(unionParcel);
+				if (!intersectedGeom.isEmpty()) {
+					if (intersectedGeom instanceof MultiPolygon) {
+						for (int i = 0; i < intersectedGeom.getNumGeometries(); i++) {
+							sfBuilder.set(geometryOutputName, intersectedGeom.getGeometryN(i));
+							write.add(sfBuilder.buildFeature(String.valueOf(nFeat)));
+							nFeat++;
+							// ugly, but have to do it
+							sfBuilder.set("CODE", insee + "000" + "New" + numZone + "Section");
+							sfBuilder.set("CODE_DEP", insee.substring(0, 2));
+							sfBuilder.set("CODE_COM", insee.substring(2, 5));
+							sfBuilder.set("COM_ABS", "000");
+							sfBuilder.set("SECTION", "New" + numZone + "Section");
+							sfBuilder.set("NUMERO", "");
+							sfBuilder.set("INSEE", insee);
+							sfBuilder.set("eval", "0");
+							sfBuilder.set("DoWeSimul", false);
+							sfBuilder.set("SPLIT", 1);
+							// @warning the AU Parcels are mostly unbuilt, but maybe not?
+							sfBuilder.set("IsBuild", false);
+							sfBuilder.set("U", false);
+							sfBuilder.set("AU", true);
+							sfBuilder.set("NC", false);
+						}
+						continue;
+					} else {
+						sfBuilder.set(geometryOutputName, intersectedGeom);
+					}
+				} else {
+					sfBuilder.set(geometryOutputName, zone.getDefaultGeometry());
+				}
+				write.add(sfBuilder.buildFeature(String.valueOf(nFeat)));
+				nFeat++;
+				numZone++;
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			it.close();
+		}
+
+		Vectors.exportSFC(write.collection(), outU);
+
+		shpDSZone.dispose();
+
+		double roadEpsilon = 0.5;
+		double noise = 0;
+		double maximalArea = 400;
+		double maximalWidth = 50;
+
+		// Exterior from the UrbanBlock if necessary or null
+		IMultiCurve<IOrientableCurve> extBlock = null;
+		// Roads are created for this number of decomposition level
+		int decompositionLevelWithRoad = 2;
+		// Road width
+		double roadWidth = 5.0;
+		// Boolean forceRoadaccess
+		boolean forceRoadAccess = false;
+
+		if (!(p == null)) {
+			maximalArea = p.getDouble("maximalAreaSplitParcel");
+			maximalWidth = p.getDouble("maximalWidthSplitParcel");
+		}
+
+		// get the previously cuted and reshaped shapefile
+		ShapefileDataStore pSDS = new ShapefileDataStore(outU.toURI().toURL());
+		SimpleFeatureCollection pSFS = pSDS.getFeatureSource().getFeatures();
+
+		SimpleFeatureCollection splitedAUParcelsFile = VectorFct.splitParcels(pSFS, maximalArea, maximalWidth, roadEpsilon, noise, extBlock, decompositionLevelWithRoad, roadWidth, forceRoadAccess,
+				tmpFile, p);
+
+		pSDS.dispose();
+
+		// Finally, put them all features in a same collec
+		SimpleFeatureIterator finalIt = splitedAUParcelsFile.features();
+		int cpt = 0;
+		try {
+			while (finalIt.hasNext()) {
+				SimpleFeature feat = finalIt.next();
+				SimpleFeatureBuilder finalParcelBuilder = setSFBWithFeat(feat, savedParcels.getSchema(), geometryOutputName);
+				if (feat.getAttribute("CODE") == null) {
+					finalParcelBuilder = setSFBParDefaut(feat, savedParcels.getSchema(), geometryOutputName);
+				}
+				savedParcels.add(finalParcelBuilder.buildFeature(String.valueOf(cpt)));
+				cpt++;
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			finalIt.close();
+		}
+
+		SimpleFeatureCollection result = savedParcels.collection();
+		Vectors.exportSFC(result, new File(tmpFile, "parcelFinal.shp"));
+
+		return result;
 	}
 
 }
