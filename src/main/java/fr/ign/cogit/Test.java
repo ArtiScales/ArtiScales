@@ -3,6 +3,8 @@ package fr.ign.cogit;
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
 import fr.ign.cogit.geoxygene.api.spatial.coordgeom.IPolygon;
+import fr.ign.cogit.geoxygene.api.spatial.geomaggr.IMultiCurve;
+import fr.ign.cogit.geoxygene.api.spatial.geomprim.IOrientableCurve;
 import fr.ign.cogit.geoxygene.convert.FromGeomToSurface;
 import fr.ign.cogit.geoxygene.sig3d.calculation.parcelDecomposition.OBBBlockDecomposition;
 import fr.ign.cogit.geoxygene.spatial.coordgeom.DirectPosition;
@@ -23,11 +25,18 @@ public class Test {
         double maximalArea = 1200;
         double maximalWidth = 50;
 
-        
+		// Exterior from the UrbanBlock if necessary or null
+		IMultiCurve<IOrientableCurve> imC = null;
+		// Roads are created for this number of decomposition level
+		int decompositionLevelWithRoad = 2;
+		// Road width
+		double roadWidth = 5.0;
+		// Boolean forceRoadaccess
+		boolean forceRoadAccess = false;
 		
 		IPolygon pol = (IPolygon) FromGeomToSurface.convertGeom(WktGeOxygene.makeGeOxygene(strMuliPol)).get(0);
 		
-		OBBBlockDecomposition decomposition = new OBBBlockDecomposition(pol, maximalArea, maximalWidth, roadEpsilon);
+		OBBBlockDecomposition decomposition = new OBBBlockDecomposition(pol, maximalArea, maximalWidth, roadEpsilon, imC, decompositionLevelWithRoad, roadWidth, forceRoadAccess);
 		IFeatureCollection<IFeature> featColl = decomposition.decompParcel(noise);
 
 		ShapefileWriter.write(featColl, "/tmp/tmp.shp");

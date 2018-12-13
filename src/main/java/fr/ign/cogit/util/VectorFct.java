@@ -1,3 +1,4 @@
+
 package fr.ign.cogit.util;
 
 import java.io.File;
@@ -31,6 +32,8 @@ import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
 import fr.ign.cogit.geoxygene.api.spatial.coordgeom.IPolygon;
+import fr.ign.cogit.geoxygene.api.spatial.geomaggr.IMultiCurve;
+import fr.ign.cogit.geoxygene.api.spatial.geomprim.IOrientableCurve;
 import fr.ign.cogit.geoxygene.convert.FromGeomToSurface;
 import fr.ign.cogit.geoxygene.feature.DefaultFeature;
 import fr.ign.cogit.geoxygene.feature.FT_FeatureCollection;
@@ -120,6 +123,17 @@ public class VectorFct {
 		double noise = 0;
 		double maximalArea = 1200;
 		double maximalWidth = 50;
+		
+		// Exterior from the UrbanBlock if necessary or null
+		IMultiCurve<IOrientableCurve> extBlock = null;
+		// Roads are created for this number of decomposition level
+		int decompositionLevelWithRoad = 2;
+		// Road width
+		double roadWidth = 5.0;
+		// Boolean forceRoadaccess
+		boolean forceRoadAccess = false;
+		
+		
 		if (!(p == null)) {
 			maximalArea = p.getDouble("maximalAreaSplitParcel");
 			maximalWidth = p.getDouble("maximalWidthSplitParcel");
@@ -169,7 +183,7 @@ public class VectorFct {
 			parcelIt.close();
 		}
 
-		return splitParcels(toSplit, maximalArea, maximalWidth, roadEpsilon, noise, tmpFile, p);
+		return splitParcels(toSplit, maximalArea, maximalWidth, roadEpsilon, noise, extBlock, decompositionLevelWithRoad, roadWidth, forceRoadAccess,tmpFile, p);
 	}
 
 	/**
@@ -183,7 +197,8 @@ public class VectorFct {
 	 * @return
 	 * @throws Exception
 	 */
-	public static File splitParcels(SimpleFeatureCollection toSplit, double maximalArea, double maximalWidth, double roadEpsilon, double noise, File tmpFile, Parameters p)
+	public static File splitParcels(SimpleFeatureCollection toSplit, double maximalArea, double maximalWidth, double roadEpsilon, double noise, IMultiCurve<IOrientableCurve> extBlock, int decompositionLevelWithRoad, double roadWidth,
+			boolean forceRoadAccess, File tmpFile, Parameters p)
 			throws Exception {
 		// TODO un truc fait bugger la sortie dans cette classe..
 
@@ -210,7 +225,7 @@ public class VectorFct {
 			IPolygon pol = (IPolygon) FromGeomToSurface.convertGeom(feat.getGeom()).get(0);
 
 			int numParcelle = 1;
-			OBBBlockDecomposition obb = new OBBBlockDecomposition(pol, maximalArea, maximalWidth, roadEpsilon);
+			OBBBlockDecomposition obb = new OBBBlockDecomposition(pol, maximalArea, maximalWidth, roadEpsilon, extBlock, decompositionLevelWithRoad, roadWidth, forceRoadAccess);
 			// TODO erreures récurentes sur le split
 			try {
 				IFeatureCollection<IFeature> featCollDecomp = obb.decompParcel(noise);
