@@ -46,6 +46,8 @@ import fr.ign.cogit.util.GetFromGeom;
 import fr.ign.cogit.util.SimpluParametersXML;
 import fr.ign.cogit.util.SimuTool;
 import fr.ign.cogit.util.VectorFct;
+import fr.ign.cogit.util.typeHousingUnit.RepartitionHousingUnit;
+import fr.ign.cogit.util.typeHousingUnit.TypeHousingUnit;
 import fr.ign.mpp.configuration.BirthDeathModification;
 import fr.ign.mpp.configuration.GraphConfiguration;
 import fr.ign.mpp.configuration.GraphVertex;
@@ -152,7 +154,7 @@ public class SimPLUSimulator {
 		// AttribNames.setATT_CODE_PARC("CODE");
 		// USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
 
-		File f = new File("/home/mcolomb/informatique/ArtiScales/ParcelSelectionFile/intenseRegulatedSpread/variant0");
+		File f = new File("/home/mcolomb/informatique/ArtiScales2/ParcelSelectionFile/intenseRegulatedSpread/variant0");
 
 		for (File ff : f.listFiles()) {
 			if (ff.isDirectory()) {
@@ -205,7 +207,6 @@ public class SimPLUSimulator {
 		if (!zoningFile.exists()) {
 			System.err.print("error : zoning files not found");
 		}
-
 	}
 
 	/**
@@ -219,6 +220,9 @@ public class SimPLUSimulator {
 		// Loading of configuration file that contains sampling space
 		// information and simulated annealing configuration
 		Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile, parcelsFile, roadFile, buildFile, filePrescPonct, filePrescLin, filePrescSurf, null);
+
+		// loading the type of housing to build
+		RepartitionHousingUnit housingUnit = new RepartitionHousingUnit(p, parcelsFile);
 
 		// Prescription setting
 		IFeatureCollection<Prescription> prescriptions = env.getPrescriptions();
@@ -235,7 +239,7 @@ public class SimPLUSimulator {
 
 		// We run a simulation for each bPU with a different file for each bPU
 		int nbBPU = env.getBpU().size();
-		for (int i = 0; i < nbBPU; i++) {
+		bpu: for (int i = 0; i < nbBPU; i++) {
 
 			// if this parcel contains no attributes, it means that it has been put here just to express its boundaries
 			if (env.getBpU().get(i).getCadastralParcels().get(0).getCode() == null) {
@@ -247,17 +251,97 @@ public class SimPLUSimulator {
 				System.out.println(env.getBpU().get(i).getCadastralParcels().get(0).getCode() + " : je l'ai stopé net coz pas selec");
 				continue;
 			}
-			System.out.println("Parcel code : " + env.getBpU().get(i).getCadastralParcels().get(0).getCode());
+			String codeParcel = env.getBpU().get(i).getCadastralParcels().get(0).getCode();
+			System.out.println("Parcel code : " + codeParcel);
 
-			p = pSaved;
-			File file = runSimulation(env, i, p, prescriptionUse);
+			double eval = getParcelEval(env.getBpU().get(i).getCadastralParcels().get(0).getCode());
+
+			// of which type should be the housing unit
+			TypeHousingUnit type = housingUnit.rangeInterest(eval);
+
+			// we get ready to change it
+			boolean seekType = true;
+			boolean adjustUp = false;
+			boolean adjustDown = false;
+
+			TypeHousingUnit[] fromTo = new TypeHousingUnit[2];
+			fromTo[0] = type;
+			IFeatureCollection<IFeature> bati = null;
+			// until we found the right type
+			while (seekType) {
+				System.out.println("we try to put a " + type + " housing unit");
+				// we add the parameters for the building type want to simulate
+				p.add(housingUnit.getParam(type));
+				p = pSaved;
+				bati = runSimulation(env, i, p, prescriptionUse);
+
+				if (bati == null || bati.isEmpty()) {
+					continue bpu;
+				}
+
+				File output = new File(SimuTool.createScenarVariantFolders(simuFile, rootFile, "SimPLUDepot"), "out-parcelle_" + bati.get(0).getAttribute("CODE") + ".shp");
+				System.out.println("Output in : " + output);
+				ShapefileWriter.write(bati, output.toString(), CRS.decode("EPSG:2154"));
+
+				// we see if the Housing Unit Type is correct
+
+				System.out.println((double) bati.get(0).getAttribute("SDPShon"));
+				if ((double) bati.get(0).getAttribute("SDPShon") < p.getDouble("areaMin")) {
+					adjustDown = true;
+					TypeHousingUnit typeTemp = housingUnit.up(type);
+					// if it's not the same type, we'll continue to seek
+					if (!(typeTemp == type)) {
+						type = typeTemp;
+						System.out.println("we'll try a " + type + "instead");
+					}
+					// if it's blocked, we'll go for this type
+					else {
+						seekType = false;
+					}
+					// I'm not sure this case can occur, but..
+				} else if ((double) bati.get(0).getAttribute("SDPShon") > p.getDouble("areaMax")) {
+					adjustUp = true;
+					TypeHousingUnit typeTemp = housingUnit.down(type);
+					// if it's not the same type, we'll continue to seek
+					if (!(typeTemp == type)) {
+						type = typeTemp;
+						System.out.println("we'll try a " + type + "instead");
+					}
+					// if it's blocked, we'll go for this type
+					else {
+						seekType = false;
+					}
+				} else {
+					seekType = false;
+					// if there's a come and go situation, we break it down like a cop
+					if (adjustDown == true && adjustUp == true) {
+						System.out.println("we break down the fuzz between housing unit like a cop/judge");
+						break;
+					} else if (adjustUp) {
+						fromTo[1] = type;
+						housingUnit.adjustDistributionUp(eval, fromTo[1], fromTo[0]);
+					} else if (adjustDown) {
+						fromTo[1] = type;
+						housingUnit.adjustDistributionDown(eval, fromTo[1], fromTo[0]);
+					}
+				}
+			}
+			// saving the output
+			File output = new File(SimuTool.createScenarVariantFolders(simuFile, rootFile, "SimPLUDepot"), "out-parcelle_" + bati.get(0).getAttribute("CODE") + ".shp");
+			System.out.println("Output in : " + output);
+			ShapefileWriter.write(bati, output.toString(), CRS.decode("EPSG:2154"));
+
+			if (!output.exists()) {
+				output = null;
+			}
+
 			System.out.println("");
-			if (file != null) {
-				listBatiSimu.add(file);
+			if (output != null) {
+				listBatiSimu.add(output);
 			}
 		}
 
-		// Not results
+		// No results
 		if (listBatiSimu.isEmpty()) {
 			System.out.println("&&&&&&&&&&&&&& Aucun bâtiment n'a été simulé &&&&&&&&&&&&&&");
 			return null;
@@ -320,6 +404,36 @@ public class SimPLUSimulator {
 	}
 
 	/**
+	 * for a given parcel, seek if the parcel general file has said that it could be simulated
+	 * 
+	 * @param codeParcel
+	 * @return
+	 * @throws IOException
+	 */
+	public double getParcelEval(String codeParcel) throws IOException {
+		double result = 0.0;
+		ShapefileDataStore sds = new ShapefileDataStore(parcelsFile.toURI().toURL());
+		SimpleFeatureIterator it = sds.getFeatureSource().getFeatures().features();
+		try {
+			while (it.hasNext()) {
+				SimpleFeature feat = it.next();
+				if (feat.getAttribute("CODE") != null) {
+					if (feat.getAttribute("CODE").equals(codeParcel)) {
+						result = Double.valueOf((String) feat.getAttribute("eval"));
+						break;
+					}
+				}
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			it.close();
+		}
+		sds.dispose();
+		return result;
+	}
+
+	/**
 	 * Simulation for the ie bPU
 	 * 
 	 * @param env
@@ -331,7 +445,7 @@ public class SimPLUSimulator {
 	 * @throws Exception
 	 */
 	@SuppressWarnings({ "deprecation" })
-	public File runSimulation(Environnement env, int i, Parameters p, IFeatureCollection<Prescription> prescriptionUse) throws Exception {
+	public IFeatureCollection<IFeature> runSimulation(Environnement env, int i, Parameters p, IFeatureCollection<Prescription> prescriptionUse) throws Exception {
 
 		BasicPropertyUnit bPU = env.getBpU().get(i);
 
@@ -472,18 +586,8 @@ public class SimPLUSimulator {
 			AttributeManager.addAttribute(feat, "TYPEZONE", typeZonesFinal, "String");
 			iFeatC.add(feat);
 		}
+		return iFeatC;
 
-		// méthode de calcul d'aire simpliste
-
-		// TODO sortir ça de cette méthode?
-		File output = new File(SimuTool.createScenarVariantFolders(simuFile, rootFile, "SimPLUDepot"), "out-parcelle_" + bPU.getCadastralParcels().get(0).getCode() + ".shp");
-		System.out.println("Output in : " + output);
-		ShapefileWriter.write(iFeatC, output.toString(), CRS.decode("EPSG:2154"));
-
-		if (!output.exists()) {
-			output = null;
-		}
-		return output;
 	}
 
 	private GraphConfiguration<Cuboid> graphConfigurationWithAlignements(Alignements alignementsGeometries,

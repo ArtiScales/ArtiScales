@@ -7,7 +7,10 @@
 	<!-- Configuration générales des simulations ArtiScales -->
 	<param key="seed" value="42"/>
 	<param key = "singleCity" value = "true"/>
-	<param key="zip" value ="25217,25115,25136,25030,25448,25119,25427,25150,25455,25482"/>
+	<!--<param key="zip" value ="25217,25115,25136,25030,25448,25119,25427,25150,25455,25482"/> -->
+	<param key="zip" value ="25557"/>
+	<param key="package" value ="commune"/>
+
 
 	<!-- PARAMETRES DE MUP-CITY -->
 		<!-- paramètres techniques -->	
@@ -76,7 +79,7 @@
 			relatif à la non amélioration de la configuration -->
 		<param key="end_test_type" value="relative" />
 		<param key="absolute_nb_iter" value="1000000" />
-		<param key="relative_nb_iter" value="100000" />
+		<param key="relative_nb_iter" value="50000" />
 		<param key="delta" value="5" />
 		<param key="poisson" value="20" />
 

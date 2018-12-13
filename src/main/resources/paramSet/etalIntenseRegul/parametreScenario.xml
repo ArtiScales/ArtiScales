@@ -8,7 +8,7 @@
 
 	<!-- Dossiers et fichiers nécessaires à la simulation -->
 	<!-- Emplacement de la simulation (données d'entrée, résultats intermédiaires et finaux) -->
-	<param key="rootFile" value="/home/mcolomb/informatique/ArtiScales/" />
+	<param key="rootFile" value="/home/mcolomb/informatique/ArtiScales2/" />
 
 		
 	<!-- PARAMETRES DU MODULE MUP-CITY -->
@@ -71,14 +71,14 @@
 			<param key="JustZoning" value="false" />
 			<!-- Sélectionne les parcelles situées dans les zones U sur des terrains 
 				déjà construits -->
-			<param key="Ubuilt" value="false" />
+			<param key="Ubuilt" value="true" />
 			<!-- Sélectionne les parcelles situées dans les zones U sur des terrains 
 				non-construits -->
 			<param key="UnotBuilt" value="true" />
 			<!-- Types de sélections situées dans les zones AU -->
 			<param key="AU" value="true" />
 			<!-- Types de sélections situées dans les zones A et N -->
-			<param key="ALL" value="true" />
+			<param key="NC" value="false" />
 
 			<!-- Autre types de sélection pour les modes 'fill' -->
 			<!-- Sélection de toutes les parcelles ordonnée selon l'évaluation des cellules 
@@ -92,9 +92,9 @@
 			toutes fondues puis décomposés -->
 		<!-- Si "AU", les parcelles situées dans les zones AU sont décomposées -->
 		<!-- Si "false", aucune parcelle ne sera décomposé -->
-		<param key="splitParcel" value="true" />
+		<param key="splitParcel" value="AU" />
 			<!-- Aire moyenne des parcelles découpées -->
-			<param key="maximalAreaSplitParcel" value="300" />
+			<param key="maximalAreaSplitParcel" value="700" />
 			<!-- Largeur minimum de la limite parcellaire donnant sur la voirie -->
 			<!-- Si aucune voirie adjacente à la parcelle, le découpage sera orienté 
 				aléatoirement -->
@@ -107,39 +107,30 @@
 			<param key="ESPACE_BOISE" value="true" />
 			<param key="NUISANCES_RISQUES" value="true"/>
 			<!-- quel niveau de nuisance/risque retirons nous de l'urbanisation? -->
-				<!-- uniquement les zones les plus graves (dont le libelle contient les mots-clefs suivants : grave,fort , 					Maximal, rouge -->
+				<!-- uniquement les zones les plus graves (dont le libelle contient les mots-clefs suivants : grave, fort, Maximal, rouge -->
 			<param key="NUISANCES_RISQUES-MAX" value="true"/>
 			<param key="EMPLACEMENT_RESERVE" value="true"/>
 			<param key="ELEMENT_PAYSAGE" value="true"/>
 			<param key="RECOIL" value="false"/>
 			<param key="TVB" value="false"/>
 			
-		<!--Bornes des dimensions des cuboïdes simulées -->
-			<!-- Largeur -->
-			<param key="minlen" value="7" />
-			<param key="maxlen" value="15" />
-			<!-- Longueur -->
-			<param key="minwid" value="5" />
-			<param key="maxwid" value="15" />
-			<!-- Hauteur -->
-			<param key="minheight" value="3" />
-			<param key="maxheight" value="10" />
+		<!--Pourcentage du type de logements construit -->
+		<param key="singleHouse" value="25" />
+		<param key="lotHouse" value="75" />
+		<param key="sharedHouse" value="0" />
+		<param key="smallDwelling" value="0" />
+		<param key="mediumDwelling" value="0" />
 
-			<!-- Fonction d'optimisation (pas (encore) utilisée) -->
-			<param key="fctOpt" value="" />
-
-			<!-- Si "true", l'intersection entre les cuboïdes est permise -->
-			<param key="intersection" value="false" />
-
-			<!-- Nombre de cuboïde maximal -->
-			<param key="nbCuboid" value="20" />
-	
 	<!--PARAMETRE DU MODULE BÂTIMENT À MÉNAGE (BUILDING TO HOUSEHOLD) -->
 
 		<!-- Taille moyenne d'un logement -->
 		<param key="HousingUnitSize" value="70" />
+		<!-- Taille moyenne d'un étage -->
 		<param key="heightStair" value="3" />
+		<!-- Taille moyenne d'une place de parking --> 
 		<param key="surfPlaceParking" value="25" />
+		<!-- Largeur des accessibilitées des parcelles aux routes -->
+		<param key="largeurRouteAccess" value = "4" />
 	
 	<!-- Mode de fonctionnement d'ArtiScales -->
 	<!-- Si true, le modèle s'arrête quand les objectifs de création de logement 

@@ -102,13 +102,12 @@ public class PAUDigger {
 
 		// Vectors.exportSFC(parcelPreSelected, new File("/home/mcolomb/tmp/parcelsBeforeCuting.shp"));
 
-		ShapefileDataStore splitSDS = new ShapefileDataStore(VectorFct.generateSplitedParcels(parcelPreSelected, rnuCityFiles, null).toURI().toURL());
-		SimpleFeatureCollection parcelSplitted = splitSDS.getFeatureSource().getFeatures();
+
+		SimpleFeatureCollection parcelSplitted = VectorFct.generateSplitedParcels(parcelPreSelected, rnuCityFiles, null);
 		SimpleFeatureCollection pau = parcelSplitted.subCollection(filCluster).subCollection(filMorpho).subCollection(filNU);
 		Vectors.exportSFC(makeEnvelopePAU(pau), new File(outFile, "zonePAU"));
 
 		nUSDS.dispose();
-		splitSDS.dispose();
 		clusterSDS.dispose();
 		parcelSDS.dispose();
 		morphoSDS.dispose();

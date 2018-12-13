@@ -1,8 +1,12 @@
 Faire un fichier de parcelles en sorties, différenciant les sous-parcelles et avec en attribut les règles appliquées provenant du predicate.csv.  
 
-certaines parcelles fondues puis redécoupées ont le même nom, ce n'est pas normal
+problème avec l'option splitParcel=true : attendre les nouvelles modifications.  
 
-toujours des problèmes avec certains import de routes (regarder ça avec Mickael)
+PARCELS
+
+Les marquages de zone débordent trop : améliorer la précision de l'opérateur géographique
+
+Implémenter un schéma clair (pour l'instant, je suis sur les parcelles U)
 
 
 INDICATORS

@@ -5,12 +5,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import com.vividsolutions.jts.geom.Geometry;
-
 import fr.ign.cogit.rules.regulation.ArtiScalesRegulation;
 import fr.ign.cogit.simplu3d.model.Environnement;
 import fr.ign.cogit.simplu3d.model.UrbaZone;
-import fr.ign.cogit.util.GetFromGeom;
 
 public class ZoneRulesAssociation {
 
