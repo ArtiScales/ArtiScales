@@ -175,7 +175,7 @@ public class GetFromGeom {
 				boolean au = false;
 				boolean nc = false;
 
-				for (String s : bigZoneinParcel(feat, regulFile)) {
+				for (String s : parcelInBigZone(feat, regulFile)) {
 					if (s.equals("AU")) {
 						au = true;
 					} else if (s.equals("U")) {
@@ -378,17 +378,43 @@ public class GetFromGeom {
 	}
 
 	/**
-	 * return the typezones that a parcels intersect
+	 * return a single TYPEZONE that a parcels intersect if the parcel intersects multiple, we select the one that covers the most area
 	 * 
 	 * @param parcelIn
 	 * @param regulFile
 	 * @return
 	 * @throws Exception
 	 */
-	public static List<String> bigZoneinParcel(SimpleFeature parcelIn, File regulFile) throws Exception {
+	public static String parcelInTypo(File regulFile, SimpleFeature parcelIn) throws Exception {
+		return null;
+	}
+	
+	/**
+	 * return a single TYPEZONE that a parcels intersect if the parcel intersects multiple, we select the one that covers the most area
+	 * 
+	 * @param parcelIn
+	 * @param regulFile
+	 * @return
+	 * @throws Exception
+	 */
+	public static String parcelInBigZone(File regulFile, SimpleFeature parcelIn) throws Exception {
+		return parcelInBigZone(parcelIn, regulFile).get(0);
+	}
+
+	/**
+	 * return the TYPEZONEs that a parcels intersect
+	 * 
+	 * @param parcelIn
+	 * @param regulFile
+	 * @return the multiple parcel intersected, sorted by area of occupation
+	 * @throws Exception
+	 */
+	public static List<String> parcelInBigZone(SimpleFeature parcelIn, File regulFile) throws Exception {
 		List<String> result = new ArrayList<String>();
 		ShapefileDataStore shpDSZone = new ShapefileDataStore(getZoning(regulFile).toURI().toURL());
-		SimpleFeatureIterator featuresZones = shpDSZone.getFeatureSource().getFeatures().features();
+		SimpleFeatureCollection shpDSZoneReduced = Vectors.snapDatas(shpDSZone.getFeatureSource().getFeatures(), (Geometry) parcelIn.getDefaultGeometry());
+		System.out.println("size " + shpDSZoneReduced.size()+". "+ parcelIn.getAttribute("CODE_COM")+ parcelIn.getAttribute("SECTION")+parcelIn.getAttribute("NUMERO"));
+		SimpleFeatureIterator featuresZones = shpDSZoneReduced.features();
 		try {
 			while (featuresZones.hasNext()) {
 				SimpleFeature feat = featuresZones.next();
@@ -396,20 +422,28 @@ public class GetFromGeom {
 					switch ((String) feat.getAttribute("TYPEZONE")) {
 					case "U":
 					case "ZC":
+						System.out.println("mmm here");
 						result.add("U");
-						continue;
+						result.remove("AU");
+						result.remove("NC");
+						break;
 					case "AU":
 						result.add("AU");
-						continue;
+						result.remove("U");
+						result.remove("NC");
+						break;
 					case "N":
 					case "NC":
 					case "A":
 						result.add("NC");
-						continue;
+						result.remove("AU");
+						result.remove("U");
+						break;
 					}
 				}
 				// maybe the parcel is in between two zones
 				else if (((Geometry) feat.getDefaultGeometry()).intersects((Geometry) parcelIn.getDefaultGeometry())) {
+					System.out.println(feat.getAttribute("TYPEZONE")+": should I ? ");
 					switch ((String) feat.getAttribute("TYPEZONE")) {
 					case "U":
 					case "ZC":
@@ -822,8 +856,8 @@ public class GetFromGeom {
 		ShapefileDataStore pSDS = new ShapefileDataStore(outU.toURI().toURL());
 		SimpleFeatureCollection pSFS = pSDS.getFeatureSource().getFeatures();
 
-		SimpleFeatureCollection splitedAUParcelsFile = VectorFct.splitParcels(pSFS, maximalArea, maximalWidth, roadEpsilon, noise, extBlock, decompositionLevelWithRoad, roadWidth, forceRoadAccess,
-				tmpFile, p);
+		SimpleFeatureCollection splitedAUParcelsFile = VectorFct.splitParcels(pSFS, maximalArea, maximalWidth, roadEpsilon, noise, extBlock, decompositionLevelWithRoad, roadWidth,
+				forceRoadAccess, tmpFile, p);
 
 		pSDS.dispose();
 

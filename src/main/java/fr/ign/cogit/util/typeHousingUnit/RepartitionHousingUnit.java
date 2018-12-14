@@ -12,6 +12,7 @@ import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.opengis.feature.simple.SimpleFeature;
 
+import fr.ign.cogit.util.GetFromGeom;
 import fr.ign.parameters.Parameters;
 
 public class RepartitionHousingUnit {
@@ -193,8 +194,39 @@ public class RepartitionHousingUnit {
 		return adjustDistribution(evalParcel, takenTypeHousingUnit, normalTypeHousingUnit, false);
 	}
 
+	public Parameters getRepartition(Parameters p, SimpleFeature parcel) throws Exception {
+		File profileBuildings = new File(this.getClass().getClassLoader().getResource("distributionHousingUnit").getFile());
+
+		String[] tabRepart = p.getString("useRepartition").split("_");
+
+		// possibilities of différent locations (pour l'instant, typo ou zone du PLU)
+		String[] diffTypo = { "rural", "periUrbain", "banlieue", "centre" };
+		String[] diffZones = { "U", "AU", "NC" };
+
+		String typo = GetFromGeom.parcelInBigZone(new File(p.getString("rootFile"),"dataRegul"),parcel);
+		
+		String zone = GetFromGeom.parcelInTypo(new File(p.getString("rootFile"),"dataRegul"),parcel); ;
+		
+		for (String s : tabRepart) {
+			// If the paramFile speak for a particular scenario
+			String[] scenarRepart = s.split(":");
+			// if its no longer than 1, no particular scénario
+			if (scenarRepart.length > 1) {
+				// if codes doesnt match, we continue with another one
+				if (!scenarRepart.equals(p.getString("code"))) {
+					continue;
+				}
+			}
+			// the different special locations
+			String[] locRepart = s.split("_");
+
+		}
+
+		return p;
+	}
+
 	public Parameters getParam(TypeHousingUnit type) throws Exception {
-		File profileBuildings = new File(this.getClass().getClassLoader().getResource("profileBuildings").getFile());
+		File profileBuildings = new File(this.getClass().getClassLoader().getResource("profileHousingUnit").getFile());
 		switch (type) {
 		case LOTHOUSE:
 			return Parameters.unmarshall(new File(profileBuildings, "lotHouse.xml"));

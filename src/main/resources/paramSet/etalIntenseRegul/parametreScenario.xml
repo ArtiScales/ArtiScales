@@ -5,6 +5,7 @@
 
 	<!-- Nom du scénario -->
 	<param key="nom" value="intenseRegulatedSpread" />
+	<param key="code" value="intReg" />
 
 	<!-- Dossiers et fichiers nécessaires à la simulation -->
 	<!-- Emplacement de la simulation (données d'entrée, résultats intermédiaires et finaux) -->
@@ -113,13 +114,11 @@
 			<param key="ELEMENT_PAYSAGE" value="true"/>
 			<param key="RECOIL" value="false"/>
 			<param key="TVB" value="false"/>
-			
-		<!--Pourcentage du type de logements construit -->
-		<param key="singleHouse" value="25" />
-		<param key="lotHouse" value="75" />
-		<param key="sharedHouse" value="0" />
-		<param key="smallDwelling" value="0" />
-		<param key="mediumDwelling" value="0" />
+		<!--Fichier utilisé contenant les différentes répartitions. Ces fichiers sont présents dans les ressources dans le dossier "resources/distributionHousingUnit" -->
+		<!--Il convient de mettre un "-" entre différents éléments devant caractériser cette zone (pour l'instant, la typologie de la commune et le type de zone du PLU) -->
+		<!--Il convient de mettre un "_" entre différentes zones -->		
+		<!--Il convient de mettre un ":" pour préciser un scénario à utiliser -->
+<param key="useRepartition" value="etal:rural-AU_periUrbain" />
 
 	<!--PARAMETRE DU MODULE BÂTIMENT À MÉNAGE (BUILDING TO HOUSEHOLD) -->
 
