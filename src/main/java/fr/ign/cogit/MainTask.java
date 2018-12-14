@@ -31,7 +31,7 @@ public class MainTask {
 		// general parameters
 
 		// list of different scenarios to test
-		List<Parameters> listScenarios = getParamFile("etalIntenseRegul", new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet"));
+		List<Parameters> listScenarios = getParamFile("periurbanisationIntenseRegule", new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet"));
 
 		// List<Parameters> listScenarios = getParamFile("scenar0MKDom", new File("/home/mbrasebin/Documents/Code/ArtiScales/ArtiScales/src/main/resources/paramSet/"));
 
