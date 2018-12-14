@@ -15,7 +15,6 @@ import org.geotools.factory.GeoTools;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
-import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
@@ -38,11 +37,8 @@ import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
 import fr.ign.cogit.geoxygene.api.spatial.geomaggr.IMultiCurve;
 import fr.ign.cogit.geoxygene.api.spatial.geomprim.IOrientableCurve;
 import fr.ign.cogit.geoxygene.convert.FromGeomToLineString;
-import fr.ign.cogit.geoxygene.feature.FT_FeatureCollection;
 import fr.ign.cogit.geoxygene.spatial.geomaggr.GM_MultiCurve;
-import fr.ign.cogit.geoxygene.util.conversion.GeOxygeneGeoToolsTypes;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileReader;
-import fr.ign.cogit.geoxygene.util.conversion.ShapefileWriter;
 import fr.ign.cogit.outputs.XmlGen;
 import fr.ign.cogit.util.DataPreparator;
 import fr.ign.cogit.util.GetFromGeom;
@@ -169,13 +165,13 @@ public class SelectParcels {
 				// Split parcel processes
 
 				// AU Parcels are generally merged and joined (for now, with the simple cut method)
-//				if (zAU) {
-//					parcelCollection = VectorFct.generateSplitedParcelsAU(parcelCollection, tmpFile, zoningFile, p);
-//				}
-//				if (zU) {
-//					// For each U parcel, we decide whether it can be cuted and how
-//					parcelCollection = VectorFct.generateSplitedParcelsU(parcelCollection, geoFile, p);
-//				}
+				if (zAU) {
+					parcelCollection = VectorFct.generateSplitedParcelsAU(parcelCollection, tmpFile, zoningFile, p);
+				}
+				// if (zU) {
+				// // For each U parcel, we decide whether it can be cuted and how
+				// parcelCollection = VectorFct.generateSplitedParcelsU(parcelCollection, geoFile, p);
+				// }
 
 				////// Packing the parcels for SimPLU3D distribution
 				File packFile = new File(rootFile, "ParcelSelectionFile/" + scenarName + "/" + varianteSpatialConf.getParentFile().getName() + "/");
@@ -436,7 +432,6 @@ public class SelectParcels {
 		} finally {
 			parcelIt.close();
 		}
-		shpDSCells.dispose();
 
 		Vectors.exportSFC(parcelToMerge.collection(), new File("/tmp/step1.shp"));
 		System.out.println("done step 1");
@@ -480,8 +475,7 @@ public class SelectParcels {
 
 		SimpleFeatureIterator bigParcelIt = mergedParcels.features();
 		DefaultFeatureCollection cutedParcels = new DefaultFeatureCollection();
-
-		int u = 0;
+		int izi = 0;
 		try {
 			while (bigParcelIt.hasNext()) {
 				SimpleFeature feat = bigParcelIt.next();
@@ -493,10 +487,11 @@ public class SelectParcels {
 					}
 					// we normal cut the parcel
 					else {
-						System.out.println(u++ + " on " + mergedParcels.size());
-						// TODO problem is here
+						// TODO c'est toujours ici que ça plante. L'ajout de certaines feature écrasent d'autre et je ne vois pas pour l'instant où il faut changer le nom.
 						SimpleFeatureCollection temp = VectorFct.generateSplitedParcels(feat, tmpFile, p);
 						cutedParcels.addAll(temp);
+						// temp
+						Vectors.exportSFC(temp, new File("/tmp/yopelo" + izi++ + ".shp"));
 					}
 				} else {
 					cutedParcels.add(feat);
@@ -508,8 +503,7 @@ public class SelectParcels {
 		} finally {
 			bigParcelIt.close();
 		}
-
-		Vectors.exportSFC(cutedParcels, new File("/tmp/step3.shp"));
+		Vectors.exportSFC(cutedParcels.collection(), new File("/tmp/step3.shp"));
 		System.out.println("done step 3");
 
 		////////////////
@@ -545,7 +539,7 @@ public class SelectParcels {
 
 				featureBuilder.set("U", false);
 				featureBuilder.set("AU", false);
-				featureBuilder.set("N", true);
+				featureBuilder.set("NC", true);
 
 				if (isParcelInCell(parcel, cellsSFS)) {
 					featureBuilder.set("DoWeSimul", "true");
@@ -561,6 +555,7 @@ public class SelectParcels {
 			parcelFinal.close();
 		}
 
+		shpDSCells.dispose();
 		shpDSCities.dispose();
 		shpDSCells.dispose();
 		Vectors.exportSFC(cutedParcels, new File("/tmp/step4.shp"));
@@ -647,7 +642,9 @@ public class SelectParcels {
 		return result;
 	}
 
-	public boolean isParcelInCell(SimpleFeature parcelIn, SimpleFeatureCollection cellsCollection) throws IOException, NoSuchAuthorityCodeException, FactoryException {
+	public boolean isParcelInCell(SimpleFeature parcelIn, SimpleFeatureCollection cellsCollection) throws Exception {
+
+		cellsCollection = Vectors.snapDatas(cellsCollection, (Geometry) parcelIn.getDefaultGeometry());
 
 		// import of the cells of MUP-City outputs
 		SimpleFeatureIterator cellsCollectionIt = cellsCollection.features();
@@ -774,6 +771,7 @@ public class SelectParcels {
 
 		ShapefileDataStore shpDSBati = new ShapefileDataStore(zoningFile.toURI().toURL());
 		SimpleFeatureCollection batiCollection = shpDSBati.getFeatureSource().getFeatures();
+		batiCollection = Vectors.snapDatas(batiCollection, (Geometry) parcelIn.getDefaultGeometry());
 		Geometry emprise = Vectors.unionSFC(batiCollection);
 
 		return isParcelBuilt(parcelIn, emprise);
@@ -883,6 +881,7 @@ public class SelectParcels {
 
 				File fBBox = new File(pack, "bbox.shp");
 
+				// TODO là aussi on a un bug (pas tout le temps) mais je ne me suis pas encore penché dessus
 				Vectors.exportGeom(Vectors.unionSFC(parcelPackCollec), fBBox);
 				parcelPackSDS.dispose();
 

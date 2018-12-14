@@ -51,7 +51,7 @@ public class VectorFct {
 
 	public static void main(String[] args) throws Exception {
 
-		File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/etalIntenseRegul");
+		File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/periurbanisationIntenseRegule");
 		List<File> lF = new ArrayList<>();
 		lF.add(new File(rootParam, "parametreTechnique.xml"));
 		lF.add(new File(rootParam, "parametreScenario.xml"));
@@ -61,7 +61,7 @@ public class VectorFct {
 		File tmpFile = new File("/tmp");
 
 		ShapefileDataStore shpDSZone = new ShapefileDataStore(
-				new File("/home/mcolomb/informatique/ArtiScales2/ParcelSelectionFile/intenseRegulatedSpread/variant0/parcelGenExport.shp").toURI().toURL());
+				new File("/home/mcolomb/informatique/ArtiScales2/ParcelSelectionFile/periurbanisationIntenseRegule/variant0/parcelGenExport.shp").toURI().toURL());
 		SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
 		SimpleFeatureIterator it = featuresZones.features();
 		SimpleFeature waiting = null;
@@ -423,16 +423,14 @@ public class VectorFct {
 					+ (parcelIn.getAttribute("SECTION").toString());
 		} else if (parcelIn.getAttribute("NUMERO") != null) {
 			numParcelValue = parcelIn.getAttribute("NUMERO").toString();
-		} else {
-			System.out.println("VectorFct : Other type of parcel");
-		}
+		} 
 		Object[] attr = { numParcelValue, parcelIn.getAttribute("CODE_DEP"), parcelIn.getAttribute("CODE_COM"), parcelIn.getAttribute("COM_ABS"), parcelIn.getAttribute("SECTION"),
 				parcelIn.getAttribute("NUMERO"), parcelIn.getAttribute("INSEE"), parcelIn.getAttribute("eval"), parcelIn.getAttribute("DoWeSimul"), 1 };
 
 		sfBuilder.add(parcelIn.getDefaultGeometry());
-		toSplit.add(sfBuilder.buildFeature(String.valueOf(0), attr));
+		toSplit.add(sfBuilder.buildFeature("0", attr));
 
-		return splitParcels(toSplit, maximalArea, maximalWidth, epsilon, 0, extBlock, decompositionLevelWithRoad, roadWidth, true, tmpFile, p);
+		return splitParcels(toSplit, maximalArea, maximalWidth, epsilon, 0, extBlock, decompositionLevelWithRoad, roadWidth, forceRoadAccess, tmpFile, p);
 
 	}
 
@@ -516,9 +514,7 @@ public class VectorFct {
 							+ (feat.getAttribute("SECTION").toString());
 				} else if (feat.getAttribute("NUMERO") != null) {
 					numParcelValue = feat.getAttribute("NUMERO").toString();
-				} else {
-					System.out.println("VectorFct : Other type of parcel : " + feat.getAttribute(1));
-				}
+				} 
 				Object[] attr = { numParcelValue, feat.getAttribute("CODE_DEP"), feat.getAttribute("CODE_COM"), feat.getAttribute("COM_ABS"), feat.getAttribute("SECTION"),
 						feat.getAttribute("NUMERO"), feat.getAttribute("INSEE"), feat.getAttribute("eval"), feat.getAttribute("DoWeSimul"), 0 };
 
@@ -559,13 +555,10 @@ public class VectorFct {
 	public static SimpleFeatureCollection splitParcels(SimpleFeatureCollection toSplit, double maximalArea, double maximalWidth, double roadEpsilon, double noise,
 			IMultiCurve<IOrientableCurve> extBlock, int decompositionLevelWithRoad, double roadWidth, boolean forceRoadAccess, File tmpFile, Parameters p) throws Exception {
 
-		System.out.println("start splitting");
-
 		String attNameToTransform = "SPLIT";
 
 		File shpIn = new File(tmpFile, "temp-In.shp");
 
-		Vectors.exportSFC(toSplit, shpIn);
 		IFeatureCollection<?> ifeatColl = ShapefileReader.read(shpIn.toString());
 		IFeatureCollection<IFeature> ifeatCollOut = new FT_FeatureCollection<IFeature>();
 		for (IFeature feat : ifeatColl) {
@@ -584,7 +577,6 @@ public class VectorFct {
 
 			OBBBlockDecomposition obb = new OBBBlockDecomposition(pol, maximalArea, maximalWidth, roadEpsilon, extBlock, decompositionLevelWithRoad, roadWidth, forceRoadAccess);
 
-			// TODO erreures récurentes sur le split
 			try {
 				IFeatureCollection<IFeature> featCollDecomp = obb.decompParcel(noise);
 				for (IFeature featDecomp : featCollDecomp) {
@@ -619,8 +611,17 @@ public class VectorFct {
 
 		File fileOut = new File(tmpFile, "tmp_split.shp");
 		ShapefileWriter.write(ifeatCollOut, fileOut.toString(), CRS.decode("EPSG:2154"));
-
-		return GeOxygeneGeoToolsTypes.convert2FeatureCollection(ifeatCollOut, CRS.decode("EPSG:2154"));
+		
+		//TODO that's an ugly thing, i thought i could go without it, but apparently it seems like my only option to get it done
+		//return GeOxygeneGeoToolsTypes.convert2FeatureCollection(ifeatCollOut, CRS.decode("EPSG:2154"));
+		
+		ShapefileDataStore sds = new ShapefileDataStore(fileOut.toURI().toURL());
+		SimpleFeatureCollection parcelUnclean = sds.getFeatureSource().getFeatures();
+		sds.dispose();
+		return parcelUnclean;
+		
+		
+		
 	}
 
 	/**
@@ -659,6 +660,18 @@ public class VectorFct {
 
 		if (((Geometry) parcelIn.getDefaultGeometry()).getArea() > 5000) {
 			decompositionLevelWithRoad = 2;
+		}
+		else if (((Geometry) parcelIn.getDefaultGeometry()).getArea() > 75000) {
+			decompositionLevelWithRoad = 3;
+		}
+		else if (((Geometry) parcelIn.getDefaultGeometry()).getArea() > 15000) {
+			decompositionLevelWithRoad = 4;
+		}
+		else if (((Geometry) parcelIn.getDefaultGeometry()).getArea() > 25000) {
+			decompositionLevelWithRoad = 5;
+		}
+		else if (((Geometry) parcelIn.getDefaultGeometry()).getArea() > 50000) {
+			decompositionLevelWithRoad = 6;
 		}
 		return decompositionLevelWithRoad;
 	}

@@ -356,6 +356,7 @@ public class GetFromGeom {
 	public static String getInseeFromParcel(SimpleFeatureCollection cities, SimpleFeature parcel) {
 		SimpleFeature City = null;
 		SimpleFeatureIterator citIt = cities.features();
+		String cityInsee = "00000";
 		try {
 			while (citIt.hasNext()) {
 				SimpleFeature cit = citIt.next();
@@ -374,7 +375,11 @@ public class GetFromGeom {
 		} finally {
 			citIt.close();
 		}
-		return (String) City.getAttribute("INSEE");
+
+		if (((String) City.getAttribute("DEPCOM")) != null || ((String) City.getAttribute("DEPCOM")) != "") {
+			cityInsee = (String) City.getAttribute("DEPCOM");
+		}
+		return cityInsee;
 	}
 
 	/**
@@ -385,12 +390,96 @@ public class GetFromGeom {
 	 * @return
 	 * @throws Exception
 	 */
-	public static String parcelInTypo(File regulFile, SimpleFeature parcelIn) throws Exception {
-		return null;
+	public static String parcelInTypo(File geoFile, SimpleFeature parcelIn) throws Exception {
+		return parcelInTypo(parcelIn, geoFile).get(0);
 	}
-	
+
 	/**
-	 * return a single TYPEZONE that a parcels intersect if the parcel intersects multiple, we select the one that covers the most area
+	 * return the TYPEZONEs that a parcels intersect
+	 * 
+	 * @param parcelIn
+	 * @param regulFile
+	 * @return the multiple parcel intersected, sorted by area of occupation
+	 * @throws Exception
+	 */
+	public static List<String> parcelInTypo(SimpleFeature parcelIn, File geoFile) throws Exception {
+		List<String> result = new ArrayList<String>();
+		ShapefileDataStore shpDSZone = new ShapefileDataStore(getCities(geoFile).toURI().toURL());
+		SimpleFeatureCollection shpDSZoneReduced = Vectors.snapDatas(shpDSZone.getFeatureSource().getFeatures(), (Geometry) parcelIn.getDefaultGeometry());
+
+		SimpleFeatureIterator featuresZones = shpDSZoneReduced.features();
+		try {
+			zone: while (featuresZones.hasNext()) {
+				SimpleFeature feat = featuresZones.next();
+				// TODO if same bigzone in two different libelle, won't fall into that trap
+				if (((Geometry) feat.getDefaultGeometry()).buffer(1).contains((Geometry) parcelIn.getDefaultGeometry())) {
+					switch ((String) feat.getAttribute("typo")) {
+					case "rural":
+						result.add("rural");
+						result.remove("periUrbain");
+						result.remove("banlieue");
+						result.remove("centre");
+						break zone;
+					case "periUrbain":
+						result.add("periUrbain");
+						result.remove("rural");
+						result.remove("banlieue");
+						result.remove("centre");
+						break zone;
+					case "banlieue":
+						result.add("banlieue");
+						result.remove("rural");
+						result.remove("periUrbain");
+						result.remove("centre");
+						break zone;
+					case "centre":
+						result.add("centre");
+						result.remove("rural");
+						result.remove("periUrbain");
+						result.remove("banlieue");
+						break zone;
+					}
+				}
+				// maybe the parcel is in between two cities (that must be rare)
+				else if (((Geometry) feat.getDefaultGeometry()).intersects((Geometry) parcelIn.getDefaultGeometry())) {
+					switch ((String) feat.getAttribute("TYPEZONE")) {
+					case "rural":
+						result.add("rural");
+						break zone;
+					case "periUrbain":
+						result.add("periUrbain");
+						break zone;
+					case "banlieue":
+						result.add("banlieue");
+						break zone;
+					case "centre":
+						result.add("centre");
+						break zone;
+					}
+				}
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			featuresZones.close();
+		}
+
+		// TODO sort from the most represented to the less
+		if (result.size() > 1) {
+			System.out.println("parcel " + parcelIn.getAttribute("CODE_COM") + parcelIn.getAttribute("SECTION") + parcelIn.getAttribute("NUMERO")
+					+ "is IN BETWEEN TWO CITIES OF DIFFERENT TYPOLOGIES");
+			System.out.println("thats very rare");
+			System.out.println("we randomly use " + result.get(0));
+		}
+
+		shpDSZone.dispose();
+
+		return result;
+
+	}
+
+	/**
+	 * return a single TYPEZONE that a parcels intersect if the parcel intersects multiple, we select the one that covers the most area TODO for now, it's random
 	 * 
 	 * @param parcelIn
 	 * @param regulFile
@@ -413,7 +502,6 @@ public class GetFromGeom {
 		List<String> result = new ArrayList<String>();
 		ShapefileDataStore shpDSZone = new ShapefileDataStore(getZoning(regulFile).toURI().toURL());
 		SimpleFeatureCollection shpDSZoneReduced = Vectors.snapDatas(shpDSZone.getFeatureSource().getFeatures(), (Geometry) parcelIn.getDefaultGeometry());
-		System.out.println("size " + shpDSZoneReduced.size()+". "+ parcelIn.getAttribute("CODE_COM")+ parcelIn.getAttribute("SECTION")+parcelIn.getAttribute("NUMERO"));
 		SimpleFeatureIterator featuresZones = shpDSZoneReduced.features();
 		try {
 			while (featuresZones.hasNext()) {
@@ -422,7 +510,6 @@ public class GetFromGeom {
 					switch ((String) feat.getAttribute("TYPEZONE")) {
 					case "U":
 					case "ZC":
-						System.out.println("mmm here");
 						result.add("U");
 						result.remove("AU");
 						result.remove("NC");
@@ -443,7 +530,6 @@ public class GetFromGeom {
 				}
 				// maybe the parcel is in between two zones
 				else if (((Geometry) feat.getDefaultGeometry()).intersects((Geometry) parcelIn.getDefaultGeometry())) {
-					System.out.println(feat.getAttribute("TYPEZONE")+": should I ? ");
 					switch ((String) feat.getAttribute("TYPEZONE")) {
 					case "U":
 					case "ZC":

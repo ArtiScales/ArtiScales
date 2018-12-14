@@ -199,29 +199,31 @@ public class RepartitionHousingUnit {
 
 		String[] tabRepart = p.getString("useRepartition").split("_");
 
-		// possibilities of différent locations (pour l'instant, typo ou zone du PLU)
-		String[] diffTypo = { "rural", "periUrbain", "banlieue", "centre" };
-		String[] diffZones = { "U", "AU", "NC" };
-
 		String typo = GetFromGeom.parcelInBigZone(new File(p.getString("rootFile"),"dataRegul"),parcel);
 		
-		String zone = GetFromGeom.parcelInTypo(new File(p.getString("rootFile"),"dataRegul"),parcel); ;
-		
+		String zone = GetFromGeom.parcelInTypo(new File(p.getString("rootFile"),"dataGeo"),parcel); ;
+		Parameters addParam = null;
+		//TODO finish to code that
 		for (String s : tabRepart) {
 			// If the paramFile speak for a particular scenario
 			String[] scenarRepart = s.split(":");
 			// if its no longer than 1, no particular scénario
 			if (scenarRepart.length > 1) {
 				// if codes doesnt match, we continue with another one
-				if (!scenarRepart.equals(p.getString("code"))) {
+				if (!scenarRepart[0].equals(p.getString("code"))) {
 					continue;
 				}
 			}
 			// the different special locations
-			String[] locRepart = s.split("_");
-
+			String[] locRepart = s.split("-");
+			for (String st : locRepart) {
+				if (st.contains(typo) || st.contains(zone));
+			}
+			
+			for (File f : profileBuildings.listFiles()) {
 		}
-
+		}
+		p.add(addParam);
 		return p;
 	}
 
