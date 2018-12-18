@@ -13,7 +13,7 @@ Valeur maximale de hauteur en m ou en nombre d'étages (88= non renseignable, 99
 ### art_101
 
 Cette valeur fixe la modalité de calcul de la hauteur. Plusieurs valeurs sont possibles mais se résument à trois cas :
-- Pour la valeur **1** : la hauteur maximale est considérée comme un nombre d'étage et la hauteur calculée en m à partir de la valeur du fichier parametreScenario.xml (heightStair) [ **{{art_10_top}}** * heightStair ] ;
+- Pour la valeur **1** : la hauteur maximale est considérée comme un nombre d'étage et la hauteur calculée en m à partir de la valeur du fichier parametreScenario.xml (heightStorey) [ **{{art_10_top}}** * heightStorey ] ;
 - Pour les valeurs **2 - 5** : la hauteur maximale est calculée en m à partir de la valeur  **{{art_10_top}}** ;
 - Pour les valeurs **6 - 8** : les hauteurs maximales sont évaluées à partir des hauteurs des bâtiments voisins. Les hauteurs maximales et minimales des boîtes sont fixés comme étant à 90% et 110% dans un rayon de 50 m. S'il n'y a pas de bâtiments autour la hauteur maximale est évaluée en fonction de l'attribut **{{art_10_top}}** considéré comme en m.
 

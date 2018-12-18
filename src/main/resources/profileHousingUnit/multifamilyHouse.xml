@@ -2,25 +2,26 @@
 <!--Paramètres par défaut des différents types de bâtiments simulés -->
 	<!-- Largeur -->
 	<param key="minlen" value="7" />
-	<param key="maxlen" value="10" />
+	<param key="maxlen" value="15" />
 	<!-- Longueur -->
 	<param key="minwid" value="7" />
 	<param key="maxwid" value="15" />
 	<!-- Hauteur -->
-	<param key="minheight" value="3" />
-	<param key="maxheight" value="7" />
+	<param key="minheight" value="7" />
+	<param key="maxheight" value="14" />
 
 	<!-- Fonction d'optimisation (pas (encore) utilisée) -->
 	<param key="fctOpt" value="" />
 
 	<!-- Si "true", l'intersection entre les cuboïdes est permise -->
-	<param key="intersection" value="false" />
+	<param key="intersection" value="true" />
 
 	<!-- Nombre de cuboïde maximal -->
-	<param key="nbCuboid" value="1" />
-
+	<param key="nbCuboid" value="4" />
 	<!-- Surface maximale pour un bâtiment -->
-	<param key="areaMax" value="150" />
+	<param key="areaMax" value="700" />
 	<!-- Surface miniale pour un bâtiment -->
-	<param key="areaMin" value="70" />
+	<param key="areaMin" value="400" />
 </parameters>
+
+

@@ -424,7 +424,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		// 5 hauteur à l'égout (pour l'instant la même que le 1 vu que l'on ne prends
 		// pas en compte les toits)
 		case 1:
-			max = h * p.getDouble("heightStair");
+			max = h * p.getDouble("heightStorey");
 			break;
 		// hauteur en metre
 		case 2:
@@ -446,7 +446,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 			}
 			// si pas de batiments aux alentours, on se rabat sur différentes options
 			else if (regle.getArt_10_top() == 8) {
-				max = h * p.getDouble("heightStair");
+				max = h * p.getDouble("heightStorey");
 			} else if (h != 0 || h != 99) {
 				max = h;
 			} else {
@@ -562,7 +562,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		double builtArea = assesBuiltArea(lAllCuboids);
 
 		// Buildings height is used to assess SDP
-		SDPCalc c = new SDPCalc(p.getInteger("heightStair"));
+		SDPCalc c = new SDPCalc(p.getInteger("heightStorey"));
 
 		// We assess the SHON
 		double shon = c.process(lAllCuboids);

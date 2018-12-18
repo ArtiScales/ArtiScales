@@ -125,7 +125,7 @@
 		<!-- Taille moyenne d'un logement -->
 		<param key="HousingUnitSize" value="70" />
 		<!-- Taille moyenne d'un étage -->
-		<param key="heightStair" value="3" />
+		<param key="heightStorey" value="3.5" />
 		<!-- Taille moyenne d'une place de parking --> 
 		<param key="surfPlaceParking" value="25" />
 		<!-- Largeur des accessibilitées des parcelles aux routes -->

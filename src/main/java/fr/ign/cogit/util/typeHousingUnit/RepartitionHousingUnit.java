@@ -30,19 +30,19 @@ public class RepartitionHousingUnit {
 		HashMap<TypeHousingUnit, Double> rep = new HashMap<TypeHousingUnit, Double>();
 
 		pSingleHouses = p.getDouble("singleHouse");
-		rep.put(TypeHousingUnit.SINGLEHOUSE, pSingleHouses);
+		rep.put(TypeHousingUnit.DETACHEDHOUSE, pSingleHouses);
 
 		pLotHouse = p.getDouble("lotHouse");
-		rep.put(TypeHousingUnit.LOTHOUSE, pLotHouse);
+		rep.put(TypeHousingUnit.SMALLHOUSE, pLotHouse);
 
 		pSharedHouse = p.getDouble("sharedHouse");
-		rep.put(TypeHousingUnit.SHAREDHOUSE, pSharedHouse);
+		rep.put(TypeHousingUnit.MULTIFAMILYHOUSE, pSharedHouse);
 
 		pSmallDwelling = p.getDouble("smallDwelling");
-		rep.put(TypeHousingUnit.SMALLDWELLING, pSmallDwelling);
+		rep.put(TypeHousingUnit.SMALLBLOCKFLAT, pSmallDwelling);
 
 		pMediumDwelling = p.getDouble("mediumDwelling");
-		rep.put(TypeHousingUnit.MEDIUMDWELLING, pMediumDwelling);
+		rep.put(TypeHousingUnit.MIDBLOCKFLATS, pMediumDwelling);
 
 		if ((pSingleHouses + pLotHouse + pSharedHouse + pSmallDwelling + pMediumDwelling) != 100.0) {
 			System.out.println("there's a sum probleme here (yes, I know how to count to 100)");
@@ -90,11 +90,11 @@ public class RepartitionHousingUnit {
 				+ distribEval.getPercentile(pLotHouse + pSingleHouses + pSharedHouse + pSharedHouse + pSmallDwelling + pMediumDwelling);
 
 		HashMap<TypeHousingUnit, String> distrib = new HashMap<TypeHousingUnit, String>();
-		distrib.put(TypeHousingUnit.LOTHOUSE, distribLotHouse);
-		distrib.put(TypeHousingUnit.SINGLEHOUSE, distribSingleHouse);
-		distrib.put(TypeHousingUnit.SHAREDHOUSE, distribSharedHouse);
-		distrib.put(TypeHousingUnit.SMALLDWELLING, distribSmallDwelling);
-		distrib.put(TypeHousingUnit.MEDIUMDWELLING, distribMediumDwelling);
+		distrib.put(TypeHousingUnit.SMALLHOUSE, distribLotHouse);
+		distrib.put(TypeHousingUnit.DETACHEDHOUSE, distribSingleHouse);
+		distrib.put(TypeHousingUnit.MULTIFAMILYHOUSE, distribSharedHouse);
+		distrib.put(TypeHousingUnit.SMALLBLOCKFLAT, distribSmallDwelling);
+		distrib.put(TypeHousingUnit.MIDBLOCKFLATS, distribMediumDwelling);
 		distribution = distrib;
 	}
 
@@ -230,16 +230,16 @@ public class RepartitionHousingUnit {
 	public Parameters getParam(TypeHousingUnit type) throws Exception {
 		File profileBuildings = new File(this.getClass().getClassLoader().getResource("profileHousingUnit").getFile());
 		switch (type) {
-		case LOTHOUSE:
-			return Parameters.unmarshall(new File(profileBuildings, "lotHouse.xml"));
-		case SINGLEHOUSE:
-			return Parameters.unmarshall(new File(profileBuildings, "singleHouse.xml"));
-		case SHAREDHOUSE:
-			return Parameters.unmarshall(new File(profileBuildings, "sharedHouse.xml"));
-		case MEDIUMDWELLING:
-			return Parameters.unmarshall(new File(profileBuildings, "mediumDwelling.xml"));
-		case SMALLDWELLING:
-			return Parameters.unmarshall(new File(profileBuildings, "smallDwelling.xml"));
+		case DETACHEDHOUSE:
+			return Parameters.unmarshall(new File(profileBuildings, "detachedHouse.xml"));
+		case SMALLHOUSE:
+			return Parameters.unmarshall(new File(profileBuildings, "smallHouse.xml"));
+		case MULTIFAMILYHOUSE:
+			return Parameters.unmarshall(new File(profileBuildings, "multifamilyHouse.xml"));
+		case MIDBLOCKFLATS:
+			return Parameters.unmarshall(new File(profileBuildings, "midBlockFlat.xml"));
+		case SMALLBLOCKFLAT:
+			return Parameters.unmarshall(new File(profileBuildings, "smallBlockFlat.xml"));
 		}
 		throw new Exception("no parameter file found");
 	}
@@ -248,17 +248,17 @@ public class RepartitionHousingUnit {
 		TypeHousingUnit result = null;
 
 		switch (fType) {
-		case LOTHOUSE:
-			result = TypeHousingUnit.SINGLEHOUSE;
-		case SINGLEHOUSE:
-			result = TypeHousingUnit.SHAREDHOUSE;
-		case SHAREDHOUSE:
-			result = TypeHousingUnit.SMALLDWELLING;
-		case SMALLDWELLING:
-			result = TypeHousingUnit.MEDIUMDWELLING;
+		case DETACHEDHOUSE:
+			result = TypeHousingUnit.SMALLHOUSE;
+		case SMALLHOUSE:
+			result = TypeHousingUnit.MULTIFAMILYHOUSE;
+		case MULTIFAMILYHOUSE:
+			result = TypeHousingUnit.SMALLBLOCKFLAT;
+		case SMALLBLOCKFLAT:
+			result = TypeHousingUnit.MIDBLOCKFLATS;
 		default:
 			System.out.println("ain't got nothing bigger");
-			result = TypeHousingUnit.MEDIUMDWELLING;
+			result = TypeHousingUnit.MIDBLOCKFLATS;
 		}
 		// if the type is not in the prediction, we don't return it
 		if (repartition.get(result) == 0.0) {
@@ -271,17 +271,17 @@ public class RepartitionHousingUnit {
 		TypeHousingUnit result = null;
 
 		switch (fType) {
-		case SINGLEHOUSE:
-			result = TypeHousingUnit.LOTHOUSE;
-		case SHAREDHOUSE:
-			result = TypeHousingUnit.SINGLEHOUSE;
-		case SMALLDWELLING:
-			result = TypeHousingUnit.SHAREDHOUSE;
-		case MEDIUMDWELLING:
-			result = TypeHousingUnit.SMALLDWELLING;
+		case SMALLHOUSE:
+			result = TypeHousingUnit.DETACHEDHOUSE;
+		case MULTIFAMILYHOUSE:
+			result = TypeHousingUnit.SMALLHOUSE;
+		case SMALLBLOCKFLAT:
+			result = TypeHousingUnit.MULTIFAMILYHOUSE;
+		case MIDBLOCKFLATS:
+			result = TypeHousingUnit.SMALLBLOCKFLAT;
 		default:
 			System.out.println("ain't got nothing smaller");
-			result = TypeHousingUnit.LOTHOUSE;
+			result = TypeHousingUnit.SMALLHOUSE;
 		}
 
 		// if the type is not in the prediction, we don't return it
@@ -304,7 +304,7 @@ public class RepartitionHousingUnit {
 				new File("/home/mcolomb/informatique/ArtiScales2/ParcelSelectionFile/intenseRegulatedSpread/variant0/parcelGenExport.shp"));
 		System.out.println(u.rangeInterest(0.52));
 		System.out.println(u.distribution);
-		System.out.println(u.adjustDistribution(0.35285416, TypeHousingUnit.SHAREDHOUSE, false));
+		System.out.println(u.adjustDistribution(0.35285416, TypeHousingUnit.MULTIFAMILYHOUSE, false));
 
 	}
 
