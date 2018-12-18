@@ -43,8 +43,8 @@ public class ParcelStat extends Indicators {
 	public static void main(String[] args) throws Exception {
 		File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/scenar0MCIgn");
 		List<File> lF = new ArrayList<>();
-		lF.add(new File(rootParam, "parametreTechnique.xml"));
-		lF.add(new File(rootParam, "parametreScenario.xml"));
+		lF.add(new File(rootParam, "parameterTechnic.xml"));
+		lF.add(new File(rootParam, "parameterScenario.xml"));
 
 		Parameters p = Parameters.unmarshall(lF);
 

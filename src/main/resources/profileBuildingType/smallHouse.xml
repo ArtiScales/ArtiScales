@@ -1,0 +1,41 @@
+<parameters>
+<!--Paramètres par défaut du découpage de parcelle -->
+
+
+
+<!--Paramètres par défaut des différents types de bâtiments simulés -->
+	<!-- Largeur -->
+	<param key="minlen" value="7" />
+	<param key="maxlen" value="17" />
+	<!-- Longueur -->
+	<param key="minwid" value="7" />
+	<param key="maxwid" value="17" />
+	<!-- Hauteur -->
+	<param key="minheight" value="3.5" />
+	<param key="maxheight" value="7" />
+
+	<!-- Fonction d'optimisation (pas (encore) utilisée) -->
+	<param key="fctOpt" value="" />
+
+	<!-- Si "true", l'intersection entre les cuboïdes est permise -->
+	<param key="intersection" value="false" />
+
+	<!-- Nombre de boites maximal composant un bâtiment -->
+	<param key="nbCuboid" value="3" />
+
+	<!-- Surface de plancher maximale pour un bâtiment -->
+	<param key="areaMax" value="210" />
+	<!-- Surface miniale pour un bâtiment -->
+	<param key="areaMin" value="49" />
+
+	<!-- Nombre d'étage du bâtiment à partir duquel le dernier étage est en attique (si 99, ne s'applique pas) -->
+	<param key="nbStoreysAttic" value="99" />
+
+
+<!--Paramètres par défaut des différents logements inclus dans les bâtiments simulés -->
+	<!-- Nombre minimum de logement par bâtiment -->
+	<param key="areaMin" value="1" />
+	<!-- Nombre maximum de logement par bâtiment -->
+	<param key="areaMin" value="1" />
+
+</parameters>

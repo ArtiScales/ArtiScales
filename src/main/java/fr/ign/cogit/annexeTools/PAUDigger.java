@@ -49,11 +49,13 @@ public class PAUDigger {
 
 		DirectPosition.PRECISION = 4;
 
+		File rootFile = new File("/home/mcolomb/informatique/ArtiScales/");
+		
 		File outFile = new File("/media/mcolomb/Data_2/donnee/DocLocal/");
 
 		File buildFile = new File("/media/mcolomb/Data_2/donnee/autom/besac2/dataIn/bati/BATI_INDIFFERENCIE.SHP");
-		File parcelFile = new File("/home/mcolomb/informatique/ArtiScales/donneeGeographiques/parcelle.shp");
-		File morphoLimFile = new File("/home/mcolomb/informatique/ArtiScales/donneeGeographiques/PAU-morpholimEnv.shp");
+		File parcelFile = new File(rootFile,"geoData/parcel.shp");
+		File morphoLimFile = new File(rootFile,"geoData/PAU-morpholimEnv.shp");
 
 		File rnuCityFiles = new File("/media/mcolomb/Data_2/donnee/DocLocal/communesRNU.shp");
 
@@ -68,9 +70,11 @@ public class PAUDigger {
 		SimpleFeatureCollection nUSFC = nUSDS.getFeatureSource().getFeatures();
 		Geometry unionNU = Vectors.unionSFC(nUSFC);
 
+		
+		
 		// limits
-		File roadFile = new File("/home/mcolomb/informatique/ArtiScales/donneeGeographiques/rroute.shp");
-		File riverFile = new File("/home/mcolomb/informatique/ArtiScales/donneeGeographiques/eau.shp");
+		File roadFile = new File(rootFile,"dataGeo/roadPAU.shp");
+		File riverFile = new File(rootFile,"dataGeo/river.shp");
 		File railFile = new File("/media/mcolomb/Data_2/donnee/autom/besac2/dataIn/train/TRONCON_VOIE_FERREE.shp");
 
 		File[] buildResult = prepareClusterBuild(buildFile);

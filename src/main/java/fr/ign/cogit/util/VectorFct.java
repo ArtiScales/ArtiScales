@@ -53,8 +53,8 @@ public class VectorFct {
 
 		File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/periurbanisationIntenseRegule");
 		List<File> lF = new ArrayList<>();
-		lF.add(new File(rootParam, "parametreTechnique.xml"));
-		lF.add(new File(rootParam, "parametreScenario.xml"));
+		lF.add(new File(rootParam, "parameterTechnic.xml"));
+		lF.add(new File(rootParam, "parameterScenario.xml"));
 
 		Parameters p = Parameters.unmarshall(lF);
 
@@ -399,7 +399,7 @@ public class VectorFct {
 			return null;
 		}
 
-		FlagParcelDecomposition fpd = new FlagParcelDecomposition((IPolygon) surfaces.get(0), ShapefileReader.read(GetFromGeom.getBati(geoFile).getAbsolutePath()),
+		FlagParcelDecomposition fpd = new FlagParcelDecomposition((IPolygon) surfaces.get(0), ShapefileReader.read(GetFromGeom.getBuild(geoFile).getAbsolutePath()),
 				p.getDouble("maximalAreaSplitParcel"), p.getDouble("maximalWidthSplitParcel"), p.getDouble("largeurRouteAccess"), iMultiCurve);
 		IFeatureCollection<IFeature> decomp = fpd.decompParcel(0);
 		return GeOxygeneGeoToolsTypes.convert2FeatureCollection(decomp);

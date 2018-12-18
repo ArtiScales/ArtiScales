@@ -583,7 +583,7 @@ public class FakeWorldGenerator {
 
 		in.close();
 		new File ( folderOut + "/geoSnap").mkdirs();
-		ShapefileWriter.write(parcels, folderOut + "parcelle.shp");
+		ShapefileWriter.write(parcels, folderOut + "parcel.shp");
 		ShapefileWriter.write(buildings, folderOut + "/geoSnap/building.shp");
 		ShapefileWriter.write(zones, folderOut + "/geoSnap/zoning.shp");
 		ShapefileWriter.write(roads, folderOut + "/geoSnap/road.shp");

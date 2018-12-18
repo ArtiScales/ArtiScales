@@ -7,7 +7,7 @@
 
 ## Paramètres
 
-La manière de prendre en compte cette zone peut être différenciée en fonction de la valeur de **{{TYPEPSC}}** définie dans le fichier (prescXXXRegroupe.shp)
+La manière de prendre en compte cette zone peut être différenciée en fonction de la valeur de **{{TYPEPSC}}** définie dans le fichier (prescXXX.shp)
 
 ## Explications
 

@@ -1,8 +1,0 @@
-<parameters>
-	<!--Pourcentage du type de logements construit -->
-	<param key="singleHouse" value="25" />
-	<param key="lotHouse" value="25" />
-	<param key="sharedHouse" value="50" />
-	<param key="smallDwelling" value="0" />
-	<param key="mediumDwelling" value="0" />
-</parameters>

@@ -37,7 +37,7 @@ public class MainTask {
 
 		rootFile = new File(listScenarios.get(0).getString("rootFile"));
 		geoFile = new File(rootFile, "dataGeo");
-		regulFile = new File(rootFile, "dataRegul");
+		regulFile = new File(rootFile, "dataRegulation");
 		// kind verification
 		if (!rootFile.exists() || !geoFile.exists() || !regulFile.exists()) {
 			System.out.println("please check the file setting in the parameter file ");
@@ -210,7 +210,7 @@ public class MainTask {
 		for (File folder : fIn.listFiles()) {
 			if (folder.isDirectory()) {
 				for (File paramFile : folder.listFiles()) {
-					if (paramFile.getName().contains("parametre")) {
+					if (paramFile.getName().contains("parameter")) {
 						List<File> templistFile = new ArrayList<File>();
 						templistFile.add(paramFile);
 						templistFile.add(paramFile);
@@ -228,7 +228,7 @@ public class MainTask {
 			if (folder.isDirectory() && folder.getName().contains(nameComputer)) {
 				List<File> templistFile = new ArrayList<File>();
 				for (File paramFile : folder.listFiles()) {
-					if (paramFile.getName().contains("parametre")) {
+					if (paramFile.getName().contains("parameter")) {
 						templistFile.add(paramFile);
 					}
 				}

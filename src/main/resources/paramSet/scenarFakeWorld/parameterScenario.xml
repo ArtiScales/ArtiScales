@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<parameters>
+
+<!--PARAMÈTRES SCÉNARISTIQUES POUR LES SIMULATIONS AVEC ARTISCALES -->
+
+	<!-- Nom du scénario -->
+	<param key="nom" value="fake world simulator" />
+
+	<!-- Mode de fonctionnement d'ArtiScales -->
+		<!-- Si true, le modèle s'arrête quand les objectifs de création de logement du SCoT sont atteind -->
+		<!-- Si false, le modèle urbanise toutes les parcelles sans tenir compte du nombre de logements construits -->
+		<param key="fill" value="true" />
+
+	<!-- Liste des villes à prendre en compte dans la simulation (séparer les codes postaux par des virgules) -->
+	<param key="listZipCode" value="" />
+	
+	<!-- Dossiers et fichiers nécessaires à la simulation -->
+		<!-- Emplacement des résultats de simulation (intermédiaires et finaux) -->
+	<param key="rootFile" value="/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScalesTest/"/>
+		<!-- Emplacement des données géographiques générales -->
+	<param key="geoFile" value="/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScalesTest/Donnees/"/>
+		<!-- Emplacement des données géographiques concernant les PLU -->
+		<param key="pluFile" value="/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScalesTest/Donnees/" />
+		<!-- Nom du fichier contenant la modélisation du règlement des PLU -->
+		<param key="pluPredicate" value="/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScalesTest/Donnees/predicate.csv"/>
+		
+		
+				<param key="simu" value="/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScalesTest/Donnees/out/"/>
+		
+				<!-- Nom du fichier contenant la modélisation du règlement des PLU -->
+		<param key="selectedParcelFile" value="/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScalesTest/Donnees/parcelle.shp"/>
+
+	<!-- PARAMETRES DU MODULE MUP-CITY -->
+			
+		<!-- Densité du développement résidentiel -->
+			
+			<!-- Intensité du développement résidentiel. Les valeurs doivent être comprises entre 3 et 7 -->
+			<param key="N" value="5"/>
+			
+			<!-- Si "false", développement résidentiel globalement uniforme -->
+			<!--  Si "true", développement résidentiel très contrasté -->		
+			<param key="strict" value="false" />	
+	
+		<!-- Paramètre concernant la pondération des règles d'aménagement -->
+		<!-- Ces pondérations sont calculées au moyens de matrice d'aide à la décision (Analytic Hierarchical Process, voir (Saaty, 1977) -->
+
+			<!-- Nom générique pour le jeu de pondération -->
+			<param key="ahpName" value="ahpx"/> 
+			<!-- Pondération de la règle d'accessibilité aux espaces naturels et de loisirs de fréquentation potentielle mensuelle -->
+			<param key="ahp8" value="0.083"/>
+			<!-- Pondération de la règle d'accessibilité aux espaces naturels et de loisirs de fréquentation potentielle hebdomadaire -->
+			<param key="ahp7" value="0.083"/>
+			<!-- Pondération de la règle d'accessibilité aux espaces naturels et de loisirs de fréquentation potentielle quotidienne -->
+			<param key="ahp6" value="0.083"/>
+			<!-- Pondération de la règle d'accessibilité au réseau de transport en commun-->
+			<param key="ahp5" value="0.04"/>
+			<!-- Pondération de la règle d'accessibilité aux commerces et services de fréquentation mensuelle -->
+			<param key="ahp4" value="0.218"/>
+			<!-- Pondération de la règle d'accessibilité aux commerces et services de fréquentation hebdomadaire -->
+			<param key="ahp3" value="0.218"/>
+			<!-- Pondération de la règle d'accessibilité aux commerces et services de fréquentation quotidienne -->
+			<param key="ahp2" value="0.218"/>
+			<!-- Pondération de la règle de proximité au réseau routier existant -->
+			<param key="ahp1" value="0.03"/>
+			<!-- Pondération de la règle morphologique -->
+			<param key="ahp0" value="0.0027"/>
+
+		<!-- Méthode d'agrégation des valeurs d'évaluations -->
+		<!-- Si "true", utilisation des moyennes pondérées -->
+		<!-- Si "false", utilisation de l'agrégation de Yager (Yager, 1978). Cette méthode est beaucoup plus sévère et moins de cellules sont calculées -->		
+		<param key="mean" value="true" />
+
+	<!-- PARAMÈTRES DU MODULE PARCEL MANAGER -->
+	
+		<!-- Types de sélections -->
+			
+			<!-- Types de sélection pour les scénarios normaux -->
+				<!-- si "true", la sélection n'est composée que de parcelles situées dans les zones U et AU -->
+				<param key="respectZoning" value="true" />
+
+			<!-- Sélection ordonnées dans les simulations remplissant les objectifs du SCoT ('fill') -->
+				<!-- Sélectionne les parcelles situées dans les zones U sur des terrains déjà construits -->	
+				<param key="Ubuilt" value="true" />
+				<!-- Sélectionne les parcelles situées dans les zones U sur des terrains non-construits  -->
+				<param key="UnotBuilt" value="true" />
+				<!-- Types de sélections situées dans les zones AU -->
+				<param key="AUnotBuilt" value="true" />
+				<!-- Types de sélections situées dans les zones A et N -->
+				<param key="ALLnotBuilt" value="true" />
+
+			<!-- Autre types de sélection pour les modes 'fill' -->
+				<!-- Sélection de toutes les parcelles ordonnée selon l'évaluation des cellules de MUP-City les intersectant -->
+				<param key="JustEval" value="false" />
+				<!-- Sélection aléatoire (sans Mup-City) -->
+				<param key="Anarchie" value="false" />
+
+		<!--  Décomposition des parcelles --> 	
+			<!-- Si "true", les parcelles U sont décomposées, les parcelles AU sont toutes fondues puis décomposés -->
+			<!-- Si "AU", les parcelles situées dans les zones AU sont décomposées -->
+			<!-- Si "false", aucune parcelle ne sera décomposé --> 	
+			<param key="splitParcel" value="true" />
+			<!-- Aire moyenne des parcelles découpées -->
+			<param key="maximalAreaSplitParcel" value="500" />
+			<!-- Largeur minimum de la limite parcellaire donnant sur la voirie -->
+			<!-- Si aucune voirie adjacente à la parcelle, le découpage sera orienté aléatoirement -->
+			<param key="maximalWidthSplitParcel" value="20" />
+	
+	<!--PARAMETRE DU MODULE BÂTIMENT À MÉNAGE (BUILDING TO HOUSEHOLD) -->
+
+		<!-- Taille moyenne d'un logement -->
+	<param key="HousingUnitSize" value="120" />
+	<param key="heightStair" value="3" />
+	<param key="surfPlaceParking" value="12.5" />
+
+	<!-- PARAMETRES DE SIMPLU3D -->
+
+		<!--Bornes des dimensions des cuboïdes simulées -->
+		<!-- Largeur -->
+		<param key="minlen" value="20" />
+		<param key="maxlen" value="200" />
+		<!-- Longueur -->
+		<param key="minwid" value="20" />
+		<param key="maxwid" value="200" />
+		<!-- Hauteur -->
+		<param key="minheight" value="3" />
+		<param key="maxheight" value="10" />
+
+		<!-- Fonction d'optimisation (pas (encore) utilisée) -->
+		<param key="fctOpt" value="" />
+
+		<!-- Si "true", l'intersection entre les cuboïdes est permise -->
+		<param key="intersection" value="false" />
+
+		<!-- Nombre de cuboïde maximal -->
+		<param key="nbCuboid" value="20" />
+</parameters>
+

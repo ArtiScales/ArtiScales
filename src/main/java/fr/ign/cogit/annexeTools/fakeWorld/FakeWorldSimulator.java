@@ -29,8 +29,8 @@ public class FakeWorldSimulator {
 			String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenarFakeWorldMax/")
 					.getPath();
 
-			lF.add(new File(rootParam + "parametreTechnique.xml"));
-			lF.add(new File(rootParam + "parametreScenario.xml"));
+			lF.add(new File(rootParam + "parameterTechnic.xml"));
+			lF.add(new File(rootParam + "parameterScenario.xml"));
 
 			Parameters p = Parameters.unmarshall(lF);
 
@@ -47,7 +47,7 @@ public class FakeWorldSimulator {
 			System.out.println(pathSubFolder);
 
 			p.set("rootFile", pathSubFolder);
-			p.set("selectedParcelFile", pathSubFolder + "parcelle.shp");
+			p.set("selectedParcelFile", pathSubFolder + "parcel.shp");
 			p.set("geoFile", pathSubFolder);
 			p.set("pluFile", pathSubFolder);
 			p.set("pluPredicate", pathSubFolder + "predicate.csv");

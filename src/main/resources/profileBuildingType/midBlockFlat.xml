@@ -1,0 +1,52 @@
+<parameters>
+<!--Paramètres par défaut du découpage de parcelle -->
+
+
+
+<!--Paramètres par défaut des différents types de bâtiments simulés -->
+	<!-- Largeur -->
+	<param key="minlen" value="12" />
+	<param key="maxlen" value="30" />
+	<!-- Longueur -->
+	<param key="minwid" value="12" />
+	<param key="maxwid" value="30" />
+	<!-- Hauteur -->
+	<param key="minheight" value="7" />
+	<param key="maxheight" value="19" />
+
+	<!-- Fonction d'optimisation (pas (encore) utilisée) -->
+	<param key="fctOpt" value="" />
+
+	<!-- Si "true", l'intersection entre les cuboïdes est permise -->
+	<param key="intersection" value="true" />
+
+	<!-- Nombre de boites maximal composant un bâtiment -->
+	<param key="nbCuboid" value="6" />
+
+	<!-- Surface de plancher maximale pour un bâtiment -->
+	<param key="areaMax" value="27000" />
+	<!-- Surface miniale pour un bâtiment -->
+	<param key="areaMin" value="2100" />
+
+	<!-- Nombre d'étage du bâtiment à partir duquel le dernier étage est en attique (si 99, ne s'applique pas) -->
+	<param key="nbStoreysAttic" value="5" />
+
+<!--Paramètres par défaut des différents logements inclus dans les bâtiments simulés -->
+	<!-- Nombre minimum de logement par bâtiment -->
+	<param key="minHousingUnit" value="30" />
+		
+	<!-- Borne de la classe de taille des logements de type T1/T2 -->
+	<param key="sizeSmallDwelling" value="30-55" />
+	<!-- Borne de la classe de taille des logements de type T3 -->
+	<param key="sizeMidDwelling" value="60-75" />
+	<!-- Borne de la classe de taille des logements de type T4 ou plus -->
+	<param key="sizeLargeDwelling" value="80-110" />
+
+	<!-- Fréquence de construction de logements de type T1/T2 -->
+	<param key="freqSmallDwelling" value="0.4" />
+	<!-- Fréquence de taille des logements de type T3 -->
+	<param key="freqMidDwelling" value="0.4" />
+	<!-- Fréquence de taille des logements de type T4 ou plus -->
+	<param key="freqLargeDwelling" value="0.2" />
+
+</parameters>

@@ -62,8 +62,8 @@ public class BuildingToHousingUnit extends Indicators {
 	public static void main(String[] args) throws Exception {
 		File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/scenar0MCIgn");
 		List<File> lF = new ArrayList<>();
-		lF.add(new File(rootParam, "parametreTechnique.xml"));
-		lF.add(new File(rootParam, "parametreScenario.xml"));
+		lF.add(new File(rootParam, "parameterTechnic.xml"));
+		lF.add(new File(rootParam, "parameterScenario.xml"));
 
 		Parameters p = Parameters.unmarshall(lF);
 
@@ -71,7 +71,7 @@ public class BuildingToHousingUnit extends Indicators {
 		File simuFile = new File("/home/mcolomb/informatique/ArtiScales/indic/bTH/teststp/variant1");
 		List<File> listFile = new ArrayList<File>();
 		for (File f : batisSimulatedFile.listFiles()) {
-			if (f.getName().startsWith("out-parcelle_") && f.getName().endsWith(".shp")) {
+			if (f.getName().startsWith("out-parcel_") && f.getName().endsWith(".shp")) {
 				listFile.add(f);
 			}
 		}
@@ -198,7 +198,7 @@ public class BuildingToHousingUnit extends Indicators {
 
 			System.out.println("somme_de_la_surface_au_sol_des_logements" + groundAreaStat.getSum());
 
-			int housingUnitDiff = sumLgt - GetFromGeom.getHousingUnitsGoals(new File(rootFile, "dataRegul"), zipCode);
+			int housingUnitDiff = sumLgt - GetFromGeom.getHousingUnitsGoals(new File(rootFile, "dataRegulation"), zipCode);
 			line = zipCode + "," + sumLgt + "," + sumIndiv + "," + sumDlbIndiv + "," + sumSDwell + "," + sumLDwell + "," + sumLgtU + "," + sumLgtAU + "," + sumLgtOther + ","
 					+ groundAreaStat.getSum() + "," + groundAreaStat.getMean() + "," + groundAreaStat.getStandardDeviation() + "," + floorAreaStat.getSum() + ","
 					+ floorAreaStat.getMean() + "," + floorAreaStat.getStandardDeviation() + "," + builtDensity.getMean() + "," + builtDensity.getStandardDeviation() + ","

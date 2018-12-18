@@ -88,7 +88,7 @@ public class SelectParcels {
 		geoFile = new File(rootFile, "dataGeo");
 
 		// where the regulation data are stored
-		regulFile = new File(rootFile, "dataRegul");
+		regulFile = new File(rootFile, "dataRegulation");
 
 		// where temporary stuff are stored
 		tmpFile = new File(rootFile, "tmp");
@@ -97,7 +97,7 @@ public class SelectParcels {
 		// Liste des sorties de MupCity
 		spatialConfigurations = spatialconfigurations;
 		// Paramètre si l'on découpe les parcelles ou non
-		zoningFile = GetFromGeom.getZoning(new File(rootFile, "dataRegul"));
+		zoningFile = GetFromGeom.getZoning(new File(rootFile, "dataRegulation"));
 	}
 
 	public List<List<File>> run() throws Exception {
@@ -393,7 +393,7 @@ public class SelectParcels {
 		DefaultFeatureCollection parcelToMerge = new DefaultFeatureCollection();
 
 		// city information
-		ShapefileDataStore shpDSCities = new ShapefileDataStore(GetFromGeom.getCities(geoFile).toURI().toURL());
+		ShapefileDataStore shpDSCities = new ShapefileDataStore(GetFromGeom.getCommunities(geoFile).toURI().toURL());
 		SimpleFeatureCollection citiesSFS = shpDSCities.getFeatureSource().getFeatures();
 		////////////////
 		// step 0 : Do the basic things on the not intersected parcels
@@ -786,7 +786,7 @@ public class SelectParcels {
 	public boolean isParcelBuilt(SimpleFeature parcelIn, Geometry emprise) throws Exception {
 
 		// couche de batiment
-		ShapefileDataStore shpDSBati = new ShapefileDataStore(GetFromGeom.getBati(geoFile).toURI().toURL());
+		ShapefileDataStore shpDSBati = new ShapefileDataStore(GetFromGeom.getBuild(geoFile).toURI().toURL());
 		SimpleFeatureCollection batiCollection = shpDSBati.getFeatureSource().getFeatures();
 		// on snap la couche de batiment et la met dans une géométrie unique
 		Geometry batiUnion = Vectors.unionSFC(Vectors.snapDatas(batiCollection, emprise));
@@ -800,7 +800,7 @@ public class SelectParcels {
 
 	public boolean isAlreadyBuilt(Feature feature) throws IOException {
 		boolean isContent = false;
-		ShapefileDataStore bati_datastore = new ShapefileDataStore(GetFromGeom.getBati(geoFile).toURI().toURL());
+		ShapefileDataStore bati_datastore = new ShapefileDataStore(GetFromGeom.getBuild(geoFile).toURI().toURL());
 		SimpleFeatureCollection batiFeatures = bati_datastore.getFeatureSource().getFeatures();
 		SimpleFeatureIterator iterator = batiFeatures.features();
 		try {
@@ -872,7 +872,7 @@ public class SelectParcels {
 
 				Filter filterCity = ff.like(ff.property("INSEE"), pack.getName());
 
-				File parcelFile = new File(pack, "parcelle.shp");
+				File parcelFile = GetFromGeom.getParcels(geoFile);
 
 				Vectors.exportSFC(parcelCollec.subCollection(filterCity), parcelFile);
 
@@ -891,7 +891,7 @@ public class SelectParcels {
 				// by defalut, creation of empty shapefiles (better empty than non extitant
 				createPackOfEmptyShp(snapPack);
 
-				ShapefileDataStore build_datastore = new ShapefileDataStore(GetFromGeom.getBati(geoFile).toURI().toURL());
+				ShapefileDataStore build_datastore = new ShapefileDataStore(GetFromGeom.getBuild(geoFile).toURI().toURL());
 				SimpleFeatureCollection buildFeatures = build_datastore.getFeatureSource().getFeatures();
 				Vectors.exportSFC(Vectors.snapDatas(buildFeatures, fBBox), new File(snapPack, "building.shp"));
 				build_datastore.dispose();
@@ -928,7 +928,7 @@ public class SelectParcels {
 
 				// get insee numbers needed
 				List<String> insee = new ArrayList<String>();
-				ShapefileDataStore sds = new ShapefileDataStore((new File(pack, "parcelle.shp")).toURI().toURL());
+				ShapefileDataStore sds = new ShapefileDataStore((new File(pack, "parcel.shp")).toURI().toURL());
 				SimpleFeatureIterator itParc = sds.getFeatureSource().getFeatures().features();
 				try {
 					while (itParc.hasNext()) {
@@ -1004,7 +1004,7 @@ public class SelectParcels {
 				// by defalut, creation of empty shapefiles (better empty than non extitant
 				createPackOfEmptyShp(snapPack);
 
-				ShapefileDataStore build_datastore = new ShapefileDataStore(GetFromGeom.getBati(geoFile).toURI().toURL());
+				ShapefileDataStore build_datastore = new ShapefileDataStore(GetFromGeom.getBuild(geoFile).toURI().toURL());
 				SimpleFeatureCollection buildFeatures = build_datastore.getFeatureSource().getFeatures();
 				Vectors.exportSFC(Vectors.snapDatas(buildFeatures, fBBox), new File(snapPack, "building.shp"));
 				build_datastore.dispose();
@@ -1041,7 +1041,7 @@ public class SelectParcels {
 
 				// get insee numbers needed
 				List<String> insee = new ArrayList<String>();
-				ShapefileDataStore sds = new ShapefileDataStore((new File(pack, "parcelle.shp")).toURI().toURL());
+				ShapefileDataStore sds = new ShapefileDataStore((new File(pack, "parcel.shp")).toURI().toURL());
 				SimpleFeatureIterator itParc = sds.getFeatureSource().getFeatures().features();
 				try {
 					while (itParc.hasNext()) {

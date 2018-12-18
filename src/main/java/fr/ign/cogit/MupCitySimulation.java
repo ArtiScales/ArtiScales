@@ -86,14 +86,14 @@ public class MupCitySimulation {
 		DataSetSelec.predefSet();
 		Map<String, String> dataHT = DataSetSelec.get(variant[3]);
 
-		dataHT.put("name", "DataSys");
-		dataHT.put("build", "batimentSys.shp");
-		dataHT.put("road", "routeSys.shp");
-		dataHT.put("fac", "serviceSys.shp");
-		dataHT.put("lei", "loisirSys.shp");
-		dataHT.put("ptTram", "tramSys.shp");
-		dataHT.put("ptTrain", "trainSys.shp");
-		dataHT.put("nU", "nonUrbaSys.shp");
+		dataHT.put("name", "DataManu");
+		dataHT.put("build", "building.shp");
+		dataHT.put("road", "road.shp");
+		dataHT.put("fac", "service.shp");
+		dataHT.put("lei", "leisure.shp");
+		dataHT.put("ptTram", "tram.shp");
+		dataHT.put("ptTrain", "train.shp");
+		dataHT.put("nU", "nonUrba.shp");
 
 		System.out.println("----------Project creation and decomp----------");
 		MutablePair<String, File> projectFile = ProjectCreationDecompTask.run(name, geoFile, variantFile, xmin, ymin, width, height, 0, 0, dataHT, 14580,
