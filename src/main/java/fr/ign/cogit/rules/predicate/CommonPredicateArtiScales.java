@@ -526,6 +526,11 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 		}
 		/////////// Groups or whole configuration constraints
 
+		// making sure that the floor area is not upper than the limit we set for the type of building
+		if (!cRO.checkMaxSDP(lAllCuboids, p)) {
+			return false;
+		}
+		
 		// Getting the maxCES according to the implementation
 		// art_9 art_13
 		double maxCES = this.getMaxCES();

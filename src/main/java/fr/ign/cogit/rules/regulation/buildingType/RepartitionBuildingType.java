@@ -294,7 +294,7 @@ public class RepartitionBuildingType {
 		}
 
 		// if the type is not in the prediction, we don't return it
-		if (repartition.get(result) == 0.0) {
+		if (repartition.get(result) == 99.0) {
 			System.out.println(result + " : that's a forbidden type");
 			return fType;
 		}
@@ -330,5 +330,7 @@ public class RepartitionBuildingType {
 			return true;
 		}
 	}
-
+	public static boolean hasAttic(String type) {
+			return hasAttic(BuildingType.valueOf(type));
+	}
 }

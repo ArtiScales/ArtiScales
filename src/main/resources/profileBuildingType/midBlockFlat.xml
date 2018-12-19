@@ -1,4 +1,6 @@
 <parameters>
+<param key="nameBuildingType" value="midBlockFlat" />
+
 <!--Paramètres par défaut du découpage de parcelle -->
 
 
@@ -12,7 +14,7 @@
 	<param key="maxwid" value="30" />
 	<!-- Hauteur -->
 	<param key="minheight" value="7" />
-	<param key="maxheight" value="19" />
+	<param key="maxheight" value="21" />
 
 	<!-- Fonction d'optimisation (pas (encore) utilisée) -->
 	<param key="fctOpt" value="" />

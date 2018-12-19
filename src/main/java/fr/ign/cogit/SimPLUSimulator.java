@@ -288,7 +288,7 @@ public class SimPLUSimulator {
 				// we see if the Housing Unit Type is correct
 				if ((double) bati.get(0).getAttribute("SDPShon") < p.getDouble("areaMin")) {
 					adjustDown = true;
-					BuildingType typeTemp = housingUnit.up(type);
+					BuildingType typeTemp = housingUnit.down(type);
 					// if it's not the same type, we'll continue to seek
 					if (!(typeTemp == type)) {
 						type = typeTemp;
@@ -454,8 +454,6 @@ public class SimPLUSimulator {
 
 		BasicPropertyUnit bPU = env.getBpU().get(i);
 
-		boolean hasAttic = RepartitionBuildingType.hasAttic(type);
-
 		// List ID Parcelle to Simulate is not empty
 		if (!ID_PARCELLE_TO_SIMULATE.isEmpty()) {
 			// We check if the code is in the list
@@ -534,7 +532,8 @@ public class SimPLUSimulator {
 		// dissapearing during this procces)
 		List<Cuboid> cubes = cc.getGraph().vertexSet().stream().map(x -> x.getValue()).collect(Collectors.toList());
 		double surfacePlancherTotal = surfGen.process(cubes);
-		if (hasAttic) {
+
+		if (RepartitionBuildingType.hasAttic(type)) {
 			surfacePlancherTotal = surfGen.process(cubes, p.getInteger("nbStoreysAttic"), p.getDouble("ratioAttic"));
 		}
 		// cubes = cc.getGraph().vertexSet().stream().map(x ->

@@ -1,4 +1,6 @@
 <parameters>
+<param key="nameBuildingType" value="smallHouse" />
+
 <!--Paramètres par défaut du découpage de parcelle -->
 
 

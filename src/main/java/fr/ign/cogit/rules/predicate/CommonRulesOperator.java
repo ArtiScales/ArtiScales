@@ -2,18 +2,21 @@ package fr.ign.cogit.rules.predicate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.vividsolutions.jts.geom.Geometry;
 
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
 import fr.ign.cogit.geoxygene.api.spatial.geomroot.IGeometry;
 import fr.ign.cogit.rules.regulation.ArtiScalesRegulation;
+import fr.ign.cogit.rules.regulation.buildingType.RepartitionBuildingType;
 import fr.ign.cogit.simplu3d.model.BasicPropertyUnit;
 import fr.ign.cogit.simplu3d.model.Building;
 import fr.ign.cogit.simplu3d.model.CadastralParcel;
 import fr.ign.cogit.simplu3d.model.Prescription;
 import fr.ign.cogit.simplu3d.model.PrescriptionType;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.AbstractSimpleBuilding;
+import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.Cuboid;
 import fr.ign.cogit.simplu3d.rjmcmc.generic.object.ISimPLU3DPrimitive;
 import fr.ign.cogit.simplu3d.util.CuboidGroupCreation;
 import fr.ign.cogit.simplu3d.util.merge.SDPCalc;
@@ -126,13 +129,15 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	}
 
 	/**
-	 * Check the distance between the cuboids with differenciated distance WARNING : The size of both list have to be the same
+	 * Check the distance between the cuboids with differenciated distance WARNING :
+	 * The size of both list have to be the same
 	 * 
 	 * @param lO
 	 * @param distanceInterBati
 	 * @return
 	 */
-	public boolean checkDistanceInterCuboids(List<? extends AbstractSimpleBuilding> lO, List<Double> distanceInterBati) {
+	public boolean checkDistanceInterCuboids(List<? extends AbstractSimpleBuilding> lO,
+			List<Double> distanceInterBati) {
 
 		int nbCuboid = lO.size();
 
@@ -146,7 +151,8 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 
 				// If there is only one distance we use it or we use the max of the distance
 				// constraints of the groups
-				double distInterBatiCalculated = (distanceInterBati.size() == 1) ? distanceInterBati.get(0) : Math.min(distanceInterBati.get(i), distanceInterBati.get(j));
+				double distInterBatiCalculated = (distanceInterBati.size() == 1) ? distanceInterBati.get(0)
+						: Math.min(distanceInterBati.get(i), distanceInterBati.get(j));
 
 				if (distance < distInterBatiCalculated) {
 					return false;
@@ -160,13 +166,13 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	}
 
 	/**
-	 * Check if the distance between a cuboid and a geometry is lesser or more than distMax
+	 * Check if the distance between a cuboid and a geometry is lesser or more than
+	 * distMax
 	 * 
 	 * @param cuboid
 	 * @param geom
 	 * @param dist
-	 * @param supOrInf
-	 *            if the cubiod must be superior or inferior to the limit
+	 * @param supOrInf if the cubiod must be superior or inferior to the limit
 	 * @return
 	 */
 	public boolean checkDistanceToGeometry(O cuboid, Geometry geom, double dist, boolean supOrInf) {
@@ -296,7 +302,26 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	}
 
 	/**
-	 * Check if an n-m² element fits in the parcel
+	 * Check if the total floor area (Surface de Plancher) of the configuration is
+	 * lower than the limit set by the form parameters
+	 * 
+	 * @param lCuboid :cuboid configuration to test
+	 * @param maxSDP  ; the floor area to not go further
+	 * @return true if the SDP of the configuration is not higher than the limit
+	 */
+	public boolean checkMaxSDP(List<O> lCuboid, Parameters p) {
+		double sDP = 0.0;
+		SDPCalc surfGen = new SDPCalc(p.getDouble("heightStorey"));
+		if (RepartitionBuildingType.hasAttic(p.getString("nameBuildingType"))) {
+			sDP = surfGen.process(lCuboid, p.getInteger("nbStoreysAttic"), p.getDouble("ratioAttic"));
+		} else {
+			sDP = surfGen.process(lCuboid);
+		}
+		return sDP <= p.getDouble("areaMax");
+	}
+
+	/**
+	 * Check if an n-m² other element fits in the parcel
 	 * 
 	 * @param lCuboid
 	 * @param currentBPU
@@ -344,8 +369,8 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	}
 
 	public boolean checkAlignement(O cuboid, IGeometry jtsCurveLimiteParcel) {
-		// TODO a thing here doesn't work 
-		if (jtsCurveLimiteParcel != null && jtsCurveLimiteParcel.toString() !="") {
+		// TODO a thing here doesn't work
+		if (jtsCurveLimiteParcel != null && jtsCurveLimiteParcel.toString() != "") {
 			if (!cuboid.getGeom().touches(jtsCurveLimiteParcel)) {
 				return false;
 			}
@@ -354,7 +379,8 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	}
 
 	/**
-	 * Check if an alignment constraint is respected between a cuboid and the public road
+	 * Check if an alignment constraint is respected between a cuboid and the public
+	 * road
 	 * 
 	 * @param cuboid
 	 * @param prescriptions
@@ -362,7 +388,8 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	 * @param jtsCurveLimiteFrontParcel
 	 * @return
 	 */
-	public boolean checkAlignementPrescription(O cuboid, IFeatureCollection<Prescription> prescriptions, boolean align, Geometry jtsCurveLimiteFrontParcel) {
+	public boolean checkAlignementPrescription(O cuboid, IFeatureCollection<Prescription> prescriptions, boolean align,
+			Geometry jtsCurveLimiteFrontParcel) {
 		// On vérifie que le batiment est compris dans la zone d'alignement (surfacique)
 
 		if (prescriptions != null && align) {
@@ -400,8 +427,11 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	public Double[] hauteur(Parameters p, ArtiScalesRegulation regle, Double heighSurroundingBuildings) {
 		// @ART 10 : a faire complétement
 		//////// Checking the height of the cuboid
-		double min = p.getDouble("minheight");
-		double max = p.getDouble("maxheight");
+		double minPar = p.getDouble("minheight");
+		double maxPar = p.getDouble("maxheight");
+
+		double minRule = 0.0;
+		double maxRule = 0.0;
 
 		// make the value look good
 
@@ -424,14 +454,14 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		// 5 hauteur à l'égout (pour l'instant la même que le 1 vu que l'on ne prends
 		// pas en compte les toits)
 		case 1:
-			max = h * p.getDouble("heightStorey");
+			maxRule = h * p.getDouble("heightStorey");
 			break;
 		// hauteur en metre
 		case 2:
 		case 3:
 		case 4:
 		case 5:
-			max = h;
+			maxRule = h;
 			break;
 
 		// hauteur harmonisé avec les batiments des alentours (+/- 10 %)
@@ -441,24 +471,25 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 			// si il y a des batiments TODO valeurs bizares
 			if (heighSurroundingBuildings != null && heighSurroundingBuildings != 0.0) {
 				System.out.println("surrounding height values : " + heighSurroundingBuildings);
-				min = heighSurroundingBuildings * 0.9;
-				max = heighSurroundingBuildings * 1.1;
+				minRule = heighSurroundingBuildings * 0.9;
+				maxRule = heighSurroundingBuildings * 1.1;
 			}
 			// si pas de batiments aux alentours, on se rabat sur différentes options
 			else if (regle.getArt_10_top() == 8) {
-				max = h * p.getDouble("heightStorey");
+				maxRule = h * p.getDouble("heightStorey");
 			} else if (h != 0 || h != 99) {
-				max = h;
+				maxRule = h;
 			} else {
-				max = p.getDouble("maxheight");
+				maxRule = p.getDouble("maxheight");
 			}
 			break;
 		default:
 			System.err.println("Cas de hauteur inconnu");
-			min = p.getDouble("maxheight");
+			minRule = p.getDouble("minheight");
+			maxRule = p.getDouble("maxheight");
 		}
-		Double[] result = { min, max };
-		System.out.println("Hauteur max autorisée : " + max);
+		Double[] result = { Math.max(minRule, minPar), Math.min(maxRule, maxPar) };
+		System.out.println("Hauteur max autorisée : " + result[1]);
 		return result;
 	}
 
@@ -547,7 +578,8 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		// 1l2_2 : un stationnement pour un logement par batiment 60m2, 2 pour les
 		// logements à 2 et plus
 		//
-		// 1m60_2 : un stationnement pour un batiment dont la surface est inférieure à 60m² , 2 pour les
+		// 1m60_2 : un stationnement pour un batiment dont la surface est inférieure à
+		// 60m² , 2 pour les
 		// logements plus grands
 		//
 		// 1x50 : une place par 50m² de logements
@@ -569,6 +601,12 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 
 		// Number of dwellings
 		int nbDwellings = (int) Math.round((shon / surfLogement));
+
+		// if it's a simple house, it's gon contain only one housing unit
+		if (p.getString("nameBuildingType").equals("detachedHouse")
+				|| p.getString("nameBuildingType").equals("smallHouse")) {
+			nbDwellings = 1;
+		}
 
 		double multiplierParking = 1;
 
