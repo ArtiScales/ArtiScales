@@ -94,12 +94,7 @@
 		<!-- Si "AU", les parcelles situées dans les zones AU sont décomposées -->
 		<!-- Si "false", aucune parcelle ne sera décomposé -->
 		<param key="splitParcel" value="AU" />
-			<!-- Aire moyenne des parcelles découpées -->
-			<param key="maximalAreaSplitParcel" value="700" />
-			<!-- Largeur minimum de la limite parcellaire donnant sur la voirie -->
-			<!-- Si aucune voirie adjacente à la parcelle, le découpage sera orienté 
-				aléatoirement -->
-			<param key="maximalWidthSplitParcel" value="20" />
+
 
 	<!-- PARAMETRES DE SIMPLU3D -->
 
@@ -108,7 +103,7 @@
 			<param key="ESPACE_BOISE" value="true" />
 			<param key="NUISANCES_RISQUES" value="true"/>
 			<!-- quel niveau de nuisance/risque retirons nous de l'urbanisation? -->
-				<!-- uniquement les zones les plus graves (dont le libelle contient les mots-clefs suivants : grave, fort, Maximal, rouge -->
+				<!-- uniquement les zones les plus graves (dont le libelle contient les mots-clefs suivants : grave, fort, maximal, rouge -->
 			<param key="NUISANCES_RISQUES-MAX" value="true"/>
 			<param key="EMPLACEMENT_RESERVE" value="true"/>
 			<param key="ELEMENT_PAYSAGE" value="true"/>
@@ -131,9 +126,12 @@
 		<!-- Ratio de surface planchers appliqué aux attiques -->
 		<param key="ratioAttic" value = "0.5" />
 		<!-- Taille moyenne d'une place de parking --> 
-		<param key="surfPlaceParking" value="25" />
-		<!-- Largeur des accessibilitées des parcelles aux routes -->
-		<param key="largeurRouteAccess" value = "4" />
+		<param key="areaParkingLot" value="25" />
+		<!-- Largeur de l'accessibilitées des parcelles aux routes -->
+		<param key="lenDriveway" value = "3" />
+		<!-- Largeur des voiries générées -->
+		<param key="lenRoad" value = "5" />
+
 	
 	<!-- Mode de fonctionnement d'ArtiScales -->
 	<!-- Si true, le modèle s'arrête quand les objectifs de création de logement 

@@ -3,9 +3,14 @@
 
 <!--Paramètres par défaut du découpage de parcelle -->
 
-
+	<!-- Aire limite de découpage des parcelles -->
+	<param key="areaParcel" value="2000" />
+	<!-- Largeur minimum de la limite parcellaire donnant sur la voirie -->
+	<!-- Si aucune voirie adjacente à la parcelle, le découpage sera orienté aléatoirement -->
+	<param key="widParcel" value="15" />
 
 <!--Paramètres par défaut des différents types de bâtiments simulés -->
+
 	<!-- Largeur -->
 	<param key="minlen" value="12" />
 	<param key="maxlen" value="30" />
@@ -34,6 +39,7 @@
 	<param key="nbStoreysAttic" value="5" />
 
 <!--Paramètres par défaut des différents logements inclus dans les bâtiments simulés -->
+
 	<!-- Nombre minimum de logement par bâtiment -->
 	<param key="minHousingUnit" value="30" />
 		

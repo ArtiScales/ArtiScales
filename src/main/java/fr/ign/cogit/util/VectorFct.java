@@ -323,7 +323,7 @@ public class VectorFct {
 		ShapefileDataStore pSDS = new ShapefileDataStore(outU.toURI().toURL());
 		SimpleFeatureCollection pSFS = pSDS.getFeatureSource().getFeatures();
 
-		SimpleFeatureCollection splitedAUParcels = splitParcels(pSFS, maximalArea, maximalWidth, roadEpsilon, noise, null, 2, p.getDouble("largeurRouteAccess"), true, tmpFile, p);
+		SimpleFeatureCollection splitedAUParcels = splitParcels(pSFS, maximalArea, maximalWidth, roadEpsilon, noise, null, 2, p.getDouble("lenRoad"), true, tmpFile, p);
 
 		// Finally, put them all features in a same collec
 		SimpleFeatureIterator finalIt = splitedAUParcels.features();
@@ -400,7 +400,7 @@ public class VectorFct {
 		}
 
 		FlagParcelDecomposition fpd = new FlagParcelDecomposition((IPolygon) surfaces.get(0), ShapefileReader.read(GetFromGeom.getBuild(geoFile).getAbsolutePath()),
-				p.getDouble("maximalAreaSplitParcel"), p.getDouble("maximalWidthSplitParcel"), p.getDouble("largeurRouteAccess"), iMultiCurve);
+				p.getDouble("maximalAreaSplitParcel"), p.getDouble("maximalWidthSplitParcel"), p.getDouble("lenDriveway"), iMultiCurve);
 		IFeatureCollection<IFeature> decomp = fpd.decompParcel(0);
 		return GeOxygeneGeoToolsTypes.convert2FeatureCollection(decomp);
 
@@ -445,7 +445,6 @@ public class VectorFct {
 	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeature parcelIn, File tmpFile, Parameters p) throws Exception {
 
 		// splitting method option
-
 		double maximalArea = p.getDouble("maximalAreaSplitParcel");
 		double maximalWidth = p.getDouble("maximalWidthSplitParcel");
 		maximalArea = 1500;
@@ -458,7 +457,7 @@ public class VectorFct {
 		// List<IOrientableCurve> lOC = FromGeomToLineString.convert(featC.get(0).getGeom());
 		// IMultiCurve<IOrientableCurve> iMultiCurve = new GM_MultiCurve<>(lOC);
 
-		return generateSplitedParcels(parcelIn, tmpFile, p, maximalArea, maximalWidth, 0, null, decompositionLevelWithRoad, p.getDouble("largeurRouteAccess"), false);
+		return generateSplitedParcels(parcelIn, tmpFile, p, maximalArea, maximalWidth, 0, null, decompositionLevelWithRoad, p.getDouble("lenRoad"), false);
 	}
 
 	/**

@@ -585,7 +585,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		// 1x50 : une place par 50m² de logements
 
 		// Parking place surface
-		double surfPlace = p.getDouble("surfPlaceParking");
+		double surfPlace = p.getDouble("areaParkingLot");
 
 		// Surface of a dwelling
 		double surfLogement = p.getInteger("HousingUnitSize");
