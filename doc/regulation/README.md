@@ -50,7 +50,7 @@ Les règles sont stockées dans un format CSV, le tableau ci-dessous reprend :
 
 Les prescriptions graphiques des règlements d'urbanisme communaux sont représentées sous la forme de shapefiles. Ces fichiers sont placées dans une archive '*rootFile.tar.gz*', au sein du dossier '*dataRegulation*'.
 
-Note : les servitudes d'utilité publique (prescriptions surfaciques et linéaires : zones utiles SNCF, gaz, chutes de blocs, électromagnétiques, aéronautiques...) ne sont pas prises en compte pour la simulation de scénarios à l'échelle d'une agglomération dans son ensemble car les données concernées sont difficiles à obtenir (organismes devant être sollicités : DDT, Réseau de Transport de l'Electricité (RTE), Enedis, l'armée...). En revanche, les SUP peuvent être prises en compte pour des simulations concernant une commune ou un petit groupe de communes.
+Note : les servitudes d'utilité publique (zones utiles SNCF, gaz, chutes de blocs, électromagnétiques, aéronautiques...) ne sont pas prises en compte pour la simulation de scénarios à l'échelle d'une agglomération dans son ensemble car les données concernées sont difficiles à obtenir (organismes devant être sollicités : DDT, Réseau de Transport de l'Electricité (RTE), Enedis, l'armée...). En revanche, les SUP peuvent être prises en compte pour des simulations concernant une commune ou un petit groupe de communes.
 
 
 ## Autres contraintes portant la configuration simulée
