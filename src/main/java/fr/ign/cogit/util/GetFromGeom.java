@@ -40,10 +40,51 @@ import fr.ign.parameters.Parameters;
 
 public class GetFromGeom {
 
-	// public static void main(String[] args) throws Exception {
-	// System.out.println(rnuZip(new
-	// File("/home/mcolomb/informatique/ArtiScales/dataRegulation")));
-	// }
+	public static String affectToZoneAndTypo(String paramLine, SimpleFeature parcel, String paramName,
+			File dataRegulation, File dataGeo) throws Exception {
+
+		String occurConcerned = "";
+
+		List<String> mayOccur = new ArrayList<String>();
+		
+		String typo = GetFromGeom.parcelInBigZone(dataRegulation, parcel);
+
+		String zone = GetFromGeom.parcelInTypo(dataGeo, parcel);
+
+		String[] tabRepart = paramLine.split("_");
+
+		// TODO finish to code that
+		for (String s : tabRepart) {
+			// If the paramFile speak for a particular scenario
+			String[] scenarRepart = s.split(":");
+			// if its no longer than 1, no particular scénario
+			if (scenarRepart.length > 1) {
+				// if codes doesnt match, we continue with another one
+				if (!scenarRepart[0].equals(paramName)) {
+					continue;
+				}
+			}
+			// the different special locations
+
+			// if both
+			if (s.contains(typo) && s.contains(zone)) {
+				occurConcerned = s;
+				break;
+			}
+			//if no perfect match, prior to the typo
+			if (s.contains(zone)) {
+				mayOccur.add(s);
+			}
+
+
+		}
+		
+		if (occurConcerned.equals("")) {
+			
+		}
+
+		return occurConcerned;
+	}
 
 	public static List<String> rnuZip(File regulFile) throws IOException {
 		List<String> result = new ArrayList<String>();

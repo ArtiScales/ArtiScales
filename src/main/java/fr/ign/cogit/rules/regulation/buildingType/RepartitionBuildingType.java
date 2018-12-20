@@ -10,6 +10,7 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
+import org.hibernate.dialect.identity.GetGeneratedKeysDelegate;
 import org.opengis.feature.simple.SimpleFeature;
 
 import fr.ign.cogit.util.GetFromGeom;
@@ -206,32 +207,11 @@ public class RepartitionBuildingType {
 				this.getClass().getClassLoader().getResource("locationBuildingType").getFile());
 
 		String[] tabRepart = p.getString("useRepartition").split("_");
-		String typo = GetFromGeom.parcelInBigZone(new File(p.getString("rootFile"), "dataRegulation"), parcel);
-
-		String zone = GetFromGeom.parcelInTypo(new File(p.getString("rootFile"), "dataGeo"), parcel);
-		;
+		
+		String affect = GetFromGeom.affectToZoneAndTypo(p.getString("useRepartition"));
+		
 		Parameters addParam = null;
-		// TODO finish to code that
-		for (String s : tabRepart) {
-			// If the paramFile speak for a particular scenario
-			String[] scenarRepart = s.split(":");
-			// if its no longer than 1, no particular scénario
-			if (scenarRepart.length > 1) {
-				// if codes doesnt match, we continue with another one
-				if (!scenarRepart[0].equals(p.getString("code"))) {
-					continue;
-				}
-			}
-			// the different special locations
-			String[] locRepart = s.split("-");
-			for (String st : locRepart) {
-				if (st.contains(typo) || st.contains(zone))
-					;
-			}
 
-			for (File f : profileBuildings.listFiles()) {
-			}
-		}
 		p.add(addParam);
 		return p;
 	}

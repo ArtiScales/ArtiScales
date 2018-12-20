@@ -23,14 +23,14 @@ public class PrescriptionPreparator {
 		for (Prescription prescription : prescriptions) {
 			switch (prescription.getType()) {
 			case ESPACE_BOISE:
-				if (p.getBoolean("ESPACE_BOISE")) {
+				if (p.getBoolean("protectedWood")) {
 					prescriptionUse.add(prescription);
 				}
 				break;
 			case NUISANCES_RISQUES:
-				if (p.getBoolean("NUISANCES_RISQUES")) {
+				if (p.getBoolean("riskAll")) {
 					// si pas toutes les nuissances sont exclues
-					if (p.getBoolean("NUISANCES_RISQUES-MAX")) {
+					if (p.getBoolean("riskSerious")) {
 						// si le libelle ne contiens pas ces keywords, ce n'est
 						// somme toute pas très grave
 						String label = prescription.getLabel().toLowerCase();
@@ -44,22 +44,22 @@ public class PrescriptionPreparator {
 				}
 				break;
 			case EMPLACEMENT_RESERVE:
-				if (!p.getBoolean("EMPLACEMENT_RESERVE")) {
+				if (!p.getBoolean("reserve")) {
 					prescriptionUse.add(prescription);
 				}
 				break;
 			case ELEMENT_PAYSAGE:
-				if (!p.getBoolean("ELEMENT_PAYSAGE")) {
+				if (!p.getBoolean("landscapeFeatures")) {
 					prescriptionUse.add(prescription);
 				}
 				break;
 			case RECOIL:
-				if (!p.getBoolean("RECOIL")) {
+				if (!p.getBoolean("alignment")) {
 					prescriptionUse.add(prescription);
 				}
 				break;
 			case TVB:
-				if (!p.getBoolean("TVB")) {
+				if (!p.getBoolean("biodiversityArea")) {
 					prescriptionUse.add(prescription);
 				}
 				break;

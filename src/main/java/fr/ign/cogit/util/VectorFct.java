@@ -143,7 +143,8 @@ public class VectorFct {
 	 * @throws Exception
 	 */
 	public static SimpleFeatureCollection generateSplitedParcelsAU(SimpleFeatureCollection parcels, File tmpFile, File zoningFile, Parameters p) throws Exception {
-
+		//TODO prendre en compte les modif de la création de route (type pour déterminer les conditions d'arret des parcelles et jusqu'à quand descend la création de routes)
+ 
 		// parcels to save for after
 		DefaultFeatureCollection savedParcels = new DefaultFeatureCollection();
 		// import of the zoning file
@@ -239,6 +240,7 @@ public class VectorFct {
 				nFeat++;
 			}
 		}
+		
 		String geometryOutputName = write.getSchema().getGeometryDescriptor().getLocalName();
 		SimpleFeatureIterator it = zoneAU.features();
 		int numZone = 0;
@@ -323,6 +325,7 @@ public class VectorFct {
 		ShapefileDataStore pSDS = new ShapefileDataStore(outU.toURI().toURL());
 		SimpleFeatureCollection pSFS = pSDS.getFeatureSource().getFeatures();
 
+		//TODO nombre d'itération max à définir automatiquement 
 		SimpleFeatureCollection splitedAUParcels = splitParcels(pSFS, maximalArea, maximalWidth, roadEpsilon, noise, null, 2, p.getDouble("lenRoad"), true, tmpFile, p);
 
 		// Finally, put them all features in a same collec
@@ -407,7 +410,7 @@ public class VectorFct {
 	}
 
 	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeature parcelIn, File tmpFile, Parameters p, double maximalArea, double maximalWidth, double epsilon,
-			IMultiCurve<IOrientableCurve> extBlock, int decompositionLevelWithRoad, double roadWidth, boolean forceRoadAccess) throws Exception {
+			IMultiCurve<IOrientableCurve> extBlock, double roadWidth, boolean forceRoadAccess) throws Exception {
 
 		// putting the need of splitting into attribute
 
@@ -430,7 +433,7 @@ public class VectorFct {
 		sfBuilder.add(parcelIn.getDefaultGeometry());
 		toSplit.add(sfBuilder.buildFeature("0", attr));
 
-		return splitParcels(toSplit, maximalArea, maximalWidth, epsilon, 0, extBlock, decompositionLevelWithRoad, roadWidth, forceRoadAccess, tmpFile, p);
+		return splitParcels(toSplit, maximalArea, maximalWidth, epsilon, 0, extBlock, roadWidth, forceRoadAccess, tmpFile, p);
 
 	}
 
@@ -448,7 +451,6 @@ public class VectorFct {
 		double maximalArea = p.getDouble("maximalAreaSplitParcel");
 		double maximalWidth = p.getDouble("maximalWidthSplitParcel");
 		maximalArea = 1500;
-		int decompositionLevelWithRoad = getDecompositionLevelWithRoad(parcelIn);
 
 		// File geoFile = new File(p.getString("rootFile"), "dataGeo");
 		// String inputUrbanBlock = GetFromGeom.getIlots(geoFile).getAbsolutePath();
@@ -457,7 +459,7 @@ public class VectorFct {
 		// List<IOrientableCurve> lOC = FromGeomToLineString.convert(featC.get(0).getGeom());
 		// IMultiCurve<IOrientableCurve> iMultiCurve = new GM_MultiCurve<>(lOC);
 
-		return generateSplitedParcels(parcelIn, tmpFile, p, maximalArea, maximalWidth, 0, null, decompositionLevelWithRoad, p.getDouble("lenRoad"), false);
+		return generateSplitedParcels(parcelIn, tmpFile, p, maximalArea, maximalWidth, 0, null, p.getDouble("lenRoad"), false);
 	}
 
 	/**
@@ -552,7 +554,7 @@ public class VectorFct {
 	 */
 
 	public static SimpleFeatureCollection splitParcels(SimpleFeatureCollection toSplit, double maximalArea, double maximalWidth, double roadEpsilon, double noise,
-			IMultiCurve<IOrientableCurve> extBlock, int decompositionLevelWithRoad, double roadWidth, boolean forceRoadAccess, File tmpFile, Parameters p) throws Exception {
+			IMultiCurve<IOrientableCurve> extBlock, double roadWidth, boolean forceRoadAccess, File tmpFile, Parameters p) throws Exception {
 
 		String attNameToTransform = "SPLIT";
 
@@ -574,7 +576,7 @@ public class VectorFct {
 
 			int numParcelle = 1;
 
-			OBBBlockDecomposition obb = new OBBBlockDecomposition(pol, maximalArea, maximalWidth, roadEpsilon, extBlock, decompositionLevelWithRoad, roadWidth, forceRoadAccess);
+			OBBBlockDecomposition obb = new OBBBlockDecomposition(pol, maximalArea, maximalWidth, roadEpsilon, extBlock, roadWidth, forceRoadAccess,2);
 
 			try {
 				IFeatureCollection<IFeature> featCollDecomp = obb.decompParcel(noise);
@@ -652,27 +654,6 @@ public class VectorFct {
 			}
 		}
 		return mergeBatis(listBatiFile);
-	}
-
-	public static int getDecompositionLevelWithRoad(SimpleFeature parcelIn) throws Exception {
-		int decompositionLevelWithRoad = 1;
-
-		if (((Geometry) parcelIn.getDefaultGeometry()).getArea() > 5000) {
-			decompositionLevelWithRoad = 2;
-		}
-		else if (((Geometry) parcelIn.getDefaultGeometry()).getArea() > 75000) {
-			decompositionLevelWithRoad = 3;
-		}
-		else if (((Geometry) parcelIn.getDefaultGeometry()).getArea() > 15000) {
-			decompositionLevelWithRoad = 4;
-		}
-		else if (((Geometry) parcelIn.getDefaultGeometry()).getArea() > 25000) {
-			decompositionLevelWithRoad = 5;
-		}
-		else if (((Geometry) parcelIn.getDefaultGeometry()).getArea() > 50000) {
-			decompositionLevelWithRoad = 6;
-		}
-		return decompositionLevelWithRoad;
 	}
 
 	/**

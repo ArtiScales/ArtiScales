@@ -63,13 +63,8 @@
 
 	<!-- PARAMÈTRES DU MODULE PARCEL MANAGER -->
 
-		<!-- Types de sélections -->
+		<!-- Zones où les parcelles pourront être sélectionnées -->
 
-		<!-- Types de sélection pour les scénarios normaux -->
-
-			<!-- si "true", la sélection n'est composée que de parcelles situées dans 
-				les zones U et AU -->
-			<param key="JustZoning" value="false" />
 			<!-- Sélectionne les parcelles situées dans les zones U sur des terrains 
 				déjà construits -->
 			<param key="Ubuilt" value="false" />
@@ -81,40 +76,37 @@
 			<!-- Types de sélections situées dans les zones A et N -->
 			<param key="NC" value="true" />
 
-			<!-- Autre types de sélection pour les modes 'fill' -->
-			<!-- Sélection de toutes les parcelles ordonnée selon l'évaluation des cellules 
-				de MUP-City les intersectant -->
-			<param key="JustEval" value="false" />
-			<!-- Sélection aléatoire (sans Mup-City) -->
-			<param key="Anarchie" value="false" />
-
 		<!-- Décomposition des parcelles -->
-		<!-- Si "true", les parcelles U sont décomposées, les parcelles AU sont 
-			toutes fondues puis décomposés -->
-		<!-- Si "AU", les parcelles situées dans les zones AU sont décomposées -->
-		<!-- Si "false", aucune parcelle ne sera décomposé -->
-		<param key="splitParcel" value="AU" />
+		<!-- affecte un type de découpage à un couple de zone/typo -->
+		<param key="split" value="AU-mod1_U-mod2_NC-mod3" />
 
 
 	<!-- PARAMETRES DE SIMPLU3D -->
 
 		<!-- prise en compte des prescriptions graphiques -->
-			
-			<param key="ESPACE_BOISE" value="true" />
-			<param key="NUISANCES_RISQUES" value="true"/>
+	
+			<!-- Espace boisé classé -->			
+			<param key="protectedWood" value="true" />
 			<!-- quel niveau de nuisance/risque retirons nous de l'urbanisation? -->
-				<!-- uniquement les zones les plus graves (dont le libelle contient les mots-clefs suivants : grave, fort, maximal, rouge -->
-			<param key="NUISANCES_RISQUES-MAX" value="true"/>
-			<param key="EMPLACEMENT_RESERVE" value="true"/>
-			<param key="ELEMENT_PAYSAGE" value="true"/>
-			<param key="RECOIL" value="false"/>
-			<param key="TVB" value="false"/>
+			<!-- Si riskAll = true, toutes les zones couvertes par une réglementation ne sont pas urbanisables -->
+			<param key="riskAll" value="true"/>
+			<!-- Si riskSerious= true, uniquement les zones les plus graves (dont le libelle contient les mots-clefs suivants : grave, fort, maximal, rouge ne seront pas urbanisables-->
+			<param key="riskSerious" value="true"/>
+			<!-- Emplacement réservé -->			
+			<param key="reserve" value="true"/>
+			<!-- Élément paysager -->
+			<param key="landscapeFeatures" value="true"/>
+			<!-- Alignements homologué -->
+			<param key="alignment" value="false"/>
+			<!-- Élement constituant une biodiversité protégée -->	
+			<param key="biodiversityArea" value="false"/>
+
 		<!--Fichier utilisé contenant les différentes répartitions. Ces fichiers sont présents dans les ressources dans le dossier "resources/locationBuildingType" -->
 		<!--Il convient de mettre un "-" entre différents éléments devant caractériser cette zone (pour l'instant, la typologie de la commune et le type de zone du PLU) -->
 		<!--Il convient de mettre un "_" entre différentes zones -->		
 		<!--Il convient de mettre un ":" pour préciser un scénario à utiliser -->
 		<param key="useRepartition" value="etal:rural-AU_periUrbain" />
-		<!-- Type de bâtiment construit par défaut si le  -->
+		<!-- Type de bâtiment construit par défaut si le couple zone/typo n'est pas renseigné -->
 		<param key="buildingTypeDefault" value = "SmallHouse" />
 
 	<!--PARAMETRE CONCERNANT LES LOGEMENTS -->
@@ -134,10 +126,8 @@
 
 	
 	<!-- Mode de fonctionnement d'ArtiScales -->
-	<!-- Si true, le modèle s'arrête quand les objectifs de création de logement 
-		du SCoT sont atteind -->
-	<!-- Si false, le modèle urbanise toutes les parcelles sans tenir compte 
-		du nombre de logements construits -->
+	<!-- Si true, le modèle ne prends en compte et ne garde dans les résultats pas plus de logement que le nombre prévu par les objectifs de création contenus dans le PLH et/ou le SCoT -->
+	<!-- Si false, le modèle urbanise toutes les parcelles sans tenir compte du nombre de logements construits -->
 	<param key="fill" value="false" />
 
 </parameters>
