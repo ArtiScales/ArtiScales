@@ -227,8 +227,18 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 		this.bPUGeom = AdapterFactory.toGeometry(gf, bPU.getGeom());
 
+		
+		
 		// Prepare the forbidden geometry from prescription
 		ForbiddenZoneGenerator fZG = new ForbiddenZoneGenerator();
+		//set the defaut parameters 
+		fZG.setDistanceTVB(p.getDouble("bufferBiodiversityArea"));
+		fZG.setDistanceRecoilVegetation(p.getDouble("bufferProtectedWood")); 
+		fZG.setDistanceRecoilReservedEmplacement(p.getDouble("bufferReserve"));
+		fZG.setDistanceRecoilPaysage(p.getDouble("bufferLandscapeFeatures"));
+		fZG.setDistancenNuisanceRisque(p.getDouble("bufferRisk")); 
+		fZG.setDistanceAlignment(p.getDouble("bufferAlignment")); 
+		
 		IGeometry geomForbidden = fZG.generateUnionGeometry(prescriptions, currentBPU);
 
 		if (geomForbidden != null && !geomForbidden.isEmpty()) {

@@ -16,7 +16,7 @@
 	<param key="maxlen" value="17" />
 	<!-- Longueur -->
 	<param key="minwid" value="7" />
-	<param key="maxwid" value="17" />
+	<param key="maxwid" value="10" />
 	<!-- Hauteur -->
 	<param key="minheight" value="3.5" />
 	<param key="maxheight" value="7" />

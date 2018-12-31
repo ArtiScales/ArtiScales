@@ -37,7 +37,7 @@ public abstract class Indicators {
 	 * 
 	 */
 	public String getnameScenar() {
-		return p.getString("nom");
+		return p.getString("name");
 	}
 
 	/**

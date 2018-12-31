@@ -5,7 +5,12 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
@@ -40,47 +45,105 @@ import fr.ign.parameters.Parameters;
 
 public class GetFromGeom {
 
-	public static String affectToZoneAndTypo(String paramLine, SimpleFeature parcel, String paramName,
-			File dataRegulation, File dataGeo) throws Exception {
+	public static void main(String[] args) throws Exception {
+		File rootParam = new File("/home/yo/workspace/ArtiScales/src/main/resources/paramSet/exScenar");
+		List<File> lF = new ArrayList<>();
+		lF.add(new File(rootParam, "parameterTechnic.xml"));
+		lF.add(new File(rootParam, "parameterScenario.xml"));
 
+		Parameters p = Parameters.unmarshall(lF);
+
+		ShapefileDataStore shpDSZone = new ShapefileDataStore(
+				new File("/home/yo/Documents/these/parcTemp.shp").toURI().toURL());
+		SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
+		SimpleFeatureIterator it = featuresZones.features();
+		SimpleFeature waiting = null;
+		while (it.hasNext()) {
+			SimpleFeature feat = it.next();
+			if (((String) feat.getAttribute("NUMERO")).equals("0212")
+					&& ((String) feat.getAttribute("SECTION")).equals("AB")) {
+				waiting = feat;
+			}
+		}
+		it.close();
+		System.out.println(affectToZoneAndTypo(p, waiting, true));
+
+		shpDSZone.dispose();
+	}
+
+	/**
+	 * 
+	 * @param paramLine       : value of the parameter file that concerns the zone
+	 *                        repartition
+	 * @param parcel          : parcel contained into different zones and/or typs
+	 * @param paramName       : name of the scenario
+	 * @param dataRegulation  :
+	 * @param dataGeo
+	 * @param priorTypoOrZone : if true: we prior the typo if two different zones
+	 *                        for zone and typo are found
+	 * @return
+	 * @throws Exception
+	 */
+	public static String affectToZoneAndTypo(Parameters p, SimpleFeature parcel, boolean priorTypoOrZone) throws Exception {
 		String occurConcerned = "";
 
 		List<String> mayOccur = new ArrayList<String>();
-		
-		String typo = GetFromGeom.parcelInBigZone(dataRegulation, parcel);
+		// TODO make sure that this returns the best answer
+		String typo = GetFromGeom.parcelInBigZone(new File(p.getString("rootFile")+"/dataRegulation"), parcel);
+		System.out.println(typo);
+		String zone = GetFromGeom.parcelInTypo(new File(p.getString("rootFile")+"/dataGeo"), parcel);
+		System.out.println(zone);
+		String[] tabRepart = p.getString("useRepartition").split("_");
 
-		String zone = GetFromGeom.parcelInTypo(dataGeo, parcel);
-
-		String[] tabRepart = paramLine.split("_");
-
-		// TODO finish to code that
 		for (String s : tabRepart) {
 			// If the paramFile speak for a particular scenario
 			String[] scenarRepart = s.split(":");
 			// if its no longer than 1, no particular scénario
 			if (scenarRepart.length > 1) {
-				// if codes doesnt match, we continue with another one
-				if (!scenarRepart[0].equals(paramName)) {
+				// if codes doesn't match, we continue with another one
+				if (!scenarRepart[0].equals(p.getString("code"))) {
 					continue;
 				}
 			}
-			// the different special locations
-
-			// if both
+			// seek for the different special locations
+			// if both, it's a perfect match !!
 			if (s.contains(typo) && s.contains(zone)) {
 				occurConcerned = s;
 				break;
 			}
-			//if no perfect match, prior to the typo
+			// if no perfect match, prior to the typo
 			if (s.contains(zone)) {
 				mayOccur.add(s);
 			}
-
-
+			if (s.contains(typo)) {
+				mayOccur.add(s);
+			}
 		}
-		
+		// if no perfect match found, we seek for a simple zone identifier
 		if (occurConcerned.equals("")) {
-			
+			// we prior typo infos than zone infos
+			if (priorTypoOrZone) {
+				for (String s : mayOccur) {
+					if (s.equals(typo)) {
+						occurConcerned = s;
+					}
+				}
+			}
+			// we prior zone to typo
+			else if (!priorTypoOrZone) {
+				for (String s : mayOccur) {
+					if (s.equals(zone)) {
+						occurConcerned = s;
+					}
+				}
+			}
+			// the type found is not the one priorized. We return it anyway
+			else {
+				occurConcerned = mayOccur.get(0);
+			}
+		}
+		if (occurConcerned == "") {
+			occurConcerned = "default";
 		}
 
 		return occurConcerned;
@@ -254,7 +317,7 @@ public class GetFromGeom {
 		parcelSDS.dispose();
 		shpDSBati.dispose();
 
-		return Vectors.exportSFC(newParcel.collection(), new File(tmpFile, "parcel.shp"));
+		return Vectors.exportSFC(newParcel.collection(), new File(tmpFile, "parcelle.shp"));
 	}
 
 	public static File getBuild(File geoFile) throws FileNotFoundException {
@@ -460,7 +523,7 @@ public class GetFromGeom {
 		try {
 			zone: while (featuresZones.hasNext()) {
 				SimpleFeature feat = featuresZones.next();
-				// TODO if same bigzone in two different libelle, won't fall into that trap =>
+				// TODO if same typo in two different typo, won't fall into that trap =>
 				// create a big zone shapefile instead?
 				if (((Geometry) feat.getDefaultGeometry()).buffer(1)
 						.contains((Geometry) parcelIn.getDefaultGeometry())) {
@@ -540,7 +603,8 @@ public class GetFromGeom {
 	 * @throws Exception
 	 */
 	public static String parcelInBigZone(File regulFile, SimpleFeature parcelIn) throws Exception {
-		return parcelInBigZone(parcelIn, regulFile).get(0);
+		List<String> yo = parcelInBigZone(parcelIn, regulFile);
+		return yo.get(0);
 	}
 
 	/**
@@ -552,51 +616,76 @@ public class GetFromGeom {
 	 * @throws Exception
 	 */
 	public static List<String> parcelInBigZone(SimpleFeature parcelIn, File regulFile) throws Exception {
-		List<String> result = new ArrayList<String>();
+		List<String> result = new LinkedList<String>();
 		ShapefileDataStore shpDSZone = new ShapefileDataStore(getZoning(regulFile).toURI().toURL());
 		SimpleFeatureCollection shpDSZoneReduced = Vectors.snapDatas(shpDSZone.getFeatureSource().getFeatures(),
 				(Geometry) parcelIn.getDefaultGeometry());
 		SimpleFeatureIterator featuresZones = shpDSZoneReduced.features();
+		// if there's two zones, we need to sort them by making collection. zis iz évy
+		// calculation, but it could worth it
+		boolean twoZones = false;
+		HashMap<String, Double> repart = new HashMap<String, Double>();
+
 		try {
-			while (featuresZones.hasNext()) {
+			zoneLoop : while (featuresZones.hasNext()) {
 				SimpleFeature feat = featuresZones.next();
-				if (((Geometry) feat.getDefaultGeometry()).buffer(1)
+				if (((Geometry) feat.getDefaultGeometry()).buffer(0.5)
 						.contains((Geometry) parcelIn.getDefaultGeometry())) {
+					twoZones = false;
 					switch ((String) feat.getAttribute("TYPEZONE")) {
 					case "U":
 					case "ZC":
 						result.add("U");
 						result.remove("AU");
 						result.remove("NC");
-						break;
+						break zoneLoop;
 					case "AU":
 						result.add("AU");
 						result.remove("U");
 						result.remove("NC");
-						break;
+						break zoneLoop;
 					case "N":
 					case "NC":
 					case "A":
 						result.add("NC");
 						result.remove("AU");
 						result.remove("U");
-						break;
+						break zoneLoop;
 					}
 				}
-				// maybe the parcel is in between two zones
+				// maybe the parcel is in between two zones (less optimized)
 				else if (((Geometry) feat.getDefaultGeometry()).intersects((Geometry) parcelIn.getDefaultGeometry())) {
+					twoZones = true;
 					switch ((String) feat.getAttribute("TYPEZONE")) {
 					case "U":
 					case "ZC":
-						result.add("U");
+						if (repart.containsKey("U")) {
+							repart.put("U", repart.get("U") + ((Geometry) feat.getDefaultGeometry())
+									.intersection((Geometry) parcelIn.getDefaultGeometry()).getArea());
+						} else {
+							repart.put("U", ((Geometry) feat.getDefaultGeometry())
+									.intersection((Geometry) parcelIn.getDefaultGeometry()).getArea());
+						}
 						break;
 					case "AU":
-						result.add("AU");
+						if (repart.containsKey("AU")) {
+							repart.put("AU", repart.get("AU") + ((Geometry) feat.getDefaultGeometry())
+									.intersection((Geometry) parcelIn.getDefaultGeometry()).getArea());
+						} else {
+							repart.put("AU", ((Geometry) feat.getDefaultGeometry())
+									.intersection((Geometry) parcelIn.getDefaultGeometry()).getArea());
+						}
 						break;
 					case "N":
 					case "NC":
 					case "A":
-						result.add("NC");
+						if (repart.containsKey("NC")) {
+							repart.put("NC", repart.get("NC") + ((Geometry) feat.getDefaultGeometry())
+									.intersection((Geometry) parcelIn.getDefaultGeometry()).getArea());
+						} else {
+							repart.put("NC", ((Geometry) feat.getDefaultGeometry())
+									.intersection((Geometry) parcelIn.getDefaultGeometry()).getArea());
+						}
 						break;
 					}
 				}
@@ -608,7 +697,21 @@ public class GetFromGeom {
 		}
 
 		shpDSZone.dispose();
+		if (twoZones == true) {
+			List<Entry<String, Double>> entryList = new ArrayList<Entry<String, Double>>(repart.entrySet());
+			Collections.sort(entryList, new Comparator<Entry<String, Double>>() {
+				@Override
+				public int compare(Entry<String, Double> obj1, Entry<String, Double> obj2) {
+					return obj2.getValue().compareTo(obj1.getValue());
+				}
+			});
 
+			for (Entry<String, Double> s : entryList) {
+				result.add(s.getKey());
+			}
+
+		}
+		
 		return result;
 
 	}
@@ -1011,7 +1114,7 @@ public class GetFromGeom {
 		SimpleFeatureCollection pSFS = pSDS.getFeatureSource().getFeatures();
 
 		SimpleFeatureCollection splitedAUParcelsFile = VectorFct.splitParcels(pSFS, maximalArea, maximalWidth,
-				roadEpsilon, noise, extBlock, decompositionLevelWithRoad, roadWidth, forceRoadAccess, tmpFile, p);
+				roadEpsilon, noise, extBlock, roadWidth, forceRoadAccess, tmpFile, p);
 
 		pSDS.dispose();
 

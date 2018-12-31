@@ -13,17 +13,21 @@ import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.factory.GeoTools;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.referencing.CRS;
+import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory2;
 import org.opengis.filter.expression.PropertyName;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Polygon;
+import com.vividsolutions.jts.io.ParseException;
 
 import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.annexeTools.FeaturePolygonizer;
@@ -51,7 +55,7 @@ public class VectorFct {
 
 	public static void main(String[] args) throws Exception {
 
-		File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/periurbanisationIntenseRegule");
+		File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/exScenar");
 		List<File> lF = new ArrayList<>();
 		lF.add(new File(rootParam, "parameterTechnic.xml"));
 		lF.add(new File(rootParam, "parameterScenario.xml"));
@@ -60,8 +64,9 @@ public class VectorFct {
 
 		File tmpFile = new File("/tmp");
 
-		ShapefileDataStore shpDSZone = new ShapefileDataStore(
-				new File("/home/mcolomb/informatique/ArtiScales2/ParcelSelectionFile/periurbanisationIntenseRegule/variant0/parcelGenExport.shp").toURI().toURL());
+		ShapefileDataStore shpDSZone = new ShapefileDataStore(new File(
+				"/home/mcolomb/informatique/ArtiScales2/ParcelSelectionFile/exScenar/variant0/parcelGenExport.shp")
+						.toURI().toURL());
 		SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
 		SimpleFeatureIterator it = featuresZones.features();
 		SimpleFeature waiting = null;
@@ -72,14 +77,16 @@ public class VectorFct {
 			}
 		}
 
-		// Vectors.exportSFC(generateSplitedParcels(waiting, tmpFile, p), new File("/tmp/tmp2.shp"));
+		// Vectors.exportSFC(generateSplitedParcels(waiting, tmpFile, p), new
+		// File("/tmp/tmp2.shp"));
 		SimpleFeatureCollection salut = generateSplitedParcels(waiting, tmpFile, p);
 
 		Vectors.exportSFC(salut, new File("/tmp/tmp2.shp"));
 
 	}
 
-	public static SimpleFeatureCollection generateSplitedParcelsU(SimpleFeatureCollection parcelCollection, File geoFile, Parameters p) throws Exception {
+	public static SimpleFeatureCollection parcelDensification(String splitZone,
+			SimpleFeatureCollection parcelCollection, File geoFile, Parameters p) throws Exception {
 		SimpleFeatureIterator parcelIt = parcelCollection.features();
 
 		// the little islands (ilots)
@@ -87,7 +94,6 @@ public class VectorFct {
 		IFeatureCollection<IFeature> featC = ShapefileReader.read(inputUrbanBlock);
 		List<IOrientableCurve> lOC = FromGeomToLineString.convert(featC.get(0).getGeom());
 		IMultiCurve<IOrientableCurve> iMultiCurve = new GM_MultiCurve<>(lOC);
-
 		DefaultFeatureCollection cutedAll = new DefaultFeatureCollection();
 		// TODO doesn't work
 		try {
@@ -95,7 +101,7 @@ public class VectorFct {
 				SimpleFeature feat = parcelIt.next();
 
 				// if the parcel is selected for the simulation
-				if (feat.getAttribute("DoWeSimul").equals("true") && ((boolean) feat.getAttribute("U"))) {
+				if (feat.getAttribute("DoWeSimul").equals("true") && ((boolean) feat.getAttribute(splitZone))) {
 
 					// if the parcel is bigger than the limit size
 					if (((Geometry) feat.getDefaultGeometry()).getArea() > p.getDouble("maximalAreaSplitParcel")) {
@@ -112,7 +118,8 @@ public class VectorFct {
 								cutedAll.add(feat);
 							} else {
 								// TODO make a U selection
-								// cutedAll.addAll(generateFlagSplitedParcelsErrorless(feat, iMultiCurve, geoFile, p));
+								// cutedAll.addAll(generateFlagSplitedParcelsErrorless(feat, iMultiCurve,
+								// geoFile, p));
 							}
 						}
 					}
@@ -133,18 +140,24 @@ public class VectorFct {
 	}
 
 	/**
-	 * Merge and recut the to urbanised (AU) zones Cut first the U parcels to keep them unsplited, then split the AU parcel and remerge them all into the original parcel file
+	 * Merge and recut the to urbanised (AU) zones Cut first the U parcels to keep
+	 * them unsplited, then split the AU parcel and remerge them all into the
+	 * original parcel file
+	 * 
+	 * @param splitZone
 	 * 
 	 * @param parcels
 	 * @param zoningFile
-	 * @param p
-	 *            : parametre file s
+	 * @param p          : parametre file s
 	 * @return
 	 * @throws Exception
 	 */
-	public static SimpleFeatureCollection generateSplitedParcelsAU(SimpleFeatureCollection parcels, File tmpFile, File zoningFile, Parameters p) throws Exception {
-		//TODO prendre en compte les modif de la création de route (type pour déterminer les conditions d'arret des parcelles et jusqu'à quand descend la création de routes)
- 
+	public static SimpleFeatureCollection parcelGenZone(String splitZone, SimpleFeatureCollection parcels, File tmpFile,
+			File zoningFile, Parameters p) throws Exception {
+		// TODO prendre en compte les modif de la création de route (type pour
+		// déterminer les conditions d'arret des parcelles et jusqu'à quand descend la
+		// création de routes)
+
 		// parcels to save for after
 		DefaultFeatureCollection savedParcels = new DefaultFeatureCollection();
 		// import of the zoning file
@@ -156,14 +169,14 @@ public class VectorFct {
 
 		// get the AU zones from the zoning file
 		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
-		Filter filterTypeZone = ff.like(ff.property("TYPEZONE"), "AU");
+		Filter filterTypeZone = ff.like(ff.property("TYPEZONE"), splitZone);
 
 		Filter filterEmprise = ff.intersects(ff.property(geometryParcelPropertyName), ff.literal(unionParcel));
 		SimpleFeatureCollection zoneAU = featuresZones.subCollection(filterTypeZone).subCollection(filterEmprise);
 
 		// If no AU zones, we won't bother
 		if (zoneAU.isEmpty()) {
-			System.out.println("no AU zones");
+			System.out.println("no " + splitZone + " zones");
 			return parcels;
 		}
 
@@ -172,7 +185,8 @@ public class VectorFct {
 		DefaultFeatureCollection parcelsInAU = new DefaultFeatureCollection();
 		SimpleFeatureIterator parcIt = parcels.features();
 
-		// sort in two different collections, the ones that cares and the ones that doesnt
+		// sort in two different collections, the ones that cares and the ones that
+		// doesnt
 		try {
 			while (parcIt.hasNext()) {
 				SimpleFeature feat = parcIt.next();
@@ -192,7 +206,8 @@ public class VectorFct {
 		File fParcelsInAU = Vectors.exportSFC(parcelsInAU, new File(tmpFile, "parcelCible.shp"));
 		File fZoneAU = Vectors.exportSFC(zoneAU, new File(tmpFile, "oneAU.shp"));
 
-		// cut and separate parcel according to their spatial relation with the zonnig zones
+		// cut and separate parcel according to their spatial relation with the zonnig
+		// zones
 		File[] polyFiles = { fParcelsInAU, fZoneAU };
 		List<Polygon> polygons = FeaturePolygonizer.getPolygons(polyFiles);
 
@@ -204,7 +219,8 @@ public class VectorFct {
 		DefaultFeatureCollection write = new DefaultFeatureCollection();
 
 		int nFeat = 0;
-		// for every polygons situated in between U and AU zones, we cut the parcels regarding to the zone and copy them attributes to keep the existing U parcels
+		// for every polygons situated in between U and AU zones, we cut the parcels
+		// regarding to the zone and copy them attributes to keep the existing U parcels
 		for (Geometry poly : polygons) {
 			// if the polygons are not included on the AU zone
 			if (!geomAU.buffer(0.01).contains(poly)) {
@@ -240,7 +256,7 @@ public class VectorFct {
 				nFeat++;
 			}
 		}
-		
+
 		String geometryOutputName = write.getSchema().getGeometryDescriptor().getLocalName();
 		SimpleFeatureIterator it = zoneAU.features();
 		int numZone = 0;
@@ -325,8 +341,8 @@ public class VectorFct {
 		ShapefileDataStore pSDS = new ShapefileDataStore(outU.toURI().toURL());
 		SimpleFeatureCollection pSFS = pSDS.getFeatureSource().getFeatures();
 
-		//TODO nombre d'itération max à définir automatiquement 
-		SimpleFeatureCollection splitedAUParcels = splitParcels(pSFS, maximalArea, maximalWidth, roadEpsilon, noise, null, 2, p.getDouble("lenRoad"), true, tmpFile, p);
+		SimpleFeatureCollection splitedAUParcels = splitParcels(pSFS, maximalArea, maximalWidth, roadEpsilon, noise,
+				null, p.getDouble("lenRoad"), true, tmpFile, p);
 
 		// Finally, put them all features in a same collec
 		SimpleFeatureIterator finalIt = splitedAUParcels.features();
@@ -334,9 +350,11 @@ public class VectorFct {
 		try {
 			while (finalIt.hasNext()) {
 				SimpleFeature feat = finalIt.next();
-				SimpleFeatureBuilder finalParcelBuilder = GetFromGeom.setSFBWithFeat(feat, savedParcels.getSchema(), geometryOutputName);
+				SimpleFeatureBuilder finalParcelBuilder = GetFromGeom.setSFBWithFeat(feat, savedParcels.getSchema(),
+						geometryOutputName);
 				if (feat.getAttribute("CODE") == null) {
-					finalParcelBuilder = GetFromGeom.setSFBParDefaut(feat, savedParcels.getSchema(), geometryOutputName);
+					finalParcelBuilder = GetFromGeom.setSFBParDefaut(feat, savedParcels.getSchema(),
+							geometryOutputName);
 				}
 				savedParcels.add(finalParcelBuilder.buildFeature(String.valueOf(cpt)));
 				cpt++;
@@ -354,7 +372,165 @@ public class VectorFct {
 		return result;
 	}
 
-	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeatureCollection parcelIn, File filterFile, File tmpFile, Parameters p) throws Exception {
+	public static SimpleFeatureCollection parcelGenMotif(String typeZone, SimpleFeatureCollection parcels, File tmpFile,
+			File regulationFile, File geoFile, File mupOutput, Parameters p)
+			throws IOException, NoSuchAuthorityCodeException, FactoryException {
+
+		Geometry emprise = Vectors.unionSFC(parcels);
+		DefaultFeatureCollection parcelResult = new DefaultFeatureCollection();
+		parcelResult.addAll(parcels);
+
+		ShapefileDataStore shpDSCells = new ShapefileDataStore(mupOutput.toURI().toURL());
+		SimpleFeatureCollection cellsSFS = shpDSCells.getFeatureSource().getFeatures();
+		DefaultFeatureCollection parcelToMerge = new DefaultFeatureCollection();
+
+		// city information
+		ShapefileDataStore shpDSCities = new ShapefileDataStore(GetFromGeom.getCommunities(geoFile).toURI().toURL());
+		SimpleFeatureCollection citiesSFS = shpDSCities.getFeatureSource().getFeatures();
+
+		////////////////
+		// first round of selection of the intersected parcels
+		////////////////
+
+		SimpleFeatureIterator parcelIt = parcels.features();
+		try {
+			while (parcelIt.hasNext()) {
+				SimpleFeature parcel = parcelIt.next();
+				if ((boolean) parcel.getAttribute(typeZone)) {
+					if ((boolean) parcel.getAttribute("DoWeSimul")) {
+						parcelToMerge.add(parcel);
+						parcelResult.remove(parcel);
+					}
+				}
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			parcelIt.close();
+		}
+
+		Vectors.exportSFC(parcelToMerge.collection(), new File("/tmp/step1.shp"));
+		System.out.println("done step 1");
+
+		////////////////
+		// second step : merge of the parcel by lil island
+		////////////////
+
+		DefaultFeatureCollection mergedParcels = new DefaultFeatureCollection();
+		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
+
+		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
+
+		sfTypeBuilder.setName("mergeAUParcels");
+		sfTypeBuilder.setCRS(sourceCRS);
+		sfTypeBuilder.add("the_geom", Polygon.class);
+		sfTypeBuilder.setDefaultGeometry("the_geom");
+
+		SimpleFeatureBuilder sfBuilder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
+
+		Geometry multiGeom = Vectors.unionSFC(parcelToMerge);
+		for (int i = 0; i < multiGeom.getNumGeometries(); i++) {
+			sfBuilder.add(multiGeom.getGeometryN(i));
+			mergedParcels.add(sfBuilder.buildFeature(String.valueOf(i)));
+		}
+		Vectors.exportSFC(mergedParcels.collection(), new File("/tmp/step2.shp"));
+		System.out.println("done step 2");
+
+		////////////////
+		// third step : cuting of the parcels
+		////////////////
+
+		// the little islands (ilots)
+		IMultiCurve<IOrientableCurve> iMultiCurve = null;
+
+		SimpleFeatureIterator bigParcelIt = mergedParcels.features();
+		DefaultFeatureCollection cutedParcels = new DefaultFeatureCollection();
+		int izi = 0;
+		try {
+			while (bigParcelIt.hasNext()) {
+				SimpleFeature feat = bigParcelIt.next();
+				// if the parcel is bigger than the limit size
+				if (((Geometry) feat.getDefaultGeometry()).getArea() > p.getDouble("maximalAreaSplitParcel")) {
+					// we cut the parcel
+					// TODO c'est toujours ici que ça plante. L'ajout de certaines feature écrasent
+					// d'autre et je ne vois pas pour l'instant où il faut changer le nom.
+					SimpleFeatureCollection temp = VectorFct.generateSplitedParcels(feat, tmpFile, p);
+					cutedParcels.addAll(temp);
+					// temp
+					Vectors.exportSFC(temp, new File("/tmp/yopelo" + izi++ + ".shp"));
+
+				} else {
+					cutedParcels.add(feat);
+				}
+
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			bigParcelIt.close();
+		}
+		Vectors.exportSFC(cutedParcels.collection(), new File("/tmp/step3.shp"));
+		System.out.println("done step 3");
+
+		////////////////
+		// fourth step : selection of the parcels intersecting the cells
+		////////////////
+
+		int i = 0;
+		SimpleFeatureIterator parcelFinal = cutedParcels.features();
+		try {
+			while (parcelFinal.hasNext()) {
+				SimpleFeature parcel = parcelFinal.next();
+				SimpleFeatureBuilder featureBuilder = GetFromGeom.getParcelSFBuilder();
+
+				// we get the city info
+				String insee = GetFromGeom.getInseeFromParcel(citiesSFS, parcel);
+
+				sfTypeBuilder.add("CODE", String.class);
+				sfTypeBuilder.add("SECTION", String.class);
+				sfTypeBuilder.add("NUMERO", String.class);
+
+				featureBuilder.set("INSEE", insee);
+				featureBuilder.set("CODE_DEP", insee.substring(0, 1));
+				featureBuilder.set("CODE_COM", insee.substring(2, 5));
+
+				featureBuilder.set("SECTION", "newSection" + parcel.getID() + "Natural");
+				featureBuilder.set("NUMERO", i);
+				featureBuilder.set("CODE", i);
+
+				featureBuilder.set("COM_ABS", insee + "000" + parcel.getID() + i);
+				featureBuilder.set("COM_ABS", "000");
+
+				featureBuilder.set("IsBuild", isParcelBuilt(parcel, geoFile));
+
+				featureBuilder.set("U", false);
+				featureBuilder.set("AU", false);
+				featureBuilder.set("NC", true);
+
+				if (isParcelInCell(parcel, cellsSFS)) {
+					featureBuilder.set("DoWeSimul", "true");
+					featureBuilder.set("eval", getEvalInParcel(parcel, mupOutput));
+				} else {
+					featureBuilder.set("DoWeSimul", "false");
+				}
+				parcelResult.add(featureBuilder.buildFeature(String.valueOf(i++)));
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			parcelFinal.close();
+		}
+
+		shpDSCells.dispose();
+		shpDSCities.dispose();
+		shpDSCells.dispose();
+		Vectors.exportSFC(cutedParcels, new File("/tmp/step4.shp"));
+
+		return parcelResult;
+	}
+
+	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeatureCollection parcelIn, File filterFile,
+			File tmpFile, Parameters p) throws Exception {
 
 		ShapefileDataStore morphoSDS = new ShapefileDataStore(filterFile.toURI().toURL());
 		SimpleFeatureCollection morphoSFC = morphoSDS.getFeatureSource().getFeatures();
@@ -367,7 +543,8 @@ public class VectorFct {
 		return generateSplitedParcels(parcelIn.subCollection(filter), tmpFile, p);
 	}
 
-	public static SimpleFeatureCollection generateFlagSplitedParcels(SimpleFeatureCollection featColl, IMultiCurve<IOrientableCurve> iMultiCurve, File geoFile, Parameters p)
+	public static SimpleFeatureCollection generateFlagSplitedParcels(SimpleFeatureCollection featColl,
+			IMultiCurve<IOrientableCurve> iMultiCurve, File geoFile, Parameters p)
 			throws NoSuchAuthorityCodeException, FactoryException, Exception {
 
 		DefaultFeatureCollection collec = new DefaultFeatureCollection();
@@ -387,7 +564,8 @@ public class VectorFct {
 		return collec;
 	}
 
-	public static SimpleFeatureCollection generateFlagSplitedParcels(SimpleFeature feat, IMultiCurve<IOrientableCurve> iMultiCurve, File geoFile, Parameters p) throws Exception {
+	public static SimpleFeatureCollection generateFlagSplitedParcels(SimpleFeature feat,
+			IMultiCurve<IOrientableCurve> iMultiCurve, File geoFile, Parameters p) throws Exception {
 		IFeature ifeat = GeOxygeneGeoToolsTypes.convert2IFeature(feat);
 		IGeometry geom = ifeat.getGeom();
 
@@ -402,15 +580,18 @@ public class VectorFct {
 			return null;
 		}
 
-		FlagParcelDecomposition fpd = new FlagParcelDecomposition((IPolygon) surfaces.get(0), ShapefileReader.read(GetFromGeom.getBuild(geoFile).getAbsolutePath()),
-				p.getDouble("maximalAreaSplitParcel"), p.getDouble("maximalWidthSplitParcel"), p.getDouble("lenDriveway"), iMultiCurve);
+		FlagParcelDecomposition fpd = new FlagParcelDecomposition((IPolygon) surfaces.get(0),
+				ShapefileReader.read(GetFromGeom.getBuild(geoFile).getAbsolutePath()),
+				p.getDouble("maximalAreaSplitParcel"), p.getDouble("maximalWidthSplitParcel"),
+				p.getDouble("lenDriveway"), iMultiCurve);
 		IFeatureCollection<IFeature> decomp = fpd.decompParcel(0);
 		return GeOxygeneGeoToolsTypes.convert2FeatureCollection(decomp);
 
 	}
 
-	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeature parcelIn, File tmpFile, Parameters p, double maximalArea, double maximalWidth, double epsilon,
-			IMultiCurve<IOrientableCurve> extBlock, double roadWidth, boolean forceRoadAccess) throws Exception {
+	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeature parcelIn, File tmpFile, Parameters p,
+			double maximalArea, double maximalWidth, double epsilon, IMultiCurve<IOrientableCurve> extBlock,
+			double roadWidth, boolean forceRoadAccess) throws Exception {
 
 		// putting the need of splitting into attribute
 
@@ -422,30 +603,35 @@ public class VectorFct {
 		if (parcelIn.getAttribute("CODE") != null) {
 			numParcelValue = parcelIn.getAttribute("CODE").toString();
 		} else if (parcelIn.getAttribute("CODE_DEP") != null) {
-			numParcelValue = ((String) parcelIn.getAttribute("CODE_DEP")) + (parcelIn.getAttribute("CODE_COM").toString()) + (parcelIn.getAttribute("COM_ABS").toString())
+			numParcelValue = ((String) parcelIn.getAttribute("CODE_DEP"))
+					+ (parcelIn.getAttribute("CODE_COM").toString()) + (parcelIn.getAttribute("COM_ABS").toString())
 					+ (parcelIn.getAttribute("SECTION").toString());
 		} else if (parcelIn.getAttribute("NUMERO") != null) {
 			numParcelValue = parcelIn.getAttribute("NUMERO").toString();
-		} 
-		Object[] attr = { numParcelValue, parcelIn.getAttribute("CODE_DEP"), parcelIn.getAttribute("CODE_COM"), parcelIn.getAttribute("COM_ABS"), parcelIn.getAttribute("SECTION"),
-				parcelIn.getAttribute("NUMERO"), parcelIn.getAttribute("INSEE"), parcelIn.getAttribute("eval"), parcelIn.getAttribute("DoWeSimul"), 1 };
+		}
+		Object[] attr = { numParcelValue, parcelIn.getAttribute("CODE_DEP"), parcelIn.getAttribute("CODE_COM"),
+				parcelIn.getAttribute("COM_ABS"), parcelIn.getAttribute("SECTION"), parcelIn.getAttribute("NUMERO"),
+				parcelIn.getAttribute("INSEE"), parcelIn.getAttribute("eval"), parcelIn.getAttribute("DoWeSimul"), 1 };
 
 		sfBuilder.add(parcelIn.getDefaultGeometry());
 		toSplit.add(sfBuilder.buildFeature("0", attr));
 
-		return splitParcels(toSplit, maximalArea, maximalWidth, epsilon, 0, extBlock, roadWidth, forceRoadAccess, tmpFile, p);
+		return splitParcels(toSplit, maximalArea, maximalWidth, epsilon, 0, extBlock, roadWidth, forceRoadAccess,
+				tmpFile, p);
 
 	}
 
 	/**
-	 * Determine if the parcels need to be splited or not, based on their area. This area is either determined by a param file, or taken as a default value of 1200 square meters
+	 * Determine if the parcels need to be splited or not, based on their area. This
+	 * area is either determined by a param file, or taken as a default value of
+	 * 1200 square meters
 	 * 
-	 * @param parcelIn
-	 *            : Parcels collection of simple features
+	 * @param parcelIn : Parcels collection of simple features
 	 * @return
 	 * @throws Exception
 	 */
-	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeature parcelIn, File tmpFile, Parameters p) throws Exception {
+	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeature parcelIn, File tmpFile, Parameters p)
+			throws Exception {
 
 		// splitting method option
 		double maximalArea = p.getDouble("maximalAreaSplitParcel");
@@ -456,21 +642,25 @@ public class VectorFct {
 		// String inputUrbanBlock = GetFromGeom.getIlots(geoFile).getAbsolutePath();
 		// System.out.println(inputUrbanBlock);
 		// IFeatureCollection<IFeature> featC = ShapefileReader.read(inputUrbanBlock);
-		// List<IOrientableCurve> lOC = FromGeomToLineString.convert(featC.get(0).getGeom());
+		// List<IOrientableCurve> lOC =
+		// FromGeomToLineString.convert(featC.get(0).getGeom());
 		// IMultiCurve<IOrientableCurve> iMultiCurve = new GM_MultiCurve<>(lOC);
 
-		return generateSplitedParcels(parcelIn, tmpFile, p, maximalArea, maximalWidth, 0, null, p.getDouble("lenRoad"), false);
+		return generateSplitedParcels(parcelIn, tmpFile, p, maximalArea, maximalWidth, 0, null, p.getDouble("lenRoad"),
+				false);
 	}
 
 	/**
-	 * Determine if the parcels need to be splited or not, based on their area. This area is either determined by a param file, or taken as a default value of 1200 square meters
+	 * Determine if the parcels need to be splited or not, based on their area. This
+	 * area is either determined by a param file, or taken as a default value of
+	 * 1200 square meters
 	 * 
-	 * @param parcelsIn
-	 *            : Parcels collection of simple features
+	 * @param parcelsIn : Parcels collection of simple features
 	 * @return
 	 * @throws Exception
 	 */
-	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeatureCollection parcelsIn, File tmpFile, Parameters p) throws Exception {
+	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeatureCollection parcelsIn, File tmpFile,
+			Parameters p) throws Exception {
 
 		// splitting method option
 
@@ -486,12 +676,15 @@ public class VectorFct {
 		double roadWidth = 5.0;
 		// Boolean forceRoadaccess
 		boolean forceRoadAccess = true;
-		return generateSplitedParcels(parcelsIn, tmpFile, p, maximalArea, maximalWidth, roadEpsilon, extBlock, decompositionLevelWithRoad, roadWidth, forceRoadAccess);
+		return generateSplitedParcels(parcelsIn, tmpFile, p, maximalArea, maximalWidth, roadEpsilon, extBlock,
+				decompositionLevelWithRoad, roadWidth, forceRoadAccess);
 
 	}
 
-	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeatureCollection parcelsIn, File tmpFile, Parameters p, double maximalArea, double maximalWidth,
-			double epsilon, IMultiCurve<IOrientableCurve> extBlock, int decompositionLevelWithRoad, double roadWidth, boolean forceRoadAccess) throws Exception {
+	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeatureCollection parcelsIn, File tmpFile,
+			Parameters p, double maximalArea, double maximalWidth, double epsilon,
+			IMultiCurve<IOrientableCurve> extBlock, int decompositionLevelWithRoad, double roadWidth,
+			boolean forceRoadAccess) throws Exception {
 
 		///////
 		// putting the need of splitting into attribute
@@ -511,17 +704,22 @@ public class VectorFct {
 				if (feat.getAttribute("CODE") != null) {
 					numParcelValue = feat.getAttribute("CODE").toString();
 				} else if (feat.getAttribute("CODE_DEP") != null) {
-					numParcelValue = ((String) feat.getAttribute("CODE_DEP")) + (feat.getAttribute("CODE_COM").toString()) + (feat.getAttribute("COM_ABS").toString())
+					numParcelValue = ((String) feat.getAttribute("CODE_DEP"))
+							+ (feat.getAttribute("CODE_COM").toString()) + (feat.getAttribute("COM_ABS").toString())
 							+ (feat.getAttribute("SECTION").toString());
 				} else if (feat.getAttribute("NUMERO") != null) {
 					numParcelValue = feat.getAttribute("NUMERO").toString();
-				} 
-				Object[] attr = { numParcelValue, feat.getAttribute("CODE_DEP"), feat.getAttribute("CODE_COM"), feat.getAttribute("COM_ABS"), feat.getAttribute("SECTION"),
-						feat.getAttribute("NUMERO"), feat.getAttribute("INSEE"), feat.getAttribute("eval"), feat.getAttribute("DoWeSimul"), 0 };
+				}
+				Object[] attr = { numParcelValue, feat.getAttribute("CODE_DEP"), feat.getAttribute("CODE_COM"),
+						feat.getAttribute("COM_ABS"), feat.getAttribute("SECTION"), feat.getAttribute("NUMERO"),
+						feat.getAttribute("INSEE"), feat.getAttribute("eval"), feat.getAttribute("DoWeSimul"), 0 };
 
 				// if(){
-				// Object[] attr = { numParcelValue, feat.getAttribute("CODE_DEP"), feat.getAttribute("CODE_COM"), feat.getAttribute("COM_ABS"), feat.getAttribute("SECTION"),
-				// feat.getAttribute("NUMERO"), feat.getAttribute("INSEE"), feat.getAttribute("eval"), feat.getAttribute("DoWeSimul"), 0 };
+				// Object[] attr = { numParcelValue, feat.getAttribute("CODE_DEP"),
+				// feat.getAttribute("CODE_COM"), feat.getAttribute("COM_ABS"),
+				// feat.getAttribute("SECTION"),
+				// feat.getAttribute("NUMERO"), feat.getAttribute("INSEE"),
+				// feat.getAttribute("eval"), feat.getAttribute("DoWeSimul"), 0 };
 				//
 				// }
 
@@ -537,12 +735,13 @@ public class VectorFct {
 		} finally {
 			parcelIt.close();
 		}
-
-		return splitParcels(toSplit, maximalArea, maximalWidth, epsilon, 0, extBlock, decompositionLevelWithRoad, roadWidth, forceRoadAccess, tmpFile, p);
+		return splitParcels(toSplit, maximalArea, maximalWidth, epsilon, 0.0, extBlock, roadWidth, forceRoadAccess,
+				tmpFile, p);
 	}
 
 	/**
-	 * largely inspired from the simPLU. ParcelSplitting class but rewrote to work with geotools SimpleFeatureCollection objects
+	 * largely inspired from the simPLU. ParcelSplitting class but rewrote to work
+	 * with geotools SimpleFeatureCollection objects
 	 * 
 	 * @param toSplit
 	 * @param maximalArea
@@ -552,9 +751,9 @@ public class VectorFct {
 	 * @return
 	 * @throws Exception
 	 */
-
-	public static SimpleFeatureCollection splitParcels(SimpleFeatureCollection toSplit, double maximalArea, double maximalWidth, double roadEpsilon, double noise,
-			IMultiCurve<IOrientableCurve> extBlock, double roadWidth, boolean forceRoadAccess, File tmpFile, Parameters p) throws Exception {
+	public static SimpleFeatureCollection splitParcels(SimpleFeatureCollection toSplit, double maximalArea,
+			double maximalWidth, double roadEpsilon, double noise, IMultiCurve<IOrientableCurve> extBlock,
+			double roadWidth, boolean forceRoadAccess, File tmpFile, Parameters p) throws Exception {
 
 		String attNameToTransform = "SPLIT";
 
@@ -576,7 +775,8 @@ public class VectorFct {
 
 			int numParcelle = 1;
 
-			OBBBlockDecomposition obb = new OBBBlockDecomposition(pol, maximalArea, maximalWidth, roadEpsilon, extBlock, roadWidth, forceRoadAccess,2);
+			OBBBlockDecomposition obb = new OBBBlockDecomposition(pol, maximalArea, maximalWidth, roadEpsilon, extBlock,
+					roadWidth, forceRoadAccess, 2);
 
 			try {
 				IFeatureCollection<IFeature> featCollDecomp = obb.decompParcel(noise);
@@ -612,24 +812,24 @@ public class VectorFct {
 
 		File fileOut = new File(tmpFile, "tmp_split.shp");
 		ShapefileWriter.write(ifeatCollOut, fileOut.toString(), CRS.decode("EPSG:2154"));
-		
-		//TODO that's an ugly thing, i thought i could go without it, but apparently it seems like my only option to get it done
-		//return GeOxygeneGeoToolsTypes.convert2FeatureCollection(ifeatCollOut, CRS.decode("EPSG:2154"));
-		
+
+		// TODO that's an ugly thing, i thought i could go without it, but apparently it
+		// seems like my only option to get it done
+		// return GeOxygeneGeoToolsTypes.convert2FeatureCollection(ifeatCollOut,
+		// CRS.decode("EPSG:2154"));
+
 		ShapefileDataStore sds = new ShapefileDataStore(fileOut.toURI().toURL());
 		SimpleFeatureCollection parcelUnclean = sds.getFeatureSource().getFeatures();
 		sds.dispose();
 		return parcelUnclean;
-		
-		
-		
+
 	}
 
 	/**
-	 * Merge all the shapefile of a folder (made for simPLU buildings) into one shapefile
+	 * Merge all the shapefile of a folder (made for simPLU buildings) into one
+	 * shapefile
 	 * 
-	 * @param file2MergeIn
-	 *            : list of files containing the shapefiles
+	 * @param file2MergeIn : list of files containing the shapefiles
 	 * @return : file where everything is saved (here whith a building name)
 	 * @throws Exception
 	 */
@@ -639,10 +839,10 @@ public class VectorFct {
 	}
 
 	/**
-	 * Merge all the shapefile of a folder (made for simPLU buildings) into one shapefile
+	 * Merge all the shapefile of a folder (made for simPLU buildings) into one
+	 * shapefile
 	 * 
-	 * @param file2MergeIn
-	 *            : folder containing the shapefiles
+	 * @param file2MergeIn : folder containing the shapefiles
 	 * @return : file where everything is saved (here whith a building name)
 	 * @throws Exception
 	 */
@@ -657,7 +857,145 @@ public class VectorFct {
 	}
 
 	/**
-	 * method that compares two set of parcels and export only the ones that are in common Useless for not but will be used to determine the cleaned parcels
+	 * return true if there's a building on the input parcel
+	 * 
+	 * @return the same collection without the parcels that intersects a building
+	 * @throws Exception
+	 */
+	public static boolean isParcelBuilt(SimpleFeature parcelIn, File geoFile) throws Exception {
+
+		ShapefileDataStore shpDSBati = new ShapefileDataStore(geoFile.toURI().toURL());
+		SimpleFeatureCollection batiCollection = shpDSBati.getFeatureSource().getFeatures();
+		batiCollection = Vectors.snapDatas(batiCollection, (Geometry) parcelIn.getDefaultGeometry());
+		Geometry emprise = Vectors.unionSFC(batiCollection);
+
+		return isParcelBuilt(parcelIn, emprise, geoFile);
+	}
+
+	/**
+	 * return true if there's a building on the input parcel
+	 * 
+	 * @return the same collection without the parcels that intersects a building
+	 * @throws Exception
+	 */
+	public static boolean isParcelBuilt(SimpleFeature parcelIn, Geometry emprise, File geoFile) throws Exception {
+
+		// couche de batiment
+		ShapefileDataStore shpDSBati = new ShapefileDataStore(GetFromGeom.getBuild(geoFile).toURI().toURL());
+		SimpleFeatureCollection batiCollection = shpDSBati.getFeatureSource().getFeatures();
+		// on snap la couche de batiment et la met dans une géométrie unique
+		Geometry batiUnion = Vectors.unionSFC(Vectors.snapDatas(batiCollection, emprise));
+		shpDSBati.dispose();
+
+		if (((Geometry) parcelIn.getDefaultGeometry()).contains(batiUnion)) {
+			return true;
+		}
+		return false;
+	}
+
+	public static boolean isAlreadyBuilt(Feature feature, File geoFile) throws IOException {
+		boolean isContent = false;
+		ShapefileDataStore bati_datastore = new ShapefileDataStore(GetFromGeom.getBuild(geoFile).toURI().toURL());
+		SimpleFeatureCollection batiFeatures = bati_datastore.getFeatureSource().getFeatures();
+		SimpleFeatureIterator iterator = batiFeatures.features();
+		try {
+			while (iterator.hasNext()) {
+				SimpleFeature batiFeature = iterator.next();
+				if (feature.getDefaultGeometryProperty().getBounds()
+						.contains(batiFeature.getDefaultGeometryProperty().getBounds())) {
+					isContent = true;
+					break;
+				}
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			iterator.close();
+		}
+		bati_datastore.dispose();
+		return isContent;
+	}
+
+	/**
+	 * 
+	 * @param parcelIn
+	 * @return
+	 * @throws ParseException
+	 * @throws NoSuchAuthorityCodeException
+	 * @throws FactoryException
+	 * @throws IOException
+	 */
+	public static Double getEvalInParcel(SimpleFeature parcel, File outMup)
+			throws ParseException, NoSuchAuthorityCodeException, FactoryException, IOException {
+
+		ShapefileDataStore cellsSDS = new ShapefileDataStore(outMup.toURI().toURL());
+		SimpleFeatureCollection cellsCollection = cellsSDS.getFeatureSource().getFeatures();
+
+		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
+		String geometryCellPropertyName = cellsCollection.getSchema().getGeometryDescriptor().getLocalName();
+
+		Filter inter = ff.intersects(ff.property(geometryCellPropertyName), ff.literal(parcel.getDefaultGeometry()));
+		SimpleFeatureCollection onlyCells = cellsCollection.subCollection(inter);
+		Double bestEval = Double.NEGATIVE_INFINITY;
+
+		// put the best cell evaluation into the parcel
+		if (onlyCells.size() > 0) {
+			SimpleFeatureIterator onlyCellIt = onlyCells.features();
+			try {
+				while (onlyCellIt.hasNext()) {
+					SimpleFeature multiCell = onlyCellIt.next();
+					bestEval = Math.max(bestEval, (Double) multiCell.getAttribute("eval"));
+				}
+			} catch (Exception problem) {
+				problem.printStackTrace();
+			} finally {
+				onlyCellIt.close();
+			}
+		}
+
+		// si jamais le nom est déjà généré
+
+		cellsSDS.dispose();
+		// sort collection with evaluation
+		// PropertyName pN = ff.property("eval");
+		// SortByImpl sbt = new SortByImpl(pN,
+		// org.opengis.filter.sort.SortOrder.DESCENDING);
+		// SimpleFeatureCollection collectOut = new
+		// SortedSimpleFeatureCollection(newParcel, new SortBy[] { sbt });
+		//
+		// moyenneEval(collectOut);
+
+		return bestEval;
+	}
+
+	public static boolean isParcelInCell(SimpleFeature parcelIn, SimpleFeatureCollection cellsCollection)
+			throws Exception {
+
+		cellsCollection = Vectors.snapDatas(cellsCollection, (Geometry) parcelIn.getDefaultGeometry());
+
+		// import of the cells of MUP-City outputs
+		SimpleFeatureIterator cellsCollectionIt = cellsCollection.features();
+
+		try {
+			while (cellsCollectionIt.hasNext()) {
+				SimpleFeature cell = cellsCollectionIt.next();
+				if (((Geometry) cell.getDefaultGeometry()).intersects(((Geometry) parcelIn.getDefaultGeometry()))) {
+					return true;
+				}
+
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			cellsCollectionIt.close();
+		}
+		return false;
+
+	}
+
+	/**
+	 * method that compares two set of parcels and export only the ones that are in
+	 * common Useless for not but will be used to determine the cleaned parcels
 	 * 
 	 * @param parcelOG
 	 * @param parcelToSort
@@ -707,5 +1045,26 @@ public class VectorFct {
 		}
 
 		Vectors.exportSFC(result, parcelOut);
+	}
+
+	public static SimpleFeatureCollection getParcelByCode(SimpleFeatureCollection parcelles,
+			List<String> parcelsWanted) throws IOException {
+		DefaultFeatureCollection result = new DefaultFeatureCollection();
+		SimpleFeatureIterator it = parcelles.features();
+
+		try {
+			while (it.hasNext()) {
+				SimpleFeature feat = it.next();
+				if (parcelsWanted.contains((String) feat.getAttribute("CODE"))) {
+					result.add(feat);
+				}
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			it.close();
+		}
+
+		return result.collection();
 	}
 }

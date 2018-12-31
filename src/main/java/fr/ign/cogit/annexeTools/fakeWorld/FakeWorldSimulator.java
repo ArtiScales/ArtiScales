@@ -47,7 +47,7 @@ public class FakeWorldSimulator {
 			System.out.println(pathSubFolder);
 
 			p.set("rootFile", pathSubFolder);
-			p.set("selectedParcelFile", pathSubFolder + "parcel.shp");
+			p.set("selectedParcelFile", pathSubFolder + "parcelle.shp");
 			p.set("geoFile", pathSubFolder);
 			p.set("pluFile", pathSubFolder);
 			p.set("pluPredicate", pathSubFolder + "predicate.csv");

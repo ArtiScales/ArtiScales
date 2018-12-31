@@ -50,13 +50,13 @@ public class Test {
 					continue;
 				}
 
-				double roadEpsilon = 0;
-				double noise = 0;
-				double maximalArea = 800;
+				double roadEpsilon = 0.0;
+				double noise = 0.0;
+				double maximalArea = 800.0;
 				if (i == 2) {
-					maximalArea = 2000;
+					maximalArea = 2000.0;
 				}
-				double maximalWidth = 10;
+				double maximalWidth = 10.0;
 
 				// Road width
 				double roadWidth = 5.0;

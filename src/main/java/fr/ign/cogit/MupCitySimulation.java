@@ -73,7 +73,7 @@ public class MupCitySimulation {
 	public static File mupCityTask(Parameters p, String[] variant, File variantFile, File geoFile) throws Exception {
 
 		Initialize.init();
-		String name = p.getString("nom");
+		String name = p.getString("name");
 
 		String empriseStr = variant[0];
 		Pattern ptVir = Pattern.compile(";");

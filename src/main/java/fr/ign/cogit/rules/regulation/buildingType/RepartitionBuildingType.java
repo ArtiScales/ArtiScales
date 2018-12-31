@@ -5,12 +5,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
-import org.hibernate.dialect.identity.GetGeneratedKeysDelegate;
 import org.opengis.feature.simple.SimpleFeature;
 
 import fr.ign.cogit.util.GetFromGeom;
@@ -21,43 +21,64 @@ public class RepartitionBuildingType {
 	HashMap<BuildingType, Double> repartition;
 	HashMap<BuildingType, String> distribution;
 	SimpleFeatureCollection parcelles;
-	double pSingleHouses, pLotHouse, pSharedHouse, pSmallDwelling, pMediumDwelling;
+	double pDetachedHouse, pSmallHouse, pMultifamilyHouse, pSmallBlockFlat, pMidBlockFlat;
 	DescriptiveStatistics dsc;
 
-	public RepartitionBuildingType(Parameters p, File parcelFile) throws IOException {
+	public RepartitionBuildingType(Parameters p, File parcelFile) throws NoSuchElementException, Exception {
+		ShapefileDataStore shpDSZone = new ShapefileDataStore(parcelFile.toURI().toURL());
+		SimpleFeatureCollection parcelles = shpDSZone.getFeatureSource().getFeatures();
+		makeRepart(p, parcelles);
+		shpDSZone.dispose();
+		
+	}
 
-			ShapefileDataStore shpDSZone = new ShapefileDataStore(parcelFile.toURI().toURL());
-			SimpleFeatureCollection parcelles = shpDSZone.getFeatureSource().getFeatures();
+	public void makeRepart(Parameters p, SimpleFeatureCollection parcelles) throws NoSuchElementException, Exception {
+		
+		HashMap<BuildingType, Double> rep = new HashMap<BuildingType, Double>();
 
-			HashMap<BuildingType, Double> rep = new HashMap<BuildingType, Double>();
+		p = getRepartition(p, parcelles.features().next());
 
-			pSingleHouses = p.getDouble("singleHouse");
-			rep.put(BuildingType.DETACHEDHOUSE, pSingleHouses);
-
-			pLotHouse = p.getDouble("lotHouse");
-			rep.put(BuildingType.SMALLHOUSE, pLotHouse);
-
-			pSharedHouse = p.getDouble("sharedHouse");
-			rep.put(BuildingType.MULTIFAMILYHOUSE, pSharedHouse);
-
-			pSmallDwelling = p.getDouble("smallDwelling");
-			rep.put(BuildingType.SMALLBLOCKFLAT, pSmallDwelling);
-
-			pMediumDwelling = p.getDouble("mediumDwelling");
-			rep.put(BuildingType.MIDBLOCKFLATS, pMediumDwelling);
-
-			if ((pSingleHouses + pLotHouse + pSharedHouse + pSmallDwelling + pMediumDwelling) != 100.0) {
-				System.out.println("there's a sum probleme here (yes, I know how to count to 100)");
-			}
-
-			this.repartition = rep;
-
-			this.parcelles = parcelles;
-
-			makeParcelRepartition();
-			shpDSZone.dispose();
-			System.out.println("Household unit distribution : " + distribution);
+		pDetachedHouse = p.getDouble("detachedHouse");
+		if (pDetachedHouse == 0) {
+			pDetachedHouse = 0.00000001;
 		}
+		pSmallHouse = p.getDouble("smallHouse");
+		if (pSmallHouse == 0) {
+			pSmallHouse = 0.00000001;
+		}
+		pMultifamilyHouse = p.getDouble("multifamilyHouse");
+		if (pMultifamilyHouse == 0) {
+			pMultifamilyHouse = 0.00000001;
+		}
+		pSmallBlockFlat = p.getDouble("smallBlockFlat");
+		if (pSmallBlockFlat == 0) {
+			pSmallBlockFlat = 0.00000001;
+		}
+		pMidBlockFlat = p.getDouble("midBlockFlat");
+		if (pMidBlockFlat == 0) {
+			pMidBlockFlat = 0.00000001;
+		}
+
+		rep.put(BuildingType.DETACHEDHOUSE, pDetachedHouse);
+		rep.put(BuildingType.SMALLHOUSE, pSmallHouse);
+		rep.put(BuildingType.MULTIFAMILYHOUSE, pMultifamilyHouse);
+		rep.put(BuildingType.SMALLBLOCKFLAT, pSmallBlockFlat);
+		rep.put(BuildingType.MIDBLOCKFLATS, pMidBlockFlat);
+
+		if ((pDetachedHouse + pSmallHouse + pMultifamilyHouse + pSmallBlockFlat + pMidBlockFlat) != 100.0) {
+			System.out.println("there's a sum probleme here (yes, I know how to count to 100). It's "
+					+ (pDetachedHouse + pSmallHouse + pMultifamilyHouse + pSmallBlockFlat + pMidBlockFlat)
+					+ " instead");
+		}
+
+		this.repartition = rep;
+
+		this.parcelles = parcelles;
+
+		makeParcelRepartition();
+	
+		System.out.println("Household unit distribution : " + distribution);
+	}
 
 	private void makeParcelRepartition() {
 		makeParcelRepartition(parcelles);
@@ -83,17 +104,17 @@ public class RepartitionBuildingType {
 
 		dsc = distribEval;
 
-		String distribLotHouse = distribEval.getPercentile(0.000000001) + "-" + distribEval.getPercentile(pLotHouse);
-		String distribSingleHouse = distribEval.getPercentile(pLotHouse) + "-"
-				+ distribEval.getPercentile(pLotHouse + pSingleHouses);
-		String distribSharedHouse = distribEval.getPercentile(pLotHouse + pSingleHouses) + "-"
-				+ distribEval.getPercentile(pLotHouse + pSingleHouses + pSharedHouse);
-		String distribSmallDwelling = distribEval.getPercentile(pLotHouse + pSingleHouses + pSharedHouse) + "-"
-				+ distribEval.getPercentile(pLotHouse + pSingleHouses + pSharedHouse + pSmallDwelling);
+		String distribLotHouse = distribEval.getPercentile(0.00000001) + "-" + distribEval.getPercentile(pSmallHouse);
+		String distribSingleHouse = distribEval.getPercentile(pSmallHouse) + "-"
+				+ distribEval.getPercentile(pSmallHouse + pDetachedHouse);
+		String distribSharedHouse = distribEval.getPercentile(pSmallHouse + pDetachedHouse) + "-"
+				+ distribEval.getPercentile(pSmallHouse + pDetachedHouse + pMultifamilyHouse);
+		String distribSmallDwelling = distribEval.getPercentile(pSmallHouse + pDetachedHouse + pMultifamilyHouse) + "-"
+				+ distribEval.getPercentile(pSmallHouse + pDetachedHouse + pMultifamilyHouse + pSmallBlockFlat);
 		String distribMediumDwelling = distribEval
-				.getPercentile(pLotHouse + pSingleHouses + pSharedHouse + pSmallDwelling) + "-"
-				+ distribEval.getPercentile(
-						pLotHouse + pSingleHouses + pSharedHouse + pSharedHouse + pSmallDwelling + pMediumDwelling);
+				.getPercentile(pSmallHouse + pDetachedHouse + pMultifamilyHouse + pSmallBlockFlat) + "-"
+				+ distribEval.getPercentile(pSmallHouse + pDetachedHouse + pMultifamilyHouse + pMultifamilyHouse
+						+ pSmallBlockFlat + pMidBlockFlat);
 
 		HashMap<BuildingType, String> distrib = new HashMap<BuildingType, String>();
 		distrib.put(BuildingType.SMALLHOUSE, distribLotHouse);
@@ -206,11 +227,15 @@ public class RepartitionBuildingType {
 		File profileBuildings = new File(
 				this.getClass().getClassLoader().getResource("locationBuildingType").getFile());
 
-		String[] tabRepart = p.getString("useRepartition").split("_");
-		
-		String affect = GetFromGeom.affectToZoneAndTypo(p.getString("useRepartition"));
-		
-		Parameters addParam = null;
+		String affect = GetFromGeom.affectToZoneAndTypo(p, parcel, true);
+
+		if (affect.equals("default")) {
+			affect = p.getString("buildingTypeDefault");
+		}
+
+		Parameters addParam = Parameters.unmarshall(new File(profileBuildings, affect + ".xml"));
+
+		System.out.println("we affect the " + profileBuildings + "/" + affect + ".xml" + "folder");
 
 		p.add(addParam);
 		return p;
@@ -250,7 +275,7 @@ public class RepartitionBuildingType {
 			result = BuildingType.MIDBLOCKFLATS;
 		}
 		// if the type is not in the prediction, we don't return it
-		if (repartition.get(result) == 0.0) {
+		if (repartition.get(result) == 99.0) {
 			return fType;
 		}
 		return result;
@@ -310,7 +335,9 @@ public class RepartitionBuildingType {
 			return true;
 		}
 	}
+
 	public static boolean hasAttic(String type) {
-			return hasAttic(BuildingType.valueOf(type));
+		return hasAttic(BuildingType.valueOf(type));
 	}
+
 }

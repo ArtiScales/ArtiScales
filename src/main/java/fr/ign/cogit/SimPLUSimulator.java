@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.math3.random.MersenneTwister;
 import org.geotools.data.shapefile.ShapefileDataStore;
+import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeature;
@@ -32,6 +33,7 @@ import fr.ign.cogit.rules.predicate.PredicateArtiScales;
 import fr.ign.cogit.rules.regulation.Alignements;
 import fr.ign.cogit.rules.regulation.ArtiScalesRegulation;
 import fr.ign.cogit.rules.regulation.buildingType.BuildingType;
+import fr.ign.cogit.rules.regulation.buildingType.MultipleRepartitionBuildingType;
 import fr.ign.cogit.rules.regulation.buildingType.RepartitionBuildingType;
 import fr.ign.cogit.simplu3d.io.feature.AttribNames;
 import fr.ign.cogit.simplu3d.io.nonStructDatabase.shp.LoaderSHP;
@@ -122,7 +124,7 @@ public class SimPLUSimulator {
 		//
 		// Parameters p = Parameters.unmarshall(lF);
 		//
-		// System.out.println(p.getString("nom"));
+		// System.out.println(p.getString("name"));
 		// // Rappel de la construction du code :
 		//
 		// // 1/ Basically the parcels are filtered on the code with the following
@@ -193,7 +195,7 @@ public class SimPLUSimulator {
 		this.rootFile = rootfile;
 
 		simuFile = packFile;
-		parcelsFile = new File(packFile, "/parcel.shp");
+		parcelsFile = new File(packFile, "/parcelle.shp");
 		zoningFile = new File(packFile, "/geoSnap/zoning.shp");
 		buildFile = new File(packFile, "/geoSnap/building.shp");
 		roadFile = new File(packFile, "/geoSnap/road.shp");
@@ -223,8 +225,36 @@ public class SimPLUSimulator {
 		Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile, parcelsFile, roadFile, buildFile,
 				filePrescPonct, filePrescLin, filePrescSurf, null);
 
+		///////////
+		// asses repartition to pacels
+		///////////
+		// know if there's only one or multiple zones in the parcel pack
+		List<String> zones = new ArrayList<String>();
+		ShapefileDataStore parcelSDS = new ShapefileDataStore(parcelsFile.toURI().toURL());
+		SimpleFeatureIterator parcelsIt = parcelSDS.getFeatureSource().getFeatures().features();
+		try {
+			while (parcelsIt.hasNext()) {
+				SimpleFeature feat = parcelsIt.next();
+				String tmp = GetFromGeom.affectToZoneAndTypo(p, feat, true);
+				if (!zones.contains(tmp)) {
+					zones.add(tmp);
+				}
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			parcelsIt.close();
+		}
+		parcelSDS.dispose();
+
 		// loading the type of housing to build
 		RepartitionBuildingType housingUnit = new RepartitionBuildingType(p, parcelsFile);
+		boolean multipleRepartitionBuildingType = false;
+		if (zones.size() > 1) {
+			System.out.println("multiple zones in the same parcel lot : there's gon be approximations");
+			housingUnit = new MultipleRepartitionBuildingType(p, parcelsFile);
+			multipleRepartitionBuildingType = true;
+		}
 
 		// Prescription setting
 		IFeatureCollection<Prescription> prescriptions = env.getPrescriptions();
@@ -263,6 +293,9 @@ public class SimPLUSimulator {
 
 			// of which type should be the housing unit
 			BuildingType type = housingUnit.rangeInterest(eval);
+			if (multipleRepartitionBuildingType) {
+				type = ((MultipleRepartitionBuildingType) housingUnit).rangeInterest(eval, codeParcel, p);
+			}
 
 			// we get ready to change it
 			boolean seekType = true;
@@ -599,10 +632,10 @@ public class SimPLUSimulator {
 			AttributeManager.addAttribute(feat, "CODE", bPU.getCadastralParcels().get(0).getCode(), "String");
 			AttributeManager.addAttribute(feat, "LIBELLE", libellesFinal, "String");
 			AttributeManager.addAttribute(feat, "TYPEZONE", typeZonesFinal, "String");
+			AttributeManager.addAttribute(feat, "BUILDTYPE", type, "String");
 			iFeatC.add(feat);
 		}
 		return iFeatC;
-
 	}
 
 	private GraphConfiguration<Cuboid> graphConfigurationWithAlignements(Alignements alignementsGeometries,
@@ -703,7 +736,7 @@ public class SimPLUSimulator {
 			BasicPropertyUnit bPU, Parameters p, IFeatureCollection<Prescription> prescriptionUse, Environnement env)
 			throws Exception {
 		List<SubParcel> sP = bPU.getCadastralParcels().get(0).getSubParcels();
-		// We sort the subparcel to get the biffests
+		// We sort the subparcel to get the biggests
 		sP.sort(new Comparator<SubParcel>() {
 			@Override
 			public int compare(SubParcel o1, SubParcel o2) {
