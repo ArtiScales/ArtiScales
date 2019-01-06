@@ -33,14 +33,17 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.TransformException;
 
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Polygon;
 
 import au.com.bytecode.opencsv.CSVReader;
 import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.annexeTools.FeaturePolygonizer;
+import fr.ign.cogit.geoxygene.api.feature.IFeature;
 import fr.ign.cogit.geoxygene.api.spatial.geomaggr.IMultiCurve;
 import fr.ign.cogit.geoxygene.api.spatial.geomprim.IOrientableCurve;
+import fr.ign.cogit.geoxygene.util.conversion.AdapterFactory;
 import fr.ign.parameters.Parameters;
 
 public class GetFromGeom {
@@ -71,6 +74,22 @@ public class GetFromGeom {
 		shpDSZone.dispose();
 	}
 
+	public static String affectToZoneAndTypo(Parameters p, IFeature parcel, boolean priorTypoOrZone) throws Exception {
+		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
+		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
+		sfTypeBuilder.setName("testType");
+		sfTypeBuilder.setCRS(sourceCRS);
+		sfTypeBuilder.add("the_geom", Polygon.class);
+		sfTypeBuilder.setDefaultGeometry("the_geom");
+
+		SimpleFeatureBuilder sfBuilder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
+		sfBuilder.add(AdapterFactory.toGeometry(new GeometryFactory(), parcel.getGeom()));
+
+		SimpleFeature feature = sfBuilder.buildFeature(String.valueOf(1));
+
+		return affectToZoneAndTypo(p, feature, priorTypoOrZone);
+	}
+
 	/**
 	 * 
 	 * @param paramLine       : value of the parameter file that concerns the zone
@@ -84,15 +103,14 @@ public class GetFromGeom {
 	 * @return
 	 * @throws Exception
 	 */
-	public static String affectToZoneAndTypo(Parameters p, SimpleFeature parcel, boolean priorTypoOrZone) throws Exception {
+	public static String affectToZoneAndTypo(Parameters p, SimpleFeature parcel, boolean priorTypoOrZone)
+			throws Exception {
 		String occurConcerned = "";
 
 		List<String> mayOccur = new ArrayList<String>();
 		// TODO make sure that this returns the best answer
-		String typo = GetFromGeom.parcelInBigZone(new File(p.getString("rootFile")+"/dataRegulation"), parcel);
-		System.out.println(typo);
-		String zone = GetFromGeom.parcelInTypo(new File(p.getString("rootFile")+"/dataGeo"), parcel);
-		System.out.println(zone);
+		String typo = GetFromGeom.parcelInBigZone(new File(p.getString("rootFile") + "/dataRegulation"), parcel);
+		String zone = GetFromGeom.parcelInTypo(new File(p.getString("rootFile") + "/dataGeo"), parcel);
 		String[] tabRepart = p.getString("useRepartition").split("_");
 
 		for (String s : tabRepart) {
@@ -556,7 +574,7 @@ public class GetFromGeom {
 				}
 				// maybe the parcel is in between two cities (that must be rare)
 				else if (((Geometry) feat.getDefaultGeometry()).intersects((Geometry) parcelIn.getDefaultGeometry())) {
-					switch ((String) feat.getAttribute("TYPEZONE")) {
+					switch ((String) feat.getAttribute("typo")) {
 					case "rural":
 						result.add("rural");
 						break zone;
@@ -627,7 +645,7 @@ public class GetFromGeom {
 		HashMap<String, Double> repart = new HashMap<String, Double>();
 
 		try {
-			zoneLoop : while (featuresZones.hasNext()) {
+			zoneLoop: while (featuresZones.hasNext()) {
 				SimpleFeature feat = featuresZones.next();
 				if (((Geometry) feat.getDefaultGeometry()).buffer(0.5)
 						.contains((Geometry) parcelIn.getDefaultGeometry())) {
@@ -711,7 +729,7 @@ public class GetFromGeom {
 			}
 
 		}
-		
+
 		return result;
 
 	}

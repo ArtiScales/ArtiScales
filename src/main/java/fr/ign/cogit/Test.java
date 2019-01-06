@@ -21,9 +21,7 @@ import fr.ign.cogit.geoxygene.spatial.coordgeom.DirectPosition;
 import fr.ign.cogit.geoxygene.spatial.geomaggr.GM_MultiCurve;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileReader;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileWriter;
-import fr.ign.cogit.geoxygene.util.conversion.WktGeOxygene;
 import fr.ign.cogit.util.GetFromGeom;
-import fr.ign.rjmcmc.kernel.RejectionVariate.constant_normalizer;
 
 public class Test {
 

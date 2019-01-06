@@ -104,7 +104,7 @@
 			<!-- Alignements homologué -->
 			<param key="alignment" value="false"/>
 			<param key="bufferAlignment" value="1"/>
-			<!-- Élement constituant une biodiversité protégée -->	
+			<!-- Élement constituant la protection de la biodiversité -->	
 			<param key="biodiversityArea" value="false"/>
 			<param key="bufferBiodiversityArea" value="3"/>
 
@@ -113,9 +113,7 @@
 		<!--Il convient de mettre un "-" entre différents éléments devant caractériser cette zone (pour l'instant, la typologie de la commune et le type de zone du PLU) -->
 		<!--Il convient de mettre un "_" entre différentes zones -->		
 		<!--Il convient de mettre un ":" pour préciser un scénario à utiliser -->
-		<param key="useRepartition" value="etal:rural-AU_periUrbain_rural-U_rural-AU" />
-		<!-- Type de bâtiment construit par défaut si le couple zone/typo n'est pas renseigné -->
-		<param key="buildingTypeDefault" value = "smallHouse" />
+		<param key="useRepartition" value="periUrbain_rural-AU_rural-U" />
 
 	<!--PARAMETRE CONCERNANT LES LOGEMENTS -->
 

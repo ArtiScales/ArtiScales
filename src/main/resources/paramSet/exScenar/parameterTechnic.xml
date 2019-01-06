@@ -86,7 +86,7 @@
 
 		<!-- Paramètres relatifs aux visiteur de SimPLU! -->
 		<!-- Nombre d'itérations de dump! -->
-		<param key="nbdump" value="100000" />
+		<param key="nbdump" value="1000000" />
 		<!-- Nombre d'itérations de save! -->
 		<param key="nbsave" value="1" />
 		<!-- Visiteurs utilisés -->

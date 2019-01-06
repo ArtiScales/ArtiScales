@@ -1047,24 +1047,17 @@ public class VectorFct {
 		Vectors.exportSFC(result, parcelOut);
 	}
 
-	public static SimpleFeatureCollection getParcelByCode(SimpleFeatureCollection parcelles,
+	public static IFeatureCollection<IFeature> getParcelByCode(IFeatureCollection<IFeature> parcelles,
 			List<String> parcelsWanted) throws IOException {
-		DefaultFeatureCollection result = new DefaultFeatureCollection();
-		SimpleFeatureIterator it = parcelles.features();
+		IFeatureCollection<IFeature> result = new FT_FeatureCollection<>();
 
-		try {
-			while (it.hasNext()) {
-				SimpleFeature feat = it.next();
-				if (parcelsWanted.contains((String) feat.getAttribute("CODE"))) {
-					result.add(feat);
+		for (IFeature parcelle : parcelles) {
+			for (String s : parcelsWanted) {
+				if (s.contains((String) parcelle.getAttribute("CODE"))) {
+					result.add(parcelle);
 				}
 			}
-		} catch (Exception problem) {
-			problem.printStackTrace();
-		} finally {
-			it.close();
 		}
-
-		return result.collection();
+		return result;
 	}
 }

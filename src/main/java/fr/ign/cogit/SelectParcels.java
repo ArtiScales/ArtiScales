@@ -609,7 +609,7 @@ public class SelectParcels {
 				SimpleFeatureCollection parcelFeatures = parcel_datastore.getFeatureSource().getFeatures();
 				Vectors.exportSFC(Vectors.snapDatas(parcelFeatures, fBBox), new File(pack, "parcelle.shp"));
 				parcel_datastore.dispose();
-				
+
 				File snapPack = new File(pack, "geoSnap");
 				snapPack.mkdirs();
 

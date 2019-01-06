@@ -1,18 +1,16 @@
 package fr.ign.cogit.rules.regulation.buildingType;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import org.geotools.data.shapefile.ShapefileDataStore;
-import org.geotools.data.simple.SimpleFeatureCollection;
-import org.geotools.data.simple.SimpleFeatureIterator;
-import org.opengis.feature.simple.SimpleFeature;
 
+import fr.ign.cogit.geoxygene.api.feature.IFeature;
+import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
+import fr.ign.cogit.geoxygene.util.conversion.ShapefileReader;
 import fr.ign.cogit.util.GetFromGeom;
 import fr.ign.parameters.Parameters;
 
@@ -20,43 +18,55 @@ public class RepartitionBuildingType {
 
 	HashMap<BuildingType, Double> repartition;
 	HashMap<BuildingType, String> distribution;
-	SimpleFeatureCollection parcelles;
+	IFeatureCollection<IFeature> parcelles;
 	double pDetachedHouse, pSmallHouse, pMultifamilyHouse, pSmallBlockFlat, pMidBlockFlat;
 	DescriptiveStatistics dsc;
 
 	public RepartitionBuildingType(Parameters p, File parcelFile) throws NoSuchElementException, Exception {
-		ShapefileDataStore shpDSZone = new ShapefileDataStore(parcelFile.toURI().toURL());
-		SimpleFeatureCollection parcelles = shpDSZone.getFeatureSource().getFeatures();
+
+		parcelles = ShapefileReader.read(parcelFile.getAbsolutePath());
 		makeRepart(p, parcelles);
-		shpDSZone.dispose();
-		
 	}
 
-	public void makeRepart(Parameters p, SimpleFeatureCollection parcelles) throws NoSuchElementException, Exception {
-		
+	public RepartitionBuildingType(Parameters p, IFeatureCollection<IFeature> parcel)
+			throws NoSuchElementException, Exception {
+
+		parcelles = parcel;
+		makeRepart(p, parcelles);
+
+	}
+
+	public void makeRepart(Parameters p, IFeatureCollection<IFeature> parcelles)
+			throws NoSuchElementException, Exception {
+
 		HashMap<BuildingType, Double> rep = new HashMap<BuildingType, Double>();
 
-		p = getRepartition(p, parcelles.features().next());
-
+		// add the zone parameters with the first parcel (redone for each parcel if it's
+		// a multizone type)
+		p = getRepartition(p, parcelles.get(0));
 		pDetachedHouse = p.getDouble("detachedHouse");
-		if (pDetachedHouse == 0) {
-			pDetachedHouse = 0.00000001;
+
+		if (pDetachedHouse == 99.0) {
+			pDetachedHouse = 0;
 		}
 		pSmallHouse = p.getDouble("smallHouse");
-		if (pSmallHouse == 0) {
-			pSmallHouse = 0.00000001;
+
+		if (pSmallHouse == 99.0) {
+			pSmallHouse = 0;
 		}
 		pMultifamilyHouse = p.getDouble("multifamilyHouse");
-		if (pMultifamilyHouse == 0) {
-			pMultifamilyHouse = 0.00000001;
+		if (pMultifamilyHouse == 99.0) {
+			pMultifamilyHouse = 0;
 		}
 		pSmallBlockFlat = p.getDouble("smallBlockFlat");
-		if (pSmallBlockFlat == 0) {
-			pSmallBlockFlat = 0.00000001;
+
+		if (pSmallBlockFlat == 99.0) {
+			pSmallBlockFlat = 0;
 		}
 		pMidBlockFlat = p.getDouble("midBlockFlat");
-		if (pMidBlockFlat == 0) {
-			pMidBlockFlat = 0.00000001;
+
+		if (pMidBlockFlat == 99.0) {
+			pMidBlockFlat = 0;
 		}
 
 		rep.put(BuildingType.DETACHEDHOUSE, pDetachedHouse);
@@ -76,7 +86,7 @@ public class RepartitionBuildingType {
 		this.parcelles = parcelles;
 
 		makeParcelRepartition();
-	
+
 		System.out.println("Household unit distribution : " + distribution);
 	}
 
@@ -84,50 +94,71 @@ public class RepartitionBuildingType {
 		makeParcelRepartition(parcelles);
 	}
 
-	private void makeParcelRepartition(SimpleFeatureCollection parcels) {
+	private void makeParcelRepartition(IFeatureCollection<IFeature> parcels) {
 		DescriptiveStatistics distribEval = new DescriptiveStatistics();
 
-		SimpleFeatureIterator parcelIt = parcelles.features();
-
-		try {
-			while (parcelIt.hasNext()) {
-				SimpleFeature feature = parcelIt.next();
-				if (!((String) feature.getAttribute("eval")).equals("0")) {
-					distribEval.addValue(Double.valueOf((String) feature.getAttribute("eval")));
-				}
+		for (IFeature parcel : parcels) {
+			if (!((String) parcel.getAttribute("eval")).equals("0")) {
+				distribEval.addValue(Double.valueOf((String) parcel.getAttribute("eval")));
 			}
-		} catch (Exception problem) {
-			problem.printStackTrace();
-		} finally {
-			parcelIt.close();
 		}
 
 		dsc = distribEval;
 
-		String distribLotHouse = distribEval.getPercentile(0.00000001) + "-" + distribEval.getPercentile(pSmallHouse);
-		String distribSingleHouse = distribEval.getPercentile(pSmallHouse) + "-"
-				+ distribEval.getPercentile(pSmallHouse + pDetachedHouse);
-		String distribSharedHouse = distribEval.getPercentile(pSmallHouse + pDetachedHouse) + "-"
-				+ distribEval.getPercentile(pSmallHouse + pDetachedHouse + pMultifamilyHouse);
-		String distribSmallDwelling = distribEval.getPercentile(pSmallHouse + pDetachedHouse + pMultifamilyHouse) + "-"
-				+ distribEval.getPercentile(pSmallHouse + pDetachedHouse + pMultifamilyHouse + pSmallBlockFlat);
-		String distribMediumDwelling = distribEval
-				.getPercentile(pSmallHouse + pDetachedHouse + pMultifamilyHouse + pSmallBlockFlat) + "-"
-				+ distribEval.getPercentile(pSmallHouse + pDetachedHouse + pMultifamilyHouse + pMultifamilyHouse
-						+ pSmallBlockFlat + pMidBlockFlat);
+		List<Double> toBeQuantile = new ArrayList<Double>();
+
+		toBeQuantile.add(pSmallHouse);
+		String distribSmallHouse = distribEval.getPercentile(0.00000001) + "-"
+				+ distribEval.getPercentile(safeQuantile(toBeQuantile));
+
+		double tmpInfValue = safeQuantile(toBeQuantile);
+		toBeQuantile.add(pDetachedHouse);
+		String distribDetachedHouse = distribEval.getPercentile(tmpInfValue) + "-"
+				+ distribEval.getPercentile(safeQuantile(toBeQuantile));
+
+		tmpInfValue = safeQuantile(toBeQuantile);
+		toBeQuantile.add(pMultifamilyHouse);
+		String distribMultifamilyHouse = String.valueOf(distribEval.getPercentile(tmpInfValue)).concat("-")
+				.concat(String.valueOf(distribEval.getPercentile(safeQuantile(toBeQuantile))));
+
+		tmpInfValue = safeQuantile(toBeQuantile);
+		toBeQuantile.add(pSmallBlockFlat);
+		String distribSmallBlockFlat = distribEval.getPercentile(tmpInfValue) + "-"
+				+ distribEval.getPercentile(safeQuantile(toBeQuantile));
+
+		tmpInfValue = safeQuantile(toBeQuantile);
+		toBeQuantile.add(pMidBlockFlat);
+		String distribMidBlockFlat = distribEval.getPercentile(tmpInfValue) + "-"
+				+ distribEval.getPercentile(safeQuantile(toBeQuantile));
 
 		HashMap<BuildingType, String> distrib = new HashMap<BuildingType, String>();
-		distrib.put(BuildingType.SMALLHOUSE, distribLotHouse);
-		distrib.put(BuildingType.DETACHEDHOUSE, distribSingleHouse);
-		distrib.put(BuildingType.MULTIFAMILYHOUSE, distribSharedHouse);
-		distrib.put(BuildingType.SMALLBLOCKFLAT, distribSmallDwelling);
-		distrib.put(BuildingType.MIDBLOCKFLATS, distribMediumDwelling);
+		distrib.put(BuildingType.SMALLHOUSE, distribSmallHouse);
+		distrib.put(BuildingType.DETACHEDHOUSE, distribDetachedHouse);
+		distrib.put(BuildingType.MULTIFAMILYHOUSE, distribMultifamilyHouse);
+		distrib.put(BuildingType.SMALLBLOCKFLAT, distribSmallBlockFlat);
+		distrib.put(BuildingType.MIDBLOCKFLATS, distribMidBlockFlat);
+
 		distribution = distrib;
+	}
+
+	public static double safeQuantile(List<Double> list) {
+		double result = 0.0;
+		for (double d : list) {
+			result = result + d;
+		}
+
+		if (result == 0.0) {
+			result = 0.0000001;
+		} else if (result > 100.0) {
+			result = 100.0;
+		}
+		return result;
+
 	}
 
 	public BuildingType rangeInterest(Double interest) throws Exception {
 		System.out.println("distribution : " + distribution);
-		System.out.println(interest);
+		System.out.println("interest : " + interest);
 		for (BuildingType type : distribution.keySet()) {
 			String val = distribution.get(type);
 			Double inf = Double.valueOf(val.split("-")[0]);
@@ -140,11 +171,6 @@ public class RepartitionBuildingType {
 			}
 		}
 		throw new Exception("value not in the range");
-	}
-
-	private HashMap<BuildingType, String> adjustDistribution(SimpleFeature downgradedParcel,
-			BuildingType takenBuildingType, boolean upOrDown) throws Exception {
-		return adjustDistribution((double) downgradedParcel.getAttribute("eval"), takenBuildingType, upOrDown);
 	}
 
 	private HashMap<BuildingType, String> adjustDistribution(double evalParcel, BuildingType takenBuildingType,
@@ -223,19 +249,34 @@ public class RepartitionBuildingType {
 		return adjustDistribution(evalParcel, takenBuildingType, normalBuildingType, false);
 	}
 
-	public Parameters getRepartition(Parameters p, SimpleFeature parcel) throws Exception {
+	/**
+	 * return the parameter file added with the repartition of the concerned zone in
+	 * which the parcel is.
+	 * 
+	 * @param p
+	 * @param parcel
+	 * @return
+	 * @throws Exception
+	 */
+	public Parameters getRepartition(Parameters p, IFeature parcel) throws Exception {
 		File profileBuildings = new File(
 				this.getClass().getClassLoader().getResource("locationBuildingType").getFile());
 
 		String affect = GetFromGeom.affectToZoneAndTypo(p, parcel, true);
 
+		// we seek for if there's a special default repartition for the scenario
 		if (affect.equals("default")) {
-			affect = p.getString("buildingTypeDefault");
+			for (File f : profileBuildings.listFiles()) {
+				String name = f.getName();
+				if (name.startsWith(p.getString("code")) && name.contains("default")) {
+					affect = f.getName().replace(".xml", "");
+				}
+			}
 		}
 
-		Parameters addParam = Parameters.unmarshall(new File(profileBuildings, affect + ".xml"));
+		Parameters addParam = Parameters.unmarshall(new File(profileBuildings + "/" + affect + ".xml"));
 
-		System.out.println("we affect the " + profileBuildings + "/" + affect + ".xml" + "folder");
+		System.out.println("we affect the " + affect + ".xml" + " folder");
 
 		p.add(addParam);
 		return p;

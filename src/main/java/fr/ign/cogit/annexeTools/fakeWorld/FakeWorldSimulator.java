@@ -12,61 +12,61 @@ public class FakeWorldSimulator {
 
 	public static void main(String[] args) throws Exception {
 
-		//TODO try before push
+		// TODO try before push
 		// Parent folder with all subfolder
 		String absoluteRootFolder = "/home/mcolomb/informatique/ArtiScales/fakeWorld/";
 
 		File rootFolderFile = new File(absoluteRootFolder);
 
 		for (File pathSubFolder : rootFolderFile.listFiles()) {
-			
-			 if(! pathSubFolder.getName().contains("art71")) { continue; }
+
+			if (!pathSubFolder.getName().contains("art71")) {
+				continue;
+			}
 			if (pathSubFolder.isDirectory()) {
 
-			List<File> lF = new ArrayList<>();
-			// Line to change to select the right scenario
+				List<File> lF = new ArrayList<>();
+				// Line to change to select the right scenario
 
-			String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenarFakeWorldMax/")
-					.getPath();
+				String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenarFakeWorldMax/")
+						.getPath();
 
-			lF.add(new File(rootParam + "parameterTechnic.xml"));
-			lF.add(new File(rootParam + "parameterScenario.xml"));
+				lF.add(new File(rootParam + "parameterTechnic.xml"));
+				lF.add(new File(rootParam + "parameterScenario.xml"));
 
-			Parameters p = Parameters.unmarshall(lF);
+				Parameters p = Parameters.unmarshall(lF);
 
-			// Rappel de la construction du code :
+				// Rappel de la construction du code :
 
-			// 1/ Basically the parcels are filtered on the code with the
-			// following
-			// attributes
-			// codeDep + codeCom + comAbs + section + numero
+				// 1/ Basically the parcels are filtered on the code with the
+				// following
+				// attributes
+				// codeDep + codeCom + comAbs + section + numero
 
-			// 2/ Alternatively we can decided to active an attribute (Here id)
-			AttribNames.setATT_CODE_PARC("CODE");
+				// 2/ Alternatively we can decided to active an attribute (Here id)
+				AttribNames.setATT_CODE_PARC("CODE");
 
-			System.out.println(pathSubFolder);
+				System.out.println(pathSubFolder);
 
-			p.set("rootFile", pathSubFolder);
-			p.set("selectedParcelFile", pathSubFolder + "parcelle.shp");
-			p.set("geoFile", pathSubFolder);
-			p.set("pluFile", pathSubFolder);
-			p.set("pluPredicate", pathSubFolder + "predicate.csv");
+				p.set("rootFile", pathSubFolder);
+				p.set("selectedParcelFile", pathSubFolder + "parcelle.shp");
+				p.set("geoFile", pathSubFolder);
+				p.set("pluFile", pathSubFolder);
+				p.set("pluPredicate", pathSubFolder + "predicate.csv");
 
-			if (pathSubFolder.getName().contains("art8")) {
-				p.set("intersection", false);
-			}
-			
+				if (pathSubFolder.getName().contains("art8")) {
+					p.set("intersection", false);
+				}
+
 //			String simulOut = pathSubFolder + "/out/";
 //			(new File(simulOut)).mkdirs();
 //			p.set("simu", simulOut);
 //			SimPLUSimulator.ID_PARCELLE_TO_SIMULATE.add("30000");
-			// RootFolder
-			File rootFolder = new File(p.getString("rootFile"));
-			// Selected parcels shapefile
-			SimPLUSimulator simplu = new SimPLUSimulator(rootFolder, rootFolder, p);
+				// Selected parcels shapefile
+				SimPLUSimulator simplu = new SimPLUSimulator(new File(p.getString("rootFile")), p);
 
-			simplu.run();
-		}
+				simplu.run();
+			}
 		}
 
 	}

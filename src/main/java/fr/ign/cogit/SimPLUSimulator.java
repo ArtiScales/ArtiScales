@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.math3.random.MersenneTwister;
 import org.geotools.data.shapefile.ShapefileDataStore;
-import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeature;
@@ -38,6 +37,7 @@ import fr.ign.cogit.rules.regulation.buildingType.RepartitionBuildingType;
 import fr.ign.cogit.simplu3d.io.feature.AttribNames;
 import fr.ign.cogit.simplu3d.io.nonStructDatabase.shp.LoaderSHP;
 import fr.ign.cogit.simplu3d.model.BasicPropertyUnit;
+import fr.ign.cogit.simplu3d.model.CadastralParcel;
 import fr.ign.cogit.simplu3d.model.Environnement;
 import fr.ign.cogit.simplu3d.model.ParcelBoundarySide;
 import fr.ign.cogit.simplu3d.model.Prescription;
@@ -155,7 +155,7 @@ public class SimPLUSimulator {
 		// // SimPLUSimulator.fillSelectedParcels(new File(rootFolder), geoFile,
 		// // pluFile, selectedParcels, 50, "25495", p);
 
-		File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/etalIntenseRegul");
+		File rootParam = new File("/home/yo/workspace/ArtiScales/src/main/resources/paramSet/exScenar");
 		List<File> lF = new ArrayList<>();
 		lF.add(new File(rootParam, "parameterTechnic.xml"));
 		lF.add(new File(rootParam, "parameterScenario.xml"));
@@ -164,12 +164,13 @@ public class SimPLUSimulator {
 		// AttribNames.setATT_CODE_PARC("CODE");
 		// USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
 
-		File f = new File("/home/mcolomb/informatique/ArtiScales2/ParcelSelectionFile/intenseRegulatedSpread/variant0");
+		File f = new File("/home/yo/Documents/these/ArtiScales/ParcelSelectionFile/exScenar/variant0/");
 
 		for (File ff : f.listFiles()) {
 			if (ff.isDirectory()) {
-				SimPLUSimulator sim = new SimPLUSimulator(new File("/home/mcolomb/informatique/ArtiScales/"), ff, p);
+				SimPLUSimulator sim = new SimPLUSimulator(ff, p);
 				sim.run();
+				System.out.println("done with pack " + ff.getName());
 			}
 		}
 	}
@@ -187,12 +188,12 @@ public class SimPLUSimulator {
 	 * @param lF        : list of the initials parameters
 	 * @throws Exception
 	 */
-	public SimPLUSimulator(File rootfile, File packFile, Parameters pa) throws Exception {
+	public SimPLUSimulator(File packFile, Parameters pa) throws Exception {
 
 		// some static parameters needed
 		this.p = pa;
 		this.pSaved = pa;
-		this.rootFile = rootfile;
+		this.rootFile = new File(p.getString("rootfile"));
 
 		simuFile = packFile;
 		parcelsFile = new File(packFile, "/parcelle.shp");
@@ -230,22 +231,14 @@ public class SimPLUSimulator {
 		///////////
 		// know if there's only one or multiple zones in the parcel pack
 		List<String> zones = new ArrayList<String>();
-		ShapefileDataStore parcelSDS = new ShapefileDataStore(parcelsFile.toURI().toURL());
-		SimpleFeatureIterator parcelsIt = parcelSDS.getFeatureSource().getFeatures().features();
-		try {
-			while (parcelsIt.hasNext()) {
-				SimpleFeature feat = parcelsIt.next();
-				String tmp = GetFromGeom.affectToZoneAndTypo(p, feat, true);
-				if (!zones.contains(tmp)) {
-					zones.add(tmp);
-				}
+		IFeatureCollection<CadastralParcel> parcels = env.getCadastralParcels();
+
+		for (CadastralParcel parcel : parcels) {
+			String tmp = GetFromGeom.affectToZoneAndTypo(p, parcel, true);
+			if (!zones.contains(tmp)) {
+				zones.add(tmp);
 			}
-		} catch (Exception problem) {
-			problem.printStackTrace();
-		} finally {
-			parcelsIt.close();
 		}
-		parcelSDS.dispose();
 
 		// loading the type of housing to build
 		RepartitionBuildingType housingUnit = new RepartitionBuildingType(p, parcelsFile);
@@ -292,9 +285,11 @@ public class SimPLUSimulator {
 			double eval = getParcelEval(env.getBpU().get(i).getCadastralParcels().get(0).getCode());
 
 			// of which type should be the housing unit
-			BuildingType type = housingUnit.rangeInterest(eval);
+			BuildingType type;
 			if (multipleRepartitionBuildingType) {
 				type = ((MultipleRepartitionBuildingType) housingUnit).rangeInterest(eval, codeParcel, p);
+			} else {
+				type = housingUnit.rangeInterest(eval);
 			}
 
 			// we get ready to change it

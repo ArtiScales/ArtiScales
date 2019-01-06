@@ -107,7 +107,7 @@ public class MainTask {
 				Parameters p = SimuTool.getParamFile(listScenarios, scenarName);
 				for (File packFile : varianteFile.listFiles()) {
 					if (packFile.isDirectory()) {
-						SimPLUSimulator simPluSim = new SimPLUSimulator(rootFile, packFile, p);
+						SimPLUSimulator simPluSim = new SimPLUSimulator(packFile, p);
 						List<File> listFilesSimul = simPluSim.run();
 						if (!(listFilesSimul == null)) {
 							buildingSimulatedPerVariant.addAll(listFilesSimul);
