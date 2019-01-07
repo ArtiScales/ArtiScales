@@ -378,7 +378,7 @@ public class RepartitionBuildingType {
 	}
 
 	public static boolean hasAttic(String type) {
-		return hasAttic(BuildingType.valueOf(type));
+		return hasAttic(BuildingType.valueOf(type.toUpperCase()));
 	}
 
 }

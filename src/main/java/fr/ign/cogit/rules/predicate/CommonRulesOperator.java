@@ -9,6 +9,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
 import fr.ign.cogit.geoxygene.api.spatial.geomroot.IGeometry;
 import fr.ign.cogit.rules.regulation.ArtiScalesRegulation;
+import fr.ign.cogit.rules.regulation.buildingType.BuildingType;
 import fr.ign.cogit.rules.regulation.buildingType.RepartitionBuildingType;
 import fr.ign.cogit.simplu3d.model.BasicPropertyUnit;
 import fr.ign.cogit.simplu3d.model.Building;
@@ -594,7 +595,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		double builtArea = assesBuiltArea(lAllCuboids);
 
 		// Buildings height is used to assess SDP
-		SDPCalc c = new SDPCalc(p.getInteger("heightStorey"));
+		SDPCalc c = new SDPCalc(p.getDouble("heightStorey"));
 
 		// We assess the SHON
 		double shon = c.process(lAllCuboids);
