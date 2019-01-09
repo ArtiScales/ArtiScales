@@ -28,7 +28,7 @@ public class Test {
 	public static void main(String[] args) throws Exception {
 
 		DirectPosition.PRECISION = 5;
-		IFeatureCollection<IFeature> collec = ShapefileReader.read("/home/yo/Documents/AU.shp");
+		IFeatureCollection<IFeature> collec = ShapefileReader.read("/home/mcolomb/expParcelCut/AU.shp");
 
 		for (int i = 2; i <= 3; i++) {
 
@@ -38,7 +38,7 @@ public class Test {
 				type = "dwelling";
 			}
 			List<File> toMerge = new ArrayList<File>();
-			String ou = "/home/yo/expParcelCut/" + type;
+			String ou = "/tmp/expParcelCut/" + type;
 			for (IFeature feat : collec) {
 
 				List<IOrientableSurface> surfaces = FromGeomToSurface.convertGeom(feat.getGeom());
@@ -62,7 +62,7 @@ public class Test {
 				boolean forceRoadAccess = false;
 				IPolygon pol = (IPolygon) surfaces.get(0);
 
-				File dataGeo = new File("/home/yo/Documents/these/ArtiScales/dataGeo/");
+				File dataGeo = new File("/home/mcolomb/informatique/ArtiScales/dataGeo/");
 				String inputUrbanBlock = GetFromGeom.getIlots(dataGeo).getAbsolutePath();
 				IFeatureCollection<IFeature> featC = ShapefileReader.read(inputUrbanBlock);
 				List<IOrientableCurve> lOC = FromGeomToLineString.convert(featC.get(0).getGeom());

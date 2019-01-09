@@ -28,16 +28,14 @@ public class RepartitionBuildingType {
 		makeRepart(p, parcelles);
 	}
 
-	public RepartitionBuildingType(Parameters p, IFeatureCollection<IFeature> parcel)
-			throws NoSuchElementException, Exception {
+	public RepartitionBuildingType(Parameters p, IFeatureCollection<IFeature> parcel) throws NoSuchElementException, Exception {
 
 		parcelles = parcel;
 		makeRepart(p, parcelles);
 
 	}
 
-	public void makeRepart(Parameters p, IFeatureCollection<IFeature> parcelles)
-			throws NoSuchElementException, Exception {
+	public void makeRepart(Parameters p, IFeatureCollection<IFeature> parcelles) throws NoSuchElementException, Exception {
 
 		HashMap<BuildingType, Double> rep = new HashMap<BuildingType, Double>();
 
@@ -77,13 +75,12 @@ public class RepartitionBuildingType {
 
 		if ((pDetachedHouse + pSmallHouse + pMultifamilyHouse + pSmallBlockFlat + pMidBlockFlat) != 100.0) {
 			System.out.println("there's a sum probleme here (yes, I know how to count to 100). It's "
-					+ (pDetachedHouse + pSmallHouse + pMultifamilyHouse + pSmallBlockFlat + pMidBlockFlat)
-					+ " instead");
+					+ (pDetachedHouse + pSmallHouse + pMultifamilyHouse + pSmallBlockFlat + pMidBlockFlat) + " instead");
 		}
 
 		this.repartition = rep;
 
-		this.parcelles = parcelles;
+	//	this.parcelles = parcelles;
 
 		makeParcelRepartition();
 
@@ -98,8 +95,11 @@ public class RepartitionBuildingType {
 		DescriptiveStatistics distribEval = new DescriptiveStatistics();
 
 		for (IFeature parcel : parcels) {
+			try {
 			if (!((String) parcel.getAttribute("eval")).equals("0")) {
 				distribEval.addValue(Double.valueOf((String) parcel.getAttribute("eval")));
+			}
+			} catch (NullPointerException np) {
 			}
 		}
 
@@ -108,13 +108,11 @@ public class RepartitionBuildingType {
 		List<Double> toBeQuantile = new ArrayList<Double>();
 
 		toBeQuantile.add(pSmallHouse);
-		String distribSmallHouse = distribEval.getPercentile(0.00000001) + "-"
-				+ distribEval.getPercentile(safeQuantile(toBeQuantile));
+		String distribSmallHouse = distribEval.getPercentile(0.00000001) + "-" + distribEval.getPercentile(safeQuantile(toBeQuantile));
 
 		double tmpInfValue = safeQuantile(toBeQuantile);
 		toBeQuantile.add(pDetachedHouse);
-		String distribDetachedHouse = distribEval.getPercentile(tmpInfValue) + "-"
-				+ distribEval.getPercentile(safeQuantile(toBeQuantile));
+		String distribDetachedHouse = distribEval.getPercentile(tmpInfValue) + "-" + distribEval.getPercentile(safeQuantile(toBeQuantile));
 
 		tmpInfValue = safeQuantile(toBeQuantile);
 		toBeQuantile.add(pMultifamilyHouse);
@@ -123,13 +121,11 @@ public class RepartitionBuildingType {
 
 		tmpInfValue = safeQuantile(toBeQuantile);
 		toBeQuantile.add(pSmallBlockFlat);
-		String distribSmallBlockFlat = distribEval.getPercentile(tmpInfValue) + "-"
-				+ distribEval.getPercentile(safeQuantile(toBeQuantile));
+		String distribSmallBlockFlat = distribEval.getPercentile(tmpInfValue) + "-" + distribEval.getPercentile(safeQuantile(toBeQuantile));
 
 		tmpInfValue = safeQuantile(toBeQuantile);
 		toBeQuantile.add(pMidBlockFlat);
-		String distribMidBlockFlat = distribEval.getPercentile(tmpInfValue) + "-"
-				+ distribEval.getPercentile(safeQuantile(toBeQuantile));
+		String distribMidBlockFlat = distribEval.getPercentile(tmpInfValue) + "-" + distribEval.getPercentile(safeQuantile(toBeQuantile));
 
 		HashMap<BuildingType, String> distrib = new HashMap<BuildingType, String>();
 		distrib.put(BuildingType.SMALLHOUSE, distribSmallHouse);
@@ -173,8 +169,7 @@ public class RepartitionBuildingType {
 		throw new Exception("value not in the range");
 	}
 
-	private HashMap<BuildingType, String> adjustDistribution(double evalParcel, BuildingType takenBuildingType,
-			boolean upOrDown) throws Exception {
+	private HashMap<BuildingType, String> adjustDistribution(double evalParcel, BuildingType takenBuildingType, boolean upOrDown) throws Exception {
 
 		return adjustDistribution(evalParcel, takenBuildingType, rangeInterest(evalParcel), upOrDown);
 
@@ -184,12 +179,13 @@ public class RepartitionBuildingType {
 	 * 
 	 * @param evalParcel
 	 * @param takenBuildingType
-	 * @param upOrDown          adjust in an up (true) or down (false) direction
+	 * @param upOrDown
+	 *            adjust in an up (true) or down (false) direction
 	 * @return
 	 * @throws Exception
 	 */
-	private HashMap<BuildingType, String> adjustDistribution(double evalParcel, BuildingType takenBuildingType,
-			BuildingType normalBuildingType, boolean upOrDown) throws Exception {
+	private HashMap<BuildingType, String> adjustDistribution(double evalParcel, BuildingType takenBuildingType, BuildingType normalBuildingType, boolean upOrDown)
+			throws Exception {
 		double[] sortedVal = dsc.getSortedValues();
 
 		double ecart = 0.0;
@@ -239,19 +235,16 @@ public class RepartitionBuildingType {
 		return this.distribution;
 	}
 
-	public HashMap<BuildingType, String> adjustDistributionUp(double evalParcel, BuildingType takenBuildingType,
-			BuildingType normalBuildingType) throws Exception {
+	public HashMap<BuildingType, String> adjustDistributionUp(double evalParcel, BuildingType takenBuildingType, BuildingType normalBuildingType) throws Exception {
 		return adjustDistribution(evalParcel, takenBuildingType, normalBuildingType, true);
 	}
 
-	public HashMap<BuildingType, String> adjustDistributionDown(double evalParcel, BuildingType takenBuildingType,
-			BuildingType normalBuildingType) throws Exception {
+	public HashMap<BuildingType, String> adjustDistributionDown(double evalParcel, BuildingType takenBuildingType, BuildingType normalBuildingType) throws Exception {
 		return adjustDistribution(evalParcel, takenBuildingType, normalBuildingType, false);
 	}
 
 	/**
-	 * return the parameter file added with the repartition of the concerned zone in
-	 * which the parcel is.
+	 * return the parameter file added with the repartition of the concerned zone in which the parcel is.
 	 * 
 	 * @param p
 	 * @param parcel
@@ -259,8 +252,7 @@ public class RepartitionBuildingType {
 	 * @throws Exception
 	 */
 	public Parameters getRepartition(Parameters p, IFeature parcel) throws Exception {
-		File profileBuildings = new File(
-				this.getClass().getClassLoader().getResource("locationBuildingType").getFile());
+		File profileBuildings = new File(this.getClass().getClassLoader().getResource("locationBuildingType").getFile());
 
 		String affect = GetFromGeom.affectToZoneAndTypo(p, parcel, true);
 
@@ -355,8 +347,8 @@ public class RepartitionBuildingType {
 
 		Parameters p = Parameters.unmarshall(lF);
 
-		RepartitionBuildingType u = new RepartitionBuildingType(p, new File(
-				"/home/mcolomb/informatique/ArtiScales2/ParcelSelectionFile/intenseRegulatedSpread/variant0/parcelGenExport.shp"));
+		RepartitionBuildingType u = new RepartitionBuildingType(p,
+				new File("/home/mcolomb/informatique/ArtiScales2/ParcelSelectionFile/intenseRegulatedSpread/variant0/parcelGenExport.shp"));
 		System.out.println(u.rangeInterest(0.52));
 		System.out.println(u.distribution);
 		System.out.println(u.adjustDistribution(0.35285416, BuildingType.MULTIFAMILYHOUSE, false));

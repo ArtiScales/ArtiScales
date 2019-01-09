@@ -9,7 +9,7 @@
 
 	<!-- Dossiers et fichiers nécessaires à la simulation -->
 	<!-- Emplacement de la simulation (données d'entrée, résultats intermédiaires et finaux) -->
-	<param key="rootFile" value="/home/yo/Documents/these/ArtiScales" />
+	<param key="rootFile" value="/home/mcolomb/informatique/ArtiScales" />
 
 		
 	<!-- PARAMETRES DU MODULE MUP-CITY -->

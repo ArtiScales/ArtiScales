@@ -8,7 +8,7 @@
 	<param key="seed" value="42"/>
 	<param key = "singleCity" value = "true"/>
 	<!--<param key="zip" value ="25217,25115,25136,25030,25448,25119,25427,25150,25455,25482"/> -->
-	<param key="zip" value ="25557"/>
+	<param key="zip" value ="25560"/>
 	<param key="package" value ="ilot"/>
 
 
@@ -24,9 +24,9 @@
 
 		<param key = "variant" value="true"/>
 		<param key = "variante1" value="emprise=915948;6677337;26590;26590--cm=20--seuil=0.001--data=Manu--nivCellUtilise=1--seed=42"/>
-	<param key = "variante2" value="emprise=915968;6677357;26590;26590--cm=20--seuil=0--data=Manu--nivCellUtilise=1--seed=42"/>
-	<param key = "variante3" value="emprise=915948;6677337;26590;26590--cm=20--seuil=0--data=Manu--nivCellUtilise=1--seed=26"/>
-	<param key = "variante4" value="emprise=915948;6677337;26590;26590--cm=19--seuil=0--data=Manu--nivCellUtilise=1--seed=42"/>
+		<param key = "variante2" value="emprise=915968;6677357;26590;26590--cm=20--seuil=0--data=Manu--nivCellUtilise=1--seed=42"/>
+		<param key = "variante3" value="emprise=915948;6677337;26590;26590--cm=20--seuil=0--data=Manu--nivCellUtilise=1--seed=26"/>
+		<param key = "variante4" value="emprise=915948;6677337;26590;26590--cm=19--seuil=0--data=Manu--nivCellUtilise=1--seed=42"/>
 
 
 	<!-- PARAMETRES DE SIMPLU3D -->

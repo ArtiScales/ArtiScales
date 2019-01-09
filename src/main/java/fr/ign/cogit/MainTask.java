@@ -31,8 +31,7 @@ public class MainTask {
 		// general parameters
 
 		// list of different scenarios to test
-		List<Parameters> listScenarios = getParamFile("exScenar",
-				new File("/home/yo/workspace/ArtiScales/src/main/resources/paramSet"));
+		List<Parameters> listScenarios = getParamFile("exScenar", new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet"));
 
 		// List<Parameters> listScenarios = getParamFile("scenar0MKDom", new
 		// File("/home/mbrasebin/Documents/Code/ArtiScales/ArtiScales/src/main/resources/paramSet/"));
@@ -133,8 +132,7 @@ public class MainTask {
 			String scenarName = listVariantes.get(0).get(0).getParentFile().getParentFile().getName();
 			for (List<File> buildingSimulatedPerVariant : listVariantes) {
 				Parameters p = SimuTool.getParamFile(listScenarios, scenarName);
-				File bTHFile = new File(rootFile,
-						"indic/bTH/" + scenarName + "/" + buildingSimulatedPerVariant.get(0).getParentFile().getName());
+				File bTHFile = new File(rootFile, "indic/bTH/" + scenarName + "/" + buildingSimulatedPerVariant.get(0).getParentFile().getName());
 				bTHFile.mkdirs();
 				BuildingToHousingUnit bTH = new BuildingToHousingUnit(buildingSimulatedPerVariant, bTHFile, p);
 				bTH.runParticularSimpleEstimation();
@@ -151,8 +149,7 @@ public class MainTask {
 			String scenarName = listVariantes.get(0).getParentFile().getParentFile().getName();
 			for (File parcelsPerVariant : listVariantes) {
 				Parameters p = SimuTool.getParamFile(listScenarios, scenarName);
-				File parcelOutFile = new File(rootFile,
-						"indic/parcelOut/" + scenarName + "/" + parcelsPerVariant.getParentFile().getName());
+				File parcelOutFile = new File(rootFile, "indic/parcelOut/" + scenarName + "/" + parcelsPerVariant.getParentFile().getName());
 				parcelOutFile.mkdirs();
 				File parcelOut = new File(parcelOutFile, "parcelGenExport.shp");
 				Vectors.copyShp("parcelGen", parcelsPerVariant.getParentFile(), parcelOutFile);
@@ -165,8 +162,7 @@ public class MainTask {
 	public static Hashtable<String, String[]> prepareVariant(Parameters p) {
 		Hashtable<String, String[]> variants = new Hashtable<String, String[]>();
 		try {
-			String[] originalScenar = { p.getString("emprise"), p.getString("cm"), p.getString("seuil"),
-					p.getString("data"), p.getString("nivCellUtilise"), p.getString("seed") };
+			String[] originalScenar = { p.getString("emprise"), p.getString("cm"), p.getString("seuil"), p.getString("data"), p.getString("nivCellUtilise"), p.getString("seed") };
 			variants.put("original", originalScenar);
 			for (int i = 1; i <= 1000; i++) {
 				if (!p.getString("variante" + i).isEmpty()) {
@@ -184,10 +180,10 @@ public class MainTask {
 	/**
 	 * return technical parameters from the parameter file
 	 * 
-	 * @param line from the parameter file
-	 * @return tab with parameters sorted like that : \n 0 : emprise \n 1 : minimal
-	 *         size of cell \n 2 : threshold of building density \n 3 : dataset to
-	 *         use \n 4 : level of cell size to use \n 5 : seed \n
+	 * @param line
+	 *            from the parameter file
+	 * @return tab with parameters sorted like that : \n 0 : emprise \n 1 : minimal size of cell \n 2 : threshold of building density \n 3 : dataset to use \n 4 : level of cell
+	 *         size to use \n 5 : seed \n
 	 */
 	private static String[] unmarshalVariant(String line) {
 		String[] result = new String[6];
@@ -203,10 +199,10 @@ public class MainTask {
 	}
 
 	/**
-	 * Scan all the file from a folder and return a list of parameters, representing
-	 * different scenarios
+	 * Scan all the file from a folder and return a list of parameters, representing different scenarios
 	 * 
-	 * @param fIn : folder where every scenarios parameters are stored
+	 * @param fIn
+	 *            : folder where every scenarios parameters are stored
 	 * @return list : list of Parameters object to run
 	 * @throws Exception
 	 */

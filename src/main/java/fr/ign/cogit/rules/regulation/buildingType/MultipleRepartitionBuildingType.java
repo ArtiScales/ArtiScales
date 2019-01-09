@@ -19,38 +19,35 @@ public class MultipleRepartitionBuildingType extends RepartitionBuildingType {
 		super(p, parcelFile);
 		p = getRepartition(p, parcelles.get(0));
 
+		//we put all of the parcels into different lists regarding to their zones
 		parcelsInZone = new HashMap<String, List<String>>();
 		for (IFeature parcelle : parcelles) {
-
-			String bigZone = GetFromGeom.affectToZoneAndTypo(p, parcelle, true);
-
-			if (parcelsInZone.containsKey(bigZone)) {
-				List<String> tmpList = parcelsInZone.get(bigZone);
-				tmpList.add((String) parcelle.getAttribute("CODE"));
-				parcelsInZone.put(bigZone, tmpList);
-			} else {
-				List<String> tmpList = new ArrayList<String>();
-				tmpList.add((String) parcelle.getAttribute("CODE"));
-				parcelsInZone.put(bigZone, tmpList);
+			if (parcelle.getAttribute("CODE") != null) {
+				String bigZone = GetFromGeom.affectToZoneAndTypo(p, parcelle, true);
+				if (parcelsInZone.containsKey(bigZone)) {
+					List<String> tmpList = parcelsInZone.get(bigZone);
+					tmpList.add((String) parcelle.getAttribute("CODE"));
+					parcelsInZone.put(bigZone, tmpList);
+				} else {
+					List<String> tmpList = new ArrayList<String>();
+					tmpList.add((String) parcelle.getAttribute("CODE"));
+					parcelsInZone.put(bigZone, tmpList);
+				}
 			}
 		}
-
 	}
 
-	public BuildingType rangeInterest(double eval, String codeParcel, Parameters p)
-			throws NoSuchElementException, Exception {
+	public BuildingType rangeInterest(double eval, String codeParcel, Parameters p) throws NoSuchElementException, Exception {
 
 		List<String> parcelsWanted = new ArrayList<String>();
-
 		for (List<String> parcels : parcelsInZone.values()) {
 			if (parcels.contains(codeParcel)) {
 				parcelsWanted = parcels;
 			}
 		}
-
+		
 		IFeatureCollection<IFeature> parcelRepart = VectorFct.getParcelByCode(parcelles, parcelsWanted);
 
-		System.out.println("parcelRepart size : " + parcelRepart.size());
 		makeRepart(p, parcelRepart);
 
 		return rangeInterest(eval);

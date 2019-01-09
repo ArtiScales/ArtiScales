@@ -8,6 +8,8 @@
 	<!-- Largeur minimum de la limite parcellaire donnant sur la voirie -->
 	<!-- Si aucune voirie adjacente à la parcelle, le découpage sera orienté aléatoirement -->
 	<param key="widParcel" value="7" />
+	<!-- niveau de décompositions auxquels il n'y aura pas de création de routes (partant de la médiane des différents niveaux de décomposition constatées-->
+	<param key="decompositionLevelWithoutRoad" value="2" />
 
 <!--Paramètres par défaut des différents types de bâtiments simulés -->
 
