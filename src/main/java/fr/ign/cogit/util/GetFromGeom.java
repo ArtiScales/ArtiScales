@@ -164,6 +164,22 @@ public class GetFromGeom {
 		return occurConcerned;
 	}
 
+	public static String getBigZone(String unbigZone) {
+		switch (unbigZone) {
+		case "ZC":
+		case "U":
+			return "U";
+		case "N":
+		case "NC":
+		case "A":
+			return "NC";
+		case "AU":
+		return "AU";
+		}
+		System.err.println("bigZone unknown");
+		return "nutin";
+	}
+	
 	public static List<String> rnuZip(File regulFile) throws IOException {
 		List<String> result = new ArrayList<String>();
 		File fCsv = new File("");
@@ -495,8 +511,9 @@ public class GetFromGeom {
 			citIt.close();
 		}
 
-		if (((String) City.getAttribute("DEPCOM")) != null || ((String) City.getAttribute("DEPCOM")) != "") {
-			cityInsee = (String) City.getAttribute("DEPCOM");
+		String attribute = (String) City.getAttribute("DEPCOM");//TODO: NOM_DEP ???
+		if (attribute != null && !attribute.isEmpty()) {
+			cityInsee = attribute;
 		}
 		return cityInsee;
 	}
