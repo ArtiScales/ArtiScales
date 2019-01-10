@@ -28,6 +28,8 @@ import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
 import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.outputs.XmlGen;
+import fr.ign.cogit.rules.regulation.buildingType.BuildingType;
+import fr.ign.cogit.rules.regulation.buildingType.RepartitionBuildingType;
 import fr.ign.cogit.util.DataPreparator;
 import fr.ign.cogit.util.GetFromGeom;
 import fr.ign.cogit.util.SimuTool;
@@ -148,26 +150,27 @@ public class SelectParcels {
 				////////////////
 				// Split parcel processes
 				////////////////
-
-				// TODO add the necessary parameter files
+Vectors.exportSFC(parcelCollection, new File(tmpFile,"parcelBeforeSplit"));
+				
 				if (!p.getString("split").equals("")) {
 					String[] splitOrders = p.getString("split").split("_");
 					for (String orders : splitOrders) {
 						String splitType = orders.split("-")[1];
 						String splitZone = orders.split("-")[0];
+						File ressource = new File(this.getClass().getClassLoader().getResource("").getFile());
 
 						switch (splitType) {
-						case "densification":
-							VectorFct.parcelDensification(splitZone, parcelCollection, tmpFile, p);
-							break;
+						// case "densification":
+						// VectorFct.parcelDensification(splitZone, parcelCollection, tmpFile, p, ressource);
+						// break;
 
 						case "motifZone":
-							VectorFct.parcelGenZone(splitZone, parcelCollection, tmpFile, p);
+							VectorFct.parcelGenZone(splitZone, parcelCollection, tmpFile, p, ressource);
 							break;
 
-						case "motif":
-							VectorFct.parcelGenMotif(splitZone, parcelCollection, tmpFile, spatialConf, p);
-							break;
+						 case "motif":
+						 VectorFct.parcelGenMotif(splitZone, parcelCollection, tmpFile, spatialConf, p, ressource);
+						 break;
 						}
 					}
 				}

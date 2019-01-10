@@ -41,7 +41,7 @@ public class RepartitionBuildingType {
 
 		// add the zone parameters with the first parcel (redone for each parcel if it's
 		// a multizone type)
-		p = getRepartition(p, parcelles.get(0));
+		p = addRepartitionToParameters(p, parcelles.get(0),new File(this.getClass().getClassLoader().getResource("locationBuildingType").getFile()));
 		pDetachedHouse = p.getDouble("detachedHouse");
 
 		if (pDetachedHouse == 99.0) {
@@ -251,8 +251,7 @@ public class RepartitionBuildingType {
 	 * @return
 	 * @throws Exception
 	 */
-	public Parameters getRepartition(Parameters p, IFeature parcel) throws Exception {
-		File profileBuildings = new File(this.getClass().getClassLoader().getResource("locationBuildingType").getFile());
+	public static Parameters addRepartitionToParameters(Parameters p, IFeature parcel, File profileBuildings) throws Exception {
 
 		String affect = GetFromGeom.affectToZoneAndTypo(p, parcel, true);
 
@@ -274,19 +273,18 @@ public class RepartitionBuildingType {
 		return p;
 	}
 
-	public Parameters getParam(BuildingType type) throws Exception {
-		File profileBuildings = new File(this.getClass().getClassLoader().getResource("profileBuildingType").getFile());
+	public static Parameters getParam(File ressourceFile , BuildingType type) throws Exception {
 		switch (type) {
 		case DETACHEDHOUSE:
-			return Parameters.unmarshall(new File(profileBuildings, "detachedHouse.xml"));
+			return Parameters.unmarshall(new File(ressourceFile, "detachedHouse.xml"));
 		case SMALLHOUSE:
-			return Parameters.unmarshall(new File(profileBuildings, "smallHouse.xml"));
+			return Parameters.unmarshall(new File(ressourceFile, "smallHouse.xml"));
 		case MULTIFAMILYHOUSE:
-			return Parameters.unmarshall(new File(profileBuildings, "multifamilyHouse.xml"));
+			return Parameters.unmarshall(new File(ressourceFile, "multifamilyHouse.xml"));
 		case MIDBLOCKFLATS:
-			return Parameters.unmarshall(new File(profileBuildings, "midBlockFlat.xml"));
+			return Parameters.unmarshall(new File(ressourceFile, "midBlockFlat.xml"));
 		case SMALLBLOCKFLAT:
-			return Parameters.unmarshall(new File(profileBuildings, "smallBlockFlat.xml"));
+			return Parameters.unmarshall(new File(ressourceFile, "smallBlockFlat.xml"));
 		}
 		throw new Exception("no parameter file found");
 	}
@@ -372,5 +370,35 @@ public class RepartitionBuildingType {
 	public static boolean hasAttic(String type) {
 		return hasAttic(BuildingType.valueOf(type.toUpperCase()));
 	}
-
+/**
+ * return the buildingType with the most 
+ * ignore the 99 values which means that is a forbidden type
+ * @param p
+ * @return
+ */
+	public static BuildingType getBiggestRepartition(Parameters p) {
+		Integer max =0;
+		BuildingType result = null;
+		if (p.getInteger("detachedHouse") > max && p.getInteger("detachedHouse") != 99) {
+			max =  p.getInteger("detachedHouse") ;
+			result = BuildingType.DETACHEDHOUSE;
+		}
+		if (p.getInteger("smallHouse") > max && p.getInteger("smallHouse") != 99) {
+			max =  p.getInteger("smallHouse") ;
+			result = BuildingType.SMALLHOUSE;
+		}
+		if (p.getInteger("multifamilyHouse") > max && p.getInteger("multifamilyHouse") != 99) {
+			max =  p.getInteger("multifamilyHouse") ;
+			result = BuildingType.MULTIFAMILYHOUSE;
+		}
+		if (p.getInteger("smallBlockFlat") > max && p.getInteger("smallBlockFlat") != 99) {
+			max =  p.getInteger("smallBlockFlat") ;
+			result = BuildingType.SMALLBLOCKFLAT;
+		}
+		if (p.getInteger("midBlockFlat") > max && p.getInteger("midBlockFlat") != 99) {
+			max =  p.getInteger("midBlockFlat") ;
+			result = BuildingType.MIDBLOCKFLATS;
+		}
+	return result	;
+	}
 }

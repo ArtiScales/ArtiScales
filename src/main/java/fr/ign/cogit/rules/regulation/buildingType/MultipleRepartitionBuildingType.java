@@ -17,9 +17,9 @@ public class MultipleRepartitionBuildingType extends RepartitionBuildingType {
 
 	public MultipleRepartitionBuildingType(Parameters p, File parcelFile) throws NoSuchElementException, Exception {
 		super(p, parcelFile);
-		p = getRepartition(p, parcelles.get(0));
+		p = addRepartitionToParameters(p, parcelles.get(0), new File(this.getClass().getClassLoader().getResource("locationBuildingType").getFile()));
 
-		//we put all of the parcels into different lists regarding to their zones
+		// we put all of the parcels into different lists regarding to their zones
 		parcelsInZone = new HashMap<String, List<String>>();
 		for (IFeature parcelle : parcelles) {
 			if (parcelle.getAttribute("CODE") != null) {
@@ -45,7 +45,7 @@ public class MultipleRepartitionBuildingType extends RepartitionBuildingType {
 				parcelsWanted = parcels;
 			}
 		}
-		
+
 		IFeatureCollection<IFeature> parcelRepart = VectorFct.getParcelByCode(parcelles, parcelsWanted);
 
 		makeRepart(p, parcelRepart);

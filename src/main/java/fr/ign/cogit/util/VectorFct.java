@@ -53,6 +53,8 @@ import fr.ign.cogit.geoxygene.util.attribute.AttributeManager;
 import fr.ign.cogit.geoxygene.util.conversion.GeOxygeneGeoToolsTypes;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileReader;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileWriter;
+import fr.ign.cogit.rules.regulation.buildingType.BuildingType;
+import fr.ign.cogit.rules.regulation.buildingType.RepartitionBuildingType;
 import fr.ign.parameters.Parameters;
 
 public class VectorFct {
@@ -67,6 +69,11 @@ public class VectorFct {
 		Parameters p = Parameters.unmarshall(lF);
 
 		File tmpFile = new File("/tmp/");
+
+		ShapefileDataStore shpDSZone = new ShapefileDataStore(new File("/home/mcolomb/informatique/ArtiScales/tmp/parcelBeforeSplit.shp").toURI().toURL());
+		SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
+
+		Vectors.exportSFC(VectorFct.parcelGenZone("AU", featuresZones, tmpFile, p, new File("/home/mcolomb/workspace/ArtiScales/target/classes")), new File("/tmp/result.shp"));
 
 		/////////////////////////
 		//////// try the parcelDensification method
@@ -99,20 +106,20 @@ public class VectorFct {
 		// Vectors.exportSFC(salut, new File("/tmp/parcelDensification.shp"));
 		// shpDSZone.dispose();
 
-		/////////////////////////
-		//////// try the parcelGenZone method
-		/////////////////////////
-
-		ShapefileDataStore shpDSZone = new ShapefileDataStore(
-				new File("/home/mcolomb/informatique/ArtiScales/ParcelSelectionFile/exScenar/variant0/parcelGenExport.shp").toURI().toURL());
-		SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
-
-		// Vectors.exportSFC(generateSplitedParcels(waiting, tmpFile, p), new
-		// File("/tmp/tmp2.shp"));
-		SimpleFeatureCollection salut = parcelGenZone("AU", featuresZones, tmpFile, new File(p.getString("rootFile")), 800.0, 7.0, 3.0, 2);
-
-		Vectors.exportSFC(salut, new File("/tmp/parcelDensification.shp"));
-		shpDSZone.dispose();
+		// /////////////////////////
+		// //////// try the parcelGenZone method
+		// /////////////////////////
+		//
+		// ShapefileDataStore shpDSZone = new ShapefileDataStore(
+		// new File("/home/mcolomb/informatique/ArtiScales/ParcelSelectionFile/exScenar/variant0/parcelGenExport.shp").toURI().toURL());
+		// SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
+		//
+		// // Vectors.exportSFC(generateSplitedParcels(waiting, tmpFile, p), new
+		// // File("/tmp/tmp2.shp"));
+		// SimpleFeatureCollection salut = parcelGenZone("AU", featuresZones, tmpFile, new File(p.getString("rootFile")), 800.0, 7.0, 3.0, 2);
+		//
+		// Vectors.exportSFC(salut, new File("/tmp/parcelDensification.shp"));
+		// shpDSZone.dispose();
 
 		// /////////////////////////
 		// //////// try the generateFlagSplitedParcels method
@@ -232,6 +239,72 @@ public class VectorFct {
 	}
 
 	/**
+	 * overload to get the wanted parameter file
+	 * 
+	 * @param splitZone
+	 * @param parcels
+	 * @param tmpFile
+	 * @param zoningFile
+	 * @param p
+	 * @return
+	 * @throws Exception
+	 */
+	public static SimpleFeatureCollection parcelGenZone(String splitZone, SimpleFeatureCollection parcels, File tmpFile, Parameters p, File ressource) throws Exception {
+
+		File locationBuildingType = new File(ressource, "locationBuildingType");
+		File profileBuildingType = new File(ressource, "profileBuildingType");
+		// séparation entre les différentes zones
+		DefaultFeatureCollection result = new DefaultFeatureCollection();
+		List<String> listZones = getLocationParamNames(locationBuildingType, p);
+
+		// split into zones to make correct parcel recomposition
+		for (String stringParam : listZones) {
+			System.out.println("for line " + stringParam);
+			Parameters pTemp = p;
+			pTemp.add(Parameters.unmarshall(new File(locationBuildingType, stringParam)));
+			// @simplification : as only one BuildingType is set per zones, we select the type that is the most represented
+			BuildingType type = RepartitionBuildingType.getBiggestRepartition(pTemp);
+			Parameters pAdded = p;
+			pAdded.add(RepartitionBuildingType.getParam(profileBuildingType, type));
+
+			// delete name of specials parameters
+			if (stringParam.split(":").length == 2) {
+				stringParam = stringParam.split(":")[1];
+			}
+			// del the .xml ref
+			stringParam = stringParam.replace(".xml", "");
+
+			// two specifications
+			if (stringParam.split("-").length == 2) {
+				SimpleFeatureCollection typoed = getParcelByTypo(stringParam.split("-")[0], parcels, new File(p.getString("rootFile")));
+				SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam.split("-")[1], typoed, new File(p.getString("rootFile")));
+				if (bigZoned.size() > 0) {
+					System.out.println("we cut the parcels with " + type + "parameters");
+					result.addAll(parcelGenZone(splitZone, bigZoned, tmpFile, pAdded));
+				}
+			}
+			// only one specification
+			else {
+				if (stringParam.equals("periUrbain") || stringParam.equals("rural") || stringParam.equals("banlieue") || stringParam.equals("centre")) {
+					SimpleFeatureCollection typoed = getParcelByTypo(stringParam, parcels, new File(p.getString("rootFile")));
+					if (typoed.size() > 0) {
+						System.out.println("we cut the parcels with " + type + "parameters");
+						result.addAll(parcelGenZone(splitZone, typoed, tmpFile, pAdded));
+					}
+				} else {
+					SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam, parcels, new File(p.getString("rootFile")));
+					if (bigZoned.size() > 0) {
+						System.out.println("we cut the parcels with " + type + "parameters");
+						result.addAll(parcelGenZone(splitZone, bigZoned, tmpFile, pAdded));
+					}
+				}
+			}
+
+		}
+		return result.collection();
+	}
+
+	/**
 	 * overload to directly put a parameter file
 	 * 
 	 * @param splitZone
@@ -243,12 +316,14 @@ public class VectorFct {
 	 * @throws Exception
 	 */
 	public static SimpleFeatureCollection parcelGenZone(String splitZone, SimpleFeatureCollection parcels, File tmpFile, Parameters p) throws Exception {
+
 		return parcelGenZone(splitZone, parcels, tmpFile, new File(p.getString("rootFile")), p.getDouble("areaParcel"), p.getDouble("widParcel"), p.getDouble("lenRoad"),
 				p.getInteger("decompositionLevelWithoutRoad"));
 	}
 
 	/**
-	 * Merge and recut the to urbanised (AU) zones Cut first the U parcels to keep them unsplited, then split the AU parcel and remerge them all into the original parcel file
+	 * Merge and recut the to urbanised (AU) zones Cut first the U parcels to keep them unsplited, then split the AU parcel and remerge them all into the original parcel file TODO
+	 * problem with some Polygon/multiPolygon that makes a weird result.
 	 * 
 	 * @param splitZone
 	 * @param parcels
@@ -263,9 +338,7 @@ public class VectorFct {
 	 */
 	public static SimpleFeatureCollection parcelGenZone(String splitZone, SimpleFeatureCollection parcels, File tmpFile, File rootFile, double maximalArea, double maximalWidth,
 			double lenRoad, int decompositionLevelWithoutRoad) throws Exception {
-		// TODO prendre en compte les modif de la création de route (type pour
-		// déterminer les conditions d'arret des parcelles et jusqu'à quand descend la
-		// création de routes)
+		// TODO trouver un moyen d'enlever les routes déjà existantes
 
 		// parcels to save for after
 		DefaultFeatureCollection savedParcels = new DefaultFeatureCollection();
@@ -320,7 +393,7 @@ public class VectorFct {
 
 		// parcel intersecting the U zone must not be cuted and keep their attributes
 		// intermediary result
-		File outU = new File(tmpFile, "polygonPreTreated.shp");
+
 		SimpleFeatureBuilder sfBuilder = GetFromGeom.getParcelSplitSFBuilder();
 
 		DefaultFeatureCollection write = new DefaultFeatureCollection();
@@ -445,7 +518,7 @@ public class VectorFct {
 		try {
 			while (finalIt.hasNext()) {
 				SimpleFeature feat = finalIt.next();
-				//erase soon to be erased super thin polygons TODO one is in double? 
+				// erase soon to be erased super thin polygons TODO one is in double and have unknown parameters : how to delete this one?
 				if (((Geometry) feat.getDefaultGeometry()).getArea() > 5.0) {
 					SimpleFeatureBuilder finalParcelBuilder = GetFromGeom.setSFBWithFeat(feat, savedParcels.getSchema(), geometryOutputName);
 					if (feat.getAttribute("CODE") == null) {
@@ -466,6 +539,74 @@ public class VectorFct {
 		Vectors.exportSFC(result, new File(tmpFile, "parcelFinal.shp"));
 
 		return result;
+	}
+
+	/**
+	 * overload to get the wanted parameter file 
+	 * TODO not tested yet
+	 * 
+	 * @param splitZone
+	 * @param parcels
+	 * @param tmpFile
+	 * @param zoningFile
+	 * @param p
+	 * @return
+	 * @throws Exception
+	 */
+	public static SimpleFeatureCollection parcelGenMotif(String splitZone, SimpleFeatureCollection parcels, File tmpFile, File mupOutput, Parameters p, File ressource)
+			throws Exception {
+
+		File locationBuildingType = new File(ressource, "locationBuildingType");
+		File profileBuildingType = new File(ressource, "profileBuildingType");
+		// séparation entre les différentes zones
+		DefaultFeatureCollection result = new DefaultFeatureCollection();
+		List<String> listZones = getLocationParamNames(locationBuildingType, p);
+
+		// split into zones to make correct parcel recomposition
+		for (String stringParam : listZones) {
+			System.out.println("for line " + stringParam);
+			Parameters pTemp = p;
+			pTemp.add(Parameters.unmarshall(new File(locationBuildingType, stringParam)));
+			// @simplification : as only one BuildingType is set per zones, we select the type that is the most represented
+			BuildingType type = RepartitionBuildingType.getBiggestRepartition(pTemp);
+			Parameters pAdded = p;
+			pAdded.add(RepartitionBuildingType.getParam(profileBuildingType, type));
+
+			// delete name of specials parameters
+			if (stringParam.split(":").length == 2) {
+				stringParam = stringParam.split(":")[1];
+			}
+			// del the .xml ref
+			stringParam = stringParam.replace(".xml", "");
+
+			// two specifications
+			if (stringParam.split("-").length == 2) {
+				SimpleFeatureCollection typoed = getParcelByTypo(stringParam.split("-")[0], parcels, new File(p.getString("rootFile")));
+				SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam.split("-")[1], typoed, new File(p.getString("rootFile")));
+				if (bigZoned.size() > 0) {
+					System.out.println("we cut the parcels with " + type + "parameters");
+					result.addAll(parcelGenMotif(splitZone, bigZoned, tmpFile, mupOutput, pAdded));
+				}
+			}
+			// only one specification
+			else {
+				if (stringParam.equals("periUrbain") || stringParam.equals("rural") || stringParam.equals("banlieue") || stringParam.equals("centre")) {
+					SimpleFeatureCollection typoed = getParcelByTypo(stringParam, parcels, new File(p.getString("rootFile")));
+					if (typoed.size() > 0) {
+						System.out.println("we cut the parcels with " + type + "parameters");
+						result.addAll(parcelGenMotif(splitZone, typoed, tmpFile, mupOutput, pAdded));
+					}
+				} else {
+					SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam, parcels, new File(p.getString("rootFile")));
+					if (bigZoned.size() > 0) {
+						System.out.println("we cut the parcels with " + type + "parameters");
+						result.addAll(parcelGenMotif(splitZone, bigZoned, tmpFile, mupOutput, pAdded));
+					}
+				}
+			}
+
+		}
+		return result.collection();
 	}
 
 	public static SimpleFeatureCollection parcelGenMotif(String typeZone, SimpleFeatureCollection parcels, File tmpFile, File mupOutput, Parameters p)
@@ -1214,6 +1355,137 @@ public class VectorFct {
 			}
 		}
 		return result;
+	}
+
+	private static SimpleFeatureCollection getParcelByBigZone(String zone, SimpleFeatureCollection parcelles, File rootFile) throws IOException {
+
+		ShapefileDataStore zonesSDS = new ShapefileDataStore(GetFromGeom.getZoning(new File(rootFile, "dataRegulation")).toURI().toURL());
+		SimpleFeatureCollection zonesSFCBig = zonesSDS.getFeatureSource().getFeatures();
+		SimpleFeatureCollection zonesSFC = Vectors.cropSFC(zonesSFCBig, parcelles);
+
+		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
+		DefaultFeatureCollection result = new DefaultFeatureCollection();
+		SimpleFeatureIterator it = parcelles.features();
+		try {
+			while (it.hasNext()) {
+				SimpleFeature parcelFeat = it.next();
+				Filter filter = ff.like(ff.property("BIGZONE"), zone);
+				SimpleFeatureIterator itZone = zonesSFC.subCollection(filter).features();
+				try {
+					while (itZone.hasNext()) {
+						SimpleFeature zoneFeat = itZone.next();
+						Geometry zoneGeom = (Geometry) zoneFeat.getDefaultGeometry();
+						Geometry parcelGeom = (Geometry) parcelFeat.getDefaultGeometry();
+						if (zoneGeom.intersects(parcelGeom)) {
+
+							result.add(parcelFeat);
+							break;
+
+							// if (zoneGeom.contains(parcelGeom)) {
+							// result.add(parcelFeat);
+							// break;
+							// }
+							// // if the intersection is less than 50% of the parcel, we let it to the other (with the hypothesis that there is only 2 features)
+							// else if (parcelGeom.intersection(zoneGeom).getArea() > parcelGeom.getArea() / 2) {
+							// result.add(parcelFeat);
+							// break;
+							// } else {
+							// break; temp-In
+							// }
+						}
+					}
+				} catch (Exception problem) {
+					problem.printStackTrace();
+				} finally {
+					itZone.close();
+				}
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			it.close();
+		}
+		zonesSDS.dispose();
+		return result.collection();
+	}
+
+	public static SimpleFeatureCollection getParcelByTypo(String typo, SimpleFeatureCollection parcelles, File rootFile) throws IOException {
+
+		ShapefileDataStore communitiesSDS = new ShapefileDataStore(GetFromGeom.getCommunities(new File(rootFile, "dataGeo")).toURI().toURL());
+		SimpleFeatureCollection communitiesSFCBig = communitiesSDS.getFeatureSource().getFeatures();
+		SimpleFeatureCollection communitiesSFC = Vectors.cropSFC(communitiesSFCBig, parcelles);
+		Vectors.exportSFC(communitiesSFC, new File("/tmp/communi.shp"));
+
+		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
+		DefaultFeatureCollection result = new DefaultFeatureCollection();
+		SimpleFeatureIterator itParcel = parcelles.features();
+		try {
+			while (itParcel.hasNext()) {
+				SimpleFeature parcelFeat = itParcel.next();
+				Filter filter = ff.like(ff.property("typo"), typo);
+				SimpleFeatureIterator itTypo = communitiesSFC.subCollection(filter).features();
+				try {
+					while (itTypo.hasNext()) {
+						SimpleFeature typoFeat = itTypo.next();
+						Geometry typoGeom = (Geometry) typoFeat.getDefaultGeometry();
+						Geometry parcelGeom = (Geometry) parcelFeat.getDefaultGeometry();
+						if (typoGeom.intersects(parcelGeom)) {
+							if (typoGeom.contains(parcelGeom)) {
+								result.add(parcelFeat);
+								break;
+							}
+							// if the intersection is less than 50% of the parcel, we let it to the other (with the hypothesis that there is only 2 features)
+							else if (parcelGeom.intersection(typoGeom).getArea() > parcelGeom.getArea() / 2) {
+								result.add(parcelFeat);
+								break;
+							} else {
+								break;
+							}
+						}
+					}
+				} catch (Exception problem) {
+					problem.printStackTrace();
+				} finally {
+					itTypo.close();
+				}
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			itParcel.close();
+		}
+		Vectors.exportSFC(result.collection(), new File("/tmp/outTypo.shp"));
+		communitiesSDS.dispose();
+		return result.collection();
+	}
+
+	public static List<String> getLocationParamNames(File locationBuildingType, Parameters p) {
+		List<String> listZones = new ArrayList<String>();
+		List<String> specialScenarZone = new ArrayList<String>();
+
+		for (File param : locationBuildingType.listFiles()) {
+			String nameParam = param.getName();
+			if (nameParam.equals("default.xml")) {
+				continue;
+			}
+			// if the param repartition concerns a special scenario and it's not ours
+			if (nameParam.split(":").length > 1) {
+				if (nameParam.split(":")[0].equals(p.getString("code"))) {
+					specialScenarZone.add(nameParam);
+				} else {
+					continue;
+				}
+			}
+			listZones.add(nameParam);
+		}
+
+		// if theres a zone special for the scenario and a regular one, the regular one must be erased
+		if (!specialScenarZone.isEmpty()) {
+			for (String s : specialScenarZone) {
+				listZones.remove((s.split(":")[1]));
+			}
+		}
+		return listZones;
 	}
 
 	/**

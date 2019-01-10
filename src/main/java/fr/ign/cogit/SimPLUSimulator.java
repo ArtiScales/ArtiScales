@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -170,7 +171,10 @@ public class SimPLUSimulator {
 		for (File ff : f.listFiles()) {
 			if (ff.isDirectory()) {
 				SimPLUSimulator sim = new SimPLUSimulator(ff, p);
-				listBatiSimu.addAll(sim.run());
+				List<File> simued = sim.run();
+				if (simued != null) {
+					listBatiSimu.addAll(simued);
+				}
 				System.out.println("done with pack " + ff.getName());
 			}
 		}
@@ -320,7 +324,7 @@ public class SimPLUSimulator {
 				System.out.println("we try to put a " + type + " housing unit");
 				// we add the parameters for the building type want to simulate
 				p = pSaved;
-				p.add(housingUnit.getParam(type));
+				p.add(RepartitionBuildingType.getParam(new File(this.getClass().getClassLoader().getResource("profileBuildingType").getFile()), type));
 
 				bati = runSimulation(env, i, p, type, prescriptionUse);
 
@@ -403,16 +407,20 @@ public class SimPLUSimulator {
 	 *            : paramterer file, containing the answer to our question
 	 * @return boolean : true if we do
 	 */
-	private boolean willWeAssociateAnyway(Parameters p2) {
-
+	private HashMap<String, Boolean> willWeAssociateAnyway(Parameters p2) {
+		HashMap<String, Boolean> result = new HashMap<String, Boolean>();
 		if (p.getBoolean("AU")) {
-			return true;
-		}
-		if (p.getBoolean("ALL")) {
-			return true;
+			result.put("AU", true);
+		} else {
+			result.put("AU", true);
 		}
 
-		return false;
+		if (p.getBoolean("NC")) {
+			result.put("NC", true);
+		} else {
+			result.put("NC", false);
+		}
+		return result;
 	}
 
 	/**
