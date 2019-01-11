@@ -26,6 +26,7 @@ import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryCollection;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.io.ParseException;
@@ -73,7 +74,9 @@ public class VectorFct {
 		ShapefileDataStore shpDSZone = new ShapefileDataStore(new File("/home/mcolomb/informatique/ArtiScales/tmp/parcelBeforeSplit.shp").toURI().toURL());
 		SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
 
-		Vectors.exportSFC(VectorFct.parcelGenZone("AU", featuresZones, tmpFile, p, new File("/home/mcolomb/workspace/ArtiScales/target/classes")), new File("/tmp/result.shp"));
+		Vectors.exportSFC(VectorFct.parcelGenZone("AU", featuresZones, tmpFile, new File(
+				"/home/mcolomb/informatique/ArtiScales/MupCityDepot/exScenar/variant0/exScenar-DataSys-CM20.0-S0.0-GP_915948.0_6677337.0--N6_Ba_ahpx_seed_42-evalAnal-20.0.shp"), p,
+				new File("/home/mcolomb/workspace/ArtiScales/target/classes"), true), new File("/tmp/result.shp"));
 
 		/////////////////////////
 		//////// try the parcelDensification method
@@ -246,10 +249,14 @@ public class VectorFct {
 	 * @param tmpFile
 	 * @param zoningFile
 	 * @param p
-	 * @return
+	 * @param allOrCell
+	 *            if true, all the new parcels in the zone will be set as simulable. If false, nothing is set on those new parcels (we need to check the intersection with cells at
+	 *            a different point)
+	 * @return the whole parcels
 	 * @throws Exception
 	 */
-	public static SimpleFeatureCollection parcelGenZone(String splitZone, SimpleFeatureCollection parcels, File tmpFile, Parameters p, File ressource) throws Exception {
+	public static SimpleFeatureCollection parcelGenZone(String splitZone, SimpleFeatureCollection parcels, File tmpFile, File mupOutput, Parameters p, File ressource,
+			boolean allOrCell) throws Exception {
 
 		File locationBuildingType = new File(ressource, "locationBuildingType");
 		File profileBuildingType = new File(ressource, "profileBuildingType");
@@ -280,7 +287,7 @@ public class VectorFct {
 				SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam.split("-")[1], typoed, new File(p.getString("rootFile")));
 				if (bigZoned.size() > 0) {
 					System.out.println("we cut the parcels with " + type + "parameters");
-					result.addAll(parcelGenZone(splitZone, bigZoned, tmpFile, pAdded));
+					result.addAll(parcelGenZone(splitZone, bigZoned, tmpFile, mupOutput, pAdded, allOrCell));
 				}
 			}
 			// only one specification
@@ -289,13 +296,13 @@ public class VectorFct {
 					SimpleFeatureCollection typoed = getParcelByTypo(stringParam, parcels, new File(p.getString("rootFile")));
 					if (typoed.size() > 0) {
 						System.out.println("we cut the parcels with " + type + "parameters");
-						result.addAll(parcelGenZone(splitZone, typoed, tmpFile, pAdded));
+						result.addAll(parcelGenZone(splitZone, typoed, tmpFile, mupOutput, pAdded, allOrCell));
 					}
 				} else {
 					SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam, parcels, new File(p.getString("rootFile")));
 					if (bigZoned.size() > 0) {
 						System.out.println("we cut the parcels with " + type + "parameters");
-						result.addAll(parcelGenZone(splitZone, bigZoned, tmpFile, pAdded));
+						result.addAll(parcelGenZone(splitZone, bigZoned, tmpFile, mupOutput, pAdded, allOrCell));
 					}
 				}
 			}
@@ -312,18 +319,22 @@ public class VectorFct {
 	 * @param tmpFile
 	 * @param zoningFile
 	 * @param p
+	 * @param allOrCell
+	 *            if true, all the new parcels in the zone will be set as simulable. If false, nothing is set on those new parcels (we need to check the intersection with cells at
+	 *            a different point)
+	 * @return the whole parcels
 	 * @return
 	 * @throws Exception
 	 */
-	public static SimpleFeatureCollection parcelGenZone(String splitZone, SimpleFeatureCollection parcels, File tmpFile, Parameters p) throws Exception {
+	public static SimpleFeatureCollection parcelGenZone(String splitZone, SimpleFeatureCollection parcels, File tmpFile, File mupOutput, Parameters p, boolean allOrCell)
+			throws Exception {
 
-		return parcelGenZone(splitZone, parcels, tmpFile, new File(p.getString("rootFile")), p.getDouble("areaParcel"), p.getDouble("widParcel"), p.getDouble("lenRoad"),
-				p.getInteger("decompositionLevelWithoutRoad"));
+		return parcelGenZone(splitZone, parcels, tmpFile, new File(p.getString("rootFile")), mupOutput, p.getDouble("areaParcel"), p.getDouble("widParcel"), p.getDouble("lenRoad"),
+				p.getInteger("decompositionLevelWithoutRoad"), allOrCell);
 	}
 
 	/**
-	 * Merge and recut the to urbanised (AU) zones Cut first the U parcels to keep them unsplited, then split the AU parcel and remerge them all into the original parcel file TODO
-	 * problem with some Polygon/multiPolygon that makes a weird result.
+	 * Merge and recut the to urbanised (AU) zones Cut first the U parcels to keep them unsplited, then split the AU parcel and remerge them all into the original parcel file
 	 * 
 	 * @param splitZone
 	 * @param parcels
@@ -333,11 +344,15 @@ public class VectorFct {
 	 * @param maximalWidth
 	 * @param lenRoad
 	 * @param decompositionLevelWithoutRoad
+	 * @param allOrCell
+	 *            if true, all the new parcels in the zone will be set as simulable. If false, nothing is set on those new parcels (we need to check the intersection with cells at
+	 *            a different point)
+	 * @return the whole parcels
 	 * @return
 	 * @throws Exception
 	 */
-	public static SimpleFeatureCollection parcelGenZone(String splitZone, SimpleFeatureCollection parcels, File tmpFile, File rootFile, double maximalArea, double maximalWidth,
-			double lenRoad, int decompositionLevelWithoutRoad) throws Exception {
+	public static SimpleFeatureCollection parcelGenZone(String splitZone, SimpleFeatureCollection parcels, File tmpFile, File rootFile, File mupOutput, double maximalArea,
+			double maximalWidth, double lenRoad, int decompositionLevelWithoutRoad, boolean allOrCell) throws Exception {
 		// TODO trouver un moyen d'enlever les routes déjà existantes
 
 		// parcels to save for after
@@ -383,10 +398,59 @@ public class VectorFct {
 			parcIt.close();
 		}
 
-		// temporary shapefiles (del when debug done)
-		File fParcelsInAU = Vectors.exportSFC(parcelsInAU, new File(tmpFile, "parcelCible.shp"));
-		File fZoneAU = Vectors.exportSFC(zoneAU, new File(tmpFile, "oneAU.shp"));
+		// delete the existing roads from the AU zones
+		// SimpleFeatureBuilder simpleSFB = GetFromGeom.getBasicSFB();
+		SimpleFeatureBuilder simpleSFB = new SimpleFeatureBuilder(zoneAU.getSchema());
 
+		DefaultFeatureCollection goOdAu = new DefaultFeatureCollection();
+		SimpleFeatureIterator zoneAUIt = zoneAU.features();
+		try {
+			while (zoneAUIt.hasNext()) {
+				SimpleFeature feat = zoneAUIt.next();
+				Geometry intersection = ((Geometry) feat.getDefaultGeometry()).intersection(unionParcel);
+				if (!intersection.isEmpty() && intersection.getArea() > 5.0) {
+
+					if (intersection instanceof MultiPolygon) {
+						for (int i = 0; i < intersection.getNumGeometries(); i++) {
+							simpleSFB.set("the_geom", intersection.getGeometryN(i));
+							simpleSFB.set("INSEE", "25569");
+							goOdAu.add(simpleSFB.buildFeature(null));
+							// Object[] attr = feat.getAttributes().toArray();
+							// attr[0] = intersection.getGeometryN(i);
+							// goOdAu.add(simpleSFB.buildFeature(null, attr));
+						}
+					} else if (intersection instanceof GeometryCollection) {
+						for (int i = 0; i < intersection.getNumGeometries(); i++) {
+							Geometry g = intersection.getGeometryN(i);
+							if (g instanceof Polygon) {
+								simpleSFB.set("the_geom", g);
+								simpleSFB.set("INSEE", "25569");
+								goOdAu.add(simpleSFB.buildFeature(null));
+								// Object[] attr = feat.getAttributes().toArray();
+								// attr[0] = intersection.getGeometryN(i);
+								// goOdAu.add(simpleSFB.buildFeature(null, attr));
+							}
+						}
+					} else {
+						simpleSFB.set("the_geom", intersection);
+						simpleSFB.set("INSEE", "25560");
+						goOdAu.add(simpleSFB.buildFeature(null));
+						// Object[] attr = feat.getAttributes().toArray();
+						// attr[0] = intersection;
+						// goOdAu.add(simpleSFB.buildFeature(null, attr));
+					}
+				}
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			zoneAUIt.close();
+		}
+
+		// temporary shapefiles that serves to do polygons
+		File fParcelsInAU = Vectors.exportSFC(parcelsInAU, new File(tmpFile, "parcelCible.shp"));
+		File fZoneAU = Vectors.exportSFC(goOdAu.collection(), new File(tmpFile, "oneAU.shp"));
+		geomAU = Vectors.unionSFC(goOdAu.collection());
 		// cut and separate parcel according to their spatial relation with the zoning
 		File[] polyFiles = { fParcelsInAU, fZoneAU };
 		List<Polygon> polygons = FeaturePolygonizer.getPolygons(polyFiles);
@@ -436,12 +500,11 @@ public class VectorFct {
 				nFeat++;
 			}
 		}
-
 		String geometryOutputName = write.getSchema().getGeometryDescriptor().getLocalName();
-		SimpleFeatureIterator it = zoneAU.features();
+		SimpleFeatureIterator it = goOdAu.features();
 		int numZone = 0;
 
-		// mark the AU zones
+		// mark and add the AU zones to the collection
 		try {
 			while (it.hasNext()) {
 				SimpleFeature zone = it.next();
@@ -512,6 +575,10 @@ public class VectorFct {
 		SimpleFeatureCollection splitedAUParcels = splitParcels(write.collection(), maximalArea, maximalWidth, roadEpsilon, noise, null, lenRoad, false,
 				decompositionLevelWithoutRoad, tmpFile);
 
+		// mup output
+		ShapefileDataStore mupSDS = new ShapefileDataStore(mupOutput.toURI().toURL());
+		SimpleFeatureCollection mupSFC = mupSDS.getFeatureSource().getFeatures();
+
 		// Finally, put them all features in a same collec
 		SimpleFeatureIterator finalIt = splitedAUParcels.features();
 		int cpt = 0;
@@ -520,10 +587,28 @@ public class VectorFct {
 				SimpleFeature feat = finalIt.next();
 				// erase soon to be erased super thin polygons TODO one is in double and have unknown parameters : how to delete this one?
 				if (((Geometry) feat.getDefaultGeometry()).getArea() > 5.0) {
+					// set if the parcel is simulable or not
+					if (allOrCell) {
+						double eval = VectorFct.getEvalInParcel(feat, mupSFC);
+						if (eval == 0.0) {
+							eval = VectorFct.getCloseEvalInParcel(feat, mupSFC);
+						}
+						feat.setAttribute("DoWeSimul", "true");
+						feat.setAttribute("eval", eval);
+					} else {
+						if (VectorFct.isParcelInCell(feat, mupSFC)) {
+							feat.setAttribute("DoWeSimul", "true");
+							feat.setAttribute("eval", VectorFct.getEvalInParcel(feat, mupSFC));
+						} else {
+							feat.setAttribute("DoWeSimul", "false");
+						}
+					}
 					SimpleFeatureBuilder finalParcelBuilder = GetFromGeom.setSFBWithFeat(feat, savedParcels.getSchema(), geometryOutputName);
+
 					if (feat.getAttribute("CODE") == null) {
 						finalParcelBuilder = GetFromGeom.setSFBParDefaut(feat, savedParcels.getSchema(), geometryOutputName);
 					}
+
 					savedParcels.add(finalParcelBuilder.buildFeature(String.valueOf(cpt)));
 					cpt++;
 				}
@@ -533,7 +618,7 @@ public class VectorFct {
 		} finally {
 			finalIt.close();
 		}
-
+		mupSDS.dispose();
 		// pSDS.dispose();
 		SimpleFeatureCollection result = savedParcels.collection();
 		Vectors.exportSFC(result, new File(tmpFile, "parcelFinal.shp"));
@@ -542,8 +627,7 @@ public class VectorFct {
 	}
 
 	/**
-	 * overload to get the wanted parameter file 
-	 * TODO not tested yet
+	 * overload to get the wanted parameter file TODO not tested yet
 	 * 
 	 * @param splitZone
 	 * @param parcels
@@ -674,14 +758,7 @@ public class VectorFct {
 
 		SimpleFeatureBuilder sfBuilder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
 
-		SimpleFeatureTypeBuilder sfTypeBuilderSimple = new SimpleFeatureTypeBuilder();
-
-		sfTypeBuilderSimple.setName("toMerge");
-		sfTypeBuilderSimple.setCRS(sourceCRS);
-		sfTypeBuilderSimple.add("the_geom", Polygon.class);
-		sfTypeBuilderSimple.setDefaultGeometry("the_geom");
-
-		SimpleFeatureBuilder sfBuilderSimple = new SimpleFeatureBuilder(sfTypeBuilderSimple.buildFeatureType());
+		SimpleFeatureBuilder sfBuilderSimple = GetFromGeom.getBasicSFB();
 
 		Geometry multiGeom = Vectors.unionSFC(parcelToMerge);
 		for (int i = 0; i < multiGeom.getNumGeometries(); i++) {
@@ -1230,13 +1307,19 @@ public class VectorFct {
 
 		ShapefileDataStore cellsSDS = new ShapefileDataStore(outMup.toURI().toURL());
 		SimpleFeatureCollection cellsCollection = cellsSDS.getFeatureSource().getFeatures();
+		Double result = getEvalInParcel(parcel, cellsCollection);
+		cellsSDS.dispose();
+		return result;
+	}
+
+	public static Double getEvalInParcel(SimpleFeature parcel, SimpleFeatureCollection mupSFC) {
 
 		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
-		String geometryCellPropertyName = cellsCollection.getSchema().getGeometryDescriptor().getLocalName();
+		String geometryCellPropertyName = mupSFC.getSchema().getGeometryDescriptor().getLocalName();
 
 		Filter inter = ff.intersects(ff.property(geometryCellPropertyName), ff.literal(parcel.getDefaultGeometry()));
-		SimpleFeatureCollection onlyCells = cellsCollection.subCollection(inter);
-		Double bestEval = Double.NEGATIVE_INFINITY;
+		SimpleFeatureCollection onlyCells = mupSFC.subCollection(inter);
+		Double bestEval = 0.0;
 
 		// put the best cell evaluation into the parcel
 		if (onlyCells.size() > 0) {
@@ -1255,7 +1338,6 @@ public class VectorFct {
 
 		// si jamais le nom est déjà généré
 
-		cellsSDS.dispose();
 		// sort collection with evaluation
 		// PropertyName pN = ff.property("eval");
 		// SortByImpl sbt = new SortByImpl(pN,
@@ -1264,6 +1346,50 @@ public class VectorFct {
 		// SortedSimpleFeatureCollection(newParcel, new SortBy[] { sbt });
 		//
 		// moyenneEval(collectOut);
+
+		return bestEval;
+	}
+
+	/**
+	 * If we want an evaluation for a parcel that is not intersected by a MUP-City cell, we will increasly seek for a cell around The seeking is made 5 meters by 5 meters and the
+	 * first cell found is chosen The evaluation of this cell is then sent
+	 * 
+	 * @param parcel
+	 * @param mupSFC
+	 * @return
+	 */
+	public static Double getCloseEvalInParcel(SimpleFeature parcel, SimpleFeatureCollection mupSFC) {
+
+		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
+		String geometryCellPropertyName = mupSFC.getSchema().getGeometryDescriptor().getLocalName();
+
+		Filter inter = ff.intersects(ff.property(geometryCellPropertyName), ff.literal(((Geometry) parcel.getDefaultGeometry()).buffer(100.0)));
+		SimpleFeatureCollection onlyCells = mupSFC.subCollection(inter);
+		Double bestEval = 0.0;
+
+		// put the best cell evaluation into the parcel
+		if (onlyCells.size() > 0) {
+			double distBuffer = 0.0;
+			// we randomly decide that the cell cannot be further than 100 meters
+			while (distBuffer < 100) {
+				Geometry geometryUp = ((Geometry) parcel.getDefaultGeometry()).buffer(distBuffer);
+				SimpleFeatureIterator onlyCellIt = onlyCells.features();
+				try {
+					while (onlyCellIt.hasNext()) {
+						SimpleFeature cell = onlyCellIt.next();
+						if (geometryUp.intersects((Geometry) cell.getDefaultGeometry())) {
+							return ((Double) cell.getAttribute("eval"));
+						}
+					}
+				} catch (Exception problem) {
+					problem.printStackTrace();
+				} finally {
+					onlyCellIt.close();
+				}
+				distBuffer = distBuffer + 5;
+			}
+
+		}
 
 		return bestEval;
 	}

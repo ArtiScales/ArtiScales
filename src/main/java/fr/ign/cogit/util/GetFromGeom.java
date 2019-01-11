@@ -34,13 +34,11 @@ import org.opengis.referencing.operation.TransformException;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Polygon;
 
 import au.com.bytecode.opencsv.CSVReader;
 import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
-import fr.ign.cogit.geoxygene.spatial.coordgeom.DirectPosition;
 import fr.ign.cogit.geoxygene.util.conversion.AdapterFactory;
 import fr.ign.parameters.Parameters;
 
@@ -175,12 +173,12 @@ public class GetFromGeom {
 		case "A":
 			return "NC";
 		case "AU":
-		return "AU";
+			return "AU";
 		}
 		System.err.println("bigZone unknown");
 		return "nutin";
 	}
-	
+
 	public static List<String> rnuZip(File regulFile) throws IOException {
 		List<String> result = new ArrayList<String>();
 		File fCsv = new File("");
@@ -512,7 +510,7 @@ public class GetFromGeom {
 			citIt.close();
 		}
 
-		String attribute = (String) City.getAttribute("DEPCOM");//TODO: NOM_DEP ???
+		String attribute = (String) City.getAttribute("DEPCOM");
 		if (attribute != null && !attribute.isEmpty()) {
 			cityInsee = attribute;
 		}
@@ -638,7 +636,7 @@ public class GetFromGeom {
 	 * @throws Exception
 	 */
 	public static List<String> parcelInBigZone(SimpleFeature parcelIn, File regulFile) throws Exception {
-		
+
 		List<String> result = new LinkedList<String>();
 		ShapefileDataStore shpDSZone = new ShapefileDataStore(getZoning(regulFile).toURI().toURL());
 		SimpleFeatureCollection shpDSZoneReduced = Vectors.snapDatas(shpDSZone.getFeatureSource().getFeatures(), (Geometry) parcelIn.getDefaultGeometry());
@@ -701,7 +699,7 @@ public class GetFromGeom {
 						} else {
 							repart.put("NC", ((Geometry) feat.getDefaultGeometry()).intersection((Geometry) parcelIn.getDefaultGeometry()).getArea());
 						}
-						break; 
+						break;
 					}
 				}
 			}
@@ -858,6 +856,18 @@ public class GetFromGeom {
 		sfTypeBuilder.add("NC", Boolean.class);
 
 		return new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
+	}
+
+	public static SimpleFeatureBuilder getBasicSFB() throws NoSuchAuthorityCodeException, FactoryException {
+		SimpleFeatureTypeBuilder sfTypeBuilderSimple = new SimpleFeatureTypeBuilder();
+		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
+
+		sfTypeBuilderSimple.setName("basicSFB");
+		sfTypeBuilderSimple.setCRS(sourceCRS);
+		sfTypeBuilderSimple.add("the_geom", Polygon.class);
+		sfTypeBuilderSimple.setDefaultGeometry("the_geom");
+
+		return new SimpleFeatureBuilder(sfTypeBuilderSimple.buildFeatureType());
 	}
 
 	public static SimpleFeatureBuilder setSFBParDefaut(SimpleFeature feat, SimpleFeatureType schema, String geometryOutputName) {
