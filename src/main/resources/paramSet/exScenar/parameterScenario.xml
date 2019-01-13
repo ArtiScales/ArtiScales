@@ -71,8 +71,10 @@
 			<!-- Sélectionne les parcelles situées dans les zones U sur des terrains 
 				non-construits -->
 			<param key="UnotBuilt" value="true" />
-			<!-- Types de sélections situées dans les zones AU -->
+			<!-- Types de sélections situées dans les zones AU ouverte à l'urbanisation résidentielle -->
 			<param key="AU" value="true" />
+			<!-- Types de sélections situées dans les zones 2AU de réserve foncière -->
+			<param key="2AU" value="true" />
 			<!-- Types de sélections situées dans les zones A et N -->
 			<param key="NC" value="false" />
 
