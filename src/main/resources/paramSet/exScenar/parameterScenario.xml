@@ -78,11 +78,16 @@
 			<!-- Types de sélections situées dans les zones A et N -->
 			<param key="NC" value="false" />
 
-		<!-- Décomposition des parcelles - affecte un type de découpage à un couple de zone/typo -->
-		<!-- Les différents découpages sont séparés par un "_" et le type d'opération a appliquer aux différents types de TYPEZONE sont séparées avec un "-" -->
+		<!-- Décomposition des parcelles - affecte un type de découpage à un secteur (couple de zone/typo) -->
+		<!-- Les combinaisons de zone/typo sont séparées avec un "-" et ces différents secteurs sont séparés par un "_"  -->
 
-		<!-- <param key="split" value="U-densification_AU-motifZone_NC-motif" /> -->
-		<param key="split" value="AU-motifZone" />
+		<param key="splitDensification" value="false" />		
+		<param key="splitMotifZone" value="AU" />	
+		<param key="splitMotif" value="false" />
+
+		<param key="splitDensification" value="false" />		
+		<param key="splitMotifZone" value="AU" />	
+		<param key="splitMotif" value="false" />
 
 	<!-- PARAMETRES DE SIMPLU3D -->
 

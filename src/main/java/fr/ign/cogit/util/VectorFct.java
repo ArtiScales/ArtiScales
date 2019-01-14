@@ -168,7 +168,8 @@ public class VectorFct {
 	 * @return
 	 * @throws Exception
 	 */
-	public static SimpleFeatureCollection parcelDensification(String splitZone, SimpleFeatureCollection parcelCollection, File tmpFile, Parameters p) throws Exception {
+	public static SimpleFeatureCollection parcelDensification(String splitZone, SimpleFeatureCollection parcelCollection, File tmpFile, Parameters p, File ressource)
+			throws Exception {
 
 		File rootFile = new File(p.getString("rootFile"));
 		File geoFile = new File(rootFile, "geoFile");
