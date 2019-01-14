@@ -36,20 +36,6 @@ import fr.ign.parameters.Parameters;
 
 public class SelectParcels {
 
-	// public static void main(String[] args) throws Exception {
-	// //run(new File("/home/mcolomb/donnee/couplage"), new
-	// File("/home/mcolomb/donnee/couplage/output/N5_St_Moy_ahpx_seed_42-eval_anal-20.0"),
-	// "25495", true, true);
-	// File fileParcelle = new File("/home/mcolomb/doc_de_travail/PAU/PAU.shp");
-	// SimpleFeatureCollection parcelU = new
-	// ShapefileDataStore(fileParcelle.toURI().toURL()).getFeatureSource().getFeatures();
-	// SelectParcels salut = new
-	// SelectParcels(fileParcelle.getParentFile(),fileParcelle,"",false,true);
-	// Vectors.exportSFC(salut.generateSplitedParcels(parcelU), new
-	// File("/home/mcolomb/doc_de_travail/PAU/parcelSplit.shp"));
-	//
-	// }
-
 	File rootFile, tmpFile, spatialConf, geoFile, regulFile, parcelFile, zoningFile;
 	List<List<File>> spatialConfigurations;
 	String action;
@@ -118,6 +104,10 @@ public class SelectParcels {
 				ShapefileDataStore shpDSparcel = new ShapefileDataStore((parcelFile).toURI().toURL());
 				SimpleFeatureCollection parcelCollection = shpDSparcel.getFeatureSource().getFeatures();
 
+				/////////////
+				// first selection regarding on the scenarios
+				/////////////
+				
 				for (String action : listeAction) {
 					System.out.println("---=+Pour le remplissage " + action + "+=---");
 					switch (action) {
@@ -172,6 +162,9 @@ public class SelectParcels {
 						}
 					}
 				}
+
+				// //delete the tiny parcels
+				// parcelCollection = Vectors.delTinyParcels(parcelCollection, 10.0);
 
 				////////////////
 				////// Packing the parcels for SimPLU3D distribution
@@ -612,32 +605,32 @@ public class SelectParcels {
 
 				ShapefileDataStore build_datastore = new ShapefileDataStore(GetFromGeom.getBuild(geoFile).toURI().toURL());
 				SimpleFeatureCollection buildFeatures = build_datastore.getFeatureSource().getFeatures();
-				Vectors.exportSFC(Vectors.snapDatas(buildFeatures, fBBox), new File(snapPack, "building.shp"));
+				Vectors.exportSFC(Vectors.snapDatas(buildFeatures, fBBox), new File(snapPack, "batiment.shp"));
 				build_datastore.dispose();
 
 				ShapefileDataStore road_datastore = new ShapefileDataStore(GetFromGeom.getRoute(geoFile).toURI().toURL());
 				SimpleFeatureCollection roadFeatures = road_datastore.getFeatureSource().getFeatures();
-				Vectors.exportSFC(Vectors.snapDatas(roadFeatures, fBBox, 15), new File(snapPack, "road.shp"));
+				Vectors.exportSFC(Vectors.snapDatas(roadFeatures, fBBox, 15), new File(snapPack, "route.shp"));
 				road_datastore.dispose();
 
 				ShapefileDataStore zoning_datastore = new ShapefileDataStore(GetFromGeom.getZoning(regulFile).toURI().toURL());
 				SimpleFeatureCollection zoningFeatures = zoning_datastore.getFeatureSource().getFeatures();
-				Vectors.exportSFC(Vectors.snapDatas(zoningFeatures, fBBox), new File(snapPack, "zoning.shp"));
+				Vectors.exportSFC(Vectors.snapDatas(zoningFeatures, fBBox), new File(snapPack, "zone_urba.shp"));
 				zoning_datastore.dispose();
 
 				ShapefileDataStore prescPonct_datastore = new ShapefileDataStore(GetFromGeom.getPrescPonct(regulFile).toURI().toURL());
 				SimpleFeatureCollection prescPonctFeatures = prescPonct_datastore.getFeatureSource().getFeatures();
-				Vectors.exportSFC(Vectors.snapDatas(prescPonctFeatures, fBBox), new File(snapPack, "prescPonct.shp"));
+				Vectors.exportSFC(Vectors.snapDatas(prescPonctFeatures, fBBox), new File(snapPack, "prescription_pct.shp"));
 				prescPonct_datastore.dispose();
 
 				ShapefileDataStore prescLin_datastore = new ShapefileDataStore(GetFromGeom.getPrescLin(regulFile).toURI().toURL());
 				SimpleFeatureCollection prescLinFeatures = prescLin_datastore.getFeatureSource().getFeatures();
-				Vectors.exportSFC(Vectors.snapDatas(prescLinFeatures, fBBox), new File(snapPack, "prescLin.shp"));
+				Vectors.exportSFC(Vectors.snapDatas(prescLinFeatures, fBBox), new File(snapPack, "prescription_lin.shp"));
 				prescLin_datastore.dispose();
 
 				ShapefileDataStore prescSurf_datastore = new ShapefileDataStore(GetFromGeom.getPrescSurf(regulFile).toURI().toURL());
 				SimpleFeatureCollection prescSurfFeatures = prescSurf_datastore.getFeatureSource().getFeatures();
-				Vectors.exportSFC(Vectors.snapDatas(prescSurfFeatures, fBBox), new File(snapPack, "prescSurf.shp"));
+				Vectors.exportSFC(Vectors.snapDatas(prescSurfFeatures, fBBox), new File(snapPack, "prescription_surf.shp"));
 				prescSurf_datastore.dispose();
 
 				// selection of the right lines from the predicate file
@@ -689,7 +682,6 @@ public class SelectParcels {
 	public void separateToDifferentOptimizedPack(File parcelCollection, File fileOut) throws Exception {
 
 		DataPreparator.createPackages(parcelCollection, tmpFile, fileOut);
-
 		// if the city is following the RNU
 		List<String> rnuZip = GetFromGeom.rnuZip(regulFile);
 
@@ -726,32 +718,32 @@ public class SelectParcels {
 
 				ShapefileDataStore build_datastore = new ShapefileDataStore(GetFromGeom.getBuild(geoFile).toURI().toURL());
 				SimpleFeatureCollection buildFeatures = build_datastore.getFeatureSource().getFeatures();
-				Vectors.exportSFC(Vectors.snapDatas(buildFeatures, fBBox), new File(snapPack, "building.shp"));
+				Vectors.exportSFC(Vectors.snapDatas(buildFeatures, fBBox), new File(snapPack, "batiment.shp"));
 				build_datastore.dispose();
 
 				ShapefileDataStore road_datastore = new ShapefileDataStore(GetFromGeom.getRoute(geoFile).toURI().toURL());
 				SimpleFeatureCollection roadFeatures = road_datastore.getFeatureSource().getFeatures();
-				Vectors.exportSFC(Vectors.snapDatas(roadFeatures, fBBox, 15), new File(snapPack, "road.shp"));
+				Vectors.exportSFC(Vectors.snapDatas(roadFeatures, fBBox, 15), new File(snapPack, "route.shp"));
 				road_datastore.dispose();
 
 				ShapefileDataStore zoning_datastore = new ShapefileDataStore(GetFromGeom.getZoning(regulFile).toURI().toURL());
 				SimpleFeatureCollection zoningFeatures = zoning_datastore.getFeatureSource().getFeatures();
-				Vectors.exportSFC(Vectors.snapDatas(zoningFeatures, fBBox), new File(snapPack, "zoning.shp"));
+				Vectors.exportSFC(Vectors.snapDatas(zoningFeatures, fBBox), new File(snapPack, "zone_urba.shp"));
 				zoning_datastore.dispose();
 
 				ShapefileDataStore prescPonct_datastore = new ShapefileDataStore(GetFromGeom.getPrescPonct(regulFile).toURI().toURL());
 				SimpleFeatureCollection prescPonctFeatures = prescPonct_datastore.getFeatureSource().getFeatures();
-				Vectors.exportSFC(Vectors.snapDatas(prescPonctFeatures, fBBox), new File(snapPack, "prescPonct.shp"));
+				Vectors.exportSFC(Vectors.snapDatas(prescPonctFeatures, fBBox), new File(snapPack, "prescription_pct.shp"));
 				prescPonct_datastore.dispose();
 
 				ShapefileDataStore prescLin_datastore = new ShapefileDataStore(GetFromGeom.getPrescLin(regulFile).toURI().toURL());
 				SimpleFeatureCollection prescLinFeatures = prescLin_datastore.getFeatureSource().getFeatures();
-				Vectors.exportSFC(Vectors.snapDatas(prescLinFeatures, fBBox), new File(snapPack, "prescLin.shp"));
+				Vectors.exportSFC(Vectors.snapDatas(prescLinFeatures, fBBox), new File(snapPack, "prescription_lin.shp"));
 				prescLin_datastore.dispose();
 
 				ShapefileDataStore prescSurf_datastore = new ShapefileDataStore(GetFromGeom.getPrescSurf(regulFile).toURI().toURL());
 				SimpleFeatureCollection prescSurfFeatures = prescSurf_datastore.getFeatureSource().getFeatures();
-				Vectors.exportSFC(Vectors.snapDatas(prescSurfFeatures, fBBox), new File(snapPack, "prescSurf.shp"));
+				Vectors.exportSFC(Vectors.snapDatas(prescSurfFeatures, fBBox), new File(snapPack, "prescription_surf.shp"));
 				prescSurf_datastore.dispose();
 
 				// selection of the right lines from the predicate file

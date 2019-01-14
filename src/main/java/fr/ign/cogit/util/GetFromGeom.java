@@ -343,7 +343,7 @@ public class GetFromGeom {
 		parcelSDS.dispose();
 		shpDSBati.dispose();
 
-		return Vectors.exportSFC(newParcel.collection(), new File(tmpFile, "parcelle.shp"));
+		return Vectors.exportSFC(newParcel.collection(), new File(tmpFile, "parcel.shp"));
 	}
 
 	public static File getBuild(File geoFile) throws FileNotFoundException {

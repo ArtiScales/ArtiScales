@@ -43,7 +43,6 @@ public class DataPreparator {
 
 		ZonePackager.createParcelGroupsAndExport(parcelles, numberOfParcels, areaMax, folderTemp.getAbsolutePath(),
 				folderOut.getAbsolutePath(), true);
-
 	}
 
 }

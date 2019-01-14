@@ -210,7 +210,7 @@ public class SimPLUSimulator {
 		this.pSaved = pa;
 		this.rootFile = new File(p.getString("rootFile"));
 		simuFile = packFile;
-		parcelsFile = new File(packFile, "/parcelle.shp");
+		parcelsFile = new File(packFile, "/parcel.shp");
 		zoningFile = new File(packFile, "/geoSnap/zoning.shp");
 		buildFile = new File(packFile, "/geoSnap/building.shp");
 		roadFile = new File(packFile, "/geoSnap/road.shp");
@@ -236,6 +236,8 @@ public class SimPLUSimulator {
 
 		// Loading of configuration file that contains sampling space
 		// information and simulated annealing configuration
+		//SimuTool.setEnvEnglishName();
+				
 		Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile, parcelsFile, roadFile, buildFile, filePrescPonct, filePrescLin, filePrescSurf, null);
 
 		///////////
