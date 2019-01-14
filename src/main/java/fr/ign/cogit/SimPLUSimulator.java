@@ -411,10 +411,10 @@ public class SimPLUSimulator {
 	 */
 	private HashMap<String, Boolean> willWeAssociateAnyway(Parameters p2) {
 		HashMap<String, Boolean> result = new HashMap<String, Boolean>();
-		if (p.getBoolean("AU")) {
-			result.put("AU", true);
+		if (p.getBoolean("2AU")) {
+			result.put("2AU", true);
 		} else {
-			result.put("AU", true);
+			result.put("2AU", false);
 		}
 
 		if (p.getBoolean("NC")) {
