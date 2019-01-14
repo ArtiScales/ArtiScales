@@ -41,12 +41,6 @@ public class SelectParcels {
 	String action;
 	List<Parameters> lP = new ArrayList<Parameters>();
 
-	// cache parcel intersecting U
-	SimpleFeatureCollection parcelU = null;
-	boolean parcelUFilled = false;
-	// cache parcel intersecting AU
-	SimpleFeatureCollection parcelAU = null;
-	boolean parcelAUFilled = false;
 	// result parameters
 	int nbParcels;
 	float moyEval;
@@ -84,30 +78,16 @@ public class SelectParcels {
 			for (File varianteSpatialConf : scenar) {
 				// if we simul on one city (debug) or the whole area
 				spatialConf = varianteSpatialConf;
-				if (p.getString("singleCity").equals("true")) {
-					String zips = p.getString("zip");
-					// if multiple zips
-					if (zips.contains(",")) {
-						List<String> listZip = new ArrayList<String>();
-						for (String z : zips.split(",")) {
-							listZip.add(z);
-						}
-						parcelFile = GetFromGeom.getParcels(geoFile, regulFile, tmpFile, listZip);
-					}
-					// if single zip
-					else {
-						parcelFile = GetFromGeom.getParcels(geoFile, regulFile, tmpFile, zips);
-					}
-				} else {
-					parcelFile = GetFromGeom.getParcels(geoFile, regulFile, tmpFile);
-				}
+				
+				parcelFile = SimuTool.getIntrestingCommunities(p, geoFile, regulFile, tmpFile);
+
 				ShapefileDataStore shpDSparcel = new ShapefileDataStore((parcelFile).toURI().toURL());
 				SimpleFeatureCollection parcelCollection = shpDSparcel.getFeatureSource().getFeatures();
 
 				/////////////
 				// first selection regarding on the scenarios
 				/////////////
-				
+
 				for (String action : listeAction) {
 					System.out.println("---=+Pour le remplissage " + action + "+=---");
 					switch (action) {

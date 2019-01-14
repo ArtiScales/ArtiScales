@@ -13,6 +13,8 @@ import java.util.List;
 
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
+import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.NoSuchAuthorityCodeException;
 
 import au.com.bytecode.opencsv.CSVReader;
 import fr.ign.parameters.Parameters;
@@ -32,7 +34,37 @@ public class SimuTool {
 	public static void deleteDirectoryStream(Path path) throws IOException {
 		Files.walk(path).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
 	}
-
+/**
+ * get one or multiple communities parcels from infos contained in a parameter file
+ * @param p
+ * @param geoFile
+ * @param regulFile
+ * @param tmpFile
+ * @return
+ * @throws NoSuchAuthorityCodeException
+ * @throws IOException
+ * @throws FactoryException
+ */
+	public static File getIntrestingCommunities (Parameters p, File geoFile, File regulFile, File tmpFile) throws NoSuchAuthorityCodeException, IOException, FactoryException{
+		if (p.getString("singleCity").equals("true")) {
+			String zips = p.getString("zip");
+			// if multiple zips
+			if (zips.contains(",")) {
+				List<String> listZip = new ArrayList<String>();
+				for (String z : zips.split(",")) {
+					listZip.add(z);
+				}
+				return GetFromGeom.getParcels(geoFile, regulFile, tmpFile, listZip);
+			}
+			// if single zip
+			else {
+				return GetFromGeom.getParcels(geoFile, regulFile, tmpFile, zips);
+			}
+		} else {
+			return GetFromGeom.getParcels(geoFile, regulFile, tmpFile);
+		}
+	}
+	
 	public static File createScenarVariantFolders(File packFile, File rootFile, String name) {
 
 		String varFile = packFile.getParentFile().getName();
