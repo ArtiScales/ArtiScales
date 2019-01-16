@@ -81,11 +81,7 @@
 		<!-- Décomposition des parcelles - affecte un type de découpage à un secteur (couple de zone/typo) -->
 		<!-- Les combinaisons de zone/typo sont séparées avec un "-" et ces différents secteurs sont séparés par un "_"  -->
 
-		<param key="splitDensification" value="false" />		
-		<param key="splitMotifZone" value="AU" />	
-		<param key="splitMotif" value="false" />
-
-		<param key="splitDensification" value="false" />		
+		<param key="splitDensification" value="U" />		
 		<param key="splitMotifZone" value="AU" />	
 		<param key="splitMotif" value="false" />
 

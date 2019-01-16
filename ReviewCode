@@ -4,10 +4,13 @@ problème avec l'option splitParcel=true : attendre les nouvelles modifications.
 
 PARCELS
 
-Les marquages de zone débordent trop : améliorer la précision de l'opérateur géographique
+refaire l'algo de densification et n'utiliser que lui (plus de Ubuild?!)
 
-Implémenter un schéma clair (pour l'instant, je suis sur les parcelles U)
+vérifier la création de zones
 
+SimPLU
+
+Pour les types collectifs, forcer l’intersection des boites => réfléchir à ce code avec Julien pour qu’il ne donne pas trop de cas retoqués.
 
 INDICATORS
 
@@ -22,4 +25,8 @@ Faire les cartes automatiques - après avoir fixé les sorties et le format (Jul
 log 
 improve parcel selection
 
+Tester la méthode de répartition des logements au sein des bâtiments.
 
+Programmer le mode ou l’on respecte les objectifs de création de logement (vérifier ces objectifs)
+
+Refaire un point sur les différents indicateurs à générer, adapter le code et automatiser la création de cartes

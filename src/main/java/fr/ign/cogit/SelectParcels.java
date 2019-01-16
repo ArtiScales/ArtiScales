@@ -123,11 +123,15 @@ public class SelectParcels {
 				File ressource = new File(this.getClass().getClassLoader().getResource("").getFile());
 
 				if (!p.getString("splitDensification").equals("false") && !p.getString("splitDensification").equals("")) {
-					String splitZone = p.getString("splitDensification");
-					if (!splitZone.contains("-")) {
-						VectorFct.parcelDensification(splitZone, parcelCollection, tmpFile, p, ressource);
+					if (!p.getBoolean("Ubuilt")) {
+						System.out.println("Scenar error. We cannot densify if the U build parcels haven't been selected");
 					} else {
-						System.err.println("splitParcel : complex section non implemented yet");
+						String splitZone = p.getString("splitDensification");
+						if (!splitZone.contains("-")) {
+							VectorFct.parcelDensification(splitZone, parcelCollection, tmpFile, ressource, p);
+						} else {
+							System.err.println("splitParcel : complex section non implemented yet");
+						}
 					}
 				}
 
@@ -149,7 +153,8 @@ public class SelectParcels {
 				}
 
 				// //delete the tiny parcels
-				// parcelCollection = Vectors.delTinyParcels(parcelCollection, 10.0);
+				// parcelCollection = Vectors.delTinyParcels(parcelCollection,
+				// 10.0);
 
 				////////////////
 				////// Packing the parcels for SimPLU3D distribution
@@ -585,7 +590,8 @@ public class SelectParcels {
 				File snapPack = new File(pack, "geoSnap");
 				snapPack.mkdirs();
 
-				// by defalut, creation of empty shapefiles (better empty than non extitant
+				// by defalut, creation of empty shapefiles (better empty than
+				// non extitant
 				createPackOfEmptyShp(snapPack);
 
 				ShapefileDataStore build_datastore = new ShapefileDataStore(GetFromGeom.getBuild(geoFile).toURI().toURL());
@@ -619,7 +625,8 @@ public class SelectParcels {
 				prescSurf_datastore.dispose();
 
 				// selection of the right lines from the predicate file
-				// CSVWriter newPredicate = new CSVWriter(new FileWriter(new File(pack,
+				// CSVWriter newPredicate = new CSVWriter(new FileWriter(new
+				// File(pack,
 				// "snapPredicate.csv")),",","","");
 
 				CSVWriter newPredicate = new CSVWriter(new FileWriter(new File(pack, "snapPredicate.csv")), ',', '\0');
@@ -698,7 +705,8 @@ public class SelectParcels {
 				File snapPack = new File(pack, "geoSnap");
 				snapPack.mkdirs();
 
-				// by defalut, creation of empty shapefiles (better empty than non extitant
+				// by defalut, creation of empty shapefiles (better empty than
+				// non extitant
 				createPackOfEmptyShp(snapPack);
 
 				ShapefileDataStore build_datastore = new ShapefileDataStore(GetFromGeom.getBuild(geoFile).toURI().toURL());
@@ -732,7 +740,8 @@ public class SelectParcels {
 				prescSurf_datastore.dispose();
 
 				// selection of the right lines from the predicate file
-				// CSVWriter newPredicate = new CSVWriter(new FileWriter(new File(pack,
+				// CSVWriter newPredicate = new CSVWriter(new FileWriter(new
+				// File(pack,
 				// "snapPredicate.csv")),",","","");
 
 				CSVWriter newPredicate = new CSVWriter(new FileWriter(new File(pack, "snapPredicate.csv")), ',', '\0');

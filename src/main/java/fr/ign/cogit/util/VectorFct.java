@@ -60,100 +60,115 @@ import fr.ign.parameters.Parameters;
 
 public class VectorFct {
 
-	public static void main(String[] args) throws Exception {
+	// public static void main(String[] args) throws Exception {
+	//
+	// File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/exScenar");
+	// List<File> lF = new ArrayList<>();
+	// lF.add(new File(rootParam, "parameterTechnic.xml"));
+	// lF.add(new File(rootParam, "parameterScenario.xml"));
+	//
+	// Parameters p = Parameters.unmarshall(lF);
+	//
+	// File tmpFile = new File("/tmp/");
+	//
+	// /////////////////////////
+	// //////// try the parcelDensification method
+	// /////////////////////////
+	//
+	// ShapefileDataStore shpDSZone = new ShapefileDataStore(
+	// new File("/home/mcolomb/informatique/ArtiScales/ParcelSelectionFile/exScenar/variant0/parcelGenExport.shp").toURI().toURL());
+	// SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
+	//
+	// // Vectors.exportSFC(generateSplitedParcels(waiting, tmpFile, p), new
+	// // File("/tmp/tmp2.shp"));
+	// SimpleFeatureCollection salut = parcelDensification("U", featuresZones, tmpFile, new File("/home/mcolomb/informatique/ArtiScales"), new File(
+	// "/home/mcolomb/informatique/ArtiScales/MupCityDepot/exScenar/variant0/exScenar-DataSys-CM20.0-S0.0-GP_915948.0_6677337.0--N6_Ba_ahpx_seed_42-evalAnal-20.0.shp"),
+	// 800.0, 15.0, 5.0);
+	//
+	// Vectors.exportSFC(salut, new File("/tmp/parcelDensification.shp"));
+	// shpDSZone.dispose();
 
-		File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/exScenar");
-		List<File> lF = new ArrayList<>();
-		lF.add(new File(rootParam, "parameterTechnic.xml"));
-		lF.add(new File(rootParam, "parameterScenario.xml"));
+	// /////////////////////////
+	// //////// try the parcelGenMotif method
+	// /////////////////////////
+	//
+	// ShapefileDataStore shpDSZone = new ShapefileDataStore(
+	// new File("/home/mcolomb/informatique/ArtiScales/ParcelSelectionFile/exScenar/variant0/parcelGenExport.shp").toURI().toURL());
+	// SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
+	//
+	// // Vectors.exportSFC(generateSplitedParcels(waiting, tmpFile, p), new
+	// // File("/tmp/tmp2.shp"));
+	// SimpleFeatureCollection salut = parcelGenMotif("NC", featuresZones, tmpFile, new File(p.getString("rootFile")), new File(
+	// "/home/mcolomb/informatique/ArtiScales/MupCityDepot/exScenar/variant0/exScenar-DataSys-CM20.0-S0.0-GP_915948.0_6677337.0--N6_Ba_ahpx_seed_42-evalAnal-20.0.shp"),
+	// 800.0, 7.0, 3.0, 2);
+	//
+	// Vectors.exportSFC(salut, new File("/tmp/parcelDensification.shp"));
+	// shpDSZone.dispose();
 
-		Parameters p = Parameters.unmarshall(lF);
+	// /////////////////////////
+	// //////// try the parcelGenZone method
+	// /////////////////////////
+	//
+	// ShapefileDataStore shpDSZone = new ShapefileDataStore(
+	// new File("/home/mcolomb/informatique/ArtiScales/ParcelSelectionFile/exScenar/variant0/parcelGenExport.shp").toURI().toURL());
+	// SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
+	//
+	// // Vectors.exportSFC(generateSplitedParcels(waiting, tmpFile, p), new
+	// // File("/tmp/tmp2.shp"));
+	// SimpleFeatureCollection salut = parcelGenZone("AU", featuresZones, tmpFile, new File(p.getString("rootFile")), 800.0, 7.0, 3.0, 2);
+	//
+	// Vectors.exportSFC(salut, new File("/tmp/parcelDensification.shp"));
+	// shpDSZone.dispose();
 
-		File tmpFile = new File("/tmp/");
+	// /////////////////////////
+	// //////// try the generateFlagSplitedParcels method
+	// /////////////////////////
+	//
+	// File geoFile = new File(p.getString("rootFile"), "dataGeo");
+	// IFeatureCollection<IFeature> featColl = ShapefileReader.read("/tmp/tmp1.shp");
+	//
+	// String inputUrbanBlock = GetFromGeom.getIlots(geoFile).getAbsolutePath();
+	//
+	// IFeatureCollection<IFeature> featC = ShapefileReader.read(inputUrbanBlock);
+	// List<IOrientableCurve> lOC = featC.select(featColl.envelope()).parallelStream().map(x -> FromGeomToLineString.convert(x.getGeom())).collect(ArrayList::new, List::addAll,
+	// List::addAll);
+	//
+	// IMultiCurve<IOrientableCurve> iMultiCurve = new GM_MultiCurve<>(lOC);
+	//
+	// // ShapefileDataStore shpDSZone = new ShapefileDataStore(
+	// // new File("/home/mcolomb/informatique/ArtiScales/ParcelSelectionFile/exScenar/variant0/parcelGenExport.shp").toURI().toURL());
+	// //
+	// // SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
+	// // SimpleFeatureIterator it = featuresZones.features();
+	// // SimpleFeature waiting = null;
+	// // while (it.hasNext()) {
+	// // SimpleFeature feat = it.next();
+	// // if (((String) feat.getAttribute("CODE")).equals("25598000AB0446") ) {
+	// // waiting = feat;
+	// // }
+	// // }
+	//
+	// // Vectors.exportSFC(generateSplitedParcels(waiting, tmpFile, p), new
+	// // File("/tmp/tmp2.shp"));
+	// SimpleFeatureCollection salut = generateFlagSplitedParcels(featColl.get(0), iMultiCurve, geoFile, tmpFile, 2000.0, 15.0, 3.0);
+	//
+	// Vectors.exportSFC(salut, new File("/tmp/tmp2.shp"));
+	//
+	// }
 
-		ShapefileDataStore shpDSZone = new ShapefileDataStore(new File("/home/mcolomb/informatique/ArtiScales/tmp/parcelBeforeSplit.shp").toURI().toURL());
-		SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
+	public static SimpleFeatureCollection parcelDensification(String splitZone, SimpleFeatureCollection parcelCollection, File tmpFile, File mupFile, File ressource, Parameters p)
+			throws Exception {
+		// TODO for the different parcel parameters (copy on the other algo)
+		System.out.println("//TODO for the different parcel parameters (copy on other algo)");
 
-		Vectors.exportSFC(VectorFct.parcelGenZone("AU", featuresZones, tmpFile, new File(
-				"/home/mcolomb/informatique/ArtiScales/MupCityDepot/exScenar/variant0/exScenar-DataSys-CM20.0-S0.0-GP_915948.0_6677337.0--N6_Ba_ahpx_seed_42-evalAnal-20.0.shp"), p,
-				new File("/home/mcolomb/workspace/ArtiScales/target/classes"), true), new File("/tmp/result.shp"));
+		return parcelDensification(splitZone, parcelCollection, tmpFile, mupFile, p);
 
-		/////////////////////////
-		//////// try the parcelDensification method
-		/////////////////////////
+	}
 
-		// ShapefileDataStore shpDSZone = new ShapefileDataStore(
-		// new File("/home/mcolomb/informatique/ArtiScales/ParcelSelectionFile/exScenar/variant0/parcelGenExport.shp").toURI().toURL());
-		// SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
-		//
-		// // Vectors.exportSFC(generateSplitedParcels(waiting, tmpFile, p), new
-		// // File("/tmp/tmp2.shp"));
-		// SimpleFeatureCollection salut = parcelDensification("U", featuresZones, new File(p.getString("rootFile"), "dataGeo"), tmpFile, p);
-		//
-		// Vectors.exportSFC(salut, new File("/tmp/parcelDensification.shp"));
-
-		// /////////////////////////
-		// //////// try the parcelGenMotif method
-		// /////////////////////////
-		//
-		// ShapefileDataStore shpDSZone = new ShapefileDataStore(
-		// new File("/home/mcolomb/informatique/ArtiScales/ParcelSelectionFile/exScenar/variant0/parcelGenExport.shp").toURI().toURL());
-		// SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
-		//
-		// // Vectors.exportSFC(generateSplitedParcels(waiting, tmpFile, p), new
-		// // File("/tmp/tmp2.shp"));
-		// SimpleFeatureCollection salut = parcelGenMotif("NC", featuresZones, tmpFile, new File(p.getString("rootFile")), new File(
-		// "/home/mcolomb/informatique/ArtiScales/MupCityDepot/exScenar/variant0/exScenar-DataSys-CM20.0-S0.0-GP_915948.0_6677337.0--N6_Ba_ahpx_seed_42-evalAnal-20.0.shp"),
-		// 800.0, 7.0, 3.0, 2);
-		//
-		// Vectors.exportSFC(salut, new File("/tmp/parcelDensification.shp"));
-		// shpDSZone.dispose();
-
-		// /////////////////////////
-		// //////// try the parcelGenZone method
-		// /////////////////////////
-		//
-		// ShapefileDataStore shpDSZone = new ShapefileDataStore(
-		// new File("/home/mcolomb/informatique/ArtiScales/ParcelSelectionFile/exScenar/variant0/parcelGenExport.shp").toURI().toURL());
-		// SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
-		//
-		// // Vectors.exportSFC(generateSplitedParcels(waiting, tmpFile, p), new
-		// // File("/tmp/tmp2.shp"));
-		// SimpleFeatureCollection salut = parcelGenZone("AU", featuresZones, tmpFile, new File(p.getString("rootFile")), 800.0, 7.0, 3.0, 2);
-		//
-		// Vectors.exportSFC(salut, new File("/tmp/parcelDensification.shp"));
-		// shpDSZone.dispose();
-
-		// /////////////////////////
-		// //////// try the generateFlagSplitedParcels method
-		// /////////////////////////
-		//
-		// File geoFile = new File(p.getString("rootFile"), "dataGeo");
-		//
-		// String inputUrbanBlock = GetFromGeom.getIlots(geoFile).getAbsolutePath();
-		// IFeatureCollection<IFeature> featC = ShapefileReader.read(inputUrbanBlock);
-		// List<IOrientableCurve> lOC = FromGeomToLineString.convert(featC.get(0).getGeom());
-		// IMultiCurve<IOrientableCurve> iMultiCurve = new GM_MultiCurve<>(lOC);
-		//
-		// ShapefileDataStore shpDSZone = new ShapefileDataStore(
-		// new File("/home/mcolomb/informatique/ArtiScales/ParcelSelectionFile/exScenar/variant0/parcelGenExport.shp").toURI().toURL());
-		//
-		// SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
-		// SimpleFeatureIterator it = featuresZones.features();
-		// SimpleFeature waiting = null;
-		// while (it.hasNext()) {
-		// SimpleFeature feat = it.next();
-		// if (((String) feat.getAttribute("NUMERO")).equals("0185") && ((String) feat.getAttribute("SECTION")).equals("ZA")) {
-		// waiting = feat;
-		// }
-		// }
-		// System.out.println(waiting);
-		// // Vectors.exportSFC(generateSplitedParcels(waiting, tmpFile, p), new
-		// // File("/tmp/tmp2.shp"));
-		// SimpleFeatureCollection salut = generateFlagSplitedParcels(waiting, iMultiCurve, geoFile, tmpFile, 500.0, 10.0, 3.0);
-		//
-		// Vectors.exportSFC(salut, new File("/tmp/tmp2.shp"));
-
+	public static SimpleFeatureCollection parcelDensification(String splitZone, SimpleFeatureCollection parcelCollection, File tmpFile, File mupFile, Parameters p)
+			throws Exception {
+		return parcelDensification(splitZone, parcelCollection, tmpFile, new File(p.getString("rootFile")), mupFile, p.getDouble("maximalAreaSplitParcel"),
+				p.getDouble("maximalWidthSplitParcel"), p.getDouble("lenDriveway"));
 	}
 
 	/**
@@ -168,78 +183,62 @@ public class VectorFct {
 	 * @return
 	 * @throws Exception
 	 */
-	public static SimpleFeatureCollection parcelDensification(String splitZone, SimpleFeatureCollection parcelCollection, File tmpFile, Parameters p, File ressource)
-			throws Exception {
+	public static SimpleFeatureCollection parcelDensification(String splitZone, SimpleFeatureCollection parcelCollection, File tmpFile, File rootFile, File mupFile,
+			double maximalAreaSplitParcel, Double maximalWidthSplitParcel, Double lenDriveway) throws Exception {
 
-		File rootFile = new File(p.getString("rootFile"));
-		File geoFile = new File(rootFile, "geoFile");
+		File pivotFile = new File(tmpFile, "parcelsInbfFlaged.shp");
+		Vectors.exportSFC(parcelCollection, pivotFile);
+		IFeatureCollection<IFeature> parcelCollec = ShapefileReader.read(pivotFile.getAbsolutePath());
 
-		SimpleFeatureIterator parcelIt = parcelCollection.features();
+		File geoFile = new File(rootFile, "dataGeo");
 
 		// the little islands (ilots)
 		String inputUrbanBlock = GetFromGeom.getIlots(geoFile).getAbsolutePath();
+
 		IFeatureCollection<IFeature> featC = ShapefileReader.read(inputUrbanBlock);
-		List<IOrientableCurve> lOC = FromGeomToLineString.convert(featC.get(0).getGeom());
+		List<IOrientableCurve> lOC = featC.select(parcelCollec.envelope()).parallelStream().map(x -> FromGeomToLineString.convert(x.getGeom())).collect(ArrayList::new,
+				List::addAll, List::addAll);
 		IMultiCurve<IOrientableCurve> iMultiCurve = new GM_MultiCurve<>(lOC);
-		DefaultFeatureCollection cutedAll = new DefaultFeatureCollection();
-		try {
-			while (parcelIt.hasNext()) {
-				SimpleFeature feat = parcelIt.next();
 
-				// if the parcel is selected for the simulation
-				if (feat.getAttribute("DoWeSimul").equals("true") && ((boolean) feat.getAttribute(splitZone))) {
+		IFeatureCollection<IFeature> cutedAll = new FT_FeatureCollection<>();
+		for (IFeature feat : parcelCollec) {
+			// if the parcel is selected for the simulation
+			if (feat.getAttribute("DoWeSimul").equals("true") && ((boolean) feat.getAttribute(splitZone))) {
+				// if the parcel is bigger than the limit size
+				if (feat.getGeom().area() > maximalAreaSplitParcel) {
+					// we falg cut the parcel
+					IFeatureCollection<IFeature> tmp = VectorFct.generateFlagSplitedParcels(feat, iMultiCurve, tmpFile, rootFile, mupFile, maximalAreaSplitParcel,
+							maximalWidthSplitParcel, lenDriveway);
+					cutedAll.addAll(tmp);
 
-					// if the parcel is bigger than the limit size
-					if (((Geometry) feat.getDefaultGeometry()).getArea() > p.getDouble("maximalAreaSplitParcel")) {
-						// we falg cut the parcel
+				} else {
+					if ((boolean) feat.getAttribute("IsBuild")) {
+						AttributeManager.addAttribute(feat, "DoWeSimul", "false", "String");
+						AttributeManager.addAttribute(feat, "eval", "0.0", "String");
 
-						SimpleFeatureCollection tmp = VectorFct.generateFlagSplitedParcels(feat, iMultiCurve, geoFile, tmpFile, p);
-
-						// if the collection contains only one feature, it means that the decomposition is not possible
-
-						// the cut hasn't been done
-						if (tmp.size() == 1) {
-							// we then seek if the article 3 forbid the construction of a parcel that is not linked to the street
-							if (isArt3AllowsIsolatedParcel(tmp.features().next(), rootFile)) {
-
-							}
-						}
-
-						// we add all the cut parcels TODO doesn't work
-						else {
-							SimpleFeatureIterator itTmp = tmp.features();
-							try {
-								while (itTmp.hasNext()) {
-									SimpleFeature ft = itTmp.next();
-									System.out.println(ft);
-									cutedAll.add(ft);
-								}
-							} catch (Exception problem) {
-								problem.printStackTrace();
-							} finally {
-								itTmp.close();
-							}
-						}
-
-					} else {
-						cutedAll.add(feat);
 					}
-				}
-				// if no simulation needed, we ad the normal parcel
-				else {
 					cutedAll.add(feat);
 				}
 			}
-		} catch (
-
-		Exception problem) {
-			problem.printStackTrace();
-		} finally {
-			parcelIt.close();
+			// if no simulation needed, we ad the normal parcel
+			else {
+				cutedAll.add(feat);
+			}
 		}
-		Vectors.exportSFC(cutedAll, new File("/tmp/cutedParcels.shp"));
-		return cutedAll;
 
+		File fileTmp = new File(tmpFile, "tmpFlagSplit.shp");
+		ShapefileWriter.write(cutedAll, fileTmp.toString(), CRS.decode("EPSG:2154"));
+
+		// TODO that's an ugly thing, i thought i could go without it, but apparently it
+		// seems like my only option to get it done
+		// return GeOxygeneGeoToolsTypes.convert2FeatureCollection(ifeatCollOut,
+		// CRS.decode("EPSG:2154"));
+
+		ShapefileDataStore sds = new ShapefileDataStore(fileTmp.toURI().toURL());
+		SimpleFeatureCollection parcelFlaged = sds.getFeatureSource().getFeatures();
+		sds.dispose();
+
+		return parcelFlaged;
 	}
 
 	/**
@@ -354,7 +353,6 @@ public class VectorFct {
 	 */
 	public static SimpleFeatureCollection parcelGenZone(String splitZone, SimpleFeatureCollection parcels, File tmpFile, File rootFile, File mupOutput, double maximalArea,
 			double maximalWidth, double lenRoad, int decompositionLevelWithoutRoad, boolean allOrCell) throws Exception {
-		// TODO trouver un moyen d'enlever les routes déjà existantes
 
 		// parcels to save for after
 		DefaultFeatureCollection savedParcels = new DefaultFeatureCollection();
@@ -907,35 +905,47 @@ public class VectorFct {
 		return generateSplitedParcels(parcelIn.subCollection(filter), tmpFile, p);
 	}
 
-	public static SimpleFeatureCollection generateFlagSplitedParcels(SimpleFeatureCollection featColl, IMultiCurve<IOrientableCurve> iMultiCurve, File geoFile, File tmpFile,
-			Parameters p) throws NoSuchAuthorityCodeException, FactoryException, Exception {
+	// public static SimpleFeatureCollection generateFlagSplitedParcels(SimpleFeatureCollection featColl, IMultiCurve<IOrientableCurve> iMultiCurve, File geoFile, File tmpFile,
+	// Parameters p) throws NoSuchAuthorityCodeException, FactoryException, Exception {
+	//
+	// DefaultFeatureCollection collec = new DefaultFeatureCollection();
+	// SimpleFeatureIterator it = featColl.features();
+	//
+	// try {
+	// while (it.hasNext()) {
+	// SimpleFeature feat = it.next();
+	// collec.addAll(generateFlagSplitedParcels(feat, iMultiCurve, geoFile, tmpFile, p));
+	// }
+	// } catch (Exception problem) {
+	// problem.printStackTrace();
+	// } finally {
+	// it.close();
+	// }
+	//
+	// return collec;
+	// }
+	//
+	// public static SimpleFeatureCollection generateFlagSplitedParcels(SimpleFeature feat, IMultiCurve<IOrientableCurve> iMultiCurve, File geoFile, File tmpFile, Parameters p)
+	// throws Exception {
+	// return generateFlagSplitedParcels(feat, iMultiCurve, geoFile, tmpFile, p.getDouble("maximalAreaSplitParcel"), p.getDouble("maximalWidthSplitParcel"),
+	// p.getDouble("lenDriveway"));
+	// }
+	//
+	// public static SimpleFeatureCollection generateFlagSplitedParcels(SimpleFeature feat, IMultiCurve<IOrientableCurve> iMultiCurve, File geoFile, File tmpFile,
+	// Double maximalAreaSplitParcel, Double maximalWidthSplitParcel, Double lenDriveway) throws Exception {
+	//
+	// return generateFlagSplitedParcels(GeOxygeneGeoToolsTypes.convert2IFeature(feat), iMultiCurve, geoFile, tmpFile, maximalAreaSplitParcel, maximalWidthSplitParcel,
+	// lenDriveway);
+	//
+	// }
 
-		DefaultFeatureCollection collec = new DefaultFeatureCollection();
-		SimpleFeatureIterator it = featColl.features();
-
-		try {
-			while (it.hasNext()) {
-				SimpleFeature feat = it.next();
-				collec.addAll(generateFlagSplitedParcels(feat, iMultiCurve, geoFile, tmpFile, p));
-			}
-		} catch (Exception problem) {
-			problem.printStackTrace();
-		} finally {
-			it.close();
-		}
-
-		return collec;
-	}
-
-	public static SimpleFeatureCollection generateFlagSplitedParcels(SimpleFeature feat, IMultiCurve<IOrientableCurve> iMultiCurve, File geoFile, File tmpFile, Parameters p)
-			throws Exception {
-		return generateFlagSplitedParcels(feat, iMultiCurve, geoFile, tmpFile, p.getDouble("maximalAreaSplitParcel"), p.getDouble("maximalWidthSplitParcel"),
-				p.getDouble("lenDriveway"));
-	}
-
-	public static SimpleFeatureCollection generateFlagSplitedParcels(SimpleFeature feat, IMultiCurve<IOrientableCurve> iMultiCurve, File geoFile, File tmpFile,
+	public static IFeatureCollection<IFeature> generateFlagSplitedParcels(IFeature ifeat, IMultiCurve<IOrientableCurve> iMultiCurve, File tmpFile, File rootFile, File outMupFile,
 			Double maximalAreaSplitParcel, Double maximalWidthSplitParcel, Double lenDriveway) throws Exception {
-		IFeature ifeat = GeOxygeneGeoToolsTypes.convert2IFeature(feat);
+
+		IFeatureCollection<IFeature> batiLargeCollec = ShapefileReader.read(GetFromGeom.getBuild(new File(rootFile, "dataGeo")).getAbsolutePath());
+		IFeatureCollection<IFeature> batiCollec = new FT_FeatureCollection<>();
+		batiCollec.addAll(batiLargeCollec.select(ifeat.getGeom()));
+
 		IGeometry geom = ifeat.getGeom();
 
 		// what would that be for?
@@ -943,28 +953,80 @@ public class VectorFct {
 		geom = geom.translate(-dp.getX(), -dp.getY(), 0);
 
 		List<IOrientableSurface> surfaces = FromGeomToSurface.convertGeom(geom);
-
-		if (surfaces.size() != 1) {
-			System.out.println("Not simple geometry : " + feat.toString());
-			return null;
-		}
-
-		FlagParcelDecomposition fpd = new FlagParcelDecomposition((IPolygon) surfaces.get(0), ShapefileReader.read(GetFromGeom.getBuild(geoFile).getAbsolutePath()),
-				maximalAreaSplitParcel, maximalWidthSplitParcel, lenDriveway, iMultiCurve);
+		FlagParcelDecomposition fpd = new FlagParcelDecomposition((IPolygon) surfaces.get(0), batiCollec, maximalAreaSplitParcel, maximalWidthSplitParcel, lenDriveway,
+				iMultiCurve);
 		IFeatureCollection<IFeature> decomp = fpd.decompParcel(0);
+		IFeatureCollection<IFeature> ifeatCollOut = new FT_FeatureCollection<>();
+		int numParcelle = 0;
+		for (IFeature newFeat : decomp) {
+			String newCodeDep = (String) ifeat.getAttribute("CODE_DEP");
+			String newCodeCom = (String) ifeat.getAttribute("CODE_COM");
+			String newSection = (String) ifeat.getAttribute("SECTION") + "div";
+			String newNumero = String.valueOf(numParcelle++);
+			String newCode = newCodeDep + newCodeCom + "000" + newSection + newNumero;
+			AttributeManager.addAttribute(newFeat, "CODE", newCode, "String");
+			AttributeManager.addAttribute(newFeat, "CODE_DEP", newCodeDep, "String");
+			AttributeManager.addAttribute(newFeat, "CODE_COM", newCodeCom, "String");
+			AttributeManager.addAttribute(newFeat, "COM_ABS", "000", "String");
+			AttributeManager.addAttribute(newFeat, "SECTION", newSection, "String");
+			AttributeManager.addAttribute(newFeat, "NUMERO", newNumero, "String");
+			AttributeManager.addAttribute(newFeat, "INSEE", newCodeDep + newCodeCom, "String");
 
-		File fileTmp = new File(tmpFile, "tmp_split.shp");
-		ShapefileWriter.write(decomp, fileTmp.toString(), CRS.decode("EPSG:2154"));
+			double eval = 0.0;
+			boolean bati = false;
+			boolean simul = false;
+			boolean u = false;
+			boolean au = false;
+			boolean nc = false;
 
-		// TODO that's an ugly thing, i thought i could go without it, but apparently it
-		// seems like my only option to get it done
-		// return GeOxygeneGeoToolsTypes.convert2FeatureCollection(ifeatCollOut,
-		// CRS.decode("EPSG:2154"));
+			// we put a small buffer because a lot of houses are just biting neighborhood parcels
+			for (IFeature batiIFeat : batiCollec) {
+				if (newFeat.getGeom().buffer(-1.5).intersects(batiIFeat.getGeom())) {
+					bati = true;
+				}
+			}
 
-		ShapefileDataStore sds = new ShapefileDataStore(fileTmp.toURI().toURL());
-		SimpleFeatureCollection parcel = sds.getFeatureSource().getFeatures();
-		sds.dispose();
-		return parcel;
+			// we decide here if we want to simul that parcel
+			if (!bati) {
+				// if the parcels hasn't been decomposed
+				if (decomp.size() == 1) {
+					// has access to road, we put it whole to simul
+					if (fpd.hasRoadAccess((IPolygon) surfaces.get(0))) {
+						simul = true;
+					} else if (isArt3AllowsIsolatedParcel(newFeat, rootFile)) {
+						simul = true;
+					}
+				} else {
+					simul = true;
+				}
+			}
+
+			List<String> zones = GetFromGeom.parcelInBigZone(newFeat, new File(rootFile, "dataRegulation"));
+
+			if (zones.contains("U")) {
+				u = true;
+			}
+			if (zones.contains("AU")) {
+				au = true;
+			}
+			if (zones.contains("NC")) {
+				nc = true;
+			}
+
+			if (simul) {
+				eval = getEvalInParcel(newFeat, outMupFile);
+			}
+
+			AttributeManager.addAttribute(newFeat, "eval", eval, "String");
+			AttributeManager.addAttribute(newFeat, "DoWeSimul", simul, "String");
+			AttributeManager.addAttribute(newFeat, "IsBuild", bati, "String");
+			AttributeManager.addAttribute(newFeat, "U", u, "String");
+			AttributeManager.addAttribute(newFeat, "AU", au, "String");
+			AttributeManager.addAttribute(newFeat, "NC", nc, "String");
+
+			ifeatCollOut.add(newFeat);
+		}
+		return decomp;
 
 	}
 
@@ -1293,6 +1355,14 @@ public class VectorFct {
 		}
 		bati_datastore.dispose();
 		return isContent;
+	}
+
+	public static Double getEvalInParcel(IFeature parcel, File outMup) throws NoSuchAuthorityCodeException, ParseException, FactoryException, IOException, Exception {
+		if (outMup == null) {
+			return 0.0;
+		}
+
+		return getEvalInParcel(GeOxygeneGeoToolsTypes.convert2SimpleFeature(parcel, CRS.decode("EPSG:2154")), outMup);
 	}
 
 	/**
@@ -1626,7 +1696,7 @@ public class VectorFct {
 	 * @return
 	 * @throws IOException
 	 */
-	public static boolean isArt3AllowsIsolatedParcel(SimpleFeature feat, File rootFile) throws IOException {
+	public static boolean isArt3AllowsIsolatedParcel(IFeature feat, File rootFile) throws IOException {
 		// get Insee Number
 		String insee = ((String) feat.getAttribute("CODE_DEP")) + ((String) feat.getAttribute("CODE_COM"));
 

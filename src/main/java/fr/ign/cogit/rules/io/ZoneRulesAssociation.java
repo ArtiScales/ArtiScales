@@ -94,14 +94,14 @@ public class ZoneRulesAssociation {
 								zone.setZoneRegulation(regles.get(code));
 								System.out.println("we forced the no dense " + rule + " rules into non constructible zone");
 								break;
-							} else if (rule.contains("U")) {
+							} else if (rule.toUpperCase().contains("UB")) {
 								zone.setZoneRegulation(regles.get(code));
 								System.out.println("we forced the classical " + rule + " rules into non constructible zone");
+							} else {
+								zone.setZoneRegulation(regles.get("ZC-7"));
+								System.out.println("we put the RNU rule");
 							}
 						}
-					} else {
-						zone.setZoneRegulation(regles.get("ZC-7"));
-						System.out.println("we put the RNU rule");
 					}
 				}
 			}

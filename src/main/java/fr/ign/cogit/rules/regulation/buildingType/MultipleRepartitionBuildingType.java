@@ -21,16 +21,16 @@ public class MultipleRepartitionBuildingType extends RepartitionBuildingType {
 
 		// we put all of the parcels into different lists regarding to their zones
 		parcelsInZone = new HashMap<String, List<String>>();
-		for (IFeature parcelle : parcelles) {
-			if (parcelle.getAttribute("CODE") != null) {
-				String bigZone = GetFromGeom.affectToZoneAndTypo(p, parcelle, true);
+		for (IFeature parcel : parcelles) {
+			if (parcel.getAttribute("CODE") != null) {
+				String bigZone = GetFromGeom.affectZoneAndTypoToLocation(p.getString("useRepartition"), p.getString("code"), parcel, new File(p.getString("rootFile")), true);
 				if (parcelsInZone.containsKey(bigZone)) {
 					List<String> tmpList = parcelsInZone.get(bigZone);
-					tmpList.add((String) parcelle.getAttribute("CODE"));
+					tmpList.add((String) parcel.getAttribute("CODE"));
 					parcelsInZone.put(bigZone, tmpList);
 				} else {
 					List<String> tmpList = new ArrayList<String>();
-					tmpList.add((String) parcelle.getAttribute("CODE"));
+					tmpList.add((String) parcel.getAttribute("CODE"));
 					parcelsInZone.put(bigZone, tmpList);
 				}
 			}

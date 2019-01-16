@@ -166,14 +166,13 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 				if (mapGeomRegulation.get(geom).getArt_9() != 99) {
 					maxBuiltArea = maxBuiltArea + geom.getArea() * mapGeomRegulation.get(geom).getArt_9();
 				}
-			
-				//if rule 13 has a parcel size condition
+
+				// if rule 13 has a parcel size condition
 				if (mapGeomRegulation.get(geom).getArt_13().contains(">")) {
 					if (totalSubParcelArea > Double.valueOf(mapGeomRegulation.get(geom).getArt_13().split(">")[1])) {
 						maxBuiltFreeSpace = maxBuiltFreeSpace + geom.getArea() * Double.valueOf(mapGeomRegulation.get(geom).getArt_13().split(">")[0]);
 					}
-				}
-				else if (!mapGeomRegulation.get(geom).getArt_13().equals("99")) {
+				} else if (!mapGeomRegulation.get(geom).getArt_13().equals("99")) {
 					maxBuiltFreeSpace = maxBuiltFreeSpace + geom.getArea() * Double.valueOf(mapGeomRegulation.get(geom).getArt_13());
 				}
 			}
@@ -199,7 +198,7 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 
 	@Override
 	protected double getMinHeight() {
-		return mapGeomRegulation.values().stream().mapToDouble(x -> cRO.hauteur(p, x, heighSurroundingBuildings)[1]).max().getAsDouble();
+		return mapGeomRegulation.values().stream().mapToDouble(x -> cRO.hauteur(p, x, heighSurroundingBuildings)[0]).max().getAsDouble();
 	}
 
 	@Override
@@ -214,7 +213,7 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 	protected String getArt12Value() {
 		List<String> art12 = this.mapGeomRegulation.values().stream().map(x -> x.getArt_12()).collect(Collectors.toList());
 		for (String line : art12) {
-			if (line.contains("l") || line.contains("m") || line.contains("x") ) {
+			if (line.contains("l") || line.contains("m") || line.contains("x")) {
 				return line;
 			}
 		}
@@ -225,7 +224,7 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 		if (art12.contains("2.5")) {
 			return "2.5";
 		}
-		
+
 		if (art12.contains("2")) {
 			return "2";
 		}

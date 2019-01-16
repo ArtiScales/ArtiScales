@@ -46,15 +46,23 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 		this.regles = regle;
 		this.p = pA;
 
-		this.p.set("maxheight", this.getMaxHeight());
-		this.p.set("minheight", this.getMinHeight());
-		
+		double maxH = this.getMaxHeight();
+		double minH = this.getMinHeight();
+
+		if (minH > maxH) {
+			System.out.println("problem : the maximal height is inf to the minimal one (certainly because of the reglementation)");
+		} else {
+			this.p.set("maxheight", this.getMaxHeight());
+			this.p.set("minheight", this.getMinHeight());
+
+		}
+
 		if (!(regle.getArt_5().contains("_"))) {
 			double aireMinimale = Double.valueOf(regle.getArt_5());
-	
+
 			// ##Rule-art-005
 			if (aireMinimale != 99.0) {
-	
+
 				if (currentBPU.getArea() < aireMinimale) {
 					canBeSimulated = false;
 				}
@@ -104,17 +112,16 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 	// The max CES is directly stored in the regulation object
 	// #art_13 #art_9
 	protected double getMaxCES() {
-		//if there's a condition
+		// if there's a condition
 		double coeff13 = 0;
 		if (regles.getArt_13().contains(">")) {
 			if (currentBPU.getArea() > Double.valueOf(regles.getArt_13().split(">")[1])) {
 				coeff13 = Double.valueOf(regles.getArt_13().split(">")[0]);
 			}
+		} else {
+			coeff13 = Double.valueOf(regles.getArt_13());
 		}
-		else {
-			coeff13= Double.valueOf(regles.getArt_13());
-		}
-		
+
 		return Math.min(regles.getArt_9(), 1 - coeff13);
 	}
 

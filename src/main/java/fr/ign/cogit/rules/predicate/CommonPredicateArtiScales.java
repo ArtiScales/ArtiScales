@@ -196,9 +196,10 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 		// System.out.println(bPU.getGeom().buffer(distanceHeightBuildings));
 		Collection<AbstractBuilding> buildingsHeightCol = env.getBuildings().select(bPU.getGeom().buffer(distanceHeightBuildings));
+
 		// System.out.println("Neighbour buildings :" + buildingsHeightCol.size());
 		if (!buildingsHeightCol.isEmpty()) {
-			heighSurroundingBuildings = buildingsHeightCol.stream().mapToDouble(x -> x.height(1, 1)).sum() / buildingsHeightCol.size();
+			heighSurroundingBuildings = buildingsHeightCol.stream().mapToDouble(x -> x.height(1, 0)).sum() / buildingsHeightCol.size();
 		}
 
 		if (!curveOppositeLimit.isEmpty()) {
@@ -227,18 +228,16 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 		this.bPUGeom = AdapterFactory.toGeometry(gf, bPU.getGeom());
 
-		
-		
 		// Prepare the forbidden geometry from prescription
 		ForbiddenZoneGenerator fZG = new ForbiddenZoneGenerator();
-		//set the defaut parameters 
+		// set the defaut parameters
 		fZG.setDistanceTVB(p.getDouble("bufferBiodiversityArea"));
-		fZG.setDistanceRecoilVegetation(p.getDouble("bufferProtectedWood")); 
+		fZG.setDistanceRecoilVegetation(p.getDouble("bufferProtectedWood"));
 		fZG.setDistanceRecoilReservedEmplacement(p.getDouble("bufferReserve"));
 		fZG.setDistanceRecoilPaysage(p.getDouble("bufferLandscapeFeatures"));
-		fZG.setDistancenNuisanceRisque(p.getDouble("bufferRisk")); 
-		fZG.setDistanceAlignment(p.getDouble("bufferAlignment")); 
-		
+		fZG.setDistancenNuisanceRisque(p.getDouble("bufferRisk"));
+		fZG.setDistanceAlignment(p.getDouble("bufferAlignment"));
+
 		IGeometry geomForbidden = fZG.generateUnionGeometry(prescriptions, currentBPU);
 
 		if (geomForbidden != null && !geomForbidden.isEmpty()) {
@@ -540,7 +539,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 		if (!cRO.checkMaxSDP(lAllCuboids, p)) {
 			return false;
 		}
-		
+
 		// Getting the maxCES according to the implementation
 		// art_9 art_13
 		double maxCES = this.getMaxCES();
@@ -695,6 +694,13 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 	public void setSide(ParcelBoundarySide side) {
 		this.side = side;
+	}
+
+	public boolean isOutsized() {
+		if (getMaxHeight() < getMinHeight())
+			return true;
+		else
+			return false;
 	}
 
 }

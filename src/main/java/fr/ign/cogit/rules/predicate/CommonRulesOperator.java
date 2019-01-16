@@ -2,14 +2,12 @@ package fr.ign.cogit.rules.predicate;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import com.vividsolutions.jts.geom.Geometry;
 
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
 import fr.ign.cogit.geoxygene.api.spatial.geomroot.IGeometry;
 import fr.ign.cogit.rules.regulation.ArtiScalesRegulation;
-import fr.ign.cogit.rules.regulation.buildingType.BuildingType;
 import fr.ign.cogit.rules.regulation.buildingType.RepartitionBuildingType;
 import fr.ign.cogit.simplu3d.model.BasicPropertyUnit;
 import fr.ign.cogit.simplu3d.model.Building;
@@ -17,7 +15,6 @@ import fr.ign.cogit.simplu3d.model.CadastralParcel;
 import fr.ign.cogit.simplu3d.model.Prescription;
 import fr.ign.cogit.simplu3d.model.PrescriptionType;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.AbstractSimpleBuilding;
-import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.Cuboid;
 import fr.ign.cogit.simplu3d.rjmcmc.generic.object.ISimPLU3DPrimitive;
 import fr.ign.cogit.simplu3d.util.CuboidGroupCreation;
 import fr.ign.cogit.simplu3d.util.merge.SDPCalc;
@@ -130,15 +127,13 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	}
 
 	/**
-	 * Check the distance between the cuboids with differenciated distance WARNING :
-	 * The size of both list have to be the same
+	 * Check the distance between the cuboids with differenciated distance WARNING : The size of both list have to be the same
 	 * 
 	 * @param lO
 	 * @param distanceInterBati
 	 * @return
 	 */
-	public boolean checkDistanceInterCuboids(List<? extends AbstractSimpleBuilding> lO,
-			List<Double> distanceInterBati) {
+	public boolean checkDistanceInterCuboids(List<? extends AbstractSimpleBuilding> lO, List<Double> distanceInterBati) {
 
 		int nbCuboid = lO.size();
 
@@ -152,8 +147,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 
 				// If there is only one distance we use it or we use the max of the distance
 				// constraints of the groups
-				double distInterBatiCalculated = (distanceInterBati.size() == 1) ? distanceInterBati.get(0)
-						: Math.min(distanceInterBati.get(i), distanceInterBati.get(j));
+				double distInterBatiCalculated = (distanceInterBati.size() == 1) ? distanceInterBati.get(0) : Math.min(distanceInterBati.get(i), distanceInterBati.get(j));
 
 				if (distance < distInterBatiCalculated) {
 					return false;
@@ -167,13 +161,13 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	}
 
 	/**
-	 * Check if the distance between a cuboid and a geometry is lesser or more than
-	 * distMax
+	 * Check if the distance between a cuboid and a geometry is lesser or more than distMax
 	 * 
 	 * @param cuboid
 	 * @param geom
 	 * @param dist
-	 * @param supOrInf if the cubiod must be superior or inferior to the limit
+	 * @param supOrInf
+	 *            if the cubiod must be superior or inferior to the limit
 	 * @return
 	 */
 	public boolean checkDistanceToGeometry(O cuboid, Geometry geom, double dist, boolean supOrInf) {
@@ -303,11 +297,12 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	}
 
 	/**
-	 * Check if the total floor area (Surface de Plancher) of the configuration is
-	 * lower than the limit set by the form parameters
+	 * Check if the total floor area (Surface de Plancher) of the configuration is lower than the limit set by the form parameters
 	 * 
-	 * @param lCuboid :cuboid configuration to test
-	 * @param maxSDP  ; the floor area to not go further
+	 * @param lCuboid
+	 *            :cuboid configuration to test
+	 * @param maxSDP
+	 *            ; the floor area to not go further
 	 * @return true if the SDP of the configuration is not higher than the limit
 	 */
 	public boolean checkMaxSDP(List<O> lCuboid, Parameters p) {
@@ -380,8 +375,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	}
 
 	/**
-	 * Check if an alignment constraint is respected between a cuboid and the public
-	 * road
+	 * Check if an alignment constraint is respected between a cuboid and the public road
 	 * 
 	 * @param cuboid
 	 * @param prescriptions
@@ -389,8 +383,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	 * @param jtsCurveLimiteFrontParcel
 	 * @return
 	 */
-	public boolean checkAlignementPrescription(O cuboid, IFeatureCollection<Prescription> prescriptions, boolean align,
-			Geometry jtsCurveLimiteFrontParcel) {
+	public boolean checkAlignementPrescription(O cuboid, IFeatureCollection<Prescription> prescriptions, boolean align, Geometry jtsCurveLimiteFrontParcel) {
 		// On vérifie que le batiment est compris dans la zone d'alignement (surfacique)
 
 		if (prescriptions != null && align) {
@@ -469,10 +462,10 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		case 6:
 		case 7:
 		case 8:
-			// si il y a des batiments TODO valeurs bizares
+			// if we seek at surronding buildings
 			if (heighSurroundingBuildings != null && heighSurroundingBuildings != 0.0) {
 				System.out.println("surrounding height values : " + heighSurroundingBuildings);
-				minRule = heighSurroundingBuildings * 0.9;
+				// minRule = heighSurroundingBuildings * 0.9;
 				maxRule = heighSurroundingBuildings * 1.1;
 			}
 			// si pas de batiments aux alentours, on se rabat sur différentes options
@@ -604,8 +597,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		int nbDwellings = (int) Math.round((shon / surfLogement));
 
 		// if it's a simple house, it's gon contain only one housing unit
-		if (p.getString("nameBuildingType").equals("detachedHouse")
-				|| p.getString("nameBuildingType").equals("smallHouse")) {
+		if (p.getString("nameBuildingType").equals("detachedHouse") || p.getString("nameBuildingType").equals("smallHouse")) {
 			nbDwellings = 1;
 		}
 

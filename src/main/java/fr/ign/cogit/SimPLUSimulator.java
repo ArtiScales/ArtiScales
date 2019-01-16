@@ -210,16 +210,16 @@ public class SimPLUSimulator {
 		this.pSaved = pa;
 		this.rootFile = new File(p.getString("rootFile"));
 		simuFile = packFile;
-		parcelsFile = new File(packFile, "/parcel.shp");
-		zoningFile = new File(packFile, "/geoSnap/zoning.shp");
-		buildFile = new File(packFile, "/geoSnap/building.shp");
-		roadFile = new File(packFile, "/geoSnap/road.shp");
+		parcelsFile = new File(packFile, "/parcelle.shp");
+		zoningFile = new File(packFile, "/geoSnap/zone_urba.shp");
+		buildFile = new File(packFile, "/geoSnap/batiment.shp");
+		roadFile = new File(packFile, "/geoSnap/route.shp");
 
 		predicateFile = new File(packFile, "snapPredicate.csv");
 
-		filePrescPonct = new File(packFile, "/geoSnap/prescPonct.shp");
-		filePrescLin = new File(packFile, "/geoSnap/prescLin.shp");
-		filePrescSurf = new File(packFile, "/geoSnap/prescSurf.shp");
+		filePrescPonct = new File(packFile, "/geoSnap/prescription_ponct.shp");
+		filePrescLin = new File(packFile, "/geoSnap/prescription_lin.shp");
+		filePrescSurf = new File(packFile, "/geoSnap/prescription_surf.shp");
 
 		if (!zoningFile.exists()) {
 			System.err.print("error : zoning files not found");
@@ -236,8 +236,8 @@ public class SimPLUSimulator {
 
 		// Loading of configuration file that contains sampling space
 		// information and simulated annealing configuration
-		//SimuTool.setEnvEnglishName();
-				
+		// SimuTool.setEnvEnglishName();
+
 		Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile, parcelsFile, roadFile, buildFile, filePrescPonct, filePrescLin, filePrescSurf, null);
 
 		///////////
@@ -248,14 +248,13 @@ public class SimPLUSimulator {
 		IFeatureCollection<CadastralParcel> parcels = env.getCadastralParcels();
 
 		for (CadastralParcel parcel : parcels) {
-			String tmp = GetFromGeom.affectToZoneAndTypo(p, parcel, true);
+			String tmp = GetFromGeom.affectZoneAndTypoToLocation(p.getString("useRepartition"), p.getString("code"), parcel, new File(p.getString("rootFile")), true);
 			if (!zones.contains(tmp)) {
 				zones.add(tmp);
 			}
 		}
 
 		// loading the type of housing to build
-		System.out.println(parcelsFile);
 		RepartitionBuildingType housingUnit = new RepartitionBuildingType(p, parcelsFile);
 		boolean multipleRepartitionBuildingType = false;
 		if (zones.size() > 1) {
@@ -289,21 +288,23 @@ public class SimPLUSimulator {
 		int nbBPU = env.getBpU().size();
 		bpu: for (int i = 0; i < nbBPU; i++) {
 
+			CadastralParcel CadParc = env.getBpU().get(i).getCadastralParcels().get(0);
+			String codeParcel = CadParc.getCode();
+
 			// if this parcel contains no attributes, it means that it has been put here
 			// just to express its boundaries
-			if (env.getBpU().get(i).getCadastralParcels().get(0).getCode() == null) {
+			if (codeParcel == null) {
 				continue;
 			}
 			// if parcel has been marked as non simulable, return null
-			if (!isParcelSimulable(env.getBpU().get(i).getCadastralParcels().get(0).getCode())) {
-				env.getBpU().get(i).getCadastralParcels().get(0).setHasToBeSimulated(false);
-				System.out.println(env.getBpU().get(i).getCadastralParcels().get(0).getCode() + " : je l'ai stopé net coz pas selec");
+			if (!isParcelSimulable(codeParcel)) {
+				CadParc.setHasToBeSimulated(false);
+				System.out.println(codeParcel + " : je l'ai stopé net coz pas selec");
 				continue;
 			}
-			String codeParcel = env.getBpU().get(i).getCadastralParcels().get(0).getCode();
 			System.out.println("Parcel code : " + codeParcel);
 
-			double eval = getParcelEval(env.getBpU().get(i).getCadastralParcels().get(0).getCode());
+			double eval = getParcelEval(codeParcel);
 
 			// of which type should be the housing unit
 			BuildingType type;
@@ -315,27 +316,28 @@ public class SimPLUSimulator {
 
 			// we get ready to change it
 			boolean seekType = true;
-			// boolean adjustUp = false;
 			boolean adjustDown = false;
 
 			BuildingType[] fromTo = new BuildingType[2];
 			fromTo[0] = type;
-			IFeatureCollection<IFeature> bati = null;
+			IFeatureCollection<IFeature> building = null;
 			// until we found the right type
 			while (seekType) {
 				System.out.println("we try to put a " + type + " housing unit");
 				// we add the parameters for the building type want to simulate
 				p = pSaved;
+				System.out.println("new height back to reg val " + p.getDouble("maxheight"));
 				p.add(RepartitionBuildingType.getParam(new File(this.getClass().getClassLoader().getResource("profileBuildingType").getFile()), type));
 
-				bati = runSimulation(env, i, p, type, prescriptionUse);
+				building = runSimulation(env, i, p, type, prescriptionUse);
 
-				if (bati == null || bati.isEmpty()) {
+				//if it's null, we skip to another parcel
+				if (building == null ) {
 					continue bpu;
 				}
-
-				// we see if the Housing Unit Type is correct
-				if ((double) bati.get(0).getAttribute("SDPShon") < p.getDouble("areaMin")) {
+				
+				//if it's empty, or the size of floor is inferior to the minimum we set, we downsize to see if a smaller type fits
+				if (building.isEmpty() || (double) building.get(0).getAttribute("SDPShon") < p.getDouble("areaMin")) {
 					adjustDown = true;
 					BuildingType typeTemp = housingUnit.down(type);
 					// if it's not the same type, we'll continue to seek
@@ -345,43 +347,26 @@ public class SimPLUSimulator {
 					}
 					// if it's blocked, we'll go for this type
 					else {
+						System.out.println("anyway, we'll go for this " + type + " type");
 						seekType = false;
 					}
-					// // I'm not sure this case can occur, but..
-					// } else if ((double) bati.get(0).getAttribute("SDPShon") > p.getDouble("areaMax")) {
-					// adjustUp = true;
-					// TypeHousingUnit typeTemp = housingUnit.down(type);
-					// // if it's not the same type, we'll continue to seek
-					// if (!(typeTemp == type)) {
-					// type = typeTemp;
-					// System.out.println("we'll try a " + type + "instead");
-					// }
-					// // if it's blocked, we'll go for this type
-					// else {
-					// seekType = false;
-					// }
 				} else {
 					seekType = false;
-					// if there's a come and go situation, we break it down like a cop
-					// if (adjustDown == true && adjustUp == true) {
-					if (adjustDown == true) {
-						System.out.println("we break down the fuzz between housing unit like a cop/judge");
-						break;
-						// } else if (adjustUp) {
-						// fromTo[1] = type;
-						// housingUnit.adjustDistributionUp(eval, fromTo[1], fromTo[0]);
-					} else if (adjustDown) {
+					if (adjustDown) {
 						fromTo[1] = type;
 						housingUnit.adjustDistributionDown(eval, fromTo[1], fromTo[0]);
+					} else {
+						System.out.println("first hit, we set the "+type+ " building type");
+						break;
 					}
 				}
 			}
 			// saving the output
 			File folderOut = SimuTool.createScenarVariantFolders(simuFile, rootFile, "SimPLUDepot");
 			folderOut.mkdirs();
-			File output = new File(folderOut, "out-parcel_" + bati.get(0).getAttribute("CODE") + ".shp");
+			File output = new File(folderOut, "out-parcel_" + building.get(0).getAttribute("CODE") + ".shp");
 			System.out.println("Output in : " + output);
-			ShapefileWriter.write(bati, output.toString(), CRS.decode("EPSG:2154"));
+			ShapefileWriter.write(building, output.toString(), CRS.decode("EPSG:2154"));
 
 			if (!output.exists()) {
 				output = null;
@@ -495,7 +480,8 @@ public class SimPLUSimulator {
 	 * @param p
 	 * @param prescriptionUse
 	 *            the prescriptions in Use prepared with PrescriptionPreparator
-	 * @return
+	 * @return if null, we pass to another parcel. if an empty collection, we downsize the type
+	 * 
 	 * @throws Exception
 	 */
 	@SuppressWarnings({ "deprecation" })
@@ -533,6 +519,11 @@ public class SimPLUSimulator {
 			System.out.println("Parcel is not simulable according to the predicate");
 			return null;
 		}
+		if (!pred.isOutsized()) {
+			System.out.println("Building type is too big");
+			return new FT_FeatureCollection<IFeature>();
+		}
+
 		// We compute the parcel area
 		Double areaParcels = bPU.getArea(); // .getCadastralParcels().stream().mapToDouble(x -> x.getArea()).sum();
 
@@ -647,6 +638,10 @@ public class SimPLUSimulator {
 			AttributeManager.addAttribute(feat, "TYPEZONE", typeZonesFinal, "String");
 			AttributeManager.addAttribute(feat, "BUILDTYPE", type, "String");
 			iFeatC.add(feat);
+		}
+
+		if (iFeatC.isEmpty()) {
+			return null;
 		}
 		return iFeatC;
 	}

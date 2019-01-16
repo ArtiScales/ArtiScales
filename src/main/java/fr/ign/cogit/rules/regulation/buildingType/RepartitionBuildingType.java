@@ -41,7 +41,7 @@ public class RepartitionBuildingType {
 
 		// add the zone parameters with the first parcel (redone for each parcel if it's
 		// a multizone type)
-		p = addRepartitionToParameters(p, parcelles.get(0),new File(this.getClass().getClassLoader().getResource("locationBuildingType").getFile()));
+		p = addRepartitionToParameters(p, parcelles.get(0), new File(this.getClass().getClassLoader().getResource("locationBuildingType").getFile()));
 		pDetachedHouse = p.getDouble("detachedHouse");
 
 		if (pDetachedHouse == 99.0) {
@@ -80,7 +80,7 @@ public class RepartitionBuildingType {
 
 		this.repartition = rep;
 
-	//	this.parcelles = parcelles;
+		// this.parcelles = parcelles;
 
 		makeParcelRepartition();
 
@@ -96,9 +96,9 @@ public class RepartitionBuildingType {
 
 		for (IFeature parcel : parcels) {
 			try {
-			if (!((String) parcel.getAttribute("eval")).equals("0")) {
-				distribEval.addValue(Double.valueOf((String) parcel.getAttribute("eval")));
-			}
+				if (!((String) parcel.getAttribute("eval")).equals("0")) {
+					distribEval.addValue(Double.valueOf((String) parcel.getAttribute("eval")));
+				}
 			} catch (NullPointerException np) {
 			}
 		}
@@ -253,7 +253,7 @@ public class RepartitionBuildingType {
 	 */
 	public static Parameters addRepartitionToParameters(Parameters p, IFeature parcel, File profileBuildings) throws Exception {
 
-		String affect = GetFromGeom.affectToZoneAndTypo(p, parcel, true);
+		String affect = GetFromGeom.affectZoneAndTypoToLocation(p.getString("useRepartition"), p.getString("code"), parcel, new File(p.getString("rootFile")), true);
 
 		// we seek for if there's a special default repartition for the scenario
 		if (affect.equals("default")) {
@@ -273,7 +273,7 @@ public class RepartitionBuildingType {
 		return p;
 	}
 
-	public static Parameters getParam(File ressourceFile , BuildingType type) throws Exception {
+	public static Parameters getParam(File ressourceFile, BuildingType type) throws Exception {
 		switch (type) {
 		case DETACHEDHOUSE:
 			return Parameters.unmarshall(new File(ressourceFile, "detachedHouse.xml"));
@@ -370,35 +370,36 @@ public class RepartitionBuildingType {
 	public static boolean hasAttic(String type) {
 		return hasAttic(BuildingType.valueOf(type.toUpperCase()));
 	}
-/**
- * return the buildingType with the most 
- * ignore the 99 values which means that is a forbidden type
- * @param p
- * @return
- */
+
+	/**
+	 * return the buildingType with the most ignore the 99 values which means that is a forbidden type
+	 * 
+	 * @param p
+	 * @return
+	 */
 	public static BuildingType getBiggestRepartition(Parameters p) {
-		Integer max =0;
+		Integer max = 0;
 		BuildingType result = null;
 		if (p.getInteger("detachedHouse") > max && p.getInteger("detachedHouse") != 99) {
-			max =  p.getInteger("detachedHouse") ;
+			max = p.getInteger("detachedHouse");
 			result = BuildingType.DETACHEDHOUSE;
 		}
 		if (p.getInteger("smallHouse") > max && p.getInteger("smallHouse") != 99) {
-			max =  p.getInteger("smallHouse") ;
+			max = p.getInteger("smallHouse");
 			result = BuildingType.SMALLHOUSE;
 		}
 		if (p.getInteger("multifamilyHouse") > max && p.getInteger("multifamilyHouse") != 99) {
-			max =  p.getInteger("multifamilyHouse") ;
+			max = p.getInteger("multifamilyHouse");
 			result = BuildingType.MULTIFAMILYHOUSE;
 		}
 		if (p.getInteger("smallBlockFlat") > max && p.getInteger("smallBlockFlat") != 99) {
-			max =  p.getInteger("smallBlockFlat") ;
+			max = p.getInteger("smallBlockFlat");
 			result = BuildingType.SMALLBLOCKFLAT;
 		}
 		if (p.getInteger("midBlockFlat") > max && p.getInteger("midBlockFlat") != 99) {
-			max =  p.getInteger("midBlockFlat") ;
+			max = p.getInteger("midBlockFlat");
 			result = BuildingType.MIDBLOCKFLATS;
 		}
-	return result	;
+		return result;
 	}
 }
