@@ -8,7 +8,7 @@
 	<param key="seed" value="42"/>
 	<param key = "singleCity" value = "true"/>
 	<!--<param key="zip" value ="25217,25115,25136,25030,25448,25119,25427,25150,25455,25482"/> -->
-	<param key="zip" value ="25598"/>
+	<param key="zip" value ="25115"/>
 	<param key="package" value ="ilot"/>
 
 

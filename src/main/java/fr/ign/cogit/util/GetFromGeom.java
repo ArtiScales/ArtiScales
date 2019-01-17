@@ -385,7 +385,12 @@ public class GetFromGeom {
 		throw new FileNotFoundException("Road file not found");
 	}
 
-	// TODO auto generate the ilots if they aren't in the folder
+	public static SimpleFeatureCollection getIlots(File geoFile, SimpleFeatureCollection parcelCollection) throws Exception {
+		File ilots = getIlots(geoFile);
+		
+		return Vectors.snapDatas(ilots, parcelCollection);
+	}
+	
 	public static File getIlots(File geoFile) throws NoSuchAuthorityCodeException, IOException, FactoryException {
 		for (File f : geoFile.listFiles()) {
 			if (f.getName().startsWith("ilot") && f.getName().endsWith(".shp")) {
@@ -926,6 +931,7 @@ public class GetFromGeom {
 		return finalParcelBuilder;
 	}
 
+	
 	/**
 	 * not very nice overload
 	 * 
@@ -933,12 +939,23 @@ public class GetFromGeom {
 	 * @param schema
 	 * @return
 	 */
-	public static SimpleFeatureBuilder setSFBWithFeat(SimpleFeature feat, SimpleFeatureType schema) {
-		return setSFBWithFeat(feat, schema, schema.getGeometryDescriptor().getName().toString());
+	public static SimpleFeatureBuilder setSFBParcelWithFeat(SimpleFeature feat) {
+		return setSFBWParcelithFeat(feat, feat.getFeatureType(), feat.getFeatureType().getGeometryDescriptor().getName().toString());
+	}
+	
+	/**
+	 * not very nice overload
+	 * 
+	 * @param feat
+	 * @param schema
+	 * @return
+	 */
+	public static SimpleFeatureBuilder setSFBParcelWithFeat(SimpleFeature feat, SimpleFeatureType schema) {
+		return setSFBWParcelithFeat(feat, schema, schema.getGeometryDescriptor().getName().toString());
 
 	}
 
-	public static SimpleFeatureBuilder setSFBWithFeat(SimpleFeature feat, SimpleFeatureType schema, String geometryOutputName) {
+	public static SimpleFeatureBuilder setSFBWParcelithFeat(SimpleFeature feat, SimpleFeatureType schema, String geometryOutputName) {
 		SimpleFeatureBuilder finalParcelBuilder = new SimpleFeatureBuilder(schema);
 		finalParcelBuilder.set(geometryOutputName, (Geometry) feat.getDefaultGeometry());
 		finalParcelBuilder.set("CODE", feat.getAttribute("CODE"));

@@ -76,14 +76,14 @@
 			<!-- Types de sélections situées dans les zones 2AU de réserve foncière -->
 			<param key="2AU" value="true" />
 			<!-- Types de sélections situées dans les zones A et N -->
-			<param key="NC" value="false" />
+			<param key="NC" value="true" />
 
 		<!-- Décomposition des parcelles - affecte un type de découpage à un secteur (couple de zone/typo) -->
 		<!-- Les combinaisons de zone/typo sont séparées avec un "-" et ces différents secteurs sont séparés par un "_"  -->
 
 		<param key="splitDensification" value="U" />		
 		<param key="splitMotifZone" value="AU" />	
-		<param key="splitMotif" value="false" />
+		<param key="splitMotif" value="NC" />
 
 	<!-- PARAMETRES DE SIMPLU3D -->
 
