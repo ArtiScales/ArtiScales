@@ -4,12 +4,12 @@
 	<!--PARAMÈTRES SCÉNARISTIQUES POUR LES SIMULATIONS AVEC ARTISCALES -->
 
 	<!-- Nom du scénario -->
-	<param key="name" value="exScenarMBHome" />
+	<param key="name" value="exScenar" />
 	<param key="code" value="exScenar" />
 
 	<!-- Dossiers et fichiers nécessaires à la simulation -->
 	<!-- Emplacement de la simulation (données d'entrée, résultats intermédiaires et finaux) -->
-	<param key="rootFile" value="/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales_V2610/"/>
+	<param key="rootFile" value="/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScales012019" />
 
 		
 	<!-- PARAMETRES DU MODULE MUP-CITY -->
@@ -85,6 +85,10 @@
 		<param key="splitMotifZone" value="AU" />	
 		<param key="splitMotif" value="false" />
 
+		<param key="splitDensification" value="false" />		
+		<param key="splitMotifZone" value="AU" />	
+		<param key="splitMotif" value="false" />
+
 	<!-- PARAMETRES DE SIMPLU3D -->
 
 		<!-- prise en compte des prescriptions graphiques et zone tampon si ces préscriptions sont ponctuelles ou linéaires -->
@@ -140,3 +144,4 @@
 	<param key="fill" value="false" />
 
 </parameters>
+
