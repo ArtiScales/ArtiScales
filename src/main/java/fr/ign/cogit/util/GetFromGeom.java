@@ -940,7 +940,7 @@ public class GetFromGeom {
 	 * @return
 	 */
 	public static SimpleFeatureBuilder setSFBParcelWithFeat(SimpleFeature feat) {
-		return setSFBWParcelithFeat(feat, feat.getFeatureType(), feat.getFeatureType().getGeometryDescriptor().getName().toString());
+		return setSFBParcelWithFeat(feat, feat.getFeatureType(), feat.getFeatureType().getGeometryDescriptor().getName().toString());
 	}
 	
 	/**
@@ -951,11 +951,11 @@ public class GetFromGeom {
 	 * @return
 	 */
 	public static SimpleFeatureBuilder setSFBParcelWithFeat(SimpleFeature feat, SimpleFeatureType schema) {
-		return setSFBWParcelithFeat(feat, schema, schema.getGeometryDescriptor().getName().toString());
+		return setSFBParcelWithFeat(feat, schema, schema.getGeometryDescriptor().getName().toString());
 
 	}
 
-	public static SimpleFeatureBuilder setSFBWParcelithFeat(SimpleFeature feat, SimpleFeatureType schema, String geometryOutputName) {
+	public static SimpleFeatureBuilder setSFBParcelWithFeat(SimpleFeature feat, SimpleFeatureType schema, String geometryOutputName) {
 		SimpleFeatureBuilder finalParcelBuilder = new SimpleFeatureBuilder(schema);
 		finalParcelBuilder.set(geometryOutputName, (Geometry) feat.getDefaultGeometry());
 		finalParcelBuilder.set("CODE", feat.getAttribute("CODE"));

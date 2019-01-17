@@ -6,7 +6,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
@@ -455,7 +454,7 @@ public class VectorFct {
 				if (bigZoned.size() > 0) {
 					System.out.println("we cut the parcels with " + type + " parameters");
 					parcelToNotAdd = notAddPArcel(parcelToNotAdd, bigZoned);
-					result = addAllParcels(result,parcelGenZone(splitZone, bigZoned, tmpFile, mupOutput, pAdded, allOrCell));
+					result = addAllParcels(result, parcelGenZone(splitZone, bigZoned, tmpFile, mupOutput, pAdded, allOrCell));
 				}
 			}
 			// only one specification
@@ -465,14 +464,14 @@ public class VectorFct {
 					if (typoed.size() > 0) {
 						parcelToNotAdd = notAddPArcel(parcelToNotAdd, typoed);
 						System.out.println("we cut the parcels with " + type + " parameters");
-						result = addAllParcels(result,parcelGenZone(splitZone, typoed, tmpFile, mupOutput, pAdded, allOrCell));
+						result = addAllParcels(result, parcelGenZone(splitZone, typoed, tmpFile, mupOutput, pAdded, allOrCell));
 					}
 				} else {
 					SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam, parcelCollection, new File(p.getString("rootFile")));
 					if (bigZoned.size() > 0) {
 						parcelToNotAdd = notAddPArcel(parcelToNotAdd, bigZoned);
 						System.out.println("we cut the parcels with " + type + " parameters");
-						result = addAllParcels(result,parcelGenZone(splitZone, bigZoned, tmpFile, mupOutput, pAdded, allOrCell));
+						result = addAllParcels(result, parcelGenZone(splitZone, bigZoned, tmpFile, mupOutput, pAdded, allOrCell));
 					}
 				}
 			}
@@ -526,6 +525,8 @@ public class VectorFct {
 	public static SimpleFeatureCollection parcelGenZone(String splitZone, SimpleFeatureCollection parcels, File tmpFile, File rootFile, File mupOutput, double maximalArea,
 			double maximalWidth, double lenRoad, int decompositionLevelWithoutRoad, boolean allOrCell) throws Exception {
 
+		DirectPosition.PRECISION = 3;
+		
 		// parcels to save for after
 		DefaultFeatureCollection savedParcels = new DefaultFeatureCollection();
 		// import of the zoning file
@@ -774,7 +775,8 @@ public class VectorFct {
 							feat.setAttribute("DoWeSimul", "false");
 						}
 					}
-					SimpleFeatureBuilder finalParcelBuilder = GetFromGeom.setSFBWParcelithFeat(feat, savedParcels.getSchema(), geometryOutputName);
+			//		SimpleFeatureBuilder finalParcelBuilder = GetFromGeom.setSFBWParcelithFeat(feat, savedParcels.getSchema(), geometryOutputName);
+					SimpleFeatureBuilder finalParcelBuilder = GetFromGeom.setSFBParcelWithFeat(feat);
 
 					if (feat.getAttribute("CODE") == null) {
 						finalParcelBuilder = GetFromGeom.setSFBParDefaut(feat, savedParcels.getSchema(), geometryOutputName);
@@ -843,7 +845,7 @@ public class VectorFct {
 				if (bigZoned.size() > 0) {
 					parcelToNotAdd = notAddPArcel(parcelToNotAdd, bigZoned);
 					System.out.println("we cut the parcels with " + type + " parameters");
-					result = addAllParcels(result,parcelGenMotif(splitZone, bigZoned, tmpFile, mupOutput, pAdded, dontTouchUZones));
+					result = addAllParcels(result, parcelGenMotif(splitZone, bigZoned, tmpFile, mupOutput, pAdded, dontTouchUZones));
 				}
 			}
 			// only one specification
@@ -853,14 +855,14 @@ public class VectorFct {
 					if (typoed.size() > 0) {
 						parcelToNotAdd = notAddPArcel(parcelToNotAdd, typoed);
 						System.out.println("we cut the parcels with " + type + " parameters");
-						result = addAllParcels(result,parcelGenMotif(splitZone, typoed, tmpFile, mupOutput, pAdded, dontTouchUZones));
+						result = addAllParcels(result, parcelGenMotif(splitZone, typoed, tmpFile, mupOutput, pAdded, dontTouchUZones));
 					}
 				} else {
 					SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam, parcelCollection, new File(pAdded.getString("rootFile")));
 					if (bigZoned.size() > 0) {
 						parcelToNotAdd = notAddPArcel(parcelToNotAdd, bigZoned);
 						System.out.println("we cut the parcels with " + type + " parameters");
-						result = addAllParcels(result,parcelGenMotif(splitZone, bigZoned, tmpFile, mupOutput, pAdded, dontTouchUZones));
+						result = addAllParcels(result, parcelGenMotif(splitZone, bigZoned, tmpFile, mupOutput, pAdded, dontTouchUZones));
 					}
 				}
 			}
@@ -1161,6 +1163,10 @@ public class VectorFct {
 		IFeatureCollection<IFeature> ifeatCollOut = new FT_FeatureCollection<>();
 		long numParcelle = Math.round(Math.random() * 10000);
 		for (IFeature newFeat : decomp) {
+			
+			//impeach irregularities
+			newFeat.setGeom(newFeat.getGeom().buffer(0.5).buffer(-0.5));
+			
 			String newCodeDep = (String) ifeat.getAttribute("CODE_DEP");
 			String newCodeCom = (String) ifeat.getAttribute("CODE_COM");
 			String newSection = (String) ifeat.getAttribute("SECTION") + "div";

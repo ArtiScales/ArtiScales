@@ -131,31 +131,31 @@ public class SelectParcels {
 							System.out.println();
 							System.out.println("///// We start the densification process\\\\\\");
 							parcelCollection = VectorFct.parcelDensification(splitZone, parcelCollection, tmpFile, spatialConf, ressource, p);
-//							Vectors.exportSFC(parcelCollection, new File(tmpFile, "afterDensification"));
+							Vectors.exportSFC(parcelCollection, new File(tmpFile, "afterDensification"));
 						} else {
 							System.err.println("splitParcel : complex section non implemented yet");
 						}
 					}
 				}
 
-				if (!p.getString("splitMotifZone").equals("false") && !p.getString("splitMotifZone").equals("")) {
-					String splitZone = p.getString("splitMotifZone");
-					if (!splitZone.contains("-")) {
-						System.out.println();
-						System.out.println("///// We start the splitMotifZone process\\\\\\");
-						parcelCollection = VectorFct.parcelGenZone(splitZone, parcelCollection, tmpFile, spatialConf, p, ressource, true);
-//						Vectors.exportSFC(parcelCollection, new File(tmpFile, "aftersplitMotifZone"));
-					} else {
-						System.err.println("splitParcel : complex section non implemented yet");
-					}
-				}
+//				if (!p.getString("splitMotifZone").equals("false") && !p.getString("splitMotifZone").equals("")) {
+//					String splitZone = p.getString("splitMotifZone");
+//					if (!splitZone.contains("-")) {
+//						System.out.println();
+//						System.out.println("///// We start the splitMotifZone process\\\\\\");
+//						parcelCollection = VectorFct.parcelGenZone(splitZone, parcelCollection, tmpFile, spatialConf, p, ressource, true);
+////						Vectors.exportSFC(parcelCollection, new File(tmpFile, "aftersplitMotifZone"));
+//					} else {
+//						System.err.println("splitParcel : complex section non implemented yet");
+//					}
+//				}
 				if (!p.getString("splitMotif").equals("false") && !p.getString("splitMotif").equals("")) {
 					String splitZone = p.getString("splitMotif");
 					if (!splitZone.contains("-")) {
 						System.out.println();
 						System.out.println("///// We start the splitMotif process\\\\\\" + splitZone);
 						parcelCollection = VectorFct.parcelGenMotif(splitZone, parcelCollection, tmpFile, spatialConf, p, ressource,true);
-						// Vectors.exportSFC(parcelCollection, new File(tmpFile, "aftersplitMotif"));
+						Vectors.exportSFC(parcelCollection, new File(tmpFile, "aftersplitMotif"));
 					} else {
 						System.err.println("splitParcel : complex section non implemented yet");
 					}
