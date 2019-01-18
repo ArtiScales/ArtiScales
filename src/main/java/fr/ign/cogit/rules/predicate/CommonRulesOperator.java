@@ -89,7 +89,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	 */
 	public boolean numberMaxOfBuilding(List<List<O>> lGroupes, int numberMax) {
 
-		return lGroupes.size() < numberMax;
+		return lGroupes.size() <= numberMax;
 	}
 	/**
 	 * Check the distance between the cuboids and the existing buildings
