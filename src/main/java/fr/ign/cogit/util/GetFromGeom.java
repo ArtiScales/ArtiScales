@@ -35,10 +35,14 @@ import org.opengis.referencing.operation.TransformException;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Polygon;
+import com.vividsolutions.jts.geom.PrecisionModel;
+import com.vividsolutions.jts.precision.GeometryPrecisionReducer;
 
 import au.com.bytecode.opencsv.CSVReader;
 import fr.ign.cogit.GTFunctions.Vectors;
+import fr.ign.cogit.annexeTools.FeaturePolygonizer;
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
+import fr.ign.cogit.geoxygene.spatial.coordgeom.DirectPosition;
 import fr.ign.cogit.geoxygene.util.conversion.AdapterFactory;
 import fr.ign.cogit.geoxygene.util.conversion.GeOxygeneGeoToolsTypes;
 
@@ -229,6 +233,12 @@ public class GetFromGeom {
 	}
 
 	public static File getParcels(File geoFile, File regulFile, File tmpFile, List<String> listZip) throws Exception {
+		return getParcels(geoFile, regulFile, tmpFile, listZip, true);
+	}
+
+	public static File getParcels(File geoFile, File regulFile, File tmpFile, List<String> listZip, boolean cutAll) throws Exception {
+
+		DirectPosition.PRECISION = 3;
 
 		File result = new File("");
 		for (File f : geoFile.listFiles()) {
@@ -239,6 +249,9 @@ public class GetFromGeom {
 
 		ShapefileDataStore parcelSDS = new ShapefileDataStore(result.toURI().toURL());
 		SimpleFeatureCollection parcels = parcelSDS.getFeatureSource().getFeatures();
+
+		ShapefileDataStore shpDSBati = new ShapefileDataStore(GetFromGeom.getBuild(geoFile).toURI().toURL());
+		// SimpleFeatureCollection batiSFC = Vectors.snapDatas(shpDSBati.getFeatureSource().getFeatures(), Vectors.unionSFC(parcels));
 
 		// if we decided to work on a set of cities
 		if (!listZip.isEmpty()) {
@@ -254,30 +267,61 @@ public class GetFromGeom {
 			parcels = df.collection();
 		}
 
-		ShapefileDataStore shpDSBati = new ShapefileDataStore(GetFromGeom.getBuild(geoFile).toURI().toURL());
+		if (cutAll) {
+			File tmpParcel = Vectors.exportSFC(parcels, new File(tmpFile, "tmpParcel.shp"));
+			File[] polyFiles = { tmpParcel, getZoning(regulFile) };
+
+			List<Polygon> polygons = FeaturePolygonizer.getPolygons(polyFiles);
+
+			List<String> codeParcelsTot = new ArrayList<String>();
+
+			// parcel intersecting the U zone must not be cuted and keep their attributes
+			// intermediary result
+
+			SimpleFeatureBuilder sfSimpleBuilder = GetFromGeom.getSimpleParcelSFBuilder();
+
+			DefaultFeatureCollection write = new DefaultFeatureCollection();
+
+			int nFeat = 0;
+			// for every polygons situated in between U and AU zones, we cut the parcels
+			// regarding to the zone and copy them attributes to keep the existing U parcels
+			for (Geometry poly : polygons) {
+				SimpleFeatureCollection snaped = Vectors.snapDatas(parcels, poly.getBoundary());
+				// if the polygons are not included on the AU zone
+
+				SimpleFeatureIterator parcelIt = snaped.features();
+				try {
+					while (parcelIt.hasNext()) {
+						SimpleFeature feat = parcelIt.next();
+						if (((Geometry) feat.getDefaultGeometry()).buffer(0.01).contains(poly)) {
+							sfSimpleBuilder.add(GeometryPrecisionReducer.reduce(poly, new PrecisionModel(100)));
+							String code = makeParcelCode(feat);
+							sfSimpleBuilder.set("CODE", code);
+							sfSimpleBuilder.set("CODE_DEP", feat.getAttribute("CODE_DEP"));
+							sfSimpleBuilder.set("CODE_COM", feat.getAttribute("CODE_COM"));
+							sfSimpleBuilder.set("COM_ABS", feat.getAttribute("COM_ABS"));
+							sfSimpleBuilder.set("SECTION", feat.getAttribute("SECTION"));
+							if (codeParcelsTot.contains(code)) {
+								sfSimpleBuilder.set("NUMERO", feat.getAttribute("NUMERO") + "bis");
+							} else {
+								sfSimpleBuilder.set("NUMERO", feat.getAttribute("NUMERO"));
+							}
+							codeParcelsTot.add(code);
+							write.add(sfSimpleBuilder.buildFeature(String.valueOf(nFeat)));
+						}
+					}
+				} catch (Exception problem) {
+					problem.printStackTrace();
+				} finally {
+					parcelIt.close();
+				}
+				nFeat++;
+			}
+			parcels = write.collection();
+		}
 		SimpleFeatureCollection batiSFC = Vectors.snapDatas(shpDSBati.getFeatureSource().getFeatures(), Vectors.unionSFC(parcels));
 
-		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
-		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
-		sfTypeBuilder.setName("testType");
-		sfTypeBuilder.setCRS(sourceCRS);
-		sfTypeBuilder.add("the_geom", Polygon.class);
-		sfTypeBuilder.setDefaultGeometry("the_geom");
-		sfTypeBuilder.add("CODE", String.class);
-		sfTypeBuilder.add("CODE_DEP", String.class);
-		sfTypeBuilder.add("CODE_COM", String.class);
-		sfTypeBuilder.add("COM_ABS", String.class);
-		sfTypeBuilder.add("SECTION", String.class);
-		sfTypeBuilder.add("NUMERO", String.class);
-		sfTypeBuilder.add("INSEE", String.class);
-		sfTypeBuilder.add("eval", String.class);
-		sfTypeBuilder.add("DoWeSimul", String.class);
-		sfTypeBuilder.add("IsBuild", Boolean.class);
-		sfTypeBuilder.add("U", Boolean.class);
-		sfTypeBuilder.add("AU", Boolean.class);
-		sfTypeBuilder.add("NC", Boolean.class);
-
-		SimpleFeatureBuilder sfBuilder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
+		SimpleFeatureBuilder sfBuilder = getParcelSFBuilder();
 
 		DefaultFeatureCollection newParcel = new DefaultFeatureCollection();
 
@@ -287,40 +331,37 @@ public class GetFromGeom {
 		try {
 			while (parcelIt.hasNext()) {
 				SimpleFeature feat = parcelIt.next();
-				// put the best cell evaluation into the parcel
-				String numero = ((String) feat.getAttribute("CODE_DEP")) + ((String) feat.getAttribute("CODE_COM")) + ((String) feat.getAttribute("COM_ABS"))
-						+ ((String) feat.getAttribute("SECTION")) + ((String) feat.getAttribute("NUMERO"));
-				String INSEE = ((String) feat.getAttribute("CODE_DEP")) + ((String) feat.getAttribute("CODE_COM"));
+				if (((Geometry) feat.getDefaultGeometry()).getArea() > 5.0) {
+					// put the best cell evaluation into the parcel
+					String INSEE = ((String) feat.getAttribute("CODE_DEP")) + ((String) feat.getAttribute("CODE_COM"));
+					// say if the parcel intersects a particular zoning type
+					boolean u = false;
+					boolean au = false;
+					boolean nc = false;
 
-				boolean isBuild = isBuilt(feat, batiSFC);
-
-				// say if the parcel intersects a particular zoning type
-				boolean u = false;
-				boolean au = false;
-				boolean nc = false;
-
-				for (String s : parcelInBigZone(feat, regulFile)) {
-					if (s.equals("AU")) {
-						au = true;
-					} else if (s.equals("U")) {
-						u = true;
-					} else if (s.equals("NC")) {
-						nc = true;
-					} else {
-						// if the parcel is outside of the zoning file, we don't keep it
-						continue;
+					for (String s : parcelInBigZone(feat, regulFile)) {
+						if (s.equals("AU")) {
+							au = true;
+						} else if (s.equals("U")) {
+							u = true;
+						} else if (s.equals("NC")) {
+							nc = true;
+						} else {
+							// if the parcel is outside of the zoning file, we don't keep it
+							continue;
+						}
 					}
+
+					Object[] attr = { makeParcelCode(feat), feat.getAttribute("CODE_DEP"), feat.getAttribute("CODE_COM"), feat.getAttribute("COM_ABS"),
+							feat.getAttribute("SECTION"), feat.getAttribute("NUMERO"), INSEE, 0, "false", isBuilt(feat, batiSFC), u, au, nc };
+
+					sfBuilder.add(feat.getDefaultGeometry());
+
+					SimpleFeature feature = sfBuilder.buildFeature(String.valueOf(i), attr);
+					newParcel.add(feature);
+					// System.out.println(i+" on "+tot);
+					i = i + 1;
 				}
-
-				Object[] attr = { numero, feat.getAttribute("CODE_DEP"), feat.getAttribute("CODE_COM"), feat.getAttribute("COM_ABS"), feat.getAttribute("SECTION"),
-						feat.getAttribute("NUMERO"), INSEE, 0, "false", isBuild, u, au, nc };
-
-				sfBuilder.add(feat.getDefaultGeometry());
-
-				SimpleFeature feature = sfBuilder.buildFeature(String.valueOf(i), attr);
-				newParcel.add(feature);
-				// System.out.println(i+" on "+tot);
-				i = i + 1;
 			}
 
 		} catch (Exception problem) {
@@ -333,6 +374,11 @@ public class GetFromGeom {
 		shpDSBati.dispose();
 
 		return Vectors.exportSFC(newParcel.collection(), new File(tmpFile, "parcel.shp"));
+	}
+
+	public static String makeParcelCode(SimpleFeature feat) {
+		return ((String) feat.getAttribute("CODE_DEP")) + ((String) feat.getAttribute("CODE_COM")) + ((String) feat.getAttribute("COM_ABS"))
+				+ ((String) feat.getAttribute("SECTION")) + ((String) feat.getAttribute("NUMERO"));
 	}
 
 	public static boolean isBuilt(SimpleFeature parcel, SimpleFeatureCollection batiSFC) {
@@ -387,10 +433,10 @@ public class GetFromGeom {
 
 	public static SimpleFeatureCollection getIlots(File geoFile, SimpleFeatureCollection parcelCollection) throws Exception {
 		File ilots = getIlots(geoFile);
-		
+
 		return Vectors.snapDatas(ilots, parcelCollection);
 	}
-	
+
 	public static File getIlots(File geoFile) throws NoSuchAuthorityCodeException, IOException, FactoryException {
 		for (File f : geoFile.listFiles()) {
 			if (f.getName().startsWith("ilot") && f.getName().endsWith(".shp")) {
@@ -690,7 +736,11 @@ public class GetFromGeom {
 		try {
 			zoneLoop: while (featuresZones.hasNext()) {
 				SimpleFeature feat = featuresZones.next();
-				if (((Geometry) feat.getDefaultGeometry()).buffer(0.5).contains((Geometry) parcelIn.getDefaultGeometry())) {
+				PrecisionModel precMod = new PrecisionModel(100);
+				Geometry featGeometry = GeometryPrecisionReducer.reduce((Geometry) feat.getDefaultGeometry(), precMod);
+				Geometry parcelInGeometry = GeometryPrecisionReducer.reduce((Geometry) parcelIn.getDefaultGeometry(), precMod);
+
+				if (featGeometry.buffer(0.5).contains(parcelInGeometry)) {
 					twoZones = false;
 					switch ((String) feat.getAttribute("TYPEZONE")) {
 					case "U":
@@ -714,31 +764,32 @@ public class GetFromGeom {
 					}
 				}
 				// maybe the parcel is in between two zones (less optimized)
-				else if (((Geometry) feat.getDefaultGeometry()).intersects((Geometry) parcelIn.getDefaultGeometry())) {
+				else if ((featGeometry).intersects(parcelInGeometry)) {
 					twoZones = true;
+					double area = (featGeometry.intersection(parcelInGeometry)).getArea();
 					switch ((String) feat.getAttribute("TYPEZONE")) {
 					case "U":
 					case "ZC":
 						if (repart.containsKey("U")) {
-							repart.put("U", repart.get("U") + ((Geometry) feat.getDefaultGeometry()).intersection((Geometry) parcelIn.getDefaultGeometry()).getArea());
+							repart.put("U", repart.get("U") + area);
 						} else {
-							repart.put("U", ((Geometry) feat.getDefaultGeometry()).intersection((Geometry) parcelIn.getDefaultGeometry()).getArea());
+							repart.put("U", area);
 						}
 						break;
 					case "AU":
 						if (repart.containsKey("AU")) {
-							repart.put("AU", repart.get("AU") + ((Geometry) feat.getDefaultGeometry()).intersection((Geometry) parcelIn.getDefaultGeometry()).getArea());
+							repart.put("AU", repart.get("AU") + area);
 						} else {
-							repart.put("AU", ((Geometry) feat.getDefaultGeometry()).intersection((Geometry) parcelIn.getDefaultGeometry()).getArea());
+							repart.put("AU", area);
 						}
 						break;
 					case "N":
 					case "NC":
 					case "A":
 						if (repart.containsKey("NC")) {
-							repart.put("NC", repart.get("NC") + ((Geometry) feat.getDefaultGeometry()).intersection((Geometry) parcelIn.getDefaultGeometry()).getArea());
+							repart.put("NC", repart.get("NC") + area);
 						} else {
-							repart.put("NC", ((Geometry) feat.getDefaultGeometry()).intersection((Geometry) parcelIn.getDefaultGeometry()).getArea());
+							repart.put("NC", area);
 						}
 						break;
 					}
@@ -875,6 +926,23 @@ public class GetFromGeom {
 		return new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
 	}
 
+	public static SimpleFeatureBuilder getSimpleParcelSFBuilder() throws NoSuchAuthorityCodeException, FactoryException {
+		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
+		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
+		sfTypeBuilder.setName("testType");
+		sfTypeBuilder.setCRS(sourceCRS);
+		sfTypeBuilder.add("the_geom", Polygon.class);
+		sfTypeBuilder.setDefaultGeometry("the_geom");
+		sfTypeBuilder.add("CODE", String.class);
+		sfTypeBuilder.add("CODE_DEP", String.class);
+		sfTypeBuilder.add("CODE_COM", String.class);
+		sfTypeBuilder.add("COM_ABS", String.class);
+		sfTypeBuilder.add("SECTION", String.class);
+		sfTypeBuilder.add("NUMERO", String.class);
+
+		return new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
+	}
+
 	public static SimpleFeatureBuilder getParcelSFBuilder() throws NoSuchAuthorityCodeException, FactoryException {
 		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
 		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
@@ -931,7 +999,6 @@ public class GetFromGeom {
 		return finalParcelBuilder;
 	}
 
-	
 	/**
 	 * not very nice overload
 	 * 
@@ -942,7 +1009,7 @@ public class GetFromGeom {
 	public static SimpleFeatureBuilder setSFBParcelWithFeat(SimpleFeature feat) {
 		return setSFBParcelWithFeat(feat, feat.getFeatureType(), feat.getFeatureType().getGeometryDescriptor().getName().toString());
 	}
-	
+
 	/**
 	 * not very nice overload
 	 * 
@@ -973,6 +1040,28 @@ public class GetFromGeom {
 		finalParcelBuilder.set("NC", feat.getAttribute("NC"));
 
 		return finalParcelBuilder;
+	}
+
+	public static List<String> allZip(File geoFile) throws IOException {
+		List<String> result = new ArrayList<String>();
+		ShapefileDataStore comSDS = new ShapefileDataStore(getCommunities(geoFile).toURI().toURL());
+		SimpleFeatureIterator it = comSDS.getFeatureSource().getFeatures().features();
+		try {
+			while (it.hasNext()) {
+				SimpleFeature feat = it.next();
+				if (!result.contains(feat.getAttribute("DEPCOM"))) {
+					result.add((String) feat.getAttribute("DEPCOM"));
+				}
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			it.close();
+		}
+
+		comSDS.dispose();
+
+		return result;
 	}
 
 }

@@ -30,7 +30,9 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryCollection;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Polygon;
+import com.vividsolutions.jts.geom.PrecisionModel;
 import com.vividsolutions.jts.io.ParseException;
+import com.vividsolutions.jts.precision.GeometryPrecisionReducer;
 
 import au.com.bytecode.opencsv.CSVReader;
 import fr.ign.cogit.GTFunctions.Vectors;
@@ -186,7 +188,7 @@ public class VectorFct {
 			stringParam = stringParam.replace(".xml", "");
 
 			// two specifications
-			if (stringParam.split("-").length == 2) {
+			if (stringParam.split("-").length == 2 && stringParam.split("-")[0].equals(splitZone)) {
 				SimpleFeatureCollection typoed = getParcelByTypo(stringParam.split("-")[0], parcelCollection, new File(pAdded.getString("rootFile")));
 				SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam.split("-")[1], typoed, new File(pAdded.getString("rootFile")));
 				if (bigZoned.size() > 0) {
@@ -205,11 +207,13 @@ public class VectorFct {
 						result = addAllParcels(result, parcelDensification(splitZone, typoed, tmpFile, mupOutput, pAdded));
 					}
 				} else {
-					SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam, parcelCollection, new File(pAdded.getString("rootFile")));
-					if (bigZoned.size() > 0) {
-						System.out.println("we cut the parcels with " + type + " parameters");
-						parcelToNotAdd = notAddPArcel(parcelToNotAdd, bigZoned);
-						result = addAllParcels(result, parcelDensification(splitZone, bigZoned, tmpFile, mupOutput, pAdded));
+					if (stringParam.equals(splitZone)) {
+						SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam, parcelCollection, new File(pAdded.getString("rootFile")));
+						if (bigZoned.size() > 0) {
+							System.out.println("we cut the parcels with " + type + " parameters");
+							parcelToNotAdd = notAddPArcel(parcelToNotAdd, bigZoned);
+							result = addAllParcels(result, parcelDensification(splitZone, bigZoned, tmpFile, mupOutput, pAdded));
+						}
 					}
 				}
 			}
@@ -448,13 +452,14 @@ public class VectorFct {
 			stringParam = stringParam.replace(".xml", "");
 
 			// two specifications
-			if (stringParam.split("-").length == 2) {
+			if (stringParam.split("-").length == 2 && stringParam.split("-")[0].equals(splitZone)) {
 				SimpleFeatureCollection typoed = getParcelByTypo(stringParam.split("-")[0], parcelCollection, new File(p.getString("rootFile")));
 				SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam.split("-")[1], typoed, new File(p.getString("rootFile")));
 				if (bigZoned.size() > 0) {
 					System.out.println("we cut the parcels with " + type + " parameters");
 					parcelToNotAdd = notAddPArcel(parcelToNotAdd, bigZoned);
 					result = addAllParcels(result, parcelGenZone(splitZone, bigZoned, tmpFile, mupOutput, pAdded, allOrCell));
+					Vectors.exportSFC(result, new File("/tmp/" + stringParam + "AfterZoneMotif.shp"));
 				}
 			}
 			// only one specification
@@ -467,11 +472,13 @@ public class VectorFct {
 						result = addAllParcels(result, parcelGenZone(splitZone, typoed, tmpFile, mupOutput, pAdded, allOrCell));
 					}
 				} else {
-					SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam, parcelCollection, new File(p.getString("rootFile")));
-					if (bigZoned.size() > 0) {
-						parcelToNotAdd = notAddPArcel(parcelToNotAdd, bigZoned);
-						System.out.println("we cut the parcels with " + type + " parameters");
-						result = addAllParcels(result, parcelGenZone(splitZone, bigZoned, tmpFile, mupOutput, pAdded, allOrCell));
+					if (splitZone.equals(stringParam)) {
+						SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam, parcelCollection, new File(p.getString("rootFile")));
+						if (bigZoned.size() > 0) {
+							parcelToNotAdd = notAddPArcel(parcelToNotAdd, bigZoned);
+							System.out.println("we cut the parcels with " + type + " parameters");
+							result = addAllParcels(result, parcelGenZone(splitZone, bigZoned, tmpFile, mupOutput, pAdded, allOrCell));
+						}
 					}
 				}
 			}
@@ -525,8 +532,9 @@ public class VectorFct {
 	public static SimpleFeatureCollection parcelGenZone(String splitZone, SimpleFeatureCollection parcels, File tmpFile, File rootFile, File mupOutput, double maximalArea,
 			double maximalWidth, double lenRoad, int decompositionLevelWithoutRoad, boolean allOrCell) throws Exception {
 
-		DirectPosition.PRECISION = 3;
-		
+		// parcel schema for all
+		SimpleFeatureType schema = parcels.getSchema();
+
 		// parcels to save for after
 		DefaultFeatureCollection savedParcels = new DefaultFeatureCollection();
 		// import of the zoning file
@@ -534,7 +542,7 @@ public class VectorFct {
 		SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
 
 		Geometry unionParcel = Vectors.unionSFC(parcels);
-		String geometryParcelPropertyName = parcels.getSchema().getGeometryDescriptor().getLocalName();
+		String geometryParcelPropertyName = schema.getGeometryDescriptor().getLocalName();
 
 		// get the AU zones from the zoning file
 		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
@@ -584,7 +592,7 @@ public class VectorFct {
 
 					if (intersection instanceof MultiPolygon) {
 						for (int i = 0; i < intersection.getNumGeometries(); i++) {
-							simpleSFB.set("the_geom", intersection.getGeometryN(i));
+							simpleSFB.set("the_geom", GeometryPrecisionReducer.reduce(intersection.getGeometryN(i), new PrecisionModel(100)));
 							simpleSFB.set("INSEE", "25569");
 							goOdAu.add(simpleSFB.buildFeature(null));
 							// Object[] attr = feat.getAttributes().toArray();
@@ -595,7 +603,7 @@ public class VectorFct {
 						for (int i = 0; i < intersection.getNumGeometries(); i++) {
 							Geometry g = intersection.getGeometryN(i);
 							if (g instanceof Polygon) {
-								simpleSFB.set("the_geom", g);
+								simpleSFB.set("the_geom", g.buffer(1).buffer(-1));
 								simpleSFB.set("INSEE", "25569");
 								goOdAu.add(simpleSFB.buildFeature(null));
 								// Object[] attr = feat.getAttributes().toArray();
@@ -604,7 +612,7 @@ public class VectorFct {
 							}
 						}
 					} else {
-						simpleSFB.set("the_geom", intersection);
+						simpleSFB.set("the_geom", intersection.buffer(1).buffer(-1));
 						simpleSFB.set("INSEE", "25560");
 						goOdAu.add(simpleSFB.buildFeature(null));
 						// Object[] attr = feat.getAttributes().toArray();
@@ -618,11 +626,11 @@ public class VectorFct {
 		} finally {
 			zoneAUIt.close();
 		}
-
+		SimpleFeatureCollection gOOdAU = goOdAu.collection();
 		// temporary shapefiles that serves to do polygons
 		File fParcelsInAU = Vectors.exportSFC(parcelsInAU, new File(tmpFile, "parcelCible.shp"));
-		File fZoneAU = Vectors.exportSFC(goOdAu.collection(), new File(tmpFile, "oneAU.shp"));
-		geomAU = Vectors.unionSFC(goOdAu.collection());
+		File fZoneAU = Vectors.exportSFC(gOOdAU, new File(tmpFile, "oneAU.shp"));
+		geomAU = Vectors.unionSFC(gOOdAU);
 		// cut and separate parcel according to their spatial relation with the zoning
 		File[] polyFiles = { fParcelsInAU, fZoneAU };
 		List<Polygon> polygons = FeaturePolygonizer.getPolygons(polyFiles);
@@ -673,7 +681,7 @@ public class VectorFct {
 			}
 		}
 		String geometryOutputName = write.getSchema().getGeometryDescriptor().getLocalName();
-		SimpleFeatureIterator it = goOdAu.features();
+		SimpleFeatureIterator it = gOOdAU.features();
 		int numZone = 0;
 
 		// mark and add the AU zones to the collection
@@ -697,9 +705,10 @@ public class VectorFct {
 				sfBuilder.set("U", false);
 				sfBuilder.set("AU", true);
 				sfBuilder.set("NC", false);
-				Geometry intersectedGeom = ((Geometry) zone.getDefaultGeometry()).intersection(unionParcel);
-
+				Geometry intersectedGeom = GeometryPrecisionReducer.reduce((Geometry) zone.getDefaultGeometry(), new PrecisionModel(100))
+						.intersection(GeometryPrecisionReducer.reduce(unionParcel, new PrecisionModel(100)));
 				if (!intersectedGeom.isEmpty()) {
+
 					if (intersectedGeom instanceof MultiPolygon) {
 						for (int i = 0; i < intersectedGeom.getNumGeometries(); i++) {
 							sfBuilder.set(geometryOutputName, intersectedGeom.getGeometryN(i));
@@ -722,7 +731,31 @@ public class VectorFct {
 							sfBuilder.set("AU", true);
 							sfBuilder.set("NC", false);
 						}
-						continue;
+					} else if (intersectedGeom instanceof GeometryCollection) {
+						for (int i = 0; i < intersectedGeom.getNumGeometries(); i++) {
+							Geometry g = intersectedGeom.getGeometryN(i);
+							if (g instanceof Polygon) {
+								sfBuilder.set("the_geom", g.buffer(1).buffer(-1));
+								sfBuilder.set("CODE", insee + "000" + "New" + numZone + "Section");
+								sfBuilder.set("CODE_DEP", insee.substring(0, 2));
+								sfBuilder.set("CODE_COM", insee.substring(2, 5));
+								sfBuilder.set("COM_ABS", "000");
+								sfBuilder.set("SECTION", "New" + numZone + "Section");
+								sfBuilder.set("NUMERO", "");
+								sfBuilder.set("INSEE", insee);
+								sfBuilder.set("eval", "0");
+								sfBuilder.set("DoWeSimul", false);
+								sfBuilder.set("SPLIT", 1);
+								// @warning the AU Parcels are mostly unbuilt, but maybe not?
+								sfBuilder.set("IsBuild", false);
+								sfBuilder.set("U", false);
+								sfBuilder.set("AU", true);
+								sfBuilder.set("NC", false);
+								// Object[] attr = feat.getAttributes().toArray();
+								// attr[0] = intersection.getGeometryN(i);
+								// goOdAu.add(simpleSFB.buildFeature(null, attr));
+							}
+						}
 					} else {
 						sfBuilder.set(geometryOutputName, intersectedGeom);
 					}
@@ -740,12 +773,12 @@ public class VectorFct {
 		}
 
 		shpDSZone.dispose();
-
+		SimpleFeatureCollection toSplit = Vectors.delTinyParcels(write.collection(), 5.0);
 		double roadEpsilon = 00;
 		double noise = 0;
-
-		SimpleFeatureCollection splitedAUParcels = splitParcels(write.collection(), maximalArea, maximalWidth, roadEpsilon, noise, null, lenRoad, false,
-				decompositionLevelWithoutRoad, tmpFile);
+		Vectors.exportSFC(toSplit, new File("/tmp/beforesplitzone.shp"));
+		SimpleFeatureCollection splitedAUParcels = splitParcels(toSplit, maximalArea, maximalWidth, roadEpsilon, noise, null, lenRoad, false, decompositionLevelWithoutRoad,
+				tmpFile);
 
 		// mup output
 		ShapefileDataStore mupSDS = new ShapefileDataStore(mupOutput.toURI().toURL());
@@ -753,7 +786,6 @@ public class VectorFct {
 
 		// Finally, put them all features in a same collec
 		SimpleFeatureIterator finalIt = splitedAUParcels.features();
-		int cpt = 0;
 		try {
 			while (finalIt.hasNext()) {
 				SimpleFeature feat = finalIt.next();
@@ -775,15 +807,13 @@ public class VectorFct {
 							feat.setAttribute("DoWeSimul", "false");
 						}
 					}
-			//		SimpleFeatureBuilder finalParcelBuilder = GetFromGeom.setSFBWParcelithFeat(feat, savedParcels.getSchema(), geometryOutputName);
-					SimpleFeatureBuilder finalParcelBuilder = GetFromGeom.setSFBParcelWithFeat(feat);
+					// SimpleFeatureBuilder finalParcelBuilder = GetFromGeom.setSFBWParcelithFeat(feat, savedParcels.getSchema(), geometryOutputName);
+					SimpleFeatureBuilder finalParcelBuilder = GetFromGeom.setSFBParcelWithFeat(feat, schema);
 
 					if (feat.getAttribute("CODE") == null) {
-						finalParcelBuilder = GetFromGeom.setSFBParDefaut(feat, savedParcels.getSchema(), geometryOutputName);
+						finalParcelBuilder = GetFromGeom.setSFBParDefaut(feat, schema, geometryOutputName);
 					}
-
-					savedParcels.add(finalParcelBuilder.buildFeature(String.valueOf(cpt)));
-					cpt++;
+					savedParcels.add(finalParcelBuilder.buildFeature(null));
 				}
 			}
 		} catch (Exception problem) {
@@ -793,7 +823,7 @@ public class VectorFct {
 		}
 		mupSDS.dispose();
 		// pSDS.dispose();
-		SimpleFeatureCollection result = savedParcels.collection();
+		SimpleFeatureCollection result = Vectors.delTinyParcels(savedParcels.collection(), 10.0);
 		Vectors.exportSFC(result, new File(tmpFile, "parcelFinal.shp"));
 
 		return result;
@@ -840,12 +870,14 @@ public class VectorFct {
 
 			// two specifications
 			if (stringParam.split("-").length == 2) {
-				SimpleFeatureCollection typoed = getParcelByTypo(stringParam.split("-")[0], parcelCollection, new File(pAdded.getString("rootFile")));
-				SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam.split("-")[1], typoed, new File(pAdded.getString("rootFile")));
-				if (bigZoned.size() > 0) {
-					parcelToNotAdd = notAddPArcel(parcelToNotAdd, bigZoned);
-					System.out.println("we cut the parcels with " + type + " parameters");
-					result = addAllParcels(result, parcelGenMotif(splitZone, bigZoned, tmpFile, mupOutput, pAdded, dontTouchUZones));
+				if (splitZone.equals(stringParam.split("-")[0])) {
+					SimpleFeatureCollection typoed = getParcelByTypo(stringParam.split("-")[0], parcelCollection, new File(pAdded.getString("rootFile")));
+					SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam.split("-")[1], typoed, new File(pAdded.getString("rootFile")));
+					if (bigZoned.size() > 0) {
+						parcelToNotAdd = notAddPArcel(parcelToNotAdd, bigZoned);
+						System.out.println("we cut the parcels with " + type + " parameters");
+						result = addAllParcels(result, parcelGenMotif(splitZone, bigZoned, tmpFile, mupOutput, pAdded, dontTouchUZones));
+					}
 				}
 			}
 			// only one specification
@@ -858,11 +890,13 @@ public class VectorFct {
 						result = addAllParcels(result, parcelGenMotif(splitZone, typoed, tmpFile, mupOutput, pAdded, dontTouchUZones));
 					}
 				} else {
-					SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam, parcelCollection, new File(pAdded.getString("rootFile")));
-					if (bigZoned.size() > 0) {
-						parcelToNotAdd = notAddPArcel(parcelToNotAdd, bigZoned);
-						System.out.println("we cut the parcels with " + type + " parameters");
-						result = addAllParcels(result, parcelGenMotif(splitZone, bigZoned, tmpFile, mupOutput, pAdded, dontTouchUZones));
+					if (stringParam.split("-")[0].equals(splitZone)) {
+						SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam, parcelCollection, new File(pAdded.getString("rootFile")));
+						if (bigZoned.size() > 0) {
+							parcelToNotAdd = notAddPArcel(parcelToNotAdd, bigZoned);
+							System.out.println("we cut the parcels with " + type + " parameters");
+							result = addAllParcels(result, parcelGenMotif(splitZone, bigZoned, tmpFile, mupOutput, pAdded, dontTouchUZones));
+						}
 					}
 				}
 			}
@@ -889,14 +923,14 @@ public class VectorFct {
 	}
 
 	public static SimpleFeatureCollection parcelGenMotif(String typeZone, SimpleFeatureCollection parcels, File tmpFile, File mupOutput, Parameters p, boolean dontTouchUZones)
-			throws IOException, NoSuchAuthorityCodeException, FactoryException {
+			throws Exception {
 		return parcelGenMotif(typeZone, parcels, tmpFile, new File(p.getString("rootFile")), mupOutput, p.getDouble("areaParcel"), p.getDouble("widParcel"), p.getDouble("lenRoad"),
 				p.getInteger("decompositionLevelWithoutRoad"), dontTouchUZones);
 	}
 
 	public static SimpleFeatureCollection parcelGenMotif(String typeZone, SimpleFeatureCollection parcels, File tmpFile, File rootFile, File mupOutput, double maximalArea,
-			double maximalWidth, double roadWidth, int decompositionLevelWithRoad, boolean dontTouchUZones) throws IOException, NoSuchAuthorityCodeException, FactoryException {
-
+			double maximalWidth, double roadWidth, int decompositionLevelWithRoad, boolean dontTouchUZones) throws Exception {
+		Vectors.exportSFC(parcels, new File("/tmp/beforeRupture.shp"));
 		File geoFile = new File(rootFile, "dataGeo");
 		Geometry emprise = Vectors.unionSFC(parcels);
 
@@ -998,7 +1032,6 @@ public class VectorFct {
 				} else {
 					cutParcels.add(sfBuilderSimple.buildFeature(null, new Object[] { feat.getDefaultGeometry() }));
 				}
-
 			}
 		} catch (Exception problem) {
 			problem.printStackTrace();
@@ -1081,9 +1114,12 @@ public class VectorFct {
 		shpDSCells.dispose();
 		shpDSCities.dispose();
 		shpDSCells.dispose();
-		Vectors.exportSFC(parcelResult, new File(tmpFile, "step4.shp"));
 
-		return parcelResult;
+		SimpleFeatureCollection result = Vectors.delTinyParcels(parcelResult, 10.0);
+
+		Vectors.exportSFC(result, new File(tmpFile, "step4.shp"));
+
+		return result;
 	}
 
 	/**
@@ -1163,10 +1199,10 @@ public class VectorFct {
 		IFeatureCollection<IFeature> ifeatCollOut = new FT_FeatureCollection<>();
 		long numParcelle = Math.round(Math.random() * 10000);
 		for (IFeature newFeat : decomp) {
-			
-			//impeach irregularities
+
+			// impeach irregularities
 			newFeat.setGeom(newFeat.getGeom().buffer(0.5).buffer(-0.5));
-			
+
 			String newCodeDep = (String) ifeat.getAttribute("CODE_DEP");
 			String newCodeCom = (String) ifeat.getAttribute("CODE_COM");
 			String newSection = (String) ifeat.getAttribute("SECTION") + "div";
@@ -1802,7 +1838,6 @@ public class VectorFct {
 		try {
 			while (it.hasNext()) {
 				SimpleFeature parcelFeat = it.next();
-
 				SimpleFeatureIterator itZone = zoneSelected.features();
 				try {
 					while (itZone.hasNext()) {
@@ -1816,10 +1851,10 @@ public class VectorFct {
 
 						if (zoneGeom.contains(parcelGeom)) {
 							result.add(parcelFeat);
-
 						}
 						// if the intersection is less than 50% of the parcel, we let it to the other (with the hypothesis that there is only 2 features)
-						else if (parcelGeom.intersection(zoneGeom).getArea() > parcelGeom.getArea() / 2) {
+						else if (GeometryPrecisionReducer.reduce(parcelGeom, new PrecisionModel(100))
+								.intersection(GeometryPrecisionReducer.reduce(zoneGeom, new PrecisionModel(100))).getArea() > parcelGeom.getArea() / 2) {
 							result.add(parcelFeat);
 						}
 					}

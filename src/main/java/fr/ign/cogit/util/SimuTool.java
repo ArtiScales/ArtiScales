@@ -43,23 +43,24 @@ public class SimuTool {
 	 * @return
 	 * @throws Exception
 	 */
-	public static File getIntrestingCommunities(Parameters p, File geoFile, File regulFile, File tmpFile) throws Exception {
+	public static List<String> getIntrestingCommunities(Parameters p, File geoFile, File regulFile, File tmpFile) throws Exception {
 		if (p.getString("singleCity").equals("true")) {
 			String zips = p.getString("zip");
+			List<String> listZip = new ArrayList<String>();
 			// if multiple zips
 			if (zips.contains(",")) {
-				List<String> listZip = new ArrayList<String>();
 				for (String z : zips.split(",")) {
 					listZip.add(z);
 				}
-				return GetFromGeom.getParcels(geoFile, regulFile, tmpFile, listZip);
+				return listZip;
 			}
 			// if single zip
 			else {
-				return GetFromGeom.getParcels(geoFile, regulFile, tmpFile, zips);
+				listZip.add(zips);
+				return listZip;
 			}
 		} else {
-			return GetFromGeom.getParcels(geoFile, regulFile, tmpFile);
+			return null;
 		}
 	}
 

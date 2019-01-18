@@ -28,8 +28,10 @@ import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.MultiLineString;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
+import com.vividsolutions.jts.geom.PrecisionModel;
 import com.vividsolutions.jts.geom.util.LinearComponentExtracter;
 import com.vividsolutions.jts.operation.polygonize.Polygonizer;
+import com.vividsolutions.jts.precision.GeometryPrecisionReducer;
 
 public class FeaturePolygonizer {
   private static GeometryFactory fact = new GeometryFactory();
@@ -83,7 +85,11 @@ public class FeaturePolygonizer {
 
   private static void addFeatures(Polygonizer p, List<Geometry> inputFeatures) {
     System.out.println(Calendar.getInstance().getTime() + " node lines");
-    List<Geometry> lines = getLines(inputFeatures);
+    List<Geometry> reduced = new ArrayList<Geometry>();
+    for (Geometry g : inputFeatures) {
+    	reduced.add(GeometryPrecisionReducer.reduce(g,new PrecisionModel(100)));
+    }
+    List<Geometry> lines = getLines(reduced);
     List<Geometry> nodedLines = nodeLines(lines);
     int size = nodedLines.size();
     System.out.println(Calendar.getInstance().getTime() + " insert lines (" + size + ")");
