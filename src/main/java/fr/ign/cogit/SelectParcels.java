@@ -187,7 +187,7 @@ public class SelectParcels {
 						listScenar.add(packFile);
 					}
 					// city (better for a continuous urbanisation)
-					else if (p.getString("package").equals("commune")) {
+					else if (p.getString("package").equals("communities")) {
 						separateToDifferentCitiesPack(parcelSelectedFile, packFile);
 						listScenar.add(packFile);
 					}

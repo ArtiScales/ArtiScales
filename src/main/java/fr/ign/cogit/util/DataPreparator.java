@@ -32,16 +32,12 @@ public class DataPreparator {
 
 		// Rayon autour duquel des parcelles sont ajoutées au contexte sans être
 		// simulées.
-		ZonePackager.CONTEXT_AREA = 1;
-
-		// If we want to use a shapefile instead (data has to be in
-		// Lambert93)
-		IFeatureCollection<IFeature> parcelles = ShapefileReader.read(fileIn.getAbsolutePath());
+		ZonePackager.CONTEXT_AREA = 4;
 
 		int numberOfParcels = 20;
 		double areaMax = 5000;
 
-		ZonePackager.createParcelGroupsAndExport(parcelles, numberOfParcels, areaMax, folderTemp.getAbsolutePath(),
+		ZonePackager.createParcelGroupsAndExport(ShapefileReader.read(fileIn.getAbsolutePath()), numberOfParcels, areaMax, folderTemp.getAbsolutePath(),
 				folderOut.getAbsolutePath(), true);
 	}
 
