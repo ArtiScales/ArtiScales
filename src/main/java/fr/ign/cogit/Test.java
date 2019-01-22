@@ -73,8 +73,8 @@ public class Test {
 				OBBBlockDecomposition decomposition = new OBBBlockDecomposition(pol, maximalArea, maximalWidth,
 						roadEpsilon, iMultiCurve, roadWidth, forceRoadAccess, i);
 				IFeatureCollection<IFeature> featColl = decomposition.decompParcel(noise);
-
-				if ((decomposition.howManyIt(pol, noise, forceRoadAccess) - i) <= 0) {
+			
+				if ((OBBBlockDecomposition.howManyIt(pol, noise, forceRoadAccess, maximalArea, maximalWidth) - i) <= 0) {
 					FlagParcelDecomposition flagDecomp = new FlagParcelDecomposition(pol,
 							ShapefileReader.read(GetFromGeom.getBuild(dataGeo).getAbsolutePath()), maximalArea,
 							maximalWidth, roadWidth, iMultiCurve);
