@@ -364,7 +364,9 @@ public class SimPLUSimulator {
 			// saving the output
 			File folderOut = SimuTool.createScenarVariantFolders(simuFile, rootFile, "SimPLUDepot");
 			folderOut.mkdirs();
-			File output = new File(folderOut, "out-parcel_" + building.get(0).getAttribute("CODE") + ".shp");
+			
+			
+			File output = new File(folderOut, "out-parcel_" +codeParcel + ".shp");
 			System.out.println("Output in : " + output);
 			ShapefileWriter.write(building, output.toString(), CRS.decode("EPSG:2154"));
 
@@ -372,7 +374,6 @@ public class SimPLUSimulator {
 				output = null;
 			}
 
-			System.out.println("");
 			if (output != null) {
 				listBatiSimu.add(output);
 			}

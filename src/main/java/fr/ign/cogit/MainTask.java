@@ -9,6 +9,7 @@ import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.indicators.BuildingToHousingUnit;
 import fr.ign.cogit.indicators.ParcelStat;
 import fr.ign.cogit.util.SimuTool;
+import fr.ign.cogit.util.VectorFct;
 import fr.ign.parameters.Parameters;
 
 public class MainTask {
@@ -31,8 +32,7 @@ public class MainTask {
 		// general parameters
 
 		// list of different scenarios to test
-		List<Parameters> listScenarios = getParamFile("scenar0MKDom", new File("/home/mbrasebin/Documents/Code/ArtiScales/ArtiScales/src/main/resources/paramSet"));
-		
+ 		List<Parameters> listScenarios = getParamFile("exScenar", new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet"));		
 		// List<Parameters> listScenarios = getParamFile("scenar0MKDom", new
 		// File("/home/mbrasebin/Documents/Code/ArtiScales/ArtiScales/src/main/resources/paramSet/"));
 
@@ -113,6 +113,7 @@ public class MainTask {
 						}
 					}
 				}
+				VectorFct.mergeBatis(buildingSimulatedPerVariant);
 				buildingSimulatedPerScenar.add(buildingSimulatedPerVariant);
 			}
 			buildingSimulatedPerSimu.add(buildingSimulatedPerScenar);

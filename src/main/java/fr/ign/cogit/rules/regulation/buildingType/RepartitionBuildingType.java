@@ -164,9 +164,14 @@ public class RepartitionBuildingType {
 				if (repartition.get(type) > 0.0) {
 					return type;
 				}
+				else {
+					System.out.println("null type");
+				}
 			}
 		}
-		throw new Exception("value not in the range");
+	System.out.println("we return the defalut type ");
+		return 	BuildingType.DETACHEDHOUSE;
+//		throw new Exception("value not in the range");
 	}
 
 	private HashMap<BuildingType, String> adjustDistribution(double evalParcel, BuildingType takenBuildingType, boolean upOrDown) throws Exception {

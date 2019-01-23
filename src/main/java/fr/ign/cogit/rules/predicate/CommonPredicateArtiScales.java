@@ -563,6 +563,11 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 		CuboidGroupCreation<O> groupCreator = new CuboidGroupCreation<O>();
 
 		List<List<O>> groupList = groupCreator.createGroup(lAllCuboids, 0.1);
+
+		if (!cRO.numberMaxOfBuilding(groupList, 1)) {
+			return false;
+		}
+
 		if (intersection) {
 			// art_8 et //art_form_4
 			// If intersection is allowed, we check the width of the building

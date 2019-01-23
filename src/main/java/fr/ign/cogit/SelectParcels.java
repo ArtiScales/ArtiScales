@@ -73,10 +73,9 @@ public class SelectParcels {
 		for (List<File> scenar : spatialConfigurations) {
 			List<File> listScenar = new ArrayList<File>();
 			String scenarName = scenar.get(0).getName().split("-")[0];
-			Parameters p = SimuTool.getParamFile(lP, scenarName);
-			List<String> listeAction = selectionType(p);
 			for (File varianteSpatialConf : scenar) {
-
+				Parameters p = SimuTool.getParamFile(lP, scenarName);
+				List<String> listeAction = selectionType(p);
 				spatialConf = varianteSpatialConf;
 				// if we simul on one city (debug) or the whole area
 				List<String> listZip = SimuTool.getIntrestingCommunities(p, geoFile, regulFile, tmpFile);
@@ -85,8 +84,9 @@ public class SelectParcels {
 				}
 				// we loop on every cities
 				for (String zip : listZip) {
+					System.out.println();
 					System.out.println("for the " + zip + " city");
-
+					System.out.println();
 					parcelFile = GetFromGeom.getParcels(geoFile, regulFile, tmpFile, zip);
 
 					ShapefileDataStore shpDSparcel = new ShapefileDataStore((parcelFile).toURI().toURL());
@@ -161,7 +161,7 @@ public class SelectParcels {
 						String splitZone = p.getString("splitMotif");
 						if (!splitZone.contains("-")) {
 							System.out.println();
-							System.out.println("///// We start the splitMotif process\\\\\\" + splitZone);
+							System.out.println("///// We start the splitMotif process\\\\\\");
 							parcelCollection = VectorFct.parcelGenMotif(splitZone, parcelCollection, tmpFile, spatialConf, p, ressource, true);
 							Vectors.exportSFC(parcelCollection, new File(tmpFile, "aftersplitMotif"));
 						} else {
@@ -179,11 +179,21 @@ public class SelectParcels {
 
 					File packFile = new File(rootFile, "ParcelSelectionFile/" + scenarName + "/" + varianteSpatialConf.getParentFile().getName() + "/");
 					packFile.mkdirs();
-					File parcelSelectedFile = Vectors.exportSFC(parcelCollection, new File(packFile, "parcelGenExport.shp"));
+					
+					File parcelSelectedFile = Vectors.exportSFC(parcelCollection, new File(packFile, "parcelPartExport.shp"));
 
+					//merge the multiple parcels into a unique parcelFile
+					List<File> lFile = new ArrayList<File>();
+					File parcGen = new File(packFile, "parcelGenExport.shp");
+					if (parcGen.exists()) {
+					lFile.add(parcGen);
+					}
+					lFile.add(parcelSelectedFile);
+					Vectors.mergeVectFiles(lFile, parcGen);
+					
 					// optimized packages
 					if (p.getString("package").equals("ilot")) {
-						separateToDifferentOptimizedPack(parcelSelectedFile, packFile);
+						separateToDifferentOptimizedPack(parcelSelectedFile, packFile, zip);
 						listScenar.add(packFile);
 					}
 					// city (better for a continuous urbanisation)
@@ -691,9 +701,9 @@ public class SelectParcels {
 		predicate.close();
 	}
 
-	public void separateToDifferentOptimizedPack(File parcelCollection, File fileOut) throws Exception {
+	public void separateToDifferentOptimizedPack(File parcelCollection, File fileOut, String codeCom) throws Exception {
 
-		DataPreparator.createPackages(parcelCollection, tmpFile, fileOut);
+		DataPreparator.createPackages(parcelCollection, tmpFile, fileOut, codeCom);
 		// if the city is following the RNU
 		List<String> rnuZip = GetFromGeom.rnuZip(regulFile);
 

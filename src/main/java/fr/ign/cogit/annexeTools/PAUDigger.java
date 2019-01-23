@@ -106,7 +106,8 @@ public class PAUDigger {
 
 		// Vectors.exportSFC(parcelPreSelected, new File("/home/mcolomb/tmp/parcelsBeforeCuting.shp"));
 
-
+//TODO change this line with a more accurate parcel splitter
+		System.out.println("//TODO change this line with a more accurate parcel splitter");
 		SimpleFeatureCollection parcelSplitted = VectorFct.generateSplitedParcels(parcelPreSelected, rnuCityFiles, null);
 		SimpleFeatureCollection pau = parcelSplitted.subCollection(filCluster).subCollection(filMorpho).subCollection(filNU);
 		Vectors.exportSFC(makeEnvelopePAU(pau), new File(outFile, "zonePAU"));
