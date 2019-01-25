@@ -50,11 +50,20 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 		double minH = this.getMinHeight();
 
 		if (minH > maxH) {
-			System.out.println("problem : the maximal height is inf to the minimal one (certainly because of the reglementation)");
-		} else {
-			this.p.set("maxheight", this.getMaxHeight());
-			this.p.set("minheight", this.getMinHeight());
+			System.out.println("problem : the maximal height(" + maxH + " )is inf to the minimal one " + minH + " (certainly because of the reglementation)");
+			if (maxH - minH < 3.5) {
+				System.out.println("diff is small enough, we force the min from the building type");
+				this.p.set("maxheight", minH);
+				this.p.set("minheight", minH);
+			} else {
+				System.out.println("diff is too big. we let the regulation rule");
+				this.p.set("maxheight", maxH);
+				this.p.set("minheight", maxH);
+			}
 
+		} else {
+			this.p.set("maxheight", maxH);
+			this.p.set("minheight", minH);
 		}
 
 		if (!(regle.getArt_5().contains("_"))) {

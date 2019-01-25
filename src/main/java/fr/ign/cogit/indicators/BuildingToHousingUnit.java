@@ -64,15 +64,15 @@ public class BuildingToHousingUnit extends Indicators {
 	}
 
 	public static void main(String[] args) throws Exception {
-		File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/exScenar");
+		File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/dense");
 		List<File> lF = new ArrayList<>();
 		lF.add(new File(rootParam, "parameterTechnic.xml"));
 		lF.add(new File(rootParam, "parameterScenario.xml"));
 
 		Parameters p = Parameters.unmarshall(lF);
 
-		File batisSimulatedFile = new File("/home/mcolomb/informatique/ArtiScales/SimPLUDepot/exScenar/variant0");
-		File simuFile = new File("/home/mcolomb/informatique/ArtiScales/indic/bTH/teststp/variant1");
+		File batisSimulatedFile = new File("/home/mcolomb/informatique/ArtiScalesDanemarie/SimPLUDepot/dense/variante0");
+		File simuFile = new File("/home/mcolomb/informatique/ArtiScalesDanemarie/indic/bTH/dense/variante0");
 		simuFile.mkdirs();
 		List<File> listFile = new ArrayList<File>();
 		for (File f : batisSimulatedFile.listFiles()) {
@@ -323,6 +323,7 @@ public class BuildingToHousingUnit extends Indicators {
 	 * @return
 	 * @throws Exception
 	 */
+	@SuppressWarnings("unchecked")
 	public HashMap<String, HashMap<String, Integer>> makeCollectiveHousingRepartition(SimpleFeature bati, BuildingType type) throws Exception {
 
 		Parameters pType = RepartitionBuildingType.getParam(new File(this.getClass().getClassLoader().getResource("profileBuildingType").getFile()), type);
@@ -362,147 +363,61 @@ public class BuildingToHousingUnit extends Indicators {
 			HashMap<String, Integer> midHU = new HashMap<String, Integer>();
 			HashMap<String, Integer> largeHU = new HashMap<String, Integer>();
 			double leftSDP = totSDP;
-			String typeHU = "";
-
-			// integer randomness to chose the range
-			Random rand = new Random();
-
+			System.out.println("this one is " + totSDP);
 			boolean enoughSpace = true;
 			while (enoughSpace) {
 				// ponderated randomness
 				double rd = Math.random();
 				if (rd < freqSmallDwelling) {
 					// this is a small house
+
 					System.out.println("small dwelling");
-					//// look at the left space
-					// not enough room
-					if (leftSDP - sizeSmallDwellingMin < 0) {
+					HashMap<String, Integer> smallHUTemp = smallHU;
+					Object[] repart = doDwellingRepart(smallHU, leftSDP, sizeSmallDwellingMax, sizeSmallDwellingMin);
+					smallHU = (HashMap<String, Integer>) repart[0];
+					leftSDP = (double) repart[1];
+					boolean conti = (boolean) repart[2];
+					// if nothing has changed, it's time to end that
+					if (!conti) {
 						enoughSpace = false;
-					}
-					// this is a minimum construction type of situation
-					else if (leftSDP - sizeSmallDwellingMax < 0 || leftSDP - sizeSmallDwellingMin >= 0) {
-						// Housing Unit is at the minimum size
-						Double sdp = sizeSmallDwellingMin;
-
+					} else {
 						nbLgtFinal++;
-
-						// put in collec
-						if (smallHU.containsKey(String.valueOf(sdp))) {
-							smallHU.put(String.valueOf(sdp), smallHU.get(String.valueOf(sdp)) + 1);
-						} else {
-							smallHU.put(String.valueOf(sdp), 1);
-						}
-						enoughSpace = false;
-					}
-					// nothing to declare
-					else {
-						// we chose a random range
-						int range = rand.nextInt(((int) (sizeSmallDwellingMax - sizeSmallDwellingMin) / 5) + 1);
-						Double sdp = (double) (range * 5) + sizeSmallDwellingMin;
-
-						// suppress the aera
-						leftSDP = leftSDP - sdp;
-						nbLgtFinal++;
-
-						// put in collec
-						if (smallHU.containsKey(String.valueOf(sdp))) {
-							smallHU.put(String.valueOf(sdp), smallHU.get(String.valueOf(sdp)) + 1);
-						} else {
-							smallHU.put(String.valueOf(sdp), 1);
-						}
-						System.out.println("new HU of  " + sdp + "m2");
-						System.out.println("sdp left : " + leftSDP);
 					}
 				} else if (rd < (freqSmallDwelling + freqMidDwelling)) {
 					// this is a medium house
 					System.out.println("mid dwelling");
-					//// look at the left space
-					// not enough room
-					if (leftSDP - sizeMidDwellingMin < 0) {
-
+					HashMap<String, Integer> midHUTemp = midHU;
+					Object[] repart = doDwellingRepart(midHU, leftSDP, sizeMidDwellingMax, sizeMidDwellingMin);
+					midHU = (HashMap<String, Integer>) repart[0];
+					leftSDP = (double) repart[1];
+					boolean conti = (boolean) repart[2];
+					// if nothing has changed, it's time to end that
+					if (!conti) {
 						enoughSpace = false;
-					}
-					// this is a minimum construction type of situation
-					else if (leftSDP - sizeMidDwellingMax < 0 || leftSDP - sizeMidDwellingMin >= 0) {
-						// Housing Unit is at the minimum size
-						Double sdp = sizeMidDwellingMin;
-
+						System.out.println("same size");
+					} else {
 						nbLgtFinal++;
-
-						// put in collec
-						if (midHU.containsKey(String.valueOf(sdp))) {
-							midHU.put(String.valueOf(sdp), midHU.get(String.valueOf(sdp)) + 1);
-						} else {
-							midHU.put(String.valueOf(sdp), 1);
-						}
-						enoughSpace = false;
-					}
-					// nothing to declare
-					else {
-						int range = rand.nextInt(((int) (sizeMidDwellingMax - sizeMidDwellingMin) / 5) + 1);
-						Double sdp = (double) (range * 5) + sizeMidDwellingMax;
-
-						// suppress the aera
-						leftSDP = leftSDP - sdp;
-						nbLgtFinal++;
-
-						// put in collec
-						if (midHU.containsKey(String.valueOf(sdp))) {
-							midHU.put(String.valueOf(sdp), midHU.get(String.valueOf(sdp)) + 1);
-						} else {
-							midHU.put(String.valueOf(sdp), 1);
-						}
-						System.out.println("new HU of  " + sdp + "m2");
-						System.out.println("sdp left : " + leftSDP);
 					}
 				} else {
 					// this is a large house
 					System.out.println("large dwelling");
-
-					//// look at the left space
-					// not enough room
-					if (leftSDP - sizeLargeDwellingMin < 0) {
-
+					HashMap<String, Integer> largeHUTemp = largeHU;
+					Object[] repart = doDwellingRepart(largeHU, leftSDP, sizeLargeDwellingMax, sizeLargeDwellingMin);
+					largeHU = (HashMap<String, Integer>) repart[0];
+					leftSDP = (double) repart[1];
+					boolean conti = (boolean) repart[2];
+					// if nothing has changed, it's time to end that
+					if (!conti) {
 						enoughSpace = false;
-					}
-					// this is a minimum construction type of situation
-					else if (leftSDP - sizeLargeDwellingMax < 0 || (leftSDP - sizeLargeDwellingMin) >= 0) {
-						// Housing Unit is at the minimum size
-						Double sdp = sizeLargeDwellingMin;
-
+					} else {
 						nbLgtFinal++;
-
-						// put in collec
-						if (largeHU.containsKey(String.valueOf(sdp))) {
-							largeHU.put(String.valueOf(sdp), largeHU.get(String.valueOf(sdp)) + 1);
-						} else {
-							largeHU.put(String.valueOf(sdp), 1);
-						}
-						enoughSpace = false;
-					}
-					// nothing to declare
-					else {
-						int range = rand.nextInt(((int) (sizeLargeDwellingMax - sizeLargeDwellingMin) / 5) + 1);
-						Double sdp = (double) (range * 5) + sizeLargeDwellingMax;
-
-						// suppress the aera
-						leftSDP = leftSDP - sdp;
-						nbLgtFinal++;
-
-						// put in collec
-						if (largeHU.containsKey(String.valueOf(sdp))) {
-							largeHU.put(String.valueOf(sdp), largeHU.get(String.valueOf(sdp)) + 1);
-						} else {
-							largeHU.put(String.valueOf(sdp), 1);
-						}
-						System.out.println("new HU of  " + sdp + "m2");
-						System.out.println("sdp left : " + leftSDP);
 					}
 				}
+				System.out.println("nbLgtFinal : " + nbLgtFinal);
 
 			}
 			// if the limit of minimum housing units is outpassed
-			System.out.println("minLgt"+minLgt+" contre "+nbLgtFinal);
+			System.out.println("minLgt : " + minLgt + " contre " + nbLgtFinal);
 			if (nbLgtFinal >= minLgt) {
 				System.out.println("it's enough");
 				doRepart = false;
@@ -516,6 +431,67 @@ public class BuildingToHousingUnit extends Indicators {
 				System.out.println("it's not enough");
 			}
 		}
+		return result;
+	}
+
+	private int totLgt(HashMap<String, Integer> hu) {
+		int result = 0;
+		for (String key : hu.keySet()) {
+			result = result + hu.get(key);
+		}
+		return result;
+	}
+
+	/**
+	 * the returned object is composed of 0: the collection 1: the left sdp
+	 * 
+	 * @param smallHU
+	 * @param leftSDP
+	 * @param sizeSmallDwellingMax
+	 * @param sizeSmallDwellingMin
+	 * @return
+	 */
+	private Object[] doDwellingRepart(HashMap<String, Integer> smallHU, double leftSDP, double sizeSmallDwellingMax, double sizeSmallDwellingMin) {
+		Object[] result = new Object[3];
+boolean conti = true;
+		Random rand = new Random();
+		//// look at the left space
+		// not enough room
+		if (leftSDP - sizeSmallDwellingMin < 0) {
+			System.out.println("not enough space yee over");
+			conti = false;
+		}
+		// this is a minimum construction type of situation
+		else if (leftSDP - sizeSmallDwellingMax < 0) {
+			// Housing Unit is at the minimum size
+			Double sdp = sizeSmallDwellingMin;
+			leftSDP = leftSDP - sdp;
+			// put in collec
+			if (smallHU.containsKey(String.valueOf(sdp))) {
+				smallHU.put(String.valueOf(sdp), smallHU.get(String.valueOf(sdp)) + 1);
+			} else {
+				smallHU.put(String.valueOf(sdp), 1);
+			}
+			System.out.println("new HU of " + sdp + "m2 - sdp left : " + leftSDP);
+			System.out.println("this is the last one");
+		}
+		// nothing to declare
+		else {
+			// we chose a random range
+			int range = rand.nextInt(((int) (sizeSmallDwellingMax - sizeSmallDwellingMin) / 5) + 1);
+			Double sdp = (double) (range * 5) + sizeSmallDwellingMin;
+			leftSDP = leftSDP - sdp;
+			// put in collec
+			if (smallHU.containsKey(String.valueOf(sdp))) {
+				smallHU.put(String.valueOf(sdp), smallHU.get(String.valueOf(sdp)) + 1);
+			} else {
+				smallHU.put(String.valueOf(sdp), 1);
+			}
+			System.out.println("new HU of " + sdp + "m2 - sdp left : " + leftSDP);
+		}
+		result[0] = smallHU;
+		result[1] = leftSDP;
+		result[2] = conti;
 		return result;
 	}
 

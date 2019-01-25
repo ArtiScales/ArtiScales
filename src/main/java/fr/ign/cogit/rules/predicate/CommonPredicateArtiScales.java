@@ -13,6 +13,7 @@ import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
 import fr.ign.cogit.geoxygene.api.spatial.geomaggr.IMultiCurve;
 import fr.ign.cogit.geoxygene.api.spatial.geomprim.IOrientableCurve;
 import fr.ign.cogit.geoxygene.api.spatial.geomroot.IGeometry;
+import fr.ign.cogit.geoxygene.feature.DefaultFeature;
 import fr.ign.cogit.geoxygene.spatial.geomaggr.GM_MultiCurve;
 import fr.ign.cogit.geoxygene.util.conversion.AdapterFactory;
 import fr.ign.cogit.rules.regulation.Alignements;
@@ -85,7 +86,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 	// hauteur des batiments environnants
 	Double heighSurroundingBuildings = null;
 
-	public static double distanceHeightBuildings = 50;
+	public static double distanceHeightBuildings = 40;
 
 	/**
 	 * The default constructor with a considered BasicPropertyUnit, technical and scenario parameters and a set of selected prescriptions
@@ -194,12 +195,10 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 		// height of the surrounding buildings
 
-		// System.out.println(bPU.getGeom().buffer(distanceHeightBuildings));
 		Collection<AbstractBuilding> buildingsHeightCol = env.getBuildings().select(bPU.getGeom().buffer(distanceHeightBuildings));
-
 		// System.out.println("Neighbour buildings :" + buildingsHeightCol.size());
 		if (!buildingsHeightCol.isEmpty()) {
-			heighSurroundingBuildings = buildingsHeightCol.stream().mapToDouble(x -> x.height(1, 0)).sum() / buildingsHeightCol.size();
+			heighSurroundingBuildings = buildingsHeightCol.stream().mapToDouble(x -> x.height(1, 1)).sum() / buildingsHeightCol.size();
 		}
 
 		if (!curveOppositeLimit.isEmpty()) {

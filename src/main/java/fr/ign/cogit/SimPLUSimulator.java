@@ -71,7 +71,7 @@ public class SimPLUSimulator {
 	// Parameters from technical parameters and scenario parameters files
 	Parameters p;
 	// backup when p has been overwritted
-	Parameters pSaved;
+//	Parameters pSaved;
 
 	// Building file
 	File buildFile;
@@ -165,7 +165,7 @@ public class SimPLUSimulator {
 		// AttribNames.setATT_CODE_PARC("CODE");
 		// USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
 
-		File f = new File("/home/mcolomb/informatique/ArtiScales/ParcelSelectionFile/exScenar/variant0/");
+		File f = new File("/home/mcolomb/informatique/ArtiScales/ParcelSelectionFile/dense/variante0/");
 
 		List<File> listBatiSimu = new ArrayList<File>();
 		for (File ff : f.listFiles()) {
@@ -207,7 +207,7 @@ public class SimPLUSimulator {
 
 		// some static parameters needed
 		this.p = pa;
-		this.pSaved = pa;
+//		this.pSaved = pa;
 		this.rootFile = new File(p.getString("rootFile"));
 		simuFile = packFile;
 		parcelsFile = new File(packFile, "/parcelle.shp");
@@ -239,7 +239,7 @@ public class SimPLUSimulator {
 		// SimuTool.setEnvEnglishName();
 
 		Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile, parcelsFile, roadFile, buildFile, filePrescPonct, filePrescLin, filePrescSurf, null);
-
+Parameters pSaved = p;
 		///////////
 		// asses repartition to pacels
 		///////////
@@ -302,7 +302,7 @@ public class SimPLUSimulator {
 				System.out.println(codeParcel + " : je l'ai stopé net coz pas selec");
 				continue;
 			}
-			System.out.println("Parcel code : " + codeParcel);
+			System.out.println("Parcel code : " + codeParcel +"(pack "+simuFile.getName()+")");
 
 			double eval = getParcelEval(codeParcel);
 
@@ -520,10 +520,10 @@ public class SimPLUSimulator {
 			System.out.println("Parcel is not simulable according to the predicate");
 			return null;
 		}
-		if (!pred.isOutsized()) {
-			System.out.println("Building type is too big");
-			return new FT_FeatureCollection<IFeature>();
-		}
+//		if (!pred.isOutsized()) {
+//			System.out.println("Building type is too big");
+//			return new FT_FeatureCollection<IFeature>();
+//		}
 
 		// We compute the parcel area
 		Double areaParcels = bPU.getArea(); // .getCadastralParcels().stream().mapToDouble(x -> x.getArea()).sum();

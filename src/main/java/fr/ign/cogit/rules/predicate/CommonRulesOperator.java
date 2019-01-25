@@ -37,7 +37,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	 */
 	public boolean checkNumberOfBuildings(List<O> allCuboids, int nbCuboid) {
 
-		return allCuboids.size() < nbCuboid;
+		return allCuboids.size() <= nbCuboid;
 	}
 
 	/**
@@ -476,7 +476,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 			if (heighSurroundingBuildings != null && heighSurroundingBuildings != 0.0) {
 				System.out.println("surrounding height values : " + heighSurroundingBuildings);
 				// minRule = heighSurroundingBuildings * 0.9;
-				maxRule = heighSurroundingBuildings * 1.1;
+				maxRule = heighSurroundingBuildings * 1.2;
 			}
 			// si pas de batiments aux alentours, on se rabat sur différentes options
 			else if (regle.getArt_10_top() == 8) {

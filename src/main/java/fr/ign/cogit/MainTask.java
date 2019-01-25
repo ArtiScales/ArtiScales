@@ -32,7 +32,7 @@ public class MainTask {
 		// general parameters
 
 		// list of different scenarios to test
- 		List<Parameters> listScenarios = getParamFile("exScenar", new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet"));		
+ 		List<Parameters> listScenarios = getParamFile("dense", new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet"));		
 		// List<Parameters> listScenarios = getParamFile("scenar0MKDom", new
 		// File("/home/mbrasebin/Documents/Code/ArtiScales/ArtiScales/src/main/resources/paramSet/"));
 
@@ -136,13 +136,12 @@ public class MainTask {
 				File bTHFile = new File(rootFile, "indic/bTH/" + scenarName + "/" + buildingSimulatedPerVariant.get(0).getParentFile().getName());
 				bTHFile.mkdirs();
 				BuildingToHousingUnit bTH = new BuildingToHousingUnit(buildingSimulatedPerVariant, bTHFile, p);
-				bTH.runParticularSimpleEstimation();
-				bTH.simpleCityEstimate();
+				bTH.distributionEstimate();
 			}
 		}
 
 		// Parcel selected indicator
-		// we get the hierarchy of files if the previous steps hasnt been processed
+		// we get the hierarchy of files if the previous steps hasn't been processed
 
 		List<List<File>> parcelGen = SimuTool.generateResultParcels(rootFile);
 		// we calculate
