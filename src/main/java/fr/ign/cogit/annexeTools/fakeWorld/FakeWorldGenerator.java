@@ -23,7 +23,8 @@ public class FakeWorldGenerator {
 
 	static FileWriter in;
 	//RNU rule (which is the basicalest basic)
-	static String basicRow = "0,42400,U,U0,0,0,0,0,99,44,99,99,0,3,3,2,3,99,7,9,1,99,99";
+	static String RNURow = "0,42400,U,U0,0,0,0,0,99,44,99,99,0,3,3,2,3,99,7,21,1,99,99";
+	static String neutralRow = "0,42400,U,U0,0,0,0,0,99,99,99,99,99,99,99,99,99,1,1,2,99,99,99";
 
 //	static String basicRow =   "0,42400,U,U0,0,0,0,0,99,4,99,99,0,3,3,2,3,99,6,9,1m60_2,99,99" ;
 //	String defaultRegulation = "0,42400,U,U0,0,0,0,0,0,99,99,99,0,0,0,0,0,1.0,0,0,0,0,0";
@@ -33,22 +34,42 @@ public class FakeWorldGenerator {
 
 	public static void main(String[] args) throws IOException {
 		// Folder where to generate the fake data
-		String folderOut = "/home/mcolomb/informatique/ArtiScales/fakeWorld/";
+		String folderOut = "/home/mcolomb/informatique/fakeWorld/";
 		(new File(folderOut)).mkdirs();
-		generateTestForArticle5(folderOut + "art5/");
-		generateTestForArticle6(folderOut + "art6/");
-		generateTestForArticle6spec(folderOut + "art6spec/");
-		generateTestForArticle71(folderOut + "art71/");
-		generateTestForArticle72(folderOut + "art72/");
-		generateTestForArticle73(folderOut + "art73/");
-		generateTestForArticle74(folderOut + "art74/");
-		generateTestForArticle8(folderOut + "art8/");
-		generateTestForArticle9(folderOut + "art9/");
-		generateTestForArticle10(folderOut + "art10/");
-		generateTestForArticle12(folderOut + "art12/");
-		generateTestForArticle13(folderOut + "art13/");
+		generateTestForBuildingType(folderOut);
+//		generateTestForArticle5(folderOut + "art5/");
+//		generateTestForArticle6(folderOut + "art6/");
+//		generateTestForArticle6spec(folderOut + "art6spec/");
+//		generateTestForArticle71(folderOut + "art71/");
+//		generateTestForArticle72(folderOut + "art72/");
+//		generateTestForArticle73(folderOut + "art73/");
+//		generateTestForArticle74(folderOut + "art74/");
+//		generateTestForArticle8(folderOut + "art8/");
+//		generateTestForArticle9(folderOut + "art9/");
+//		generateTestForArticle10(folderOut + "art10/");
+//		generateTestForArticle12(folderOut + "art12/");
+//		generateTestForArticle13(folderOut + "art13/");
+		
+		
 	}
+	//, MIDBLOCKFLATS, MULTIFAMILYHOUSE, DETACHEDHOUSE, SMALLBLOCKFLAT
+	public static void generateTestForBuildingType(String folderOut) throws IOException {
 
+		(new File(folderOut)).mkdirs();
+
+		in = new FileWriter(new File(folderOut + "snapPredicate.csv"));
+		in.write(fLine + "\n");
+	
+		// The list of regulation for which building generation will be testsed
+		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
+		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, RNURow);
+
+		regulations.add(regulationDefault);
+		
+		generateFakeData(regulations, folderOut);
+
+	}
+	
 	public static void generateTestForArticle5(String folderOut) throws IOException {
 
 		(new File(folderOut)).mkdirs();
@@ -62,7 +83,7 @@ public class FakeWorldGenerator {
 		// The list of regulation for which building generation will be testsed
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
 
-		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, basicRow);
+		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, RNURow);
 		ArtiScalesRegulation regulationDefault2 = regulationDefault.clone();
 		// Important to change to get the right regulation recognized
 		regulationDefault2.setLibelle_de_dul("U1");
@@ -97,7 +118,7 @@ public class FakeWorldGenerator {
 		// The list of regulation for which building generation will be testsed
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
 
-		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, basicRow);
+		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, RNURow);
 		ArtiScalesRegulation regulationDefault2 = regulationDefault.clone();
 		// Important to change to get the right regulation recognized
 
@@ -153,7 +174,7 @@ public class FakeWorldGenerator {
 		// The list of regulation for which building generation will be testsed
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
 
-		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, basicRow);
+		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, RNURow);
 		ArtiScalesRegulation regulationDefault2 = regulationDefault.clone();
 		// Important to change to get the right regulation recognized
 
@@ -201,7 +222,7 @@ public class FakeWorldGenerator {
 		// The list of regulation for which building generation will be testsed
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
 
-		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, basicRow);
+		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, RNURow);
 
 		// Important to change to get the right regulation recognized
 
@@ -256,7 +277,7 @@ public class FakeWorldGenerator {
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
 
 		// CAS ARTICLE 71 = 1
-		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, basicRow);
+		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, RNURow);
 		ArtiScalesRegulation regulationDefault2 = regulationDefault.clone();
 		// Important to change to get the right regulation recognized
 		regulationDefault2.setLibelle_de_dul("U1");
@@ -295,7 +316,7 @@ public class FakeWorldGenerator {
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
 
 		// CAS ARTICLE 72 = 0
-		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, basicRow);
+		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, RNURow);
 		ArtiScalesRegulation regulationDefault2 = regulationDefault.clone();
 		// Important to change to get the right regulation recognized
 		regulationDefault2.setLibelle_de_dul("U1");
@@ -334,7 +355,7 @@ public class FakeWorldGenerator {
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
 
 		// CAS ARTICLE 73 = 0
-		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, basicRow);
+		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, RNURow);
 		ArtiScalesRegulation regulationDefault2 = regulationDefault.clone();
 		// Important to change to get the right regulation recognized
 		regulationDefault2.setLibelle_de_dul("U1");
@@ -377,7 +398,7 @@ public class FakeWorldGenerator {
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
 
 		// CAS ARTICLE 74 = 1
-		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, basicRow);
+		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, RNURow);
 		ArtiScalesRegulation regulationDefault2 = regulationDefault.clone();
 		// Important to change to get the right regulation recognized
 		regulationDefault2.setLibelle_de_dul("U1");
@@ -414,7 +435,7 @@ public class FakeWorldGenerator {
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
 
 		// CAS ARTICLE 8 = 0
-		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, basicRow);
+		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, RNURow);
 		ArtiScalesRegulation regulationDefault2 = regulationDefault.clone();
 		// Important to change to get the right regulation recognized
 		regulationDefault2.setLibelle_de_dul("U1");
@@ -453,7 +474,7 @@ public class FakeWorldGenerator {
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
 
 		// CAS ARTICLE 9 = 0.333
-		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, basicRow);
+		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, RNURow);
 		ArtiScalesRegulation regulationDefault2 = regulationDefault.clone();
 		// Important to change to get the right regulation recognized
 		regulationDefault2.setLibelle_de_dul("U1");
@@ -492,7 +513,7 @@ public class FakeWorldGenerator {
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
 
 		// SIMPLE CASE
-		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, basicRow);
+		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, RNURow);
 		ArtiScalesRegulation regulationDefault2 = regulationDefault.clone();
 		// Important to change to get the right regulation recognized
 		regulationDefault2.setLibelle_de_dul("U1");
@@ -530,7 +551,7 @@ public class FakeWorldGenerator {
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
 
 		// CAS ARTICLE 13 = 0.333
-		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, basicRow);
+		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, RNURow);
 		ArtiScalesRegulation regulationDefault2 = regulationDefault.clone();
 		// Important to change to get the right regulation recognized
 		regulationDefault2.setLibelle_de_dul("U1");
@@ -567,7 +588,7 @@ public class FakeWorldGenerator {
 
 		for (ArtiScalesRegulation regulation : regulationList) {
 			// We create a zone with the right name
-			FakeZone fZ = new FakeZone(count, regulation.getLibelle_de_dul(), 843126.29, 6519466);
+			FakeZone fZ = new FakeZone(count, regulation.getLibelle_de_dul(), 816962.333, 6488348.869);
 
 			// We export the regulation
 			in.write(regulation.toCSVLine() + "\n");
@@ -584,9 +605,9 @@ public class FakeWorldGenerator {
 		in.close();
 		new File ( folderOut + "/geoSnap").mkdirs();
 		ShapefileWriter.write(parcels, folderOut + "parcelle.shp");
-		ShapefileWriter.write(buildings, folderOut + "/geoSnap/building.shp");
-		ShapefileWriter.write(zones, folderOut + "/geoSnap/zoning.shp");
-		ShapefileWriter.write(roads, folderOut + "/geoSnap/road.shp");
+		ShapefileWriter.write(buildings, folderOut + "/geoSnap/batiment.shp");
+		ShapefileWriter.write(zones, folderOut + "/geoSnap/zone_urba.shp");
+		ShapefileWriter.write(roads, folderOut + "/geoSnap/route.shp");
 
 	}
 

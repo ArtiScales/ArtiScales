@@ -1,23 +1,19 @@
 Faire un fichier de parcelles en sorties, différenciant les sous-parcelles et avec en attribut les règles appliquées provenant du predicate.csv.  
 
-problème avec l'option splitParcel=true : attendre les nouvelles modifications.  
-
 PARCELS
 
-refaire l'algo de densification et n'utiliser que lui (plus de Ubuild?!)
-
-vérifier la création de zones
+dans l'algo de densification, ajouter l'emploi de l'algo de division parcellaire si le drapeau est retoqué et que l'art 3 le permet  
 
 SimPLU
 
-Pour les types collectifs, forcer l’intersection des boites => réfléchir à ce code avec Julien pour qu’il ne donne pas trop de cas retoqués.
+ajouter la contrainte de l'acces de la parcelle à la route en fonction de l'article 3
 
 INDICATORS
 
 (maxime)
-mettre a jour le building to household (numero de parcelle, il ne le fait pas pour tous les batiments) 
+
 Rajouter la zone (libelle+zonetype) dans laquel le bat est simulé
-result.csv : mauvaises colones (split avec des tirets..)
+
 
 Envoyer les cartes souhaitées à Julien 
 Faire les cartes automatiques - après avoir fixé les sorties et le format (Julien)

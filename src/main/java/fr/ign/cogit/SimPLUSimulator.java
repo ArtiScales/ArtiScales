@@ -54,6 +54,7 @@ import fr.ign.cogit.util.VectorFct;
 import fr.ign.mpp.configuration.BirthDeathModification;
 import fr.ign.mpp.configuration.GraphConfiguration;
 import fr.ign.mpp.configuration.GraphVertex;
+import fr.ign.parameters.ParameterComponent;
 import fr.ign.parameters.Parameters;
 
 public class SimPLUSimulator {
@@ -71,7 +72,7 @@ public class SimPLUSimulator {
 	// Parameters from technical parameters and scenario parameters files
 	Parameters p;
 	// backup when p has been overwritted
-//	Parameters pSaved;
+	// Parameters pSaved;
 
 	// Building file
 	File buildFile;
@@ -175,6 +176,7 @@ public class SimPLUSimulator {
 				if (simued != null) {
 					listBatiSimu.addAll(simued);
 				}
+
 				System.out.println("done with pack " + ff.getName());
 			}
 		}
@@ -207,7 +209,7 @@ public class SimPLUSimulator {
 
 		// some static parameters needed
 		this.p = pa;
-//		this.pSaved = pa;
+		// this.pSaved = pa;
 		this.rootFile = new File(p.getString("rootFile"));
 		simuFile = packFile;
 		parcelsFile = new File(packFile, "/parcelle.shp");
@@ -226,6 +228,86 @@ public class SimPLUSimulator {
 		}
 	}
 
+	public List<File> run(BuildingType type, Parameters par) throws Exception {
+		Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile, parcelsFile, roadFile, buildFile, filePrescPonct, filePrescLin, filePrescSurf, null);
+
+		///////////
+		// asses repartition to pacels
+		///////////
+		// Prescription setting
+		IFeatureCollection<Prescription> prescriptions = env.getPrescriptions();
+		IFeatureCollection<Prescription> prescriptionUse = PrescriptionPreparator.preparePrescription(prescriptions, par);
+
+		boolean association = ZoneRulesAssociation.associate(env, predicateFile, GetFromGeom.rnuZip(new File(rootFile, "dataRegulation")), willWeAssociateAnyway(par));
+
+		if (!association) {
+			System.out.println("Association between rules and UrbanZone failed");
+			return null;
+		}
+
+		List<File> listBatiSimu = new ArrayList<File>();
+		//////////////
+		// We run a simulation for each bPU with a different file for each bPU
+		//////////////
+		int nbBPU = env.getBpU().size();
+		bpu: for (int i = 0; i < nbBPU; i++) {
+
+			CadastralParcel CadParc = env.getBpU().get(i).getCadastralParcels().get(0);
+			String codeParcel = CadParc.getCode();
+
+			// if this parcel contains no attributes, it means that it has been put here
+			// just to express its boundaries
+			if (codeParcel == null) {
+				continue;
+			}
+			// if parcel has been marked as non simulable, return null
+			if (!isParcelSimulable(codeParcel)) {
+				CadParc.setHasToBeSimulated(false);
+				System.out.println(codeParcel + " : je l'ai stopé net coz pas selec");
+				continue;
+			}
+			System.out.println("Parcel code : " + codeParcel + "(pack " + simuFile.getName() + ")");
+
+			IFeatureCollection<IFeature> building = null;
+			Parameters pTemp = par;
+
+			pTemp.add(RepartitionBuildingType.getParam(new File(this.getClass().getClassLoader().getResource("profileBuildingType").getFile()), type));
+
+			System.out.println("nombre de boites autorisées : " + pTemp.getString("nbCuboid"));
+
+			building = runSimulation(env, i, pTemp, type, prescriptionUse);
+
+			// if it's null, we skip to another parcel
+			if (building == null) {
+				continue bpu;
+			}
+
+			// saving the output
+			File folderOut = SimuTool.createScenarVariantFolders(simuFile, rootFile, "SimPLUDepot");
+			folderOut.mkdirs();
+
+			File output = new File(folderOut, "out-parcel_" + codeParcel + ".shp");
+			System.out.println("Output in : " + output);
+			ShapefileWriter.write(building, output.toString(), CRS.decode("EPSG:2154"));
+
+			if (!output.exists()) {
+				output = null;
+			}
+
+			if (output != null) {
+				listBatiSimu.add(output);
+			}
+		}
+
+		// No results
+		if (listBatiSimu.isEmpty()) {
+			System.out.println("&&&&&&&&&&&&&& Aucun bâtiment n'a été simulé &&&&&&&&&&&&&&");
+			return null;
+		}
+
+		return listBatiSimu;
+	}
+
 	/**
 	 * Run a SimPLU3D simulation on all the parcel stored in the parcelFile's SimpleFeatureCollection
 	 * 
@@ -239,7 +321,7 @@ public class SimPLUSimulator {
 		// SimuTool.setEnvEnglishName();
 
 		Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile, parcelsFile, roadFile, buildFile, filePrescPonct, filePrescLin, filePrescSurf, null);
-Parameters pSaved = p;
+		Parameters pSaved = p;
 		///////////
 		// asses repartition to pacels
 		///////////
@@ -302,7 +384,7 @@ Parameters pSaved = p;
 				System.out.println(codeParcel + " : je l'ai stopé net coz pas selec");
 				continue;
 			}
-			System.out.println("Parcel code : " + codeParcel +"(pack "+simuFile.getName()+")");
+			System.out.println("Parcel code : " + codeParcel + "(pack " + simuFile.getName() + ")");
 
 			double eval = getParcelEval(codeParcel);
 
@@ -331,12 +413,12 @@ Parameters pSaved = p;
 
 				building = runSimulation(env, i, p, type, prescriptionUse);
 
-				//if it's null, we skip to another parcel
-				if (building == null ) {
+				// if it's null, we skip to another parcel
+				if (building == null) {
 					continue bpu;
 				}
-				
-				//if it's empty, or the size of floor is inferior to the minimum we set, we downsize to see if a smaller type fits
+
+				// if it's empty, or the size of floor is inferior to the minimum we set, we downsize to see if a smaller type fits
 				if (building.isEmpty() || (double) building.get(0).getAttribute("SDPShon") < p.getDouble("areaMin")) {
 					adjustDown = true;
 					BuildingType typeTemp = housingUnit.down(type);
@@ -356,7 +438,7 @@ Parameters pSaved = p;
 						fromTo[1] = type;
 						housingUnit.adjustDistributionDown(eval, fromTo[1], fromTo[0]);
 					} else {
-						System.out.println("first hit, we set the "+type+ " building type");
+						System.out.println("first hit, we set the " + type + " building type");
 						break;
 					}
 				}
@@ -364,9 +446,8 @@ Parameters pSaved = p;
 			// saving the output
 			File folderOut = SimuTool.createScenarVariantFolders(simuFile, rootFile, "SimPLUDepot");
 			folderOut.mkdirs();
-			
-			
-			File output = new File(folderOut, "out-parcel_" +codeParcel + ".shp");
+
+			File output = new File(folderOut, "out-parcel_" + codeParcel + ".shp");
 			System.out.println("Output in : " + output);
 			ShapefileWriter.write(building, output.toString(), CRS.decode("EPSG:2154"));
 
@@ -397,13 +478,13 @@ Parameters pSaved = p;
 	 */
 	private HashMap<String, Boolean> willWeAssociateAnyway(Parameters p2) {
 		HashMap<String, Boolean> result = new HashMap<String, Boolean>();
-		if (p.getBoolean("2AU")) {
+		if (p2.getBoolean("2AU")) {
 			result.put("2AU", true);
 		} else {
 			result.put("2AU", false);
 		}
 
-		if (p.getBoolean("NC")) {
+		if (p2.getBoolean("NC")) {
 			result.put("NC", true);
 		} else {
 			result.put("NC", false);
@@ -478,7 +559,7 @@ Parameters pSaved = p;
 	 * 
 	 * @param env
 	 * @param i
-	 * @param p
+	 * @param par
 	 * @param prescriptionUse
 	 *            the prescriptions in Use prepared with PrescriptionPreparator
 	 * @return if null, we pass to another parcel. if an empty collection, we downsize the type
@@ -486,7 +567,7 @@ Parameters pSaved = p;
 	 * @throws Exception
 	 */
 	@SuppressWarnings({ "deprecation" })
-	public IFeatureCollection<IFeature> runSimulation(Environnement env, int i, Parameters p, BuildingType type, IFeatureCollection<Prescription> prescriptionUse)
+	public IFeatureCollection<IFeature> runSimulation(Environnement env, int i, Parameters par, BuildingType type, IFeatureCollection<Prescription> prescriptionUse)
 			throws Exception {
 
 		BasicPropertyUnit bPU = env.getBpU().get(i);
@@ -505,10 +586,10 @@ Parameters pSaved = p;
 		// Do we consider 1 regualtion by parcel or one by subParcel ?
 		if (!USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL || bPU.getCadastralParcels().get(0).getSubParcels().size() < 2) {
 			// In this mode there is only one regulation for the entire BPU
-			pred = preparePredicateOneRegulation(bPU, p, prescriptionUse, env);
+			pred = preparePredicateOneRegulation(bPU, par, prescriptionUse, env);
 
 		} else {
-			pred = preparePredicateOneRegulationBySubParcel(bPU, p, prescriptionUse, env);
+			pred = preparePredicateOneRegulationBySubParcel(bPU, par, prescriptionUse, env);
 		}
 
 		if (pred == null) {
@@ -520,10 +601,10 @@ Parameters pSaved = p;
 			System.out.println("Parcel is not simulable according to the predicate");
 			return null;
 		}
-//		if (!pred.isOutsized()) {
-//			System.out.println("Building type is too big");
-//			return new FT_FeatureCollection<IFeature>();
-//		}
+		// if (!pred.isOutsized()) {
+		// System.out.println("Building type is too big");
+		// return new FT_FeatureCollection<IFeature>();
+		// }
 
 		// We compute the parcel area
 		Double areaParcels = bPU.getArea(); // .getCadastralParcels().stream().mapToDouble(x -> x.getArea()).sum();
@@ -537,14 +618,14 @@ Parameters pSaved = p;
 			switch (alignementsGeometries.getType()) {
 			// #Art71 case 1 or 2
 			case ART7112:
-				cc = article71Case12(alignementsGeometries, pred, env, i, bPU);
+				cc = article71Case12(alignementsGeometries, pred, env, i, bPU, par);
 				break;
 			// #Art71 case 3
 			case ART713:
-				cc = graphConfigurationWithAlignements(alignementsGeometries, pred, env, i, bPU, alignementsGeometries.getSideWithBuilding());
+				cc = graphConfigurationWithAlignements(alignementsGeometries, pred, env, i, bPU, alignementsGeometries.getSideWithBuilding(), par);
 				break;
 			case ART6:
-				cc = graphConfigurationWithAlignements(alignementsGeometries, pred, env, i, bPU, alignementsGeometries.getRoadGeom());
+				cc = graphConfigurationWithAlignements(alignementsGeometries, pred, env, i, bPU, alignementsGeometries.getRoadGeom(), par);
 				break;
 			case NONE:
 				System.err.println(this.getClass().getName() + " : Normally not possible case");
@@ -560,20 +641,20 @@ Parameters pSaved = p;
 
 		} else {
 			OptimisedBuildingsCuboidFinalDirectRejection oCB = new OptimisedBuildingsCuboidFinalDirectRejection();
-			cc = oCB.process(bPU, new SimpluParametersXML(p), env, i, pred);
+			cc = oCB.process(bPU, new SimpluParametersXML(par), env, i, pred);
 			if (cc == null) {
 				return null;
 			}
 		}
-
-		SDPCalc surfGen = new SDPCalc(p.getDouble("heightStorey"));
+		//the -0.1 is set to avoid uncounting storeys when its very close to make one storey (which is very frequent)
+		SDPCalc surfGen = new SDPCalc(par.getDouble("heightStorey")-0.1);
 		// Getting cuboid into list (we have to redo it because the cuboids are
 		// dissapearing during this procces)
 		List<Cuboid> cubes = cc.getGraph().vertexSet().stream().map(x -> x.getValue()).collect(Collectors.toList());
 		double surfacePlancherTotal = surfGen.process(cubes);
 
 		if (RepartitionBuildingType.hasAttic(type)) {
-			surfacePlancherTotal = surfGen.process(cubes, p.getInteger("nbStoreysAttic"), p.getDouble("ratioAttic"));
+			surfacePlancherTotal = surfGen.process(cubes, par.getInteger("nbStoreysAttic"), par.getDouble("ratioAttic"));
 		}
 		// cubes = cc.getGraph().vertexSet().stream().map(x ->
 		// x.getValue()).collect(Collectors.toList());
@@ -647,15 +728,16 @@ Parameters pSaved = p;
 		return iFeatC;
 	}
 
+	@SuppressWarnings("deprecation")
 	private GraphConfiguration<Cuboid> graphConfigurationWithAlignements(Alignements alignementsGeometries,
-			CommonPredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred, Environnement env, int i, BasicPropertyUnit bPU, IGeometry[] geoms)
-			throws Exception {
+			CommonPredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred, Environnement env, int i, BasicPropertyUnit bPU, IGeometry[] geoms,
+			Parameters par) throws Exception {
 
 		GraphConfiguration<Cuboid> cc = null;
 
 		if (geoms.length == 0) {
 			OptimisedBuildingsCuboidFinalDirectRejection oCB = new OptimisedBuildingsCuboidFinalDirectRejection();
-			cc = oCB.process(bPU, new SimpluParametersXML(p), env, i, pred);
+			cc = oCB.process(bPU, new SimpluParametersXML(par), env, i, pred);
 		} else {
 
 			// Instantiation of the sampler
@@ -664,17 +746,19 @@ Parameters pSaved = p;
 			IMultiSurface<IOrientableSurface> iMSSamplinSurface = new GM_MultiSurface<>();
 
 			for (IGeometry geom : geoms) {
-				iMSSamplinSurface.addAll(FromGeomToSurface.convertGeom(geom.buffer(p.getDouble("maxwidth") / 2)));
+				iMSSamplinSurface.addAll(FromGeomToSurface.convertGeom(geom.buffer(par.getDouble("maxwidth") / 2)));
 			}
 			// Run of the optimisation on a parcel with the predicate
-			cc = oCB.process(new MersenneTwister(), bPU, new SimpluParametersXML(p), env, i, pred, geoms, iMSSamplinSurface);
+			cc = oCB.process(new MersenneTwister(), bPU, new SimpluParametersXML(par), env, i, pred, geoms, iMSSamplinSurface);
 		}
 
 		return cc;
 	}
 
+	@SuppressWarnings("deprecation")
 	private GraphConfiguration<Cuboid> article71Case12(Alignements alignementsGeometries,
-			CommonPredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred, Environnement env, int i, BasicPropertyUnit bPU) throws Exception {
+			CommonPredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred, Environnement env, int i, BasicPropertyUnit bPU, Parameters par)
+			throws Exception {
 
 		GraphConfiguration<Cuboid> cc = null;
 		// Instantiation of the sampler
@@ -687,13 +771,13 @@ Parameters pSaved = p;
 
 		if (leftAlignement != null && (leftAlignement.length > 0)) {
 			for (IGeometry geom : leftAlignement) {
-				iMSSamplinSurface.addAll(FromGeomToSurface.convertGeom(geom.buffer(p.getDouble("maxwidth") / 2)));
+				iMSSamplinSurface.addAll(FromGeomToSurface.convertGeom(geom.buffer(par.getDouble("maxwidth") / 2)));
 			}
 
 			pred.setSide(ParcelBoundarySide.LEFT);
 
 			// Run of the optimisation on a parcel with the predicate
-			cc = oCB.process(new MersenneTwister(), bPU, new SimpluParametersXML(p), env, i, pred, leftAlignement, iMSSamplinSurface);
+			cc = oCB.process(new MersenneTwister(), bPU, new SimpluParametersXML(par), env, i, pred, leftAlignement, iMSSamplinSurface);
 		}
 
 		// RIGHT SIDE IS TESTED
@@ -705,12 +789,12 @@ Parameters pSaved = p;
 			iMSSamplinSurface = new GM_MultiSurface<>();
 			oCB = new ParallelCuboidOptimizer();
 			for (IGeometry geom : rightAlignement) {
-				iMSSamplinSurface.addAll(FromGeomToSurface.convertGeom(geom.buffer(p.getDouble("maxwidth") / 2)));
+				iMSSamplinSurface.addAll(FromGeomToSurface.convertGeom(geom.buffer(par.getDouble("maxwidth") / 2)));
 			}
 
 			pred.setSide(ParcelBoundarySide.RIGHT);
 
-			cc2 = oCB.process(new MersenneTwister(), bPU, new SimpluParametersXML(p), env, i, pred, rightAlignement, iMSSamplinSurface);
+			cc2 = oCB.process(new MersenneTwister(), bPU, new SimpluParametersXML(par), env, i, pred, rightAlignement, iMSSamplinSurface);
 		}
 
 		if (cc == null) {

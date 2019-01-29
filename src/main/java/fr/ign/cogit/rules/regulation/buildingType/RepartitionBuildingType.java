@@ -71,7 +71,7 @@ public class RepartitionBuildingType {
 		rep.put(BuildingType.SMALLHOUSE, pSmallHouse);
 		rep.put(BuildingType.MULTIFAMILYHOUSE, pMultifamilyHouse);
 		rep.put(BuildingType.SMALLBLOCKFLAT, pSmallBlockFlat);
-		rep.put(BuildingType.MIDBLOCKFLATS, pMidBlockFlat);
+		rep.put(BuildingType.MIDBLOCKFLAT, pMidBlockFlat);
 
 		if ((pDetachedHouse + pSmallHouse + pMultifamilyHouse + pSmallBlockFlat + pMidBlockFlat) != 100.0) {
 			System.out.println("there's a sum probleme here (yes, I know how to count to 100). It's "
@@ -132,7 +132,7 @@ public class RepartitionBuildingType {
 		distrib.put(BuildingType.DETACHEDHOUSE, distribDetachedHouse);
 		distrib.put(BuildingType.MULTIFAMILYHOUSE, distribMultifamilyHouse);
 		distrib.put(BuildingType.SMALLBLOCKFLAT, distribSmallBlockFlat);
-		distrib.put(BuildingType.MIDBLOCKFLATS, distribMidBlockFlat);
+		distrib.put(BuildingType.MIDBLOCKFLAT, distribMidBlockFlat);
 
 		distribution = distrib;
 	}
@@ -286,7 +286,7 @@ public class RepartitionBuildingType {
 			return Parameters.unmarshall(new File(ressourceFile, "smallHouse.xml"));
 		case MULTIFAMILYHOUSE:
 			return Parameters.unmarshall(new File(ressourceFile, "multifamilyHouse.xml"));
-		case MIDBLOCKFLATS:
+		case MIDBLOCKFLAT:
 			return Parameters.unmarshall(new File(ressourceFile, "midBlockFlat.xml"));
 		case SMALLBLOCKFLAT:
 			return Parameters.unmarshall(new File(ressourceFile, "smallBlockFlat.xml"));
@@ -305,10 +305,10 @@ public class RepartitionBuildingType {
 		case MULTIFAMILYHOUSE:
 			result = BuildingType.SMALLBLOCKFLAT;
 		case SMALLBLOCKFLAT:
-			result = BuildingType.MIDBLOCKFLATS;
+			result = BuildingType.MIDBLOCKFLAT;
 		default:
 			System.out.println("ain't got nothing bigger");
-			result = BuildingType.MIDBLOCKFLATS;
+			result = BuildingType.MIDBLOCKFLAT;
 		}
 		// if the type is not in the prediction, we don't return it
 		if (repartition.get(result) == 99.0) {
@@ -327,7 +327,7 @@ public class RepartitionBuildingType {
 			result = BuildingType.SMALLHOUSE;
 		case SMALLBLOCKFLAT:
 			result = BuildingType.MULTIFAMILYHOUSE;
-		case MIDBLOCKFLATS:
+		case MIDBLOCKFLAT:
 			result = BuildingType.SMALLBLOCKFLAT;
 		default:
 			System.out.println("ain't got nothing smaller");
@@ -403,7 +403,7 @@ public class RepartitionBuildingType {
 		}
 		if (p.getInteger("midBlockFlat") > max && p.getInteger("midBlockFlat") != 99) {
 			max = p.getInteger("midBlockFlat");
-			result = BuildingType.MIDBLOCKFLATS;
+			result = BuildingType.MIDBLOCKFLAT;
 		}
 		return result;
 	}

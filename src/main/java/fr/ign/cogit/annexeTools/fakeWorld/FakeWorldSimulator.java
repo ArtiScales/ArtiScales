@@ -1,23 +1,33 @@
 package fr.ign.cogit.annexeTools.fakeWorld;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
 import fr.ign.cogit.SimPLUSimulator;
+import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
+import fr.ign.cogit.rules.io.PrescriptionPreparator;
+import fr.ign.cogit.rules.regulation.buildingType.BuildingType;
 import fr.ign.cogit.simplu3d.io.feature.AttribNames;
+import fr.ign.cogit.simplu3d.io.nonStructDatabase.shp.LoaderSHP;
+import fr.ign.cogit.simplu3d.model.Environnement;
+import fr.ign.cogit.simplu3d.model.Prescription;
 import fr.ign.parameters.Parameters;
 
 public class FakeWorldSimulator {
 
 	public static void main(String[] args) throws Exception {
 
-		// TODO try before push
 		// Parent folder with all subfolder
-		String absoluteRootFolder = "/home/mcolomb/informatique/ArtiScales/fakeWorld/";
+		String absoluteRootFolder = "/home/mcolomb/informatique/fakeWorld/";
 
 		File rootFolderFile = new File(absoluteRootFolder);
+		testBuildingTypes(rootFolderFile);
+	}
 
+	public static void tryRules(File rootFolderFile) throws Exception {
 		for (File pathSubFolder : rootFolderFile.listFiles()) {
 
 			if (!pathSubFolder.getName().contains("art71")) {
@@ -28,8 +38,7 @@ public class FakeWorldSimulator {
 				List<File> lF = new ArrayList<>();
 				// Line to change to select the right scenario
 
-				String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenarFakeWorldMax/")
-						.getPath();
+				String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenarFakeWorldMax/").getPath();
 
 				lF.add(new File(rootParam + "parameterTechnic.xml"));
 				lF.add(new File(rootParam + "parameterScenario.xml"));
@@ -58,10 +67,10 @@ public class FakeWorldSimulator {
 					p.set("intersection", false);
 				}
 
-//			String simulOut = pathSubFolder + "/out/";
-//			(new File(simulOut)).mkdirs();
-//			p.set("simu", simulOut);
-//			SimPLUSimulator.ID_PARCELLE_TO_SIMULATE.add("30000");
+				// String simulOut = pathSubFolder + "/out/";
+				// (new File(simulOut)).mkdirs();
+				// p.set("simu", simulOut);
+				// SimPLUSimulator.ID_PARCELLE_TO_SIMULATE.add("30000");
 				// Selected parcels shapefile
 				SimPLUSimulator simplu = new SimPLUSimulator(new File(p.getString("rootFile")), p);
 
@@ -69,6 +78,34 @@ public class FakeWorldSimulator {
 			}
 		}
 
+	}
+
+	public static void testBuildingTypes(File rootFolderFile) throws Exception {
+
+		List<File> lF = new ArrayList<>();
+		// Line to change to select the right scenario
+
+		String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenarFakeWorldMax/").getPath();
+		lF.add(new File(rootParam + "parameterScenario.xml"));
+		lF.add(new File(rootParam + "parameterTechnic.xml"));
+
+		for (String type : iterateOnBuildingType()) {
+			if (type.equals("midBlockFlat")) {
+				Parameters p = Parameters.unmarshall(lF);
+				File f = new File(rootFolderFile, type);
+
+				AttribNames.setATT_CODE_PARC("CODE");
+
+				p.set("rootFile", f);
+				SimPLUSimulator plu = new SimPLUSimulator(f, p);
+				plu.run(BuildingType.valueOf(type.toUpperCase()), p);
+			}
+		}
+	}
+
+	public static String[] iterateOnBuildingType() {
+		String[] result = { "detachedHouse", "midBlockFlat", "multifamilyHouse", "smallBlockFlat", "smallHouse" };
+		return result;
 	}
 
 }

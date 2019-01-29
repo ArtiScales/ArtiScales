@@ -63,10 +63,20 @@ public class ZoneRulesAssociation {
 						zone.setZoneRegulation(regles.get("ZC-7"));
 					}
 					// case the land is a N(atural) or a A(gricultural) zone
-					if (finalLibelle.startsWith("N") || finalLibelle.startsWith("A")) {
+					search : if (finalLibelle.startsWith("N") || finalLibelle.startsWith("A")) {
 						for (String code : regles.keySet()) {
 							String rule = code.split("-")[0].toUpperCase();
 							// if no AU zones taken, we set a non dense zone (basically Ub zone)
+							if (rule.toUpperCase().contains("AU") && !rule.toUpperCase().contains("2")) {
+								zone.setZoneRegulation(regles.get(code));
+								System.out.println("we forced the extension program " + rule + " rules into non constructible zone");
+								break search;
+							}
+						}
+						for (String code : regles.keySet()) {
+							String rule = code.split("-")[0].toUpperCase();
+							// if no AU zones taken, we set a non dense zone (basically Ub zone)
+						
 							if (rule.toUpperCase().contains("UB")) {
 								zone.setZoneRegulation(regles.get(code));
 								System.out.println("we forced the no dense " + rule + " rules into non constructible zone");
