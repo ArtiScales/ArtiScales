@@ -50,7 +50,7 @@ public class BuildingToHousingUnit extends Indicators {
 		this.buildingList = buildingList;
 		this.simuFile = simuFile;
 		rootFile = new File(p.getString("rootFile"));
-		surfaceLogDefault = p.getInteger("HousingUnitSize");
+		surfaceLogDefault = p.getInteger("housingUnitSize");
 		particularFirstLine = "numero_parcelle,surface_de_plancher," + "surface_au_sol," + "nombre_de_logements," + "type_du_logement," + "zone_de_la_construction,"
 				+ "moyenne_de_la_surface_plancher_par_logements," + "densite_batie";
 

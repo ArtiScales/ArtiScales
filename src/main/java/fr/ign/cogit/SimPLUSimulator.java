@@ -157,7 +157,7 @@ public class SimPLUSimulator {
 		// // SimPLUSimulator.fillSelectedParcels(new File(rootFolder), geoFile,
 		// // pluFile, selectedParcels, 50, "25495", p);
 
-		File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/exScenar");
+		File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/dense");
 		List<File> lF = new ArrayList<>();
 		lF.add(new File(rootParam, "parameterTechnic.xml"));
 		lF.add(new File(rootParam, "parameterScenario.xml"));
@@ -171,6 +171,7 @@ public class SimPLUSimulator {
 		List<File> listBatiSimu = new ArrayList<File>();
 		for (File ff : f.listFiles()) {
 			if (ff.isDirectory()) {
+				System.out.println("start pack "+ff);
 				SimPLUSimulator sim = new SimPLUSimulator(ff, p);
 				List<File> simued = sim.run();
 				if (simued != null) {
@@ -209,8 +210,7 @@ public class SimPLUSimulator {
 
 		// some static parameters needed
 		this.p = pa;
-		// this.pSaved = pa;
-		this.rootFile = new File(p.getString("rootFile"));
+		this.rootFile = new File(pa.getString("rootFile"));
 		simuFile = packFile;
 		parcelsFile = new File(packFile, "/parcelle.shp");
 		zoningFile = new File(packFile, "/geoSnap/zone_urba.shp");
@@ -321,7 +321,7 @@ public class SimPLUSimulator {
 		// SimuTool.setEnvEnglishName();
 
 		Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile, parcelsFile, roadFile, buildFile, filePrescPonct, filePrescLin, filePrescSurf, null);
-		Parameters pSaved = p;
+		Parameters pUsed = p;
 		///////////
 		// asses repartition to pacels
 		///////////
@@ -330,14 +330,14 @@ public class SimPLUSimulator {
 		IFeatureCollection<CadastralParcel> parcels = env.getCadastralParcels();
 
 		for (CadastralParcel parcel : parcels) {
-			String tmp = GetFromGeom.affectZoneAndTypoToLocation(p.getString("useRepartition"), p.getString("code"), parcel, new File(p.getString("rootFile")), true);
+			String tmp = GetFromGeom.affectZoneAndTypoToLocation(pUsed.getString("useRepartition"), pUsed.getString("scenarioPMSP3D"), parcel, new File(pUsed.getString("rootFile")), true);
 			if (!zones.contains(tmp)) {
 				zones.add(tmp);
 			}
 		}
 
 		// loading the type of housing to build
-		RepartitionBuildingType housingUnit = new RepartitionBuildingType(p, parcelsFile);
+		RepartitionBuildingType housingUnit = new RepartitionBuildingType(pUsed, parcelsFile);
 		boolean multipleRepartitionBuildingType = false;
 		if (zones.size() > 1) {
 			System.out.println("multiple zones in the same parcel lot : there's gon be approximations");
@@ -346,7 +346,7 @@ public class SimPLUSimulator {
 				System.out.println(s);
 			}
 			System.out.println();
-			housingUnit = new MultipleRepartitionBuildingType(p, parcelsFile);
+			housingUnit = new MultipleRepartitionBuildingType(pUsed, parcelsFile);
 			multipleRepartitionBuildingType = true;
 		} else {
 			System.out.println("it's all normal");
@@ -354,9 +354,9 @@ public class SimPLUSimulator {
 
 		// Prescription setting
 		IFeatureCollection<Prescription> prescriptions = env.getPrescriptions();
-		IFeatureCollection<Prescription> prescriptionUse = PrescriptionPreparator.preparePrescription(prescriptions, p);
+		IFeatureCollection<Prescription> prescriptionUse = PrescriptionPreparator.preparePrescription(prescriptions, pUsed);
 
-		boolean association = ZoneRulesAssociation.associate(env, predicateFile, GetFromGeom.rnuZip(new File(rootFile, "dataRegulation")), willWeAssociateAnyway(p));
+		boolean association = ZoneRulesAssociation.associate(env, predicateFile, GetFromGeom.rnuZip(new File(rootFile, "dataRegulation")), willWeAssociateAnyway(pUsed));
 
 		if (!association) {
 			System.out.println("Association between rules and UrbanZone failed");
@@ -369,7 +369,8 @@ public class SimPLUSimulator {
 		//////////////
 		int nbBPU = env.getBpU().size();
 		bpu: for (int i = 0; i < nbBPU; i++) {
-
+			pUsed = new Parameters();
+			pUsed = p;
 			CadastralParcel CadParc = env.getBpU().get(i).getCadastralParcels().get(0);
 			String codeParcel = CadParc.getCode();
 
@@ -391,7 +392,7 @@ public class SimPLUSimulator {
 			// of which type should be the housing unit
 			BuildingType type;
 			if (multipleRepartitionBuildingType) {
-				type = ((MultipleRepartitionBuildingType) housingUnit).rangeInterest(eval, codeParcel, p);
+				type = ((MultipleRepartitionBuildingType) housingUnit).rangeInterest(eval, codeParcel, pUsed);
 			} else {
 				type = housingUnit.rangeInterest(eval);
 			}
@@ -407,11 +408,12 @@ public class SimPLUSimulator {
 			while (seekType) {
 				System.out.println("we try to put a " + type + " housing unit");
 				// we add the parameters for the building type want to simulate
-				p = pSaved;
-				System.out.println("new height back to reg val " + p.getDouble("maxheight"));
-				p.add(RepartitionBuildingType.getParam(new File(this.getClass().getClassLoader().getResource("profileBuildingType").getFile()), type));
+				Parameters pTemp = new Parameters();
+				pTemp=pUsed;
+				pTemp.add(RepartitionBuildingType.getParam(new File(this.getClass().getClassLoader().getResource("profileBuildingType").getFile()), type));
+				System.out.println("new height back to reg val " + pTemp.getDouble("maxheight"));
 
-				building = runSimulation(env, i, p, type, prescriptionUse);
+				building = runSimulation(env, i, pTemp, type, prescriptionUse);
 
 				// if it's null, we skip to another parcel
 				if (building == null) {
@@ -419,7 +421,7 @@ public class SimPLUSimulator {
 				}
 
 				// if it's empty, or the size of floor is inferior to the minimum we set, we downsize to see if a smaller type fits
-				if (building.isEmpty() || (double) building.get(0).getAttribute("SDPShon") < p.getDouble("areaMin")) {
+				if (building.isEmpty() || (double) building.get(0).getAttribute("SDPShon") < pTemp.getDouble("areaMin")) {
 					adjustDown = true;
 					BuildingType typeTemp = housingUnit.down(type);
 					// if it's not the same type, we'll continue to seek
@@ -646,6 +648,7 @@ public class SimPLUSimulator {
 				return null;
 			}
 		}
+		System.out.println(pred.getDenial());
 		//the -0.1 is set to avoid uncounting storeys when its very close to make one storey (which is very frequent)
 		SDPCalc surfGen = new SDPCalc(par.getDouble("heightStorey")-0.1);
 		// Getting cuboid into list (we have to redo it because the cuboids are
@@ -843,7 +846,7 @@ public class SimPLUSimulator {
 			return null;
 		}
 
-		System.out.println("Regulation code : " + sPBiggest.getUrbaZone().getLibelle());
+		System.out.println("Regulation code : " + regle.getInsee()+"-"+regle.getLibelle_de_dul());
 		// Instantiation of the rule checker
 		PredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = new PredicateArtiScales<>(bPU, true, regle, p, prescriptionUse, env);
 

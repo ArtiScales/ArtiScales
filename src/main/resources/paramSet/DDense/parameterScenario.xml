@@ -4,12 +4,12 @@
 	<!--PARAMÈTRES SCÉNARISTIQUES POUR LES SIMULATIONS AVEC ARTISCALES -->
 
 	<!-- Nom du scénario -->
-	<param key="name" value="exScenar" />
-	<param key="scenarioPMSP3D" value="exScenar" />
+	<param key="name" value="DDense" />
+	<param key="scenarioPMSP3D" value="dense" />
 
 	<!-- Dossiers et fichiers nécessaires à la simulation -->
 	<!-- Emplacement de la simulation (données d'entrée, résultats intermédiaires et finaux) -->
-	<param key="rootFile" value="/home/mbrasebin/Documents/Donnees/ArtiScales/ArtiScalesTest/"/>
+	<param key="rootFile" value="/home/mcolomb/informatique/ArtiScales" />
 
 		
 	<!-- PARAMETRES DU MODULE MUP-CITY -->
@@ -18,7 +18,7 @@
 
 		<!-- Intensité du développement résidentiel. Les valeurs doivent être comprises 
 			entre 3 et 7 -->
-		<param key="N" value="6" />
+		<param key="N" value="7" />
 
 		<!-- Si "false", développement résidentiel globalement uniforme -->
 		<!-- Si "true", développement résidentiel très contrasté -->
@@ -59,7 +59,7 @@
 		<!-- Si "true", utilisation des moyennes pondérées -->
 		<!-- Si "false", utilisation de l'agrégation de Yager (Yager, 1978). Cette 
 			méthode est beaucoup plus sévère et moins de cellules sont calculées -->
-		<param key="mean" value="true" />
+		<param key="mean" value="false" />
 
 	<!-- PARAMÈTRES DU MODULE PARCEL MANAGER -->
 
@@ -78,11 +78,12 @@
 			<!-- Types de sélections situées dans les zones A et N -->
 			<param key="NC" value="false" />
 
-		<!-- Décomposition des parcelles - affecte un type de découpage à un couple de zone/typo -->
-		<!-- Les différents découpages sont séparés par un "_" et le type d'opération a appliquer aux différents types de TYPEZONE sont séparées avec un "-" -->
+		<!-- Décomposition des parcelles - affecte un type de découpage à un secteur (couple de zone/typo) -->
+		<!-- Les combinaisons de zone/typo sont séparées avec un "-" et ces différents secteurs sont séparés par un "_"  -->
 
-		<!-- <param key="split" value="U-densification_AU-motifZone_NC-motif" /> -->
-		<param key="split" value="AU-motifZone" />
+		<param key="splitDensification" value="U" />		
+		<param key="splitMotifZone" value="AU" />	
+		<param key="splitMotif" value="false" />
 
 	<!-- PARAMETRES DE SIMPLU3D -->
 
@@ -115,12 +116,12 @@
 		<!--Il convient de mettre un "-" entre différents éléments devant caractériser cette zone (pour l'instant, la typologie de la commune et le type de zone du PLU) -->
 		<!--Il convient de mettre un "_" entre différentes zones -->		
 		<!--Il convient de mettre un ":" pour préciser un scénario à utiliser -->
-		<param key="useRepartition" value="periUrbain_rural-AU_rural-U" />
+		<param key="useRepartition" value="dense:banlieue_dense:centre_dense:periUrbain-U_dense:periUrbain-AU_dense:rural" />
 
 	<!--PARAMETRE CONCERNANT LES LOGEMENTS -->
 
 		<!-- Taille moyenne d'un logement pour toute la simulation (uniquement utilisée pour le calcul du stationnement - pour le calcul de la distribution des tailles de logement, voir dossier ressources/profileBuildingType/ -->
-		<param key="housingUnitSize" value="50" />
+		<param key="HousingUnitSize" value="50" />
 		<!-- Taille moyenne d'un étage -->
 		<param key="heightStorey" value="3.5" />
 		<!-- Ratio de surface planchers appliqué aux attiques -->
@@ -139,3 +140,4 @@
 	<param key="fill" value="false" />
 
 </parameters>
+

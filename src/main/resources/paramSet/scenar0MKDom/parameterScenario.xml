@@ -5,7 +5,7 @@
 
 	<!-- Nom du scénario -->
 	<param key="name" value="exScenar" />
-	<param key="code" value="exScenar" />
+	<param key="scenarioPMSP3D" value="exScenar" />
 
 	<!-- Dossiers et fichiers nécessaires à la simulation -->
 	<!-- Emplacement de la simulation (données d'entrée, résultats intermédiaires et finaux) -->
@@ -125,7 +125,7 @@
 	<!--PARAMETRE CONCERNANT LES LOGEMENTS -->
 
 		<!-- Taille moyenne d'un logement pour toute la simulation (uniquement utilisée pour le calcul du stationnement - pour le calcul de la distribution des tailles de logement, voir dossier ressources/profileBuildingType/ -->
-		<param key="HousingUnitSize" value="50" />
+		<param key="housingUnitSize" value="50" />
 		<!-- Taille moyenne d'un étage -->
 		<param key="heightStorey" value="3.5" />
 		<!-- Ratio de surface planchers appliqué aux attiques -->

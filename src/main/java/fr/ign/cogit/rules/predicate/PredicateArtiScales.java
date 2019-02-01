@@ -1,6 +1,7 @@
 package fr.ign.cogit.rules.predicate;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
@@ -10,9 +11,11 @@ import fr.ign.cogit.simplu3d.model.Environnement;
 import fr.ign.cogit.simplu3d.model.ParcelBoundaryType;
 import fr.ign.cogit.simplu3d.model.Prescription;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.AbstractSimpleBuilding;
+import fr.ign.cogit.util.SimuTool;
 import fr.ign.mpp.configuration.AbstractBirthDeathModification;
 import fr.ign.mpp.configuration.AbstractGraphConfiguration;
 import fr.ign.parameters.Parameters;
+import fr.ign.simulatedannealing.SimulatedAnnealing;
 
 public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends AbstractGraphConfiguration<O, C, M>, M extends AbstractBirthDeathModification<O, C, M>>
 		extends CommonPredicateArtiScales<O, C, M> {
@@ -21,7 +24,6 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 	ArtiScalesRegulation regles;
 	Parameters p;
 	CommonRulesOperator<O> cRO = new CommonRulesOperator<O>();
-
 	/**
 	 * 
 	 * @param currentBPU
@@ -74,6 +76,7 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 
 				if (currentBPU.getArea() < aireMinimale) {
 					canBeSimulated = false;
+					denial = SimuTool.increm(denial, "art5");
 				}
 			}
 		}
@@ -83,6 +86,7 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 			if (currentBPU.getCadastralParcels().get(0).getBoundariesByType(ParcelBoundaryType.ROAD).isEmpty()) {
 				System.out.println("no access to road");
 				canBeSimulated = false;
+				denial = SimuTool.increm(denial, "art3");
 			}
 		}
 	}

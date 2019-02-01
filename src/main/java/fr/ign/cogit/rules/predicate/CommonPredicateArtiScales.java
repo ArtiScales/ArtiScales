@@ -3,8 +3,13 @@ package fr.ign.cogit.rules.predicate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -30,6 +35,7 @@ import fr.ign.cogit.simplu3d.model.ParcelBoundaryType;
 import fr.ign.cogit.simplu3d.model.Prescription;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.AbstractSimpleBuilding;
 import fr.ign.cogit.simplu3d.util.CuboidGroupCreation;
+import fr.ign.cogit.util.SimuTool;
 import fr.ign.mpp.configuration.AbstractBirthDeathModification;
 import fr.ign.mpp.configuration.AbstractGraphConfiguration;
 import fr.ign.parameters.Parameters;
@@ -87,6 +93,9 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 	Double heighSurroundingBuildings = null;
 
 	public static double distanceHeightBuildings = 40;
+
+	// stats on the impactive rules
+	HashMap<String, Integer> denial = new HashMap<String, Integer>();
 
 	/**
 	 * The default constructor with a considered BasicPropertyUnit, technical and scenario parameters and a set of selected prescriptions
@@ -247,6 +256,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 		// simulation
 		if (geomForbidden != null && geomForbidden.contains(currentBPU.getGeom())) {
 			canBeSimulated = false;
+			denial = SimuTool.increm(denial, "presc");
 		}
 
 	}
@@ -311,7 +321,6 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 	 */
 	@Override
 	public boolean check(C c, M m) {
-
 		// NewCuboids
 		List<O> lONewCuboids = m.getBirth();
 
@@ -320,7 +329,6 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 		if (lONewCuboids.isEmpty()) {
 			return true;
 		}
-
 		// All current cuboids
 		List<O> lAllCuboids = listAllCuboids(c, m);
 
@@ -380,12 +388,14 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 						// check back parcel
 						if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFondParcel, regle.getArt_73())
 								|| !cRO.checkProspectArt7(cuboid, jtsCurveLimiteFondParcel, regle.getArt_74())) {
+							denial = SimuTool.increm(denial, "art71");
 							return false;
 
 						}
 						// check side parcels
 						if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteLatParcel, regle.getArt_72())
 								|| !cRO.checkProspectArt7(cuboid, jtsCurveLimiteLatParcel, regle.getArt_74())) {
+							denial = SimuTool.increm(denial, "art72||74");
 							return false;
 
 						}
@@ -397,12 +407,14 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 						// check back parcel
 						if ((!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFondParcel, regle.getArt_73())
 								|| !cRO.checkProspectArt7(cuboid, jtsCurveLimiteFondParcel, regle.getArt_74())) && !checkBackAlignment(cRO, cuboid)) {
+							denial = SimuTool.increm(denial, "art73||74");
 							return false;
 						}
 
 						// check side parcels
 						if ((!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteLatParcel, regle.getArt_72())
 								|| !cRO.checkProspectArt7(cuboid, jtsCurveLimiteLatParcel, regle.getArt_74())) && !(checkBackAlignment(cRO, cuboid))) {
+							denial = SimuTool.increm(denial, "art72||74bis");
 							return false;
 						}
 						break;
@@ -411,6 +423,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 						case UNKNOWN:
 							if ((!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteLatParcel, regle.getArt_72())
 									|| !cRO.checkProspectArt7(cuboid, jtsCurveLimiteLatParcel, regle.getArt_74())) && !checkLeftOrRightAlignment(cRO, cuboid)) {
+								denial = SimuTool.increm(denial, "art74||72");
 								return false;
 							}
 
@@ -419,6 +432,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 							// Building is stuck to the left so the art72 is only applied with the right part of the parcel
 							if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteLatParcelRight, regle.getArt_72())
 									|| !cRO.checkProspectArt7(cuboid, jtsCurveLimiteLatParcelRight, regle.getArt_74()) && !checkLeftOrRightAlignment(cRO, cuboid)) {
+								denial = SimuTool.increm(denial, "art74||72bis");
 								return false;
 							}
 							break;
@@ -426,6 +440,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 							// Building is stuck to the right so the art72 is only applied with the left part of the parcel
 							if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteLatParcelLeft, regle.getArt_72())
 									|| !cRO.checkProspectArt7(cuboid, jtsCurveLimiteLatParcelLeft, regle.getArt_74()) && !checkLeftOrRightAlignment(cRO, cuboid)) {
+								denial = SimuTool.increm(denial, "art74||72ter");
 								return false;
 							}
 							break;
@@ -466,11 +481,13 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 						double min = Double.valueOf(art_6.split("-")[0]);
 						double max = Double.valueOf(art_6.split("-")[1]);
 						if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, min) || !cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, max, false)) {
+							denial = SimuTool.increm(denial, "art6-");
 							return false;
 						}
 					} else {
 						if (art_6 != "99") {
 							if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, Double.valueOf(art_6))) {
+								denial = SimuTool.increm(denial, "art6");
 								return false;
 							}
 						}
@@ -479,6 +496,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 				else if (typeArt_6 == 44) {
 					if (!cRO.checkProspectRNU(cuboid, jtsCurveOppositeLimit)) {
+						denial = SimuTool.increm(denial, "art6-44");
 						return false;
 					}
 				}
@@ -487,6 +505,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 				else if (typeArt_6 == 10) {
 					if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, Double.valueOf(regle.getArt_6_optionel()))
 							|| !cRO.checkAlignement(cuboid, jtsCurveLimiteFrontParcel)) {
+						denial = SimuTool.increm(denial, "art6-10");
 						return false;
 					}
 					// } else if (typeArt_6.equals("30")) {
@@ -520,12 +539,14 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 				// We check the constrain distance according to existing buildings
 				// art_8 (distance aux bâtiments existants)
 				if (!cRO.checkDistanceBetweenCuboidandBuildings(cuboid, this.currentBPU, regle.getArt_8())) {
+					denial = SimuTool.increm(denial, "art8");
 					return false;
 				}
 
 				// is there space enough to put art5 elements in argument?
 				if (regle.getArt_5().startsWith("_")) {
 					if (!cRO.checkEltFits(lAllCuboids, currentBPU, Double.valueOf(regle.getArt_5().replace("_", "")))) {
+						denial = SimuTool.increm(denial, "art5");
 						return false;
 					}
 				}
@@ -536,6 +557,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 		// making sure that the floor area is not upper than the limit we set for the type of building
 		if (!cRO.checkMaxSDP(lAllCuboids, p)) {
+			denial = SimuTool.increm(denial, "maxSDP");
 			return false;
 		}
 
@@ -545,6 +567,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 		// Checking the builtRatio
 		if (maxCES != 99) {
 			if (!cRO.checkBuiltRatio(lAllCuboids, currentBPU, maxCES)) {
+				denial = SimuTool.increm(denial, "art9");
 				return false;
 			}
 		}
@@ -553,6 +576,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 		// art_12
 		if (art12 != "99") {
 			if (!cRO.checkParking(lAllCuboids, currentBPU, art12, p)) {
+				denial = SimuTool.increm(denial, "art12");
 				return false;
 			}
 		}
@@ -563,20 +587,23 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 		List<List<O>> groupList = groupCreator.createGroup(lAllCuboids, 0.1);
 
-//		if (!cRO.numberMaxOfBuilding(groupList, 1)) {
-//			return false;
-//		}
+		if (!cRO.numberMaxOfBuilding(groupList, 1)) {
+			denial = SimuTool.increm(denial, "buildingNb");
+			return false;
+		}
 
 		if (intersection) {
 			// art_8 et //art_form_4
 			// If intersection is allowed, we check the width of the building
-			if (!cRO.checkBuildingWidth(groupList, 7.5, determineDoubleDistanceForGroup(groupList)))
+			if (!cRO.checkBuildingWidth(groupList, 7.5, determineDoubleDistanceForGroup(groupList))) {
+				denial = SimuTool.increm(denial, "buildWitdh");
 				return false;
-
+			}
 		} else {
 			// art_8
 			List<Double> distances = determineDoubleDistanceForList(lAllCuboids);
 			if (!cRO.checkDistanceInterCuboids(lAllCuboids, distances)) {
+				denial = SimuTool.increm(denial, "difsInterCub");
 				return false;
 			}
 
@@ -694,6 +721,38 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 	public ParcelBoundarySide getSide() {
 		return side;
+	}
+
+	public Map<String, Integer> getDenial() {
+
+//		ValueComparator bvc = new ValueComparator(denial);
+//		Map<String, Integer> sorteMap = new TreeMap<String, Integer>(bvc);
+//		int i = 0;
+//		for (String key : sorteMap.keySet()) {
+//			System.out.println(i++ + " reason");
+//			System.out.println(key + (sorteMap.get(key) + " occurences"));
+//			System.out.println();
+//		}
+//		return sorteMap;
+		return denial;
+	}
+
+	class ValueComparator implements Comparator<String> {
+		Map<String, Integer> base;
+
+		public ValueComparator(Map<String, Integer> base) {
+			this.base = base;
+		}
+
+		// Note: this comparator imposes orderings that are inconsistent with
+		// equals.
+		public int compare(String a, String b) {
+			if (base.get(a) >= base.get(b)) {
+				return -1;
+			} else {
+				return 1;
+			} // returning 0 would merge keys
+		}
 	}
 
 	public void setSide(ParcelBoundarySide side) {

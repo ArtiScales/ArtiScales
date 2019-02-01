@@ -90,7 +90,7 @@ public class FakeWorldSimulator {
 		lF.add(new File(rootParam + "parameterTechnic.xml"));
 
 		for (String type : iterateOnBuildingType()) {
-			if (type.equals("midBlockFlat")) {
+			try {
 				Parameters p = Parameters.unmarshall(lF);
 				File f = new File(rootFolderFile, type);
 
@@ -99,6 +99,9 @@ public class FakeWorldSimulator {
 				p.set("rootFile", f);
 				SimPLUSimulator plu = new SimPLUSimulator(f, p);
 				plu.run(BuildingType.valueOf(type.toUpperCase()), p);
+			} catch (Exception e) {
+				System.out.println(e);
+				System.out.println("get lost");
 			}
 		}
 	}

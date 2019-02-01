@@ -2,18 +2,13 @@ Faire un fichier de parcelles en sorties, différenciant les sous-parcelles et a
 
 PARCELS
 
-dans l'algo de densification, ajouter l'emploi de l'algo de division parcellaire si le drapeau est retoqué et que l'art 3 le permet  
-
 SimPLU
 
 ajouter la contrainte de l'acces de la parcelle à la route en fonction de l'article 3
 
 INDICATORS
 
-(maxime)
-
-Rajouter la zone (libelle+zonetype) dans laquel le bat est simulé
-
+refaire
 
 Envoyer les cartes souhaitées à Julien 
 Faire les cartes automatiques - après avoir fixé les sorties et le format (Julien)

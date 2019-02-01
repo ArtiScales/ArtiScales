@@ -21,11 +21,11 @@ Suivant la valeur de **{{ART_12}}** un ratio **r** = (places de parking) / (loge
 - **r** = 1 si  **{{ART_12}}** = **1**  ou **{{ART_12}}** = **1 + 2**
 - **r** = 2 si  **{{ART_12}}** = **2**
 
-On doit s'assurer alors que la surface de la parcelle doit pouvoir contenir la surface construite et la surface des places de parking nécessaires. La surface d'une place de parking est définie dans le fichier **parametreScenario.xml** à travers la valeur **areaParkingLot**. Le nombre de logements est obtenu à partir de la surface de plancher du bâtiment divisé par la taille moyenne d'un logement (valeur **HousingUnitSize**).
+On doit s'assurer alors que la surface de la parcelle doit pouvoir contenir la surface construite et la surface des places de parking nécessaires. La surface d'une place de parking est définie dans le fichier **parametreScenario.xml** à travers la valeur **areaParkingLot**. Le nombre de logements est obtenu à partir de la surface de plancher du bâtiment divisé par la taille moyenne d'un logement (valeur **housingUnitSize**).
 Si les logements sont de type maison isolée ou pavillon de lotissement, le nombre de logement est automatiquement de 1.  
 Ainsi, vérifier le respect de cette règle revient à vérifier si l'expression suivante est vraie :
 
-> **surfaceParcelle** > **surfaceBatie** +  ((int) **surfacePlancher**/ **HousingUnitSize**) x **r** x **areaParkingLot**
+> **surfaceParcelle** > **surfaceBatie** +  ((int) **surfacePlancher**/ **housingUnitSize**) x **r** x **areaParkingLot**
 
 ## Implémentation
 

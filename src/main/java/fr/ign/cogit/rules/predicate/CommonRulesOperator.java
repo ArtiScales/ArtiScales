@@ -7,6 +7,7 @@ import com.vividsolutions.jts.geom.Geometry;
 
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
 import fr.ign.cogit.geoxygene.api.spatial.geomroot.IGeometry;
+import fr.ign.cogit.geoxygene.spatial.coordgeom.DirectPosition;
 import fr.ign.cogit.rules.regulation.ArtiScalesRegulation;
 import fr.ign.cogit.rules.regulation.buildingType.RepartitionBuildingType;
 import fr.ign.cogit.simplu3d.model.BasicPropertyUnit;
@@ -316,6 +317,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	 * @return true if the SDP of the configuration is not higher than the limit
 	 */
 	public boolean checkMaxSDP(List<O> lCuboid, Parameters p) {
+		DirectPosition.PRECISION = 4;
 		double sDP = 0.0;
 		SDPCalc surfGen = new SDPCalc(p.getDouble("heightStorey"));
 		if (RepartitionBuildingType.hasAttic(p.getString("nameBuildingType"))) {
@@ -592,7 +594,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		double surfPlace = p.getDouble("areaParkingLot");
 
 		// Surface of a dwelling
-		double surfLogement = p.getInteger("HousingUnitSize");
+		double surfLogement = p.getInteger("housingUnitSize");
 
 		// Built area on the parcel
 		double builtArea = assesBuiltArea(lAllCuboids);

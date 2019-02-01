@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 
@@ -161,5 +162,10 @@ public class SimuTool {
 		}
 		return buildingSimulatedPerSimu;
 	}
-
+	public static HashMap<String, Integer> increm(HashMap<String, Integer> in, String subject){
+		int initValue = in.getOrDefault(subject, 0);
+		in.put(subject, initValue+1);
+		return in;
+	}
+	
 }

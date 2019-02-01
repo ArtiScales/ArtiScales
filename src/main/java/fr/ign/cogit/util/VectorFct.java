@@ -63,8 +63,81 @@ import fr.ign.parameters.Parameters;
 
 public class VectorFct {
 
-	// public static void main(String[] args) throws Exception {
-	//
+	public static void main(String[] args) throws Exception {
+		ShapefileDataStore shpDSZone = new ShapefileDataStore(new File("/home/mcolomb/informatique/ArtiScales/dataRegulation/zoning.shp").toURI().toURL());
+		SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
+
+		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
+		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
+		sfTypeBuilder.setName("testType");
+		sfTypeBuilder.setCRS(sourceCRS);
+		sfTypeBuilder.add("the_geom", Polygon.class);
+		sfTypeBuilder.setDefaultGeometry("the_geom");
+		sfTypeBuilder.add("DEPCOM", String.class);
+		sfTypeBuilder.add("NOM_COM", String.class);
+		sfTypeBuilder.add("typo", String.class);
+		sfTypeBuilder.add("surface", String.class);
+		sfTypeBuilder.add("scot", String.class);
+		sfTypeBuilder.add("log-icone", String.class);
+
+		SimpleFeatureBuilder ft = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
+
+		DefaultFeatureCollection dfC = new DefaultFeatureCollection();
+		SimpleFeatureIterator it = featuresZones.features();
+
+		try {
+			while (it.hasNext()) {
+				SimpleFeature featAdd = it.next();
+				String insee = (String) featAdd.getAttribute("INSEE");
+				List<Geometry> lG = new ArrayList<Geometry>();
+				Geometry g = GeometryPrecisionReducer.reduce((Geometry) featAdd.getDefaultGeometry(), new PrecisionModel(1000));
+				System.out.println(g);
+				if (g instanceof MultiPolygon) {
+					for (int i = 0; i < g.getNumGeometries(); i++) {
+						lG.add(g.getGeometryN(i));
+					}
+				} else if (g instanceof GeometryCollection) {
+					for (int i = 0; i < g.getNumGeometries(); i++) {
+						Geometry ge = g.getGeometryN(i);
+						if (ge instanceof Polygon) {
+							lG.add(ge.getGeometryN(i));
+						}
+					}
+				} else {
+					lG.add(g);
+				}
+
+				SimpleFeatureIterator it2 = dfC.features();
+				try {
+					while (it2.hasNext()) {
+						SimpleFeature featIn = it2.next();
+						if (((String) featIn.getAttribute("DEPCOM")).equals(insee)) {
+							lG.add(GeometryPrecisionReducer.reduce((Geometry) featIn.getDefaultGeometry(), new PrecisionModel(1000)));
+						}
+					}
+				} catch (Exception problem) {
+					problem.printStackTrace();
+				} finally {
+					it2.close();
+				}
+
+				Geometry geom = Vectors.unionGeom(lG);
+				ft.set("the_geom", geom);
+				ft.set("DEPCOM", featAdd.getAttribute("INSEE"));
+				ft.set("NOM_COM", featAdd.getAttribute("NOM_COM"));
+				ft.set("typo", featAdd.getAttribute("typo"));
+				ft.set("surface", featAdd.getAttribute("surface"));
+				ft.set("scot", featAdd.getAttribute("scot"));
+				ft.set("log-icone", featAdd.getAttribute("log-icone"));
+				dfC.add(ft.buildFeature(null));
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			it.close();
+		}
+		Vectors.exportSFC(dfC.collection(), new File("tmp/cities.shp"));
+	}
 	// File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/exScenar");
 	// List<File> lF = new ArrayList<>();
 	// lF.add(new File(rootParam, "parameterTechnic.xml"));
@@ -188,7 +261,7 @@ public class VectorFct {
 			stringParam = stringParam.replace(".xml", "");
 
 			// two specifications
-			if (stringParam.split("-").length == 2 && stringParam.split("-")[0].equals(splitZone)) {
+			if (stringParam.split("-").length == 2 && stringParam.split("-")[1].equals(splitZone)) {
 				SimpleFeatureCollection typoed = getParcelByTypo(stringParam.split("-")[0], parcelCollection, new File(pAdded.getString("rootFile")));
 				SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam.split("-")[1], typoed, new File(pAdded.getString("rootFile")));
 				if (bigZoned.size() > 0) {
@@ -199,6 +272,7 @@ public class VectorFct {
 			}
 			// only one specification
 			else {
+				System.out.println("one sector attribute");
 				if (stringParam.equals("periUrbain") || stringParam.equals("rural") || stringParam.equals("banlieue") || stringParam.equals("centre")) {
 					SimpleFeatureCollection typoed = getParcelByTypo(stringParam, parcelCollection, new File(pAdded.getString("rootFile")));
 					if (typoed.size() > 0) {
@@ -433,7 +507,7 @@ public class VectorFct {
 		// séparation entre les différentes zones
 		DefaultFeatureCollection result = new DefaultFeatureCollection();
 		List<String> listZones = getLocationParamNames(locationBuildingType, p);
-
+		System.out.println("we seek " + splitZone);
 		// split into zones to make correct parcel recomposition
 		for (String stringParam : listZones) {
 			System.out.println("for line " + stringParam);
@@ -445,9 +519,13 @@ public class VectorFct {
 			pAdded.add(RepartitionBuildingType.getParam(profileBuildingType, type));
 
 			stringParam = cleanSectorName(stringParam);
-
+try {
+			System.out.println(stringParam+" this iz "+stringParam.split("-")[1]+" for "+splitZone);
+}catch (Exception e) {
+	
+}
 			// two specifications
-			if (stringParam.split("-").length == 2 && stringParam.split("-")[0].equals(splitZone)) {
+			if (stringParam.split("-").length == 2 && stringParam.split("-")[1].equals(splitZone)) {
 				SimpleFeatureCollection typoed = getParcelByTypo(stringParam.split("-")[0], parcelCollection, new File(p.getString("rootFile")));
 				SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam.split("-")[1], typoed, new File(p.getString("rootFile")));
 				if (bigZoned.size() > 0) {
@@ -459,10 +537,10 @@ public class VectorFct {
 			}
 		}
 		if (result.isEmpty()) {
+			System.out.println("one sector attribute");
 			SimpleFeatureCollection def = new DefaultFeatureCollection();
 			// only one specification
 			for (String stringParam : listZones) {
-				System.out.println("one sector attribute");
 				System.out.println("for line " + stringParam);
 				Parameters pTemp = p;
 				pTemp.add(Parameters.unmarshall(new File(locationBuildingType, stringParam)));
@@ -492,9 +570,8 @@ public class VectorFct {
 					}
 				}
 			}
-			result = addAllParcels(result,def);
+			result = addAllParcels(result, def);
 		}
-	
 
 		SimpleFeatureCollection realResult = completeParcelMissing(parcelCollection, result.collection(), parcelToNotAdd);
 
@@ -569,6 +646,11 @@ public class VectorFct {
 			return parcels;
 		}
 
+		// get the insee number
+		SimpleFeatureIterator pInsee = parcels.features();
+		String insee = (String) pInsee.next().getAttribute("INSEE");
+		pInsee.close();
+
 		// all the AU zones
 		Geometry geomAU = Vectors.unionSFC(zoneAU);
 		DefaultFeatureCollection parcelsInAU = new DefaultFeatureCollection();
@@ -605,7 +687,7 @@ public class VectorFct {
 					if (intersection instanceof MultiPolygon) {
 						for (int i = 0; i < intersection.getNumGeometries(); i++) {
 							simpleSFB.set("the_geom", GeometryPrecisionReducer.reduce(intersection.getGeometryN(i), new PrecisionModel(100)));
-							simpleSFB.set("INSEE", "25569");
+							simpleSFB.set("INSEE", insee);
 							goOdAu.add(simpleSFB.buildFeature(null));
 							// Object[] attr = feat.getAttributes().toArray();
 							// attr[0] = intersection.getGeometryN(i);
@@ -616,7 +698,7 @@ public class VectorFct {
 							Geometry g = intersection.getGeometryN(i);
 							if (g instanceof Polygon) {
 								simpleSFB.set("the_geom", g.buffer(1).buffer(-1));
-								simpleSFB.set("INSEE", "25569");
+								simpleSFB.set("INSEE", insee);
 								goOdAu.add(simpleSFB.buildFeature(null));
 								// Object[] attr = feat.getAttributes().toArray();
 								// attr[0] = intersection.getGeometryN(i);
@@ -625,7 +707,7 @@ public class VectorFct {
 						}
 					} else {
 						simpleSFB.set("the_geom", intersection.buffer(1).buffer(-1));
-						simpleSFB.set("INSEE", "25560");
+						simpleSFB.set("INSEE", insee);
 						goOdAu.add(simpleSFB.buildFeature(null));
 						// Object[] attr = feat.getAttributes().toArray();
 						// attr[0] = intersection;
@@ -639,6 +721,10 @@ public class VectorFct {
 			zoneAUIt.close();
 		}
 		SimpleFeatureCollection gOOdAU = goOdAu.collection();
+		if (gOOdAU.isEmpty()) {
+			System.out.println("parcelGenZone : no " + splitZone + " zones");
+			return parcels;
+		}
 		// temporary shapefiles that serves to do polygons
 		File fParcelsInAU = Vectors.exportSFC(parcelsInAU, new File(tmpFile, "parcelCible.shp"));
 		File fZoneAU = Vectors.exportSFC(gOOdAU, new File(tmpFile, "oneAU.shp"));
@@ -701,7 +787,7 @@ public class VectorFct {
 			while (it.hasNext()) {
 				SimpleFeature zone = it.next();
 				// get the insee number for that zone
-				String insee = (String) zone.getAttribute("INSEE");
+				// String insee = (String) zone.getAttribute("INSEE");
 				sfBuilder.set("CODE", insee + "000" + "New" + numZone + "Section");
 				sfBuilder.set("CODE_DEP", insee.substring(0, 2));
 				sfBuilder.set("CODE_COM", insee.substring(2, 5));
@@ -805,12 +891,19 @@ public class VectorFct {
 				if (((Geometry) feat.getDefaultGeometry()).getArea() > 5.0) {
 					// set if the parcel is simulable or not
 					if (allOrCell) {
-						double eval = getEvalInParcel(feat, mupSFC);
-						if (eval == 0.0) {
-							eval = getCloseEvalInParcel(feat, mupSFC);
+						// must be contained into the AU zones
+						if (geomAU.buffer(1).contains((Geometry) feat.getDefaultGeometry())) {
+							double eval = getEvalInParcel(feat, mupSFC);
+							if (eval == 0.0) {
+								eval = getCloseEvalInParcel(feat, mupSFC);
+							}
+							feat.setAttribute("DoWeSimul", "true");
+							feat.setAttribute("eval", eval);
+						} else {
+							feat.setAttribute("DoWeSimul", "false");
+							feat.setAttribute("eval", "0.0");
+
 						}
-						feat.setAttribute("DoWeSimul", "true");
-						feat.setAttribute("eval", eval);
 					} else {
 						if (isParcelInCell(feat, mupSFC)) {
 							feat.setAttribute("DoWeSimul", "true");
@@ -835,7 +928,9 @@ public class VectorFct {
 		}
 		mupSDS.dispose();
 		// pSDS.dispose();
-		SimpleFeatureCollection result = Vectors.delTinyParcels(savedParcels.collection(), 10.0);
+		// SimpleFeatureCollection result = Vectors.delTinyParcels(savedParcels.collection(), 10.0);
+		SimpleFeatureCollection result = Vectors.delTinyParcels(savedParcels.collection(), 0.0);
+
 		Vectors.exportSFC(result, new File(tmpFile, "parcelFinal.shp"));
 
 		return result;
@@ -874,17 +969,16 @@ public class VectorFct {
 			pAdded.add(RepartitionBuildingType.getParam(profileBuildingType, type));
 			stringParam = cleanSectorName(stringParam);
 			// two specifications
-			if (stringParam.split("-").length == 2) {
-				if (splitZone.equals(stringParam.split("-")[0])) {
-					SimpleFeatureCollection typoed = getParcelByTypo(stringParam.split("-")[0], parcelCollection, new File(pAdded.getString("rootFile")));
-					SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam.split("-")[1], typoed, new File(pAdded.getString("rootFile")));
-					if (bigZoned.size() > 0) {
-						parcelToNotAdd = notAddPArcel(parcelToNotAdd, bigZoned);
-						System.out.println("we cut the parcels with " + type + " parameters");
-						result = addAllParcels(result, parcelGenMotif(splitZone, bigZoned, tmpFile, mupOutput, pAdded, dontTouchUZones));
-						break;
-					}
+			if (stringParam.split("-").length == 2 && splitZone.equals(stringParam.split("-")[1])) {
+				SimpleFeatureCollection typoed = getParcelByTypo(stringParam.split("-")[0], parcelCollection, new File(pAdded.getString("rootFile")));
+				SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam.split("-")[1], typoed, new File(pAdded.getString("rootFile")));
+				if (bigZoned.size() > 0) {
+					parcelToNotAdd = notAddPArcel(parcelToNotAdd, bigZoned);
+					System.out.println("we cut the parcels with " + type + " parameters");
+					result = addAllParcels(result, parcelGenMotif(splitZone, bigZoned, tmpFile, mupOutput, pAdded, dontTouchUZones));
+					break;
 				}
+
 			}
 		}
 		if (result.isEmpty()) {
@@ -917,12 +1011,12 @@ public class VectorFct {
 						if (bigZoned.size() > 0) {
 							parcelToNotAdd = notAddPArcel(parcelToNotAdd, bigZoned);
 							System.out.println("we cut the parcels with " + type + " parameters");
-							def =  parcelGenMotif(splitZone, bigZoned, tmpFile, mupOutput, pAdded, dontTouchUZones);
+							def = parcelGenMotif(splitZone, bigZoned, tmpFile, mupOutput, pAdded, dontTouchUZones);
 						}
 					}
 				}
 			}
-			result = addAllParcels(result,def);
+			result = addAllParcels(result, def);
 		}
 
 		SimpleFeatureCollection realResult = completeParcelMissing(parcelCollection, result.collection(), parcelToNotAdd);
@@ -1043,7 +1137,7 @@ public class VectorFct {
 			sfBuilder.set("Section", i);
 			mergedParcels.add(sfBuilder.buildFeature(null));
 		}
-		
+
 		SimpleFeatureCollection forSection = mergedParcels.collection();
 
 		Vectors.exportSFC(mergedParcels.collection(), new File(tmpFile, "step2.shp"));
@@ -1237,6 +1331,15 @@ public class VectorFct {
 		IFeatureCollection<IFeature> decomp = fpd.decompParcel(0);
 		IFeatureCollection<IFeature> ifeatCollOut = new FT_FeatureCollection<>();
 		long numParcelle = Math.round(Math.random() * 10000);
+
+		// may we need to normal cut it?
+		if (decomp.size() == 1 && isArt3AllowsIsolatedParcel(decomp.get(0), rootFile)) {
+			System.out.println("normal decomp instead of flagg decomp allowed");
+			File superTemp = Vectors.exportSFC(splitParcels(GeOxygeneGeoToolsTypes.convert2SimpleFeature(ifeat, CRS.decode("EPSG:2154")), maximalAreaSplitParcel,
+					maximalWidthSplitParcel, 0, 0, iMultiCurve, 0, false, 5, tmpFile, false), new File(tmpFile, "normalCutedParcel.shp"));
+			decomp = ShapefileReader.read(superTemp.getAbsolutePath());
+		}
+
 		for (IFeature newFeat : decomp) {
 
 			// impeach irregularities
@@ -1276,7 +1379,10 @@ public class VectorFct {
 					// has access to road, we put it whole to simul
 					if (fpd.hasRoadAccess((IPolygon) surfaces.get(0))) {
 						simul = true;
-					} else if (isArt3AllowsIsolatedParcel(newFeat, rootFile)) {
+					}
+					// doesn't has to be connected to the road to be urbanized
+					else if (isArt3AllowsIsolatedParcel(newFeat, rootFile)) {
+
 						simul = true;
 					}
 				} else {
@@ -1749,7 +1855,6 @@ public class VectorFct {
 			}
 
 		}
-
 		return bestEval;
 	}
 
@@ -1977,7 +2082,7 @@ public class VectorFct {
 			}
 			// if the param repartition concerns a special scenario and it's not ours
 			if (nameParam.split(":").length > 1) {
-				if (nameParam.split(":")[0].equals(p.getString("code"))) {
+				if (nameParam.split(":")[0].equals(p.getString("scenarioPMSP3D"))) {
 					specialScenarZone.add(nameParam);
 				} else {
 					continue;
