@@ -2074,7 +2074,7 @@ try {
 	public static List<String> getLocationParamNames(File locationBuildingType, Parameters p) {
 		List<String> listZones = new ArrayList<String>();
 		List<String> specialScenarZone = new ArrayList<String>();
-
+System.out.println(locationBuildingType);
 		for (File param : locationBuildingType.listFiles()) {
 			String nameParam = param.getName();
 			if (nameParam.equals("default.xml")) {

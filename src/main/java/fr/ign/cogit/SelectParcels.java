@@ -176,7 +176,6 @@ public class SelectParcels {
 					////////////////
 					////// Packing the parcels for SimPLU3D distribution
 					////////////////
-
 					File packFile = new File(rootFile, "ParcelSelectionFile/" + scenarName + "/" + varianteSpatialConf.getParentFile().getName() + "/");
 					packFile.mkdirs();
 					
@@ -201,9 +200,7 @@ public class SelectParcels {
 						separateToDifferentCitiesPack(parcelSelectedFile, packFile);
 						listScenar.add(packFile);
 					}
-
 					shpDSparcel.dispose();
-
 				}
 			}
 			selectionFile.add(listScenar);
@@ -725,7 +722,7 @@ public class SelectParcels {
 		predicate.close();
 
 		for (File pack : fileOut.listFiles()) {
-			if (pack.isDirectory()) {
+			if (pack.isDirectory() && pack.getName().contains(codeCom)) {
 				File fBBox = new File(pack, "bbox.shp");
 
 				if (!fBBox.exists()) {
