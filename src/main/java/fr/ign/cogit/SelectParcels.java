@@ -151,7 +151,7 @@ public class SelectParcels {
 						if (!splitZone.contains("-")) {
 							System.out.println();
 							System.out.println("///// We start the splitMotifZone process\\\\\\");
-							parcelCollection = VectorFct.parcelGenZone(splitZone, parcelCollection, tmpFile, spatialConf, p, ressource, true);
+							parcelCollection = VectorFct.parcelGenZone(splitZone, parcelCollection, tmpFile, spatialConf, p, ressource);
 							Vectors.exportSFC(parcelCollection, new File(tmpFile, "aftersplitMotifZone"));
 						} else {
 							System.err.println("splitParcel : complex section non implemented yet");

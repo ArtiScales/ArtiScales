@@ -9,7 +9,7 @@
 
 	<!-- Dossiers et fichiers nécessaires à la simulation -->
 	<!-- Emplacement de la simulation (données d'entrée, résultats intermédiaires et finaux) -->
-	 <param key="rootFile" value="/home/mcolomb/informatique/ArtiScales" /> 
+	 <param key="rootFile" value="/home/mcolomb/informatique/ArtiScales20190204" /> 
 <!-- <param key="rootFile" value="/home/ubuntu/boulot/these/ArtiScales" /> -->
 		
 	<!-- PARAMETRES DU MODULE MUP-CITY -->
@@ -81,8 +81,10 @@
 		<!-- Décomposition des parcelles - affecte un type de découpage à un secteur (couple de zone/typo) -->
 		<!-- Les combinaisons de zone/typo sont séparées avec un "-" et ces différents secteurs sont séparés par un "_"  -->
 
-		<param key="splitDensification" value="U" />		
+		<param key="splitDensification" value="false" />		
 		<param key="splitMotifZone" value="AU" />	
+			<!-- Si true, toutes les parcelles générées dans ces zones remodelées avec le processus de configuration parcellaire pour une zone entière sont sélectionnées. Si false, uniquement les parcelles intersectant les cellules générées par MUP-City sont sélectionnées -->
+			<param key="AUAllZoneOrCell" value="true" />
 		<param key="splitMotif" value="false" />
 
 	<!-- PARAMETRES DE SIMPLU3D -->

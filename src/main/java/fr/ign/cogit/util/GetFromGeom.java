@@ -338,8 +338,10 @@ public class GetFromGeom {
 			DefaultFeatureCollection write = new DefaultFeatureCollection();
 
 			// for every made up polygons out of zoning and parcels
+			System.out.println("polygons.size() " +polygons.size());
 			for (Geometry poly : polygons) {
 				// for every parcels around the polygon
+				
 				SimpleFeatureCollection snaped = Vectors.snapDatas(parcels, poly.getBoundary());
 				SimpleFeatureIterator parcelIt = snaped.features();
 				try {
@@ -347,30 +349,26 @@ public class GetFromGeom {
 						SimpleFeature feat = parcelIt.next();
 						// if the polygon part was between that parcel, we add its attribute
 						if (((Geometry) feat.getDefaultGeometry()).buffer(1).contains(poly)) {
-							sfSimpleBuilder.add(GeometryPrecisionReducer.reduce(poly, new PrecisionModel(100)));
+							sfSimpleBuilder.set("the_geom",GeometryPrecisionReducer.reduce(poly, new PrecisionModel(100)));
 							String code = makeParcelCode(feat);
-							sfSimpleBuilder.set("CODE_DEP", feat.getAttribute("CODE_DEP"));
+							sfSimpleBuilder.set("CODE_DEP", "1");
 							sfSimpleBuilder.set("CODE_COM", feat.getAttribute("CODE_COM"));
 							sfSimpleBuilder.set("COM_ABS", feat.getAttribute("COM_ABS"));
 							sfSimpleBuilder.set("SECTION", feat.getAttribute("SECTION"));
 							String num = (String) feat.getAttribute("NUMERO");
 							// if a part has already been added
-							if (codeParcelsTot.contains(code)) {
-								while (true) {
+
+							for (int i =0; i < codeParcelsTot.size();i++ ) {
+								if(codeParcelsTot.get(i).substring(0, 13).equals(code)) {
 									num = num + "bis";
 									code = code + "bis";
-									sfSimpleBuilder.set("NUMERO", num);
-									if (!codeParcelsTot.contains(code)) {
-										codeParcelsTot.add(code);
-										break;
-									}
 								}
-							} else {
-								sfSimpleBuilder.set("NUMERO", feat.getAttribute("NUMERO"));
-								codeParcelsTot.add(code);
 							}
+							sfSimpleBuilder.set("NUMERO", num);
 							sfSimpleBuilder.set("CODE", code);
+							codeParcelsTot.add(code);
 							write.add(sfSimpleBuilder.buildFeature(null));
+							
 						}
 					}
 				} catch (Exception problem) {

@@ -502,7 +502,7 @@ public class VectorFct {
 	 * @throws Exception
 	 */
 	public static SimpleFeatureCollection parcelGenZone(String splitZone, SimpleFeatureCollection parcelCollection, File tmpFile, File mupOutput,
-			Parameters p, File ressource, boolean allOrCell) throws Exception {
+			Parameters p, File ressource) throws Exception {
 		List<String> parcelToNotAdd = new ArrayList<String>();
 		File locationBuildingType = new File(ressource, "locationBuildingType");
 		File profileBuildingType = new File(ressource, "profileBuildingType");
@@ -526,14 +526,14 @@ public class VectorFct {
 			} catch (Exception e) {
 
 			}
-			// two specifications
+			// two specifications emprise
 			if (stringParam.split("-").length == 2 && stringParam.split("-")[1].equals(splitZone)) {
 				SimpleFeatureCollection typoed = getParcelByTypo(stringParam.split("-")[0], parcelCollection, new File(p.getString("rootFile")));
 				SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam.split("-")[1], typoed, new File(p.getString("rootFile")));
 				if (bigZoned.size() > 0) {
 					System.out.println("we cut the parcels with " + type + " parameters");
 					parcelToNotAdd = notAddPArcel(parcelToNotAdd, bigZoned);
-					result = addAllParcels(result, parcelGenZone(splitZone, bigZoned, tmpFile, mupOutput, pAdded, allOrCell));
+					result = addAllParcels(result, parcelGenZone(splitZone, bigZoned, tmpFile, mupOutput, pAdded, p.getBoolean("AUAllZoneOrCell")));
 					Vectors.exportSFC(result, new File("/tmp/" + stringParam + "AfterZoneMotif.shp"));
 				}
 			}
@@ -559,7 +559,7 @@ public class VectorFct {
 					if (typoed.size() > 0) {
 						parcelToNotAdd = notAddPArcel(parcelToNotAdd, typoed);
 						System.out.println("we cut the parcels with " + type + " parameters");
-						def = parcelGenZone(splitZone, typoed, tmpFile, mupOutput, pAdded, allOrCell);
+						def = parcelGenZone(splitZone, typoed, tmpFile, mupOutput, pAdded, p.getBoolean("AUAllZoneOrCell"));
 						break;
 					}
 				} else {
@@ -568,7 +568,7 @@ public class VectorFct {
 						if (bigZoned.size() > 0) {
 							parcelToNotAdd = notAddPArcel(parcelToNotAdd, bigZoned);
 							System.out.println("we cut the parcels with " + type + " parameters");
-							def = parcelGenZone(splitZone, bigZoned, tmpFile, mupOutput, pAdded, allOrCell);
+							def = parcelGenZone(splitZone, bigZoned, tmpFile, mupOutput, pAdded, p.getBoolean("AUAllZoneOrCell"));
 						}
 					}
 				}
