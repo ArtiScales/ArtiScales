@@ -50,12 +50,12 @@ public class PAUDigger {
 		DirectPosition.PRECISION = 4;
 
 		File rootFile = new File("/home/mcolomb/informatique/ArtiScales/");
-		
+
 		File outFile = new File("/media/mcolomb/Data_2/donnee/DocLocal/");
 
 		File buildFile = new File("/media/mcolomb/Data_2/donnee/autom/besac2/dataIn/bati/BATI_INDIFFERENCIE.SHP");
-		File parcelFile = new File(rootFile,"geoData/parcel.shp");
-		File morphoLimFile = new File(rootFile,"geoData/PAU-morpholimEnv.shp");
+		File parcelFile = new File(rootFile, "geoData/parcel.shp");
+		File morphoLimFile = new File(rootFile, "geoData/PAU-morpholimEnv.shp");
 
 		File rnuCityFiles = new File("/media/mcolomb/Data_2/donnee/DocLocal/communesRNU.shp");
 
@@ -70,11 +70,9 @@ public class PAUDigger {
 		SimpleFeatureCollection nUSFC = nUSDS.getFeatureSource().getFeatures();
 		Geometry unionNU = Vectors.unionSFC(nUSFC);
 
-		
-		
 		// limits
-		File roadFile = new File(rootFile,"dataGeo/roadPAU.shp");
-		File riverFile = new File(rootFile,"dataGeo/river.shp");
+		File roadFile = new File(rootFile, "dataGeo/roadPAU.shp");
+		File riverFile = new File(rootFile, "dataGeo/river.shp");
 		File railFile = new File("/media/mcolomb/Data_2/donnee/autom/besac2/dataIn/train/TRONCON_VOIE_FERREE.shp");
 
 		File[] buildResult = prepareClusterBuild(buildFile);
@@ -106,7 +104,7 @@ public class PAUDigger {
 
 		// Vectors.exportSFC(parcelPreSelected, new File("/home/mcolomb/tmp/parcelsBeforeCuting.shp"));
 
-//TODO change this line with a more accurate parcel splitter
+		// TODO change this line with a more accurate parcel splitter
 		System.out.println("//TODO change this line with a more accurate parcel splitter");
 		SimpleFeatureCollection parcelSplitted = VectorFct.generateSplitedParcels(parcelPreSelected, rnuCityFiles, null);
 		SimpleFeatureCollection pau = parcelSplitted.subCollection(filCluster).subCollection(filMorpho).subCollection(filNU);
@@ -119,7 +117,8 @@ public class PAUDigger {
 
 	}
 
-	private static SimpleFeatureCollection makeEnvelopePAU(SimpleFeatureCollection pau) throws NoSuchAuthorityCodeException, FactoryException, IOException, SchemaException {
+	private static SimpleFeatureCollection makeEnvelopePAU(SimpleFeatureCollection pau)
+			throws NoSuchAuthorityCodeException, FactoryException, IOException, SchemaException {
 		DefaultFeatureCollection df = new DefaultFeatureCollection();
 
 		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
@@ -202,7 +201,8 @@ public class PAUDigger {
 
 	}
 
-	private static File prepareLimit(File roadFile, File riverFile, File railFile) throws IOException, NoSuchAuthorityCodeException, FactoryException {
+	private static File prepareLimit(File roadFile, File riverFile, File railFile)
+			throws IOException, NoSuchAuthorityCodeException, FactoryException {
 
 		DefaultFeatureCollection collecLimit = new DefaultFeatureCollection();
 
@@ -320,8 +320,10 @@ public class PAUDigger {
 				SimpleFeature build = bIt.next();
 				// if the building is from an old version of the BD Topo and we need to sort the industrial and farmer buildings
 				if (isOld) {
-					if (!(((String) build.getAttribute("NATURE")).equals("Bâtiment agricole") || ((String) build.getAttribute("NATURE")).equals("Silo")
-							|| ((String) build.getAttribute("NATURE")).equals("Bâtiment industriel") || ((Geometry) build.getDefaultGeometry()).getArea() < 20.0)) {
+					if (!(((String) build.getAttribute("NATURE")).equals("Bâtiment agricole")
+							|| ((String) build.getAttribute("NATURE")).equals("Silo")
+							|| ((String) build.getAttribute("NATURE")).equals("Bâtiment industriel")
+							|| ((Geometry) build.getDefaultGeometry()).getArea() < 20.0)) {
 						collecBuild.add(build);
 						lG.add(((Geometry) build.getDefaultGeometry()).buffer(25));
 						i++;
@@ -360,7 +362,8 @@ public class PAUDigger {
 	 * @throws FactoryException
 	 * @throws SchemaException
 	 */
-	public static File splitLimClus(File fLimit, File fCluster, File fBuild) throws IOException, NoSuchAuthorityCodeException, FactoryException, SchemaException {
+	public static File splitLimClus(File fLimit, File fCluster, File fBuild)
+			throws IOException, NoSuchAuthorityCodeException, FactoryException, SchemaException {
 
 		ShapefileDataStore buildSDS = new ShapefileDataStore(fBuild.toURI().toURL());
 		SimpleFeatureCollection buildSFC = buildSDS.getFeatureSource().getFeatures();

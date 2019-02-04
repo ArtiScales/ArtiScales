@@ -54,7 +54,6 @@ import fr.ign.cogit.util.VectorFct;
 import fr.ign.mpp.configuration.BirthDeathModification;
 import fr.ign.mpp.configuration.GraphConfiguration;
 import fr.ign.mpp.configuration.GraphVertex;
-import fr.ign.parameters.ParameterComponent;
 import fr.ign.parameters.Parameters;
 
 public class SimPLUSimulator {
@@ -171,7 +170,7 @@ public class SimPLUSimulator {
 		List<File> listBatiSimu = new ArrayList<File>();
 		for (File ff : f.listFiles()) {
 			if (ff.isDirectory()) {
-				System.out.println("start pack "+ff);
+				System.out.println("start pack " + ff);
 				SimPLUSimulator sim = new SimPLUSimulator(ff, p);
 				List<File> simued = sim.run();
 				if (simued != null) {
@@ -229,7 +228,8 @@ public class SimPLUSimulator {
 	}
 
 	public List<File> run(BuildingType type, Parameters par) throws Exception {
-		Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile, parcelsFile, roadFile, buildFile, filePrescPonct, filePrescLin, filePrescSurf, null);
+		Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile, parcelsFile, roadFile, buildFile, filePrescPonct, filePrescLin,
+				filePrescSurf, null);
 
 		///////////
 		// asses repartition to pacels
@@ -238,7 +238,8 @@ public class SimPLUSimulator {
 		IFeatureCollection<Prescription> prescriptions = env.getPrescriptions();
 		IFeatureCollection<Prescription> prescriptionUse = PrescriptionPreparator.preparePrescription(prescriptions, par);
 
-		boolean association = ZoneRulesAssociation.associate(env, predicateFile, GetFromGeom.rnuZip(new File(rootFile, "dataRegulation")), willWeAssociateAnyway(par));
+		boolean association = ZoneRulesAssociation.associate(env, predicateFile, GetFromGeom.rnuZip(new File(rootFile, "dataRegulation")),
+				willWeAssociateAnyway(par));
 
 		if (!association) {
 			System.out.println("Association between rules and UrbanZone failed");
@@ -271,7 +272,8 @@ public class SimPLUSimulator {
 			IFeatureCollection<IFeature> building = null;
 			Parameters pTemp = par;
 
-			pTemp.add(RepartitionBuildingType.getParam(new File(this.getClass().getClassLoader().getResource("profileBuildingType").getFile()), type));
+			pTemp.add(
+					RepartitionBuildingType.getParam(new File(this.getClass().getClassLoader().getResource("profileBuildingType").getFile()), type));
 
 			System.out.println("nombre de boites autorisées : " + pTemp.getString("nbCuboid"));
 
@@ -320,7 +322,8 @@ public class SimPLUSimulator {
 		// information and simulated annealing configuration
 		// SimuTool.setEnvEnglishName();
 
-		Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile, parcelsFile, roadFile, buildFile, filePrescPonct, filePrescLin, filePrescSurf, null);
+		Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile, parcelsFile, roadFile, buildFile, filePrescPonct, filePrescLin,
+				filePrescSurf, null);
 		Parameters pUsed = p;
 		///////////
 		// asses repartition to pacels
@@ -330,7 +333,8 @@ public class SimPLUSimulator {
 		IFeatureCollection<CadastralParcel> parcels = env.getCadastralParcels();
 
 		for (CadastralParcel parcel : parcels) {
-			String tmp = GetFromGeom.affectZoneAndTypoToLocation(pUsed.getString("useRepartition"), pUsed.getString("scenarioPMSP3D"), parcel, new File(pUsed.getString("rootFile")), true);
+			String tmp = GetFromGeom.affectZoneAndTypoToLocation(pUsed.getString("useRepartition"), pUsed.getString("scenarioPMSP3D"), parcel,
+					new File(pUsed.getString("rootFile")), true);
 			if (!zones.contains(tmp)) {
 				zones.add(tmp);
 			}
@@ -356,7 +360,8 @@ public class SimPLUSimulator {
 		IFeatureCollection<Prescription> prescriptions = env.getPrescriptions();
 		IFeatureCollection<Prescription> prescriptionUse = PrescriptionPreparator.preparePrescription(prescriptions, pUsed);
 
-		boolean association = ZoneRulesAssociation.associate(env, predicateFile, GetFromGeom.rnuZip(new File(rootFile, "dataRegulation")), willWeAssociateAnyway(pUsed));
+		boolean association = ZoneRulesAssociation.associate(env, predicateFile, GetFromGeom.rnuZip(new File(rootFile, "dataRegulation")),
+				willWeAssociateAnyway(pUsed));
 
 		if (!association) {
 			System.out.println("Association between rules and UrbanZone failed");
@@ -409,8 +414,9 @@ public class SimPLUSimulator {
 				System.out.println("we try to put a " + type + " housing unit");
 				// we add the parameters for the building type want to simulate
 				Parameters pTemp = new Parameters();
-				pTemp=pUsed;
-				pTemp.add(RepartitionBuildingType.getParam(new File(this.getClass().getClassLoader().getResource("profileBuildingType").getFile()), type));
+				pTemp = pUsed;
+				pTemp.add(RepartitionBuildingType.getParam(new File(this.getClass().getClassLoader().getResource("profileBuildingType").getFile()),
+						type));
 				System.out.println("new height back to reg val " + pTemp.getDouble("maxheight"));
 
 				building = runSimulation(env, i, pTemp, type, prescriptionUse);
@@ -569,8 +575,8 @@ public class SimPLUSimulator {
 	 * @throws Exception
 	 */
 	@SuppressWarnings({ "deprecation" })
-	public IFeatureCollection<IFeature> runSimulation(Environnement env, int i, Parameters par, BuildingType type, IFeatureCollection<Prescription> prescriptionUse)
-			throws Exception {
+	public IFeatureCollection<IFeature> runSimulation(Environnement env, int i, Parameters par, BuildingType type,
+			IFeatureCollection<Prescription> prescriptionUse) throws Exception {
 
 		BasicPropertyUnit bPU = env.getBpU().get(i);
 
@@ -649,8 +655,8 @@ public class SimPLUSimulator {
 			}
 		}
 		System.out.println(pred.getDenial());
-		//the -0.1 is set to avoid uncounting storeys when its very close to make one storey (which is very frequent)
-		SDPCalc surfGen = new SDPCalc(par.getDouble("heightStorey")-0.1);
+		// the -0.1 is set to avoid uncounting storeys when its very close to make one storey (which is very frequent)
+		SDPCalc surfGen = new SDPCalc(par.getDouble("heightStorey") - 0.1);
 		// Getting cuboid into list (we have to redo it because the cuboids are
 		// dissapearing during this procces)
 		List<Cuboid> cubes = cc.getGraph().vertexSet().stream().map(x -> x.getValue()).collect(Collectors.toList());
@@ -733,8 +739,8 @@ public class SimPLUSimulator {
 
 	@SuppressWarnings("deprecation")
 	private GraphConfiguration<Cuboid> graphConfigurationWithAlignements(Alignements alignementsGeometries,
-			CommonPredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred, Environnement env, int i, BasicPropertyUnit bPU, IGeometry[] geoms,
-			Parameters par) throws Exception {
+			CommonPredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred, Environnement env, int i,
+			BasicPropertyUnit bPU, IGeometry[] geoms, Parameters par) throws Exception {
 
 		GraphConfiguration<Cuboid> cc = null;
 
@@ -760,8 +766,8 @@ public class SimPLUSimulator {
 
 	@SuppressWarnings("deprecation")
 	private GraphConfiguration<Cuboid> article71Case12(Alignements alignementsGeometries,
-			CommonPredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred, Environnement env, int i, BasicPropertyUnit bPU, Parameters par)
-			throws Exception {
+			CommonPredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred, Environnement env, int i,
+			BasicPropertyUnit bPU, Parameters par) throws Exception {
 
 		GraphConfiguration<Cuboid> cc = null;
 		// Instantiation of the sampler
@@ -814,8 +820,8 @@ public class SimPLUSimulator {
 		return cc;
 	}
 
-	private CommonPredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> preparePredicateOneRegulationBySubParcel(BasicPropertyUnit bPU,
-			Parameters p2, IFeatureCollection<Prescription> prescriptionUse, Environnement env) throws Exception {
+	private CommonPredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> preparePredicateOneRegulationBySubParcel(
+			BasicPropertyUnit bPU, Parameters p2, IFeatureCollection<Prescription> prescriptionUse, Environnement env) throws Exception {
 
 		MultiplePredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = new MultiplePredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>>(
 				bPU, true, p2, prescriptionUse, env);
@@ -823,8 +829,8 @@ public class SimPLUSimulator {
 		return pred;
 	}
 
-	private static PredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> preparePredicateOneRegulation(BasicPropertyUnit bPU, Parameters p,
-			IFeatureCollection<Prescription> prescriptionUse, Environnement env) throws Exception {
+	private static PredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> preparePredicateOneRegulation(
+			BasicPropertyUnit bPU, Parameters p, IFeatureCollection<Prescription> prescriptionUse, Environnement env) throws Exception {
 		List<SubParcel> sP = bPU.getCadastralParcels().get(0).getSubParcels();
 		// We sort the subparcel to get the biggests
 		sP.sort(new Comparator<SubParcel>() {
@@ -846,9 +852,10 @@ public class SimPLUSimulator {
 			return null;
 		}
 
-		System.out.println("Regulation code : " + regle.getInsee()+"-"+regle.getLibelle_de_dul());
+		System.out.println("Regulation code : " + regle.getInsee() + "-" + regle.getLibelle_de_dul());
 		// Instantiation of the rule checker
-		PredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = new PredicateArtiScales<>(bPU, true, regle, p, prescriptionUse, env);
+		PredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = new PredicateArtiScales<>(bPU, true, regle, p,
+				prescriptionUse, env);
 
 		return pred;
 

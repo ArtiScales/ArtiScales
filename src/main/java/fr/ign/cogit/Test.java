@@ -9,28 +9,28 @@ public class Test {
 
 	public static void main(String[] args) throws Exception {
 
-		 OutputTools.vectorizeMupOutput(Rasters.importRaster(new
-		 File("/media/mcolomb/Data_2/resultFinal/testAHP/comparaison/compAHP-Autom-CM20.0-S0.0-GP_915948.0_6677337.0/N7_Ba_YagahpT_Yag_seed_42/N7_Ba_YagahpT_Yag_seed_42-evalAnal-20.0.tif")),
-		 new File("/media/mcolomb/Data_2/resultFinal/testAHP/extra/vector/N7_Ba_Yag_ahpT.shp"), 20);
+		OutputTools.vectorizeMupOutput(Rasters.importRaster(new File(
+				"/media/mcolomb/Data_2/resultFinal/testAHP/comparaison/compAHP-Autom-CM20.0-S0.0-GP_915948.0_6677337.0/N7_Ba_YagahpT_Yag_seed_42/N7_Ba_YagahpT_Yag_seed_42-evalAnal-20.0.tif")),
+				new File("/media/mcolomb/Data_2/resultFinal/testAHP/extra/vector/N7_Ba_Yag_ahpT.shp"), 20);
 
-//		IFeatureCollection<IFeature> collec = ShapefileReader.read("/home/mcolomb/informatique/ArtiScales/dataGeo/building.shp");
-//		IFeatureCollection<IFeature> result = new FT_FeatureCollection<>();
-//
-//		for (IFeature feat : collec) {
-//			double hmin = ((double) feat.getAttribute("Z_MIN") + (double) feat.getAttribute("Z_MAX")) / 2;
-//			double hmax = hmin + (int) feat.getAttribute("HAUTEUR");
-//			IGeometry extruded = Extrusion2DObject.convertFromGeometry(feat.getGeom(), hmin, hmax);
-//			IMultiSurface<IOrientableSurface> finalOs = FromGeomToSurface.convertMSGeom(extruded);
-//			DefaultFeature salut = new DefaultFeature(finalOs);
-//			AttributeManager.addAttribute(salut, "ID", feat.getAttribute("ID"), "String");
-//			AttributeManager.addAttribute(salut, "HAUTEUR", feat.getAttribute("HAUTEUR"), "Integer");
-//			AttributeManager.addAttribute(salut, "NATURE", feat.getAttribute("NATURE"), "String");
-//			
-//			//if (res.getFeatureType().getGeometryType().equals(GeometryCollection))
-//			result.add(salut);
-//			
-//		}
-//		ShapefileWriter.write(result, "/home/mcolomb/informatique/ArtiScales/dataGeo/building3d.shp", CRS.decode("EPSG:2154"));
+		// IFeatureCollection<IFeature> collec = ShapefileReader.read("/home/mcolomb/informatique/ArtiScales/dataGeo/building.shp");
+		// IFeatureCollection<IFeature> result = new FT_FeatureCollection<>();
+		//
+		// for (IFeature feat : collec) {
+		// double hmin = ((double) feat.getAttribute("Z_MIN") + (double) feat.getAttribute("Z_MAX")) / 2;
+		// double hmax = hmin + (int) feat.getAttribute("HAUTEUR");
+		// IGeometry extruded = Extrusion2DObject.convertFromGeometry(feat.getGeom(), hmin, hmax);
+		// IMultiSurface<IOrientableSurface> finalOs = FromGeomToSurface.convertMSGeom(extruded);
+		// DefaultFeature salut = new DefaultFeature(finalOs);
+		// AttributeManager.addAttribute(salut, "ID", feat.getAttribute("ID"), "String");
+		// AttributeManager.addAttribute(salut, "HAUTEUR", feat.getAttribute("HAUTEUR"), "Integer");
+		// AttributeManager.addAttribute(salut, "NATURE", feat.getAttribute("NATURE"), "String");
+		//
+		// //if (res.getFeatureType().getGeometryType().equals(GeometryCollection))
+		// result.add(salut);
+		//
+		// }
+		// ShapefileWriter.write(result, "/home/mcolomb/informatique/ArtiScales/dataGeo/building3d.shp", CRS.decode("EPSG:2154"));
 
 		// DirectPosition.PRECISION = 5;
 		// IFeatureCollection<IFeature> collec = ShapefileReader.read("/home/mcolomb/expParcelCut/AU.shp");

@@ -44,7 +44,8 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 	 * @param env
 	 * @throws Exception
 	 */
-	public MultiplePredicateArtiScales(BasicPropertyUnit currentBPU, boolean align, Parameters p, IFeatureCollection<Prescription> presc, Environnement env) throws Exception {
+	public MultiplePredicateArtiScales(BasicPropertyUnit currentBPU, boolean align, Parameters p, IFeatureCollection<Prescription> presc,
+			Environnement env) throws Exception {
 		/*
 		 * All the job is done in the abstract class
 		 */
@@ -170,7 +171,8 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 				// if rule 13 has a parcel size condition
 				if (mapGeomRegulation.get(geom).getArt_13().contains(">")) {
 					if (totalSubParcelArea > Double.valueOf(mapGeomRegulation.get(geom).getArt_13().split(">")[1])) {
-						maxBuiltFreeSpace = maxBuiltFreeSpace + geom.getArea() * Double.valueOf(mapGeomRegulation.get(geom).getArt_13().split(">")[0]);
+						maxBuiltFreeSpace = maxBuiltFreeSpace
+								+ geom.getArea() * Double.valueOf(mapGeomRegulation.get(geom).getArt_13().split(">")[0]);
 					}
 				} else if (!mapGeomRegulation.get(geom).getArt_13().equals("99")) {
 					maxBuiltFreeSpace = maxBuiltFreeSpace + geom.getArea() * Double.valueOf(mapGeomRegulation.get(geom).getArt_13());

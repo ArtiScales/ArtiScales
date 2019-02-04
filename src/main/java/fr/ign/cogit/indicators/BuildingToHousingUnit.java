@@ -51,13 +51,15 @@ public class BuildingToHousingUnit extends Indicators {
 		this.simuFile = simuFile;
 		rootFile = new File(p.getString("rootFile"));
 		surfaceLogDefault = p.getInteger("housingUnitSize");
-		particularFirstLine = "numero_parcelle,surface_de_plancher," + "surface_au_sol," + "nombre_de_logements," + "type_du_logement," + "zone_de_la_construction,"
-				+ "moyenne_de_la_surface_plancher_par_logements," + "densite_batie";
+		particularFirstLine = "numero_parcelle,surface_de_plancher," + "surface_au_sol," + "nombre_de_logements," + "type_du_logement,"
+				+ "zone_de_la_construction," + "moyenne_de_la_surface_plancher_par_logements," + "densite_batie";
 
-		genFirstLine = "code INSEE," + "nombre_de_logements," + "nombre_de_logements_individuels," + "nombre_de_logements_doubles," + "nombre_de_logements_en_petit_collectif,"
-				+ "nombre_de_logements_en_grand_collectif," + "nombre_de_batiments_construits_dans_les_zones_U," + "nombre_de_batiment_construit_dans_les_zones_AU,"
-				+ "nombre_de_batiments_construit_dans_les_zones_N_et_A," + "somme_de_la_surface_au_sol_des_logements," + "moyenne_de_surface_au_sol_des_bâtiments,"
-				+ "ecart_type_de_la_surface_au_sol_des_bâtiments," + "somme_de_la_surface_plancher_des_logements," + "moyenne_de_la_surface_plancher_des_bâtiments,"
+		genFirstLine = "code INSEE," + "nombre_de_logements," + "nombre_de_logements_individuels," + "nombre_de_logements_doubles,"
+				+ "nombre_de_logements_en_petit_collectif," + "nombre_de_logements_en_grand_collectif,"
+				+ "nombre_de_batiments_construits_dans_les_zones_U," + "nombre_de_batiment_construit_dans_les_zones_AU,"
+				+ "nombre_de_batiments_construit_dans_les_zones_N_et_A," + "somme_de_la_surface_au_sol_des_logements,"
+				+ "moyenne_de_surface_au_sol_des_bâtiments," + "ecart_type_de_la_surface_au_sol_des_bâtiments,"
+				+ "somme_de_la_surface_plancher_des_logements," + "moyenne_de_la_surface_plancher_des_bâtiments,"
 				+ "ecart_type_de_la_surface_plancher_des_bâtiments," + "moyenne_de_la_densité_batie," + "ecart_type_de_la_densité_batie,"
 				+ "différence_avec_les_objectifs_régionaux";
 
@@ -204,10 +206,10 @@ public class BuildingToHousingUnit extends Indicators {
 			System.out.println("somme_de_la_surface_au_sol_des_logements" + groundAreaStat.getSum());
 
 			int housingUnitDiff = sumLgt - GetFromGeom.getHousingUnitsGoals(new File(rootFile, "dataGeo"), zipCode);
-			line = zipCode + "," + sumLgt + "," + sumIndiv + "," + sumDlbIndiv + "," + sumSDwell + "," + sumLDwell + "," + sumLgtU + "," + sumLgtAU + "," + sumLgtOther + ","
-					+ groundAreaStat.getSum() + "," + groundAreaStat.getMean() + "," + groundAreaStat.getStandardDeviation() + "," + floorAreaStat.getSum() + ","
-					+ floorAreaStat.getMean() + "," + floorAreaStat.getStandardDeviation() + "," + builtDensity.getMean() + "," + builtDensity.getStandardDeviation() + ","
-					+ housingUnitDiff;
+			line = zipCode + "," + sumLgt + "," + sumIndiv + "," + sumDlbIndiv + "," + sumSDwell + "," + sumLDwell + "," + sumLgtU + "," + sumLgtAU
+					+ "," + sumLgtOther + "," + groundAreaStat.getSum() + "," + groundAreaStat.getMean() + "," + groundAreaStat.getStandardDeviation()
+					+ "," + floorAreaStat.getSum() + "," + floorAreaStat.getMean() + "," + floorAreaStat.getStandardDeviation() + ","
+					+ builtDensity.getMean() + "," + builtDensity.getStandardDeviation() + "," + housingUnitDiff;
 
 		}
 		toGenCSV(simuFile, "BuildingToHouseholdByCity", getFirstlineGenCsv(), line);
@@ -250,13 +252,15 @@ public class BuildingToHousingUnit extends Indicators {
 
 					System.out.println("on peux ici construire " + nbHU + " logements à une densité de " + densite);
 					if (collectiveHousing) {
-						String lineParticular = numeroParcel + "," + surfaceLgt + "," + build.getAttribute("SurfaceSol") + "," + String.valueOf(nbHU) + "," + type + ","
-								+ build.getAttribute("TYPEZONE") + "," + String.valueOf(surfaceLogements) + "," + String.valueOf(densite);
+						String lineParticular = numeroParcel + "," + surfaceLgt + "," + build.getAttribute("SurfaceSol") + "," + String.valueOf(nbHU)
+								+ "," + type + "," + build.getAttribute("TYPEZONE") + "," + String.valueOf(surfaceLogements) + ","
+								+ String.valueOf(densite);
 
 						toParticularCSV(simuFile, "housingUnits.csv", getFirstlinePartCsv(), lineParticular);
 					} else {
-						String lineParticular = numeroParcel + "," + surfaceLgt + "," + build.getAttribute("SurfaceSol") + "," + String.valueOf(nbHU) + "," + type + ","
-								+ build.getAttribute("TYPEZONE") + "," + String.valueOf(surfaceLogements) + "," + String.valueOf(densite);
+						String lineParticular = numeroParcel + "," + surfaceLgt + "," + build.getAttribute("SurfaceSol") + "," + String.valueOf(nbHU)
+								+ "," + type + "," + build.getAttribute("TYPEZONE") + "," + String.valueOf(surfaceLogements) + ","
+								+ String.valueOf(densite);
 
 						toParticularCSV(simuFile, "housingUnits.csv", getFirstlinePartCsv(), lineParticular);
 					}
@@ -301,8 +305,9 @@ public class BuildingToHousingUnit extends Indicators {
 
 					System.out.println("on peux ici construire " + nbHU + " logements à une densité de " + densite);
 
-					String lineParticular = numeroParcel + "," + surfaceLgt + "," + build.getAttribute("SurfaceSol") + "," + String.valueOf(nbHU) + "," + setBuildingType(nbHU)
-							+ "," + build.getAttribute("TYPEZONE") + "," + String.valueOf(surfaceLogements) + "," + String.valueOf(densite);
+					String lineParticular = numeroParcel + "," + surfaceLgt + "," + build.getAttribute("SurfaceSol") + "," + String.valueOf(nbHU)
+							+ "," + setBuildingType(nbHU) + "," + build.getAttribute("TYPEZONE") + "," + String.valueOf(surfaceLogements) + ","
+							+ String.valueOf(densite);
 
 					toParticularCSV(simuFile, "housingUnits.csv", getFirstlinePartCsv(), lineParticular);
 
@@ -326,7 +331,8 @@ public class BuildingToHousingUnit extends Indicators {
 	@SuppressWarnings("unchecked")
 	public HashMap<String, HashMap<String, Integer>> makeCollectiveHousingRepartition(SimpleFeature bati, BuildingType type) throws Exception {
 
-		Parameters pType = RepartitionBuildingType.getParam(new File(this.getClass().getClassLoader().getResource("profileBuildingType").getFile()), type);
+		Parameters pType = RepartitionBuildingType.getParam(new File(this.getClass().getClassLoader().getResource("profileBuildingType").getFile()),
+				type);
 
 		int minLgt = pType.getInteger("minHousingUnit");
 
@@ -453,7 +459,7 @@ public class BuildingToHousingUnit extends Indicators {
 	 */
 	private Object[] doDwellingRepart(HashMap<String, Integer> smallHU, double leftSDP, double sizeSmallDwellingMax, double sizeSmallDwellingMin) {
 		Object[] result = new Object[3];
-boolean conti = true;
+		boolean conti = true;
 		Random rand = new Random();
 		//// look at the left space
 		// not enough room

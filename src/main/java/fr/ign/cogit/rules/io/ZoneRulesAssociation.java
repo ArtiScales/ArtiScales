@@ -20,7 +20,8 @@ public class ZoneRulesAssociation {
 	 * @return
 	 * @throws IOException
 	 */
-	public static boolean associate(Environnement env, File predicateFile, List<String> listRNU, HashMap<String, Boolean> tryToAssociateAnyway) throws IOException {
+	public static boolean associate(Environnement env, File predicateFile, List<String> listRNU, HashMap<String, Boolean> tryToAssociateAnyway)
+			throws IOException {
 		// We associate regulation to UrbanZone
 		System.out.println("--- SEARCHING FOR REGULATION ---");
 		// Rules parameters
@@ -63,7 +64,7 @@ public class ZoneRulesAssociation {
 						zone.setZoneRegulation(regles.get("ZC-7"));
 					}
 					// case the land is a N(atural) or a A(gricultural) zone
-					search : if (finalLibelle.startsWith("N") || finalLibelle.startsWith("A")) {
+					search: if (finalLibelle.startsWith("N") || finalLibelle.startsWith("A")) {
 						for (String code : regles.keySet()) {
 							String rule = code.split("-")[0].toUpperCase();
 							// if no AU zones taken, we set a non dense zone (basically Ub zone)
@@ -76,7 +77,7 @@ public class ZoneRulesAssociation {
 						for (String code : regles.keySet()) {
 							String rule = code.split("-")[0].toUpperCase();
 							// if no AU zones taken, we set a non dense zone (basically Ub zone)
-						
+
 							if (rule.toUpperCase().contains("UB")) {
 								zone.setZoneRegulation(regles.get(code));
 								System.out.println("we forced the no dense " + rule + " rules into non constructible zone");
@@ -96,7 +97,8 @@ public class ZoneRulesAssociation {
 				if (tryToAssociateAnyway.get("2AU")) {
 					System.out.println("We seek another regulation for AU zones");
 					// if there's a rule made for un-urbanzed land, we take that (2 would means its a prediction and rules are not edicted yet)
-					if (finalLibelle.contains("AU") && finalLibelle.contains("2") && !finalLibelle.contains("x") && !finalLibelle.contains("y") && !finalLibelle.contains("z")) {
+					if (finalLibelle.contains("AU") && finalLibelle.contains("2") && !finalLibelle.contains("x") && !finalLibelle.contains("y")
+							&& !finalLibelle.contains("z")) {
 						for (String code : regles.keySet()) {
 							String rule = code.split("-")[0].toUpperCase();
 							// if no AU zones taken, we set a non dense zone (basically Ub zone)

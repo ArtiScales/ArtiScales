@@ -28,8 +28,8 @@ public abstract class Indicators {
 		if (p.getBoolean("mean")) {
 			meanStr = "Yag";
 		}
-		sA = new ScenarAnalyse(p.getString("cm"), p.getString("emprise"), p.getString("seuil"), p.getString("data"), "N" + p.getString("N"), p.getString("ahpName"), strictStr,
-				meanStr, "seed_" + p.getString("seed"));
+		sA = new ScenarAnalyse(p.getString("cm"), p.getString("emprise"), p.getString("seuil"), p.getString("data"), "N" + p.getString("N"),
+				p.getString("ahpName"), strictStr, meanStr, "seed_" + p.getString("seed"));
 	}
 
 	/**

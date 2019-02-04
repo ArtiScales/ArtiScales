@@ -63,7 +63,8 @@ public class ParcelStat extends Indicators {
 	 * @throws FactoryException
 	 */
 	public void isParcelReallyBuilt() throws IOException, NoSuchAuthorityCodeException, FactoryException {
-		File simuBuildFiles = new File(rootFile, "SimPLUDepot" + "/" + parcelFile.getParentFile().getParentFile().getName() + "/" + parcelFile.getParentFile().getName());
+		File simuBuildFiles = new File(rootFile,
+				"SimPLUDepot" + "/" + parcelFile.getParentFile().getParentFile().getName() + "/" + parcelFile.getParentFile().getName());
 		System.out.println(parcelFile);
 		ShapefileDataStore parcelSDS = new ShapefileDataStore(parcelFile.toURI().toURL());
 		SimpleFeatureIterator parcelFeaturesIt = parcelSDS.getFeatureSource().getFeatures().features();
@@ -150,8 +151,8 @@ public class ParcelStat extends Indicators {
 			}
 			parcelSDS.dispose();
 			if (surfSelect > 0) {
-				String line = city + "," + surfSelect + "," + surfSelectU + "," + surfSelectAU + "," + surfSelectNC + "," + surfSimulated + "," + surfSimulatedU + ","
-						+ surfSimulatedAU + "," + surfSimulatedNC;
+				String line = city + "," + surfSelect + "," + surfSelectU + "," + surfSelectAU + "," + surfSelectNC + "," + surfSimulated + ","
+						+ surfSimulatedU + "," + surfSimulatedAU + "," + surfSimulatedNC;
 				System.out.println(line);
 				toGenCSV(parcelFile.getParentFile(), "parcelStat", getFirstlineGenCsv(), line);
 			}

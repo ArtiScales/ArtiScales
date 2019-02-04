@@ -8,8 +8,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.TreeMap;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -18,7 +16,6 @@ import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
 import fr.ign.cogit.geoxygene.api.spatial.geomaggr.IMultiCurve;
 import fr.ign.cogit.geoxygene.api.spatial.geomprim.IOrientableCurve;
 import fr.ign.cogit.geoxygene.api.spatial.geomroot.IGeometry;
-import fr.ign.cogit.geoxygene.feature.DefaultFeature;
 import fr.ign.cogit.geoxygene.spatial.geomaggr.GM_MultiCurve;
 import fr.ign.cogit.geoxygene.util.conversion.AdapterFactory;
 import fr.ign.cogit.rules.regulation.Alignements;
@@ -106,7 +103,8 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 	 * @param presc
 	 * @throws Exceptiondistance
 	 */
-	protected CommonPredicateArtiScales(BasicPropertyUnit currentBPU, boolean align, Parameters pA, IFeatureCollection<Prescription> presc, Environnement env) throws Exception {
+	protected CommonPredicateArtiScales(BasicPropertyUnit currentBPU, boolean align, Parameters pA, IFeatureCollection<Prescription> presc,
+			Environnement env) throws Exception {
 
 		// Set the different initial values
 		this.env = env;
@@ -413,7 +411,8 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 						// check side parcels
 						if ((!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteLatParcel, regle.getArt_72())
-								|| !cRO.checkProspectArt7(cuboid, jtsCurveLimiteLatParcel, regle.getArt_74())) && !(checkBackAlignment(cRO, cuboid))) {
+								|| !cRO.checkProspectArt7(cuboid, jtsCurveLimiteLatParcel, regle.getArt_74()))
+								&& !(checkBackAlignment(cRO, cuboid))) {
 							denial = SimuTool.increm(denial, "art72||74bis");
 							return false;
 						}
@@ -422,7 +421,8 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 						switch (this.getSide()) {
 						case UNKNOWN:
 							if ((!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteLatParcel, regle.getArt_72())
-									|| !cRO.checkProspectArt7(cuboid, jtsCurveLimiteLatParcel, regle.getArt_74())) && !checkLeftOrRightAlignment(cRO, cuboid)) {
+									|| !cRO.checkProspectArt7(cuboid, jtsCurveLimiteLatParcel, regle.getArt_74()))
+									&& !checkLeftOrRightAlignment(cRO, cuboid)) {
 								denial = SimuTool.increm(denial, "art74||72");
 								return false;
 							}
@@ -431,7 +431,8 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 						case LEFT:
 							// Building is stuck to the left so the art72 is only applied with the right part of the parcel
 							if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteLatParcelRight, regle.getArt_72())
-									|| !cRO.checkProspectArt7(cuboid, jtsCurveLimiteLatParcelRight, regle.getArt_74()) && !checkLeftOrRightAlignment(cRO, cuboid)) {
+									|| !cRO.checkProspectArt7(cuboid, jtsCurveLimiteLatParcelRight, regle.getArt_74())
+											&& !checkLeftOrRightAlignment(cRO, cuboid)) {
 								denial = SimuTool.increm(denial, "art74||72bis");
 								return false;
 							}
@@ -439,7 +440,8 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 						case RIGHT:
 							// Building is stuck to the right so the art72 is only applied with the left part of the parcel
 							if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteLatParcelLeft, regle.getArt_72())
-									|| !cRO.checkProspectArt7(cuboid, jtsCurveLimiteLatParcelLeft, regle.getArt_74()) && !checkLeftOrRightAlignment(cRO, cuboid)) {
+									|| !cRO.checkProspectArt7(cuboid, jtsCurveLimiteLatParcelLeft, regle.getArt_74())
+											&& !checkLeftOrRightAlignment(cRO, cuboid)) {
 								denial = SimuTool.increm(denial, "art74||72ter");
 								return false;
 							}
@@ -480,7 +482,8 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 					if (art_6.contains("-")) {
 						double min = Double.valueOf(art_6.split("-")[0]);
 						double max = Double.valueOf(art_6.split("-")[1]);
-						if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, min) || !cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, max, false)) {
+						if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, min)
+								|| !cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, max, false)) {
 							denial = SimuTool.increm(denial, "art6-");
 							return false;
 						}
@@ -725,15 +728,15 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 	public Map<String, Integer> getDenial() {
 
-//		ValueComparator bvc = new ValueComparator(denial);
-//		Map<String, Integer> sorteMap = new TreeMap<String, Integer>(bvc);
-//		int i = 0;
-//		for (String key : sorteMap.keySet()) {
-//			System.out.println(i++ + " reason");
-//			System.out.println(key + (sorteMap.get(key) + " occurences"));
-//			System.out.println();
-//		}
-//		return sorteMap;
+		// ValueComparator bvc = new ValueComparator(denial);
+		// Map<String, Integer> sorteMap = new TreeMap<String, Integer>(bvc);
+		// int i = 0;
+		// for (String key : sorteMap.keySet()) {
+		// System.out.println(i++ + " reason");
+		// System.out.println(key + (sorteMap.get(key) + " occurences"));
+		// System.out.println();
+		// }
+		// return sorteMap;
 		return denial;
 	}
 

@@ -2,8 +2,6 @@ package fr.ign.cogit.util;
 
 import java.io.File;
 
-import fr.ign.cogit.geoxygene.api.feature.IFeature;
-import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileReader;
 import fr.ign.cogit.simplu3d.util.distribution.ZonePackager;
 
@@ -14,7 +12,7 @@ public class DataPreparator {
 		File folderTemp = new File("/tmp/tmp");
 		File folderOut = new File("/home/mickael/Bureau/Temp/out/");
 
-		createPackages(fileIn, folderTemp, folderOut,"25000");
+		createPackages(fileIn, folderTemp, folderOut, "25000");
 
 	}
 
@@ -37,8 +35,8 @@ public class DataPreparator {
 		int numberOfParcels = 20;
 		double areaMax = 5000;
 
-		ZonePackager.createParcelGroupsAndExport(ShapefileReader.read(fileIn.getAbsolutePath()), numberOfParcels, areaMax, folderTemp.getAbsolutePath(),
-				folderOut.getAbsolutePath(),codeCom, true);
+		ZonePackager.createParcelGroupsAndExport(ShapefileReader.read(fileIn.getAbsolutePath()), numberOfParcels, areaMax,
+				folderTemp.getAbsolutePath(), folderOut.getAbsolutePath(), codeCom, true);
 	}
 
 }

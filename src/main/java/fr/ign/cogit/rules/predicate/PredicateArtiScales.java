@@ -1,7 +1,6 @@
 package fr.ign.cogit.rules.predicate;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
@@ -15,7 +14,6 @@ import fr.ign.cogit.util.SimuTool;
 import fr.ign.mpp.configuration.AbstractBirthDeathModification;
 import fr.ign.mpp.configuration.AbstractGraphConfiguration;
 import fr.ign.parameters.Parameters;
-import fr.ign.simulatedannealing.SimulatedAnnealing;
 
 public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends AbstractGraphConfiguration<O, C, M>, M extends AbstractBirthDeathModification<O, C, M>>
 		extends CommonPredicateArtiScales<O, C, M> {
@@ -24,6 +22,7 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 	ArtiScalesRegulation regles;
 	Parameters p;
 	CommonRulesOperator<O> cRO = new CommonRulesOperator<O>();
+
 	/**
 	 * 
 	 * @param currentBPU
@@ -36,8 +35,8 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 	 *            Considered prescription
 	 * @throws Exception
 	 */
-	public PredicateArtiScales(BasicPropertyUnit currentBPU, boolean align, ArtiScalesRegulation regle, Parameters pA, IFeatureCollection<Prescription> presc, Environnement env)
-			throws Exception {
+	public PredicateArtiScales(BasicPropertyUnit currentBPU, boolean align, ArtiScalesRegulation regle, Parameters pA,
+			IFeatureCollection<Prescription> presc, Environnement env) throws Exception {
 		/*
 		 * All the job is done in the abstract class
 		 */
@@ -52,7 +51,8 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 		double minH = this.getMinHeight();
 
 		if (minH > maxH) {
-			System.out.println("problem : the maximal height(" + maxH + " )is inf to the minimal one " + minH + " (certainly because of the reglementation)");
+			System.out.println(
+					"problem : the maximal height(" + maxH + " )is inf to the minimal one " + minH + " (certainly because of the reglementation)");
 			if (maxH - minH < 3.5) {
 				System.out.println("diff is small enough, we force the min from the building type");
 				this.p.set("maxheight", minH);

@@ -26,7 +26,7 @@ public class TestComposantesConnexes {
 	public static void main(String[] args) throws NoSuchAuthorityCodeException, FactoryException {
 		String shapeFileName = "/home/mcolomb/donnee/autom/besancon/dataOut/routeSys.shp";
 		String folderOut = "/home/mcolomb/donnee/autom/besancon/dataOut/";
-	
+
 		IFeatureCollection<IFeature> featColl = ShapefileReader.read(shapeFileName);
 
 		List<ILineString> lS = new ArrayList<>();

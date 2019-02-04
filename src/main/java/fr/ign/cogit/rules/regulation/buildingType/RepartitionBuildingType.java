@@ -21,7 +21,7 @@ public class RepartitionBuildingType {
 	IFeatureCollection<IFeature> parcelles;
 	double pDetachedHouse, pSmallHouse, pMultifamilyHouse, pSmallBlockFlat, pMidBlockFlat;
 	DescriptiveStatistics dsc;
-	BuildingType defautBT ;
+	BuildingType defautBT;
 
 	public RepartitionBuildingType(Parameters p, File parcelFile) throws NoSuchElementException, Exception {
 
@@ -43,16 +43,15 @@ public class RepartitionBuildingType {
 		// add the zone parameters with the first parcel (redone for each parcel if it's
 		// a multizone type)
 		p = addRepartitionToParameters(p, parcelles.get(0), new File(this.getClass().getClassLoader().getResource("locationBuildingType").getFile()));
-		
-		
+
 		pDetachedHouse = p.getDouble("detachedHouse");
 
 		if (pDetachedHouse == -1) {
 			pDetachedHouse = 0;
 		}
-		double max =pDetachedHouse;
+		double max = pDetachedHouse;
 		defautBT = BuildingType.DETACHEDHOUSE;
-		
+
 		pSmallHouse = p.getDouble("smallHouse");
 		if (pSmallHouse == -1) {
 			pSmallHouse = 0;
@@ -61,7 +60,7 @@ public class RepartitionBuildingType {
 			max = pSmallHouse;
 			defautBT = BuildingType.SMALLHOUSE;
 		}
-		
+
 		pMultifamilyHouse = p.getDouble("multifamilyHouse");
 		if (pMultifamilyHouse == -1) {
 			pMultifamilyHouse = 0;
@@ -70,7 +69,7 @@ public class RepartitionBuildingType {
 			max = pMultifamilyHouse;
 			defautBT = BuildingType.MULTIFAMILYHOUSE;
 		}
-		
+
 		pSmallBlockFlat = p.getDouble("smallBlockFlat");
 		if (pSmallBlockFlat == -1) {
 			pSmallBlockFlat = 0;
@@ -79,7 +78,7 @@ public class RepartitionBuildingType {
 			max = pSmallBlockFlat;
 			defautBT = BuildingType.SMALLBLOCKFLAT;
 		}
-		
+
 		pMidBlockFlat = p.getDouble("midBlockFlat");
 		if (pMidBlockFlat == -1) {
 			pMidBlockFlat = 0;
@@ -88,7 +87,7 @@ public class RepartitionBuildingType {
 			max = pMidBlockFlat;
 			defautBT = BuildingType.MIDBLOCKFLAT;
 		}
-		
+
 		rep.put(BuildingType.DETACHEDHOUSE, pDetachedHouse);
 		rep.put(BuildingType.SMALLHOUSE, pSmallHouse);
 		rep.put(BuildingType.MULTIFAMILYHOUSE, pMultifamilyHouse);
@@ -188,9 +187,9 @@ public class RepartitionBuildingType {
 				}
 			}
 		}
-	System.out.println("we return the defalut type ");
+		System.out.println("we return the defalut type ");
 		return defautBT;
-//		throw new Exception("value not in the range");
+		// throw new Exception("value not in the range");
 	}
 
 	private HashMap<BuildingType, String> adjustDistribution(double evalParcel, BuildingType takenBuildingType, boolean upOrDown) throws Exception {
@@ -208,8 +207,8 @@ public class RepartitionBuildingType {
 	 * @return
 	 * @throws Exception
 	 */
-	private HashMap<BuildingType, String> adjustDistribution(double evalParcel, BuildingType takenBuildingType, BuildingType normalBuildingType, boolean upOrDown)
-			throws Exception {
+	private HashMap<BuildingType, String> adjustDistribution(double evalParcel, BuildingType takenBuildingType, BuildingType normalBuildingType,
+			boolean upOrDown) throws Exception {
 		double[] sortedVal = dsc.getSortedValues();
 
 		double ecart = 0.0;
@@ -259,11 +258,13 @@ public class RepartitionBuildingType {
 		return this.distribution;
 	}
 
-	public HashMap<BuildingType, String> adjustDistributionUp(double evalParcel, BuildingType takenBuildingType, BuildingType normalBuildingType) throws Exception {
+	public HashMap<BuildingType, String> adjustDistributionUp(double evalParcel, BuildingType takenBuildingType, BuildingType normalBuildingType)
+			throws Exception {
 		return adjustDistribution(evalParcel, takenBuildingType, normalBuildingType, true);
 	}
 
-	public HashMap<BuildingType, String> adjustDistributionDown(double evalParcel, BuildingType takenBuildingType, BuildingType normalBuildingType) throws Exception {
+	public HashMap<BuildingType, String> adjustDistributionDown(double evalParcel, BuildingType takenBuildingType, BuildingType normalBuildingType)
+			throws Exception {
 		return adjustDistribution(evalParcel, takenBuildingType, normalBuildingType, false);
 	}
 
@@ -277,7 +278,8 @@ public class RepartitionBuildingType {
 	 */
 	public static Parameters addRepartitionToParameters(Parameters p, IFeature parcel, File profileBuildings) throws Exception {
 
-		String affect = GetFromGeom.affectZoneAndTypoToLocation(p.getString("useRepartition"), p.getString("scenarioPMSP3D"), parcel, new File(p.getString("rootFile")), true);
+		String affect = GetFromGeom.affectZoneAndTypoToLocation(p.getString("useRepartition"), p.getString("scenarioPMSP3D"), parcel,
+				new File(p.getString("rootFile")), true);
 
 		// we seek for if there's a special default repartition for the scenario
 		if (affect.equals("default")) {

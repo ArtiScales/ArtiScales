@@ -3,9 +3,6 @@ package fr.ign.cogit.rules.regulation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
-
-import org.citygml4j.model.citygml.transportation.Road;
 
 import fr.ign.cogit.geoxygene.api.spatial.geomroot.IGeometry;
 import fr.ign.cogit.simplu3d.model.AbstractBuilding;
@@ -24,10 +21,8 @@ public class Alignements {
 	private BasicPropertyUnit currentBPU;
 
 	private Environnement env;
-	
+
 	private AlignementType type;
-
-
 
 	public enum AlignementType {
 		ART7112(0), ART713(1), ART6(2), NONE(99);
@@ -49,22 +44,19 @@ public class Alignements {
 		ArtiScalesRegulation regulation = allRegulation.get(0);
 		this.currentBPU = currentBPU;
 		this.env = env;
-		
-		
 
-		if (regulation.getArt_71() == 1 || regulation.getArt_71() == 2 ) {
+		if (regulation.getArt_71() == 1 || regulation.getArt_71() == 2) {
 			hasAlignement = true;
 			this.type = AlignementType.ART7112;
 
 		}
-		
-		if(regulation.getArt_71() == 3) {
+
+		if (regulation.getArt_71() == 3) {
 			hasAlignement = true;
 			this.type = AlignementType.ART713;
 		}
-		
 
-		if(regulation.getArt_6_defaut().equals("0") || regulation.getArt_6_type()==10) {
+		if (regulation.getArt_6_defaut().equals("0") || regulation.getArt_6_type() == 10) {
 			hasAlignement = true;
 			this.type = AlignementType.ART6;
 		}
@@ -78,7 +70,7 @@ public class Alignements {
 		return getSide(ParcelBoundarySide.LEFT);
 
 	}
-	
+
 	public AlignementType getType() {
 		return type;
 	}
@@ -97,14 +89,14 @@ public class Alignements {
 
 				// We have some buildings do they belong to the current CadastralParcel
 				for (AbstractBuilding currentBuilding : buildingsSel) {
-					if(currentBuilding instanceof Building){
+					if (currentBuilding instanceof Building) {
 						Building build = (Building) currentBuilding;
-								// No !!! we add the geometry and go to the next parcel boundary
-								if (!build.getbPU().equals(currentBPU)) {
-									lGeom.add(boundary.getGeom());
-									continue boucleboundary;
-							}
-					}else{
+						// No !!! we add the geometry and go to the next parcel boundary
+						if (!build.getbPU().equals(currentBPU)) {
+							lGeom.add(boundary.getGeom());
+							continue boucleboundary;
+						}
+					} else {
 						System.out.println("Alignements : Unrecognized building class : " + currentBuilding.getClass());
 					}
 				}
@@ -116,8 +108,7 @@ public class Alignements {
 
 		return geometryArray;
 	}
-	
-	
+
 	public IGeometry[] getRoadGeom() {
 
 		List<IGeometry> lGeom = new ArrayList<>();
@@ -125,11 +116,11 @@ public class Alignements {
 		// For each parcel
 		for (CadastralParcel cO : currentBPU.getCadastralParcels()) {
 			// For each boundary
-			 for (ParcelBoundary boundary : cO.getBoundariesByType(ParcelBoundaryType.ROAD)) {
-				 
-				 //Road r = (Road) boundary.getFeatAdj();
-				 //filtre r.getName()
-				 lGeom.add(boundary.getGeom());
+			for (ParcelBoundary boundary : cO.getBoundariesByType(ParcelBoundaryType.ROAD)) {
+
+				// Road r = (Road) boundary.getFeatAdj();
+				// filtre r.getName()
+				lGeom.add(boundary.getGeom());
 
 			}
 
@@ -142,16 +133,15 @@ public class Alignements {
 
 	}
 
-
 	private IGeometry[] getSide(ParcelBoundarySide side) {
 
 		List<IGeometry> lGeom = new ArrayList<>();
 
 		for (CadastralParcel cO : currentBPU.getCadastralParcels()) {
-			
+
 			List<ParcelBoundary> boundaries = cO.getBoundariesByType(ParcelBoundaryType.LAT);
-			for(ParcelBoundary b: boundaries) {
-				if(b.getSide().equals(side)) {
+			for (ParcelBoundary b : boundaries) {
+				if (b.getSide().equals(side)) {
 					lGeom.add(b.getGeom());
 				}
 			}

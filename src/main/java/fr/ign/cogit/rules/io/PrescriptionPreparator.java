@@ -9,15 +9,15 @@ import fr.ign.parameters.Parameters;
 public class PrescriptionPreparator {
 
 	/**
-	 * Convert prescriptions directly loaded from SimPLU3D to a selection of the
-	 * prescription chosen by the scenario
+	 * Convert prescriptions directly loaded from SimPLU3D to a selection of the prescription chosen by the scenario
 	 * 
-	 * @param prescriptions : collection of prescriptions
-	 * @param p             : Parameter file
+	 * @param prescriptions
+	 *            : collection of prescriptions
+	 * @param p
+	 *            : Parameter file
 	 * @return
 	 */
-	public static IFeatureCollection<Prescription> preparePrescription(IFeatureCollection<Prescription> prescriptions,
-			Parameters p) {
+	public static IFeatureCollection<Prescription> preparePrescription(IFeatureCollection<Prescription> prescriptions, Parameters p) {
 		IFeatureCollection<Prescription> prescriptionUse = new FT_FeatureCollection<>();
 
 		for (Prescription prescription : prescriptions) {
@@ -34,8 +34,7 @@ public class PrescriptionPreparator {
 						// si le libelle ne contiens pas ces keywords, ce n'est
 						// somme toute pas très grave
 						String label = prescription.getLabel().toLowerCase();
-						if (label.contains("grave") || label.contains("fort") || label.contains("maximal")
-								|| label.contains("rouge")) {
+						if (label.contains("grave") || label.contains("fort") || label.contains("maximal") || label.contains("rouge")) {
 							prescriptionUse.add(prescription);
 						}
 					} else {
@@ -64,8 +63,8 @@ public class PrescriptionPreparator {
 				}
 				break;
 			default:
-				System.out.println(SimPLUSimulator.class.toString() + " SUP mgmt :  Other case "
-						+ prescription.getLabel() + " Code : " + prescription.getType());
+				System.out.println(SimPLUSimulator.class.toString() + " SUP mgmt :  Other case " + prescription.getLabel() + " Code : "
+						+ prescription.getType());
 				break;
 			}
 		}

@@ -176,20 +176,21 @@ public class SelectParcels {
 					////////////////
 					////// Packing the parcels for SimPLU3D distribution
 					////////////////
-					File packFile = new File(rootFile, "ParcelSelectionFile/" + scenarName + "/" + varianteSpatialConf.getParentFile().getName() + "/");
+					File packFile = new File(rootFile,
+							"ParcelSelectionFile/" + scenarName + "/" + varianteSpatialConf.getParentFile().getName() + "/");
 					packFile.mkdirs();
-					
+
 					File parcelSelectedFile = Vectors.exportSFC(parcelCollection, new File(packFile, "parcelPartExport.shp"));
 
-					//merge the multiple parcels into a unique parcelFile
+					// merge the multiple parcels into a unique parcelFile
 					List<File> lFile = new ArrayList<File>();
 					File parcGen = new File(packFile, "parcelGenExport.shp");
 					if (parcGen.exists()) {
-					lFile.add(parcGen);
+						lFile.add(parcGen);
 					}
 					lFile.add(parcelSelectedFile);
 					Vectors.mergeVectFiles(lFile, parcGen);
-					
+
 					// optimized packages
 					if (p.getString("package").equals("ilot")) {
 						separateToDifferentOptimizedPack(parcelSelectedFile, packFile, zip);

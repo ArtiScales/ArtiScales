@@ -14,7 +14,7 @@ public class StatStuff {
 		writer.append("\n");
 		writer.close();
 	}
-	
+
 	public static String[] makeZipTab(String paramList) {
 		Pattern virgule = Pattern.compile(",");
 		return virgule.split(paramList);

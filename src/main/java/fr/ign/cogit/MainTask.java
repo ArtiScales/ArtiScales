@@ -32,7 +32,7 @@ public class MainTask {
 		// general parameters
 
 		// list of different scenarios to test
- 		List<Parameters> listScenarios = getParamFile("DDense", new File("/home/ubuntu/workspace/ArtiScales/src/main/resources/paramSet"));		
+		List<Parameters> listScenarios = getParamFile("DDense", new File("/home/ubuntu/workspace/ArtiScales/src/main/resources/paramSet"));
 		// List<Parameters> listScenarios = getParamFile("scenar0MKDom", new
 		// File("/home/mbrasebin/Documents/Code/ArtiScales/ArtiScales/src/main/resources/paramSet/"));
 
@@ -94,75 +94,76 @@ public class MainTask {
 		SelectParcels selecPar = new SelectParcels(rootFile, mupCityOutput, listScenarios);
 		List<List<File>> parcelPackages = selecPar.run();
 
-//		////////////////
-//		// SimPLU3D part
-//		////////////////
-//		List<List<List<File>>> buildingSimulatedPerSimu = new ArrayList<List<List<File>>>();
-//		for (List<File> listVariantes : parcelPackages) {
-//			List<List<File>> buildingSimulatedPerScenar = new ArrayList<List<File>>();
-//			String scenarName = listVariantes.get(0).getParentFile().getName();
-//			for (File varianteFile : listVariantes) {
-//				List<File> buildingSimulatedPerVariant = new ArrayList<File>();
-//				Parameters p = SimuTool.getParamFile(listScenarios, scenarName);
-//				for (File packFile : varianteFile.listFiles()) {
-//					if (packFile.isDirectory()) {
-//						SimPLUSimulator simPluSim = new SimPLUSimulator(packFile, p);
-//						List<File> listFilesSimul = simPluSim.run();
-//						if (!(listFilesSimul == null)) {
-//							buildingSimulatedPerVariant.addAll(listFilesSimul);
-//						}
-//					}
-//				}
-//				VectorFct.mergeBatis(buildingSimulatedPerVariant);
-//				buildingSimulatedPerScenar.add(buildingSimulatedPerVariant);
-//			}
-//			buildingSimulatedPerSimu.add(buildingSimulatedPerScenar);
-//		}
-//
-//		////////////////
-//		// Indicators
-//		////////////////
-//
-//		// Building to housingUnit indicator
-//
-//		// we get the hierarchy of files if the previous steps hasnt been processed
-//		if (buildingSimulatedPerSimu.isEmpty()) {
-//			buildingSimulatedPerSimu = SimuTool.generateResultConfigSimPLU(rootFile);
-//		}
-//		for (List<List<File>> listVariantes : buildingSimulatedPerSimu) {
-//			String scenarName = listVariantes.get(0).get(0).getParentFile().getParentFile().getName();
-//			for (List<File> buildingSimulatedPerVariant : listVariantes) {
-//				Parameters p = SimuTool.getParamFile(listScenarios, scenarName);
-//				File bTHFile = new File(rootFile, "indic/bTH/" + scenarName + "/" + buildingSimulatedPerVariant.get(0).getParentFile().getName());
-//				bTHFile.mkdirs();
-//				BuildingToHousingUnit bTH = new BuildingToHousingUnit(buildingSimulatedPerVariant, bTHFile, p);
-//				bTH.distributionEstimate();
-//			}
-//		}
-//
-//		// Parcel selected indicator
-//		// we get the hierarchy of files if the previous steps hasn't been processed
-//
-//		List<List<File>> parcelGen = SimuTool.generateResultParcels(rootFile);
-//		// we calculate
-//		for (List<File> listVariantes : parcelGen) {
-//			String scenarName = listVariantes.get(0).getParentFile().getParentFile().getName();
-//			for (File parcelsPerVariant : listVariantes) {
-//				Parameters p = SimuTool.getParamFile(listScenarios, scenarName);
-//				File parcelOutFile = new File(rootFile, "indic/parcelOut/" + scenarName + "/" + parcelsPerVariant.getParentFile().getName());
-//				parcelOutFile.mkdirs();
-//				File parcelOut = new File(parcelOutFile, "parcelGenExport.shp");
-//				Vectors.copyShp("parcelGen", parcelsPerVariant.getParentFile(), parcelOutFile);
-//				ParcelStat pc = new ParcelStat(p, parcelOut);
-//				pc.run();
-//			}
-//		}
+		// ////////////////
+		// // SimPLU3D part
+		// ////////////////
+		// List<List<List<File>>> buildingSimulatedPerSimu = new ArrayList<List<List<File>>>();
+		// for (List<File> listVariantes : parcelPackages) {
+		// List<List<File>> buildingSimulatedPerScenar = new ArrayList<List<File>>();
+		// String scenarName = listVariantes.get(0).getParentFile().getName();
+		// for (File varianteFile : listVariantes) {
+		// List<File> buildingSimulatedPerVariant = new ArrayList<File>();
+		// Parameters p = SimuTool.getParamFile(listScenarios, scenarName);
+		// for (File packFile : varianteFile.listFiles()) {
+		// if (packFile.isDirectory()) {
+		// SimPLUSimulator simPluSim = new SimPLUSimulator(packFile, p);
+		// List<File> listFilesSimul = simPluSim.run();
+		// if (!(listFilesSimul == null)) {
+		// buildingSimulatedPerVariant.addAll(listFilesSimul);
+		// }
+		// }
+		// }
+		// VectorFct.mergeBatis(buildingSimulatedPerVariant);
+		// buildingSimulatedPerScenar.add(buildingSimulatedPerVariant);
+		// }
+		// buildingSimulatedPerSimu.add(buildingSimulatedPerScenar);
+		// }
+		//
+		// ////////////////
+		// // Indicators
+		// ////////////////
+		//
+		// // Building to housingUnit indicator
+		//
+		// // we get the hierarchy of files if the previous steps hasnt been processed
+		// if (buildingSimulatedPerSimu.isEmpty()) {
+		// buildingSimulatedPerSimu = SimuTool.generateResultConfigSimPLU(rootFile);
+		// }
+		// for (List<List<File>> listVariantes : buildingSimulatedPerSimu) {
+		// String scenarName = listVariantes.get(0).get(0).getParentFile().getParentFile().getName();
+		// for (List<File> buildingSimulatedPerVariant : listVariantes) {
+		// Parameters p = SimuTool.getParamFile(listScenarios, scenarName);
+		// File bTHFile = new File(rootFile, "indic/bTH/" + scenarName + "/" + buildingSimulatedPerVariant.get(0).getParentFile().getName());
+		// bTHFile.mkdirs();
+		// BuildingToHousingUnit bTH = new BuildingToHousingUnit(buildingSimulatedPerVariant, bTHFile, p);
+		// bTH.distributionEstimate();
+		// }
+		// }
+		//
+		// // Parcel selected indicator
+		// // we get the hierarchy of files if the previous steps hasn't been processed
+		//
+		// List<List<File>> parcelGen = SimuTool.generateResultParcels(rootFile);
+		// // we calculate
+		// for (List<File> listVariantes : parcelGen) {
+		// String scenarName = listVariantes.get(0).getParentFile().getParentFile().getName();
+		// for (File parcelsPerVariant : listVariantes) {
+		// Parameters p = SimuTool.getParamFile(listScenarios, scenarName);
+		// File parcelOutFile = new File(rootFile, "indic/parcelOut/" + scenarName + "/" + parcelsPerVariant.getParentFile().getName());
+		// parcelOutFile.mkdirs();
+		// File parcelOut = new File(parcelOutFile, "parcelGenExport.shp");
+		// Vectors.copyShp("parcelGen", parcelsPerVariant.getParentFile(), parcelOutFile);
+		// ParcelStat pc = new ParcelStat(p, parcelOut);
+		// pc.run();
+		// }
+		// }
 	}
 
 	public static Hashtable<String, String[]> prepareVariant(Parameters p) {
 		Hashtable<String, String[]> variants = new Hashtable<String, String[]>();
 		try {
-			String[] originalScenar = { p.getString("emprise"), p.getString("cm"), p.getString("seuil"), p.getString("data"), p.getString("nivCellUtilise"), p.getString("seed") };
+			String[] originalScenar = { p.getString("emprise"), p.getString("cm"), p.getString("seuil"), p.getString("data"),
+					p.getString("nivCellUtilise"), p.getString("seed") };
 			variants.put("original", originalScenar);
 			for (int i = 1; i <= 1000; i++) {
 				if (!p.getString("variante" + i).isEmpty()) {

@@ -1,19 +1,12 @@
 package fr.ign.cogit.annexeTools.fakeWorld;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
 import fr.ign.cogit.SimPLUSimulator;
-import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
-import fr.ign.cogit.rules.io.PrescriptionPreparator;
 import fr.ign.cogit.rules.regulation.buildingType.BuildingType;
 import fr.ign.cogit.simplu3d.io.feature.AttribNames;
-import fr.ign.cogit.simplu3d.io.nonStructDatabase.shp.LoaderSHP;
-import fr.ign.cogit.simplu3d.model.Environnement;
-import fr.ign.cogit.simplu3d.model.Prescription;
 import fr.ign.parameters.Parameters;
 
 public class FakeWorldSimulator {
