@@ -95,6 +95,7 @@ public class FeaturePolygonizer {
 //    saveGeometries(lines, new File(out, "2_lines.shp"), "LineString");
     List<Geometry> nodedLines = nodeLines(lines);
 //    saveGeometries(nodedLines, new File(out, "3_noded.shp"), "LineString");
+    // noding a second time to be sure
     MultiLineString mls = (MultiLineString) nodedLines.get(0);
     List<Geometry> geoms = new ArrayList<>(mls.getNumGeometries());
     for (int i = 0 ; i < mls.getNumGeometries() ; i++) geoms.add(mls.getGeometryN(i));
