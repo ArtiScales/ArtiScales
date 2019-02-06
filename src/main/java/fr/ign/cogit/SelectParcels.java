@@ -169,10 +169,6 @@ public class SelectParcels {
 						}
 					}
 
-					// //delete the tiny parcels
-					// parcelCollection = Vectors.delTinyParcels(parcelCollection,
-					// 10.0);
-
 					////////////////
 					////// Packing the parcels for SimPLU3D distribution
 					////////////////

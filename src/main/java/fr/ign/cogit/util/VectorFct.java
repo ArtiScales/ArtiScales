@@ -63,82 +63,82 @@ import fr.ign.parameters.Parameters;
 
 public class VectorFct {
 
-	public static void main(String[] args) throws Exception {
-		ShapefileDataStore shpDSZone = new ShapefileDataStore(
-				new File("/home/mcolomb/informatique/ArtiScales/dataRegulation/zoning.shp").toURI().toURL());
-		SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
-
-		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
-		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
-		sfTypeBuilder.setName("testType");
-		sfTypeBuilder.setCRS(sourceCRS);
-		sfTypeBuilder.add("the_geom", Polygon.class);
-		sfTypeBuilder.setDefaultGeometry("the_geom");
-		sfTypeBuilder.add("DEPCOM", String.class);
-		sfTypeBuilder.add("NOM_COM", String.class);
-		sfTypeBuilder.add("typo", String.class);
-		sfTypeBuilder.add("surface", String.class);
-		sfTypeBuilder.add("scot", String.class);
-		sfTypeBuilder.add("log-icone", String.class);
-
-		SimpleFeatureBuilder ft = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
-
-		DefaultFeatureCollection dfC = new DefaultFeatureCollection();
-		SimpleFeatureIterator it = featuresZones.features();
-
-		try {
-			while (it.hasNext()) {
-				SimpleFeature featAdd = it.next();
-				String insee = (String) featAdd.getAttribute("INSEE");
-				List<Geometry> lG = new ArrayList<Geometry>();
-				Geometry g = GeometryPrecisionReducer.reduce((Geometry) featAdd.getDefaultGeometry(), new PrecisionModel(1000));
-				System.out.println(g);
-				if (g instanceof MultiPolygon) {
-					for (int i = 0; i < g.getNumGeometries(); i++) {
-						lG.add(g.getGeometryN(i));
-					}
-				} else if (g instanceof GeometryCollection) {
-					for (int i = 0; i < g.getNumGeometries(); i++) {
-						Geometry ge = g.getGeometryN(i);
-						if (ge instanceof Polygon) {
-							lG.add(ge.getGeometryN(i));
-						}
-					}
-				} else {
-					lG.add(g);
-				}
-
-				SimpleFeatureIterator it2 = dfC.features();
-				try {
-					while (it2.hasNext()) {
-						SimpleFeature featIn = it2.next();
-						if (((String) featIn.getAttribute("DEPCOM")).equals(insee)) {
-							lG.add(GeometryPrecisionReducer.reduce((Geometry) featIn.getDefaultGeometry(), new PrecisionModel(1000)));
-						}
-					}
-				} catch (Exception problem) {
-					problem.printStackTrace();
-				} finally {
-					it2.close();
-				}
-
-				Geometry geom = Vectors.unionGeom(lG);
-				ft.set("the_geom", geom);
-				ft.set("DEPCOM", featAdd.getAttribute("INSEE"));
-				ft.set("NOM_COM", featAdd.getAttribute("NOM_COM"));
-				ft.set("typo", featAdd.getAttribute("typo"));
-				ft.set("surface", featAdd.getAttribute("surface"));
-				ft.set("scot", featAdd.getAttribute("scot"));
-				ft.set("log-icone", featAdd.getAttribute("log-icone"));
-				dfC.add(ft.buildFeature(null));
-			}
-		} catch (Exception problem) {
-			problem.printStackTrace();
-		} finally {
-			it.close();
-		}
-		Vectors.exportSFC(dfC.collection(), new File("tmp/cities.shp"));
-	}
+	// public static void main(String[] args) throws Exception {
+	// ShapefileDataStore shpDSZone = new ShapefileDataStore(
+	// new File("/home/mcolomb/informatique/ArtiScales/dataRegulation/zoning.shp").toURI().toURL());
+	// SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
+	//
+	// SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
+	// CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
+	// sfTypeBuilder.setName("testType");
+	// sfTypeBuilder.setCRS(sourceCRS);
+	// sfTypeBuilder.add("the_geom", Polygon.class);
+	// sfTypeBuilder.setDefaultGeometry("the_geom");
+	// sfTypeBuilder.add("DEPCOM", String.class);
+	// sfTypeBuilder.add("NOM_COM", String.class);
+	// sfTypeBuilder.add("typo", String.class);
+	// sfTypeBuilder.add("surface", String.class);
+	// sfTypeBuilder.add("scot", String.class);
+	// sfTypeBuilder.add("log-icone", String.class);
+	//
+	// SimpleFeatureBuilder ft = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
+	//
+	// DefaultFeatureCollection dfC = new DefaultFeatureCollection();
+	// SimpleFeatureIterator it = featuresZones.features();
+	//
+	// try {
+	// while (it.hasNext()) {
+	// SimpleFeature featAdd = it.next();
+	// String insee = (String) featAdd.getAttribute("INSEE");
+	// List<Geometry> lG = new ArrayList<Geometry>();
+	// Geometry g = GeometryPrecisionReducer.reduce((Geometry) featAdd.getDefaultGeometry(), new PrecisionModel(1000));
+	// System.out.println(g);
+	// if (g instanceof MultiPolygon) {
+	// for (int i = 0; i < g.getNumGeometries(); i++) {
+	// lG.add(g.getGeometryN(i));
+	// }
+	// } else if (g instanceof GeometryCollection) {
+	// for (int i = 0; i < g.getNumGeometries(); i++) {
+	// Geometry ge = g.getGeometryN(i);
+	// if (ge instanceof Polygon) {
+	// lG.add(ge.getGeometryN(i));
+	// }
+	// }
+	// } else {
+	// lG.add(g);
+	// }
+	//
+	// SimpleFeatureIterator it2 = dfC.features();
+	// try {
+	// while (it2.hasNext()) {
+	// SimpleFeature featIn = it2.next();
+	// if (((String) featIn.getAttribute("DEPCOM")).equals(insee)) {
+	// lG.add(GeometryPrecisionReducer.reduce((Geometry) featIn.getDefaultGeometry(), new PrecisionModel(1000)));
+	// }
+	// }
+	// } catch (Exception problem) {
+	// problem.printStackTrace();
+	// } finally {
+	// it2.close();
+	// }
+	//
+	// Geometry geom = Vectors.unionGeom(lG);
+	// ft.set("the_geom", geom);
+	// ft.set("DEPCOM", featAdd.getAttribute("INSEE"));
+	// ft.set("NOM_COM", featAdd.getAttribute("NOM_COM"));
+	// ft.set("typo", featAdd.getAttribute("typo"));
+	// ft.set("surface", featAdd.getAttribute("surface"));
+	// ft.set("scot", featAdd.getAttribute("scot"));
+	// ft.set("log-icone", featAdd.getAttribute("log-icone"));
+	// dfC.add(ft.buildFeature(null));
+	// }
+	// } catch (Exception problem) {
+	// problem.printStackTrace();
+	// } finally {
+	// it.close();
+	// }
+	// Vectors.exportSFC(dfC.collection(), new File("tmp/cities.shp"));
+	// }
 	// File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/exScenar");
 	// List<File> lF = new ArrayList<>();
 	// lF.add(new File(rootParam, "parameterTechnic.xml"));
@@ -534,7 +534,6 @@ public class VectorFct {
 					System.out.println("we cut the parcels with " + type + " parameters");
 					parcelToNotAdd = notAddPArcel(parcelToNotAdd, bigZoned);
 					result = addAllParcels(result, parcelGenZone(splitZone, bigZoned, tmpFile, mupOutput, pAdded, p.getBoolean("AUAllZoneOrCell")));
-					Vectors.exportSFC(result, new File("/tmp/" + stringParam + "AfterZoneMotif.shp"));
 				}
 			}
 		}
@@ -660,7 +659,7 @@ public class VectorFct {
 		DefaultFeatureCollection parcelsInAU = new DefaultFeatureCollection();
 		SimpleFeatureIterator parcIt = parcels.features();
 
-		// sort in two different collections, the ones that cares and the ones that doesnt
+		// sort in two different collections, the ones that matters and the ones that doesnt
 		try {
 			while (parcIt.hasNext()) {
 				SimpleFeature feat = parcIt.next();
@@ -677,7 +676,6 @@ public class VectorFct {
 		}
 
 		// delete the existing roads from the AU zones
-		// SimpleFeatureBuilder simpleSFB = GetFromGeom.getBasicSFB();
 		SimpleFeatureBuilder simpleSFB = new SimpleFeatureBuilder(zoneAU.getSchema());
 
 		DefaultFeatureCollection goOdAu = new DefaultFeatureCollection();
@@ -693,9 +691,6 @@ public class VectorFct {
 							simpleSFB.set("the_geom", GeometryPrecisionReducer.reduce(intersection.getGeometryN(i), new PrecisionModel(100)));
 							simpleSFB.set("INSEE", insee);
 							goOdAu.add(simpleSFB.buildFeature(null));
-							// Object[] attr = feat.getAttributes().toArray();
-							// attr[0] = intersection.getGeometryN(i);
-							// goOdAu.add(simpleSFB.buildFeature(null, attr));
 						}
 					} else if (intersection instanceof GeometryCollection) {
 						for (int i = 0; i < intersection.getNumGeometries(); i++) {
@@ -704,18 +699,12 @@ public class VectorFct {
 								simpleSFB.set("the_geom", g.buffer(1).buffer(-1));
 								simpleSFB.set("INSEE", insee);
 								goOdAu.add(simpleSFB.buildFeature(null));
-								// Object[] attr = feat.getAttributes().toArray();
-								// attr[0] = intersection.getGeometryN(i);
-								// goOdAu.add(simpleSFB.buildFeature(null, attr));
 							}
 						}
 					} else {
 						simpleSFB.set("the_geom", intersection.buffer(1).buffer(-1));
 						simpleSFB.set("INSEE", insee);
 						goOdAu.add(simpleSFB.buildFeature(null));
-						// Object[] attr = feat.getAttributes().toArray();
-						// attr[0] = intersection;
-						// goOdAu.add(simpleSFB.buildFeature(null, attr));
 					}
 				}
 			}
@@ -729,23 +718,19 @@ public class VectorFct {
 			System.out.println("parcelGenZone : no " + splitZone + " zones");
 			return parcels;
 		}
+
+		// parts of parcel outside the zone must not be cut by the algorithm and keep their attributes
 		// temporary shapefiles that serves to do polygons
 		File fParcelsInAU = Vectors.exportSFC(parcelsInAU, new File(tmpFile, "parcelCible.shp"));
 		File fZoneAU = Vectors.exportSFC(gOOdAU, new File(tmpFile, "oneAU.shp"));
 		geomAU = Vectors.unionSFC(gOOdAU);
-		// cut and separate parcel according to their spatial relation with the zoning
 		File[] polyFiles = { fParcelsInAU, fZoneAU };
 		List<Polygon> polygons = FeaturePolygonizer.getPolygons(polyFiles);
 
-		// parcel intersecting the U zone must not be cuted and keep their attributes
-		// intermediary result
-
 		SimpleFeatureBuilder sfBuilder = GetFromGeom.getParcelSplitSFBuilder();
-
 		DefaultFeatureCollection write = new DefaultFeatureCollection();
+		int nFeat = 0;
 
-		// for every polygons situated in between U and AU zones, we cut the parcels
-		// regarding to the zone and copy them attributes to keep the existing U parcels
 		for (Geometry poly : polygons) {
 			// if the polygons are not included on the AU zone
 			if (!geomAU.buffer(0.01).contains(poly)) {
@@ -765,10 +750,9 @@ public class VectorFct {
 							sfBuilder.set("eval", feat.getAttribute("eval"));
 							sfBuilder.set("DoWeSimul", feat.getAttribute("DoWeSimul"));
 							sfBuilder.set("SPLIT", 0);
-							// @warning the AU Parcels are mostly unbuilt, but maybe not?
 							sfBuilder.set("IsBuild", feat.getAttribute("IsBuild"));
 							sfBuilder.set("U", feat.getAttribute("U"));
-							sfBuilder.set("AU", false);
+							sfBuilder.set("AU", feat.getAttribute("AU"));
 							sfBuilder.set("NC", feat.getAttribute("NC"));
 						}
 					}
@@ -777,10 +761,17 @@ public class VectorFct {
 				} finally {
 					parcelIt.close();
 				}
-				write.add(sfBuilder.buildFeature(null));
+				write.add(sfBuilder.buildFeature(String.valueOf(nFeat)));
+				nFeat++;
 			}
 		}
-		String geometryOutputName = write.getSchema().getGeometryDescriptor().getLocalName();
+		String geometryOutputName = "";
+		try {
+			geometryOutputName = write.getSchema().getGeometryDescriptor().getLocalName();
+		} catch (NullPointerException e) {
+			// no parts are outside the zones, so we automaticaly set the geo name attribute with the most used one
+			geometryOutputName = "the_geom";
+		}
 		SimpleFeatureIterator it = gOOdAU.features();
 		int numZone = 0;
 
@@ -795,7 +786,6 @@ public class VectorFct {
 				sfBuilder.set("CODE_COM", insee.substring(2, 5));
 				sfBuilder.set("COM_ABS", "000");
 				sfBuilder.set("SECTION", "New" + numZone + "Section");
-				//TODO No numbers????
 				sfBuilder.set("NUMERO", "");
 				sfBuilder.set("INSEE", insee);
 				sfBuilder.set("eval", "0");
@@ -806,56 +796,21 @@ public class VectorFct {
 				sfBuilder.set("U", false);
 				sfBuilder.set("AU", true);
 				sfBuilder.set("NC", false);
+				// avoid multi geom bugs
 				Geometry intersectedGeom = GeometryPrecisionReducer.reduce((Geometry) zone.getDefaultGeometry(), new PrecisionModel(100))
 						.intersection(GeometryPrecisionReducer.reduce(unionParcel, new PrecisionModel(100)));
 				if (!intersectedGeom.isEmpty()) {
-
 					if (intersectedGeom instanceof MultiPolygon) {
 						for (int i = 0; i < intersectedGeom.getNumGeometries(); i++) {
 							sfBuilder.set(geometryOutputName, intersectedGeom.getGeometryN(i));
 							write.add(sfBuilder.buildFeature(null));
-							// ugly, but have to do it
-							sfBuilder.set("CODE", insee + "000" + "New" + numZone + "Section");
-							sfBuilder.set("CODE_DEP", insee.substring(0, 2));
-							sfBuilder.set("CODE_COM", insee.substring(2, 5));
-							sfBuilder.set("COM_ABS", "000");
-							sfBuilder.set("SECTION", "New" + numZone + "Section");
-							//TODO No numbers????
-							sfBuilder.set("NUMERO", "");
-							sfBuilder.set("INSEE", insee);
-							sfBuilder.set("eval", "0");
-							sfBuilder.set("DoWeSimul", false);
-							sfBuilder.set("SPLIT", 1);
-							// @warning the AU Parcels are mostly unbuilt, but maybe not?
-							sfBuilder.set("IsBuild", false);
-							sfBuilder.set("U", false);
-							sfBuilder.set("AU", true);
-							sfBuilder.set("NC", false);
 						}
 					} else if (intersectedGeom instanceof GeometryCollection) {
 						for (int i = 0; i < intersectedGeom.getNumGeometries(); i++) {
 							Geometry g = intersectedGeom.getGeometryN(i);
 							if (g instanceof Polygon) {
 								sfBuilder.set("the_geom", g.buffer(1).buffer(-1));
-								sfBuilder.set("CODE", insee + "000" + "New" + numZone + "Section");
-								sfBuilder.set("CODE_DEP", insee.substring(0, 2));
-								sfBuilder.set("CODE_COM", insee.substring(2, 5));
-								sfBuilder.set("COM_ABS", "000");
-								sfBuilder.set("SECTION", "New" + numZone + "Section");
-								//TODO No numbers????
-								sfBuilder.set("NUMERO", "");
-								sfBuilder.set("INSEE", insee);
-								sfBuilder.set("eval", "0");
-								sfBuilder.set("DoWeSimul", false);
-								sfBuilder.set("SPLIT", 1);
-								// @warning the AU Parcels are mostly unbuilt, but maybe not?
-								sfBuilder.set("IsBuild", false);
-								sfBuilder.set("U", false);
-								sfBuilder.set("AU", true);
-								sfBuilder.set("NC", false);
-								// Object[] attr = feat.getAttributes().toArray();
-								// attr[0] = intersection.getGeometryN(i);
-								// goOdAu.add(simpleSFB.buildFeature(null, attr));
+								write.add(sfBuilder.buildFeature(null));
 							}
 						}
 					} else {
@@ -865,6 +820,7 @@ public class VectorFct {
 					sfBuilder.set(geometryOutputName, zone.getDefaultGeometry());
 				}
 				write.add(sfBuilder.buildFeature(null));
+				nFeat++;
 				numZone++;
 			}
 		} catch (Exception problem) {
@@ -877,7 +833,6 @@ public class VectorFct {
 		SimpleFeatureCollection toSplit = Vectors.delTinyParcels(write.collection(), 5.0);
 		double roadEpsilon = 00;
 		double noise = 0;
-		Vectors.exportSFC(toSplit, new File("/tmp/beforesplitzone.shp"));
 		SimpleFeatureCollection splitedAUParcels = splitParcels(toSplit, maximalArea, maximalWidth, roadEpsilon, noise, null, lenRoad, false,
 				decompositionLevelWithoutRoad, tmpFile);
 
@@ -913,9 +868,10 @@ public class VectorFct {
 							feat.setAttribute("eval", getEvalInParcel(feat, mupSFC));
 						} else {
 							feat.setAttribute("DoWeSimul", "false");
+							feat.setAttribute("eval", "0.0");
 						}
 					}
-					// SimpleFeatureBuilder finalParcelBuilder = GetFromGeom.setSFBWParcelithFeat(feat, savedParcels.getSchema(), geometryOutputName);
+
 					SimpleFeatureBuilder finalParcelBuilder = GetFromGeom.setSFBParcelWithFeat(feat, schema);
 
 					if (feat.getAttribute("CODE") == null) {
@@ -930,13 +886,12 @@ public class VectorFct {
 			finalIt.close();
 		}
 		mupSDS.dispose();
-		// pSDS.dispose();
-		// SimpleFeatureCollection result = Vectors.delTinyParcels(savedParcels.collection(), 10.0);
-		SimpleFeatureCollection result = Vectors.delTinyParcels(savedParcels.collection(), 0.0);
+		SimpleFeatureCollection result = Vectors.delTinyParcels(savedParcels.collection(), 5.0);
 
 		Vectors.exportSFC(result, new File(tmpFile, "parcelFinal.shp"));
 
 		return result;
+
 	}
 
 	/**
@@ -1350,7 +1305,6 @@ public class VectorFct {
 		}
 
 		for (IFeature newFeat : decomp) {
-
 			// impeach irregularities
 			newFeat.setGeom(newFeat.getGeom().buffer(0.5).buffer(-0.5));
 
