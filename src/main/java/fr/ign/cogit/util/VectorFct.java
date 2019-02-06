@@ -744,7 +744,6 @@ public class VectorFct {
 
 		DefaultFeatureCollection write = new DefaultFeatureCollection();
 
-		int nFeat = 0;
 		// for every polygons situated in between U and AU zones, we cut the parcels
 		// regarding to the zone and copy them attributes to keep the existing U parcels
 		for (Geometry poly : polygons) {
@@ -778,8 +777,7 @@ public class VectorFct {
 				} finally {
 					parcelIt.close();
 				}
-				write.add(sfBuilder.buildFeature(String.valueOf(nFeat)));
-				nFeat++;
+				write.add(sfBuilder.buildFeature(null));
 			}
 		}
 		String geometryOutputName = write.getSchema().getGeometryDescriptor().getLocalName();
@@ -797,6 +795,7 @@ public class VectorFct {
 				sfBuilder.set("CODE_COM", insee.substring(2, 5));
 				sfBuilder.set("COM_ABS", "000");
 				sfBuilder.set("SECTION", "New" + numZone + "Section");
+				//TODO No numbers????
 				sfBuilder.set("NUMERO", "");
 				sfBuilder.set("INSEE", insee);
 				sfBuilder.set("eval", "0");
@@ -814,14 +813,14 @@ public class VectorFct {
 					if (intersectedGeom instanceof MultiPolygon) {
 						for (int i = 0; i < intersectedGeom.getNumGeometries(); i++) {
 							sfBuilder.set(geometryOutputName, intersectedGeom.getGeometryN(i));
-							write.add(sfBuilder.buildFeature(String.valueOf(nFeat)));
-							nFeat++;
+							write.add(sfBuilder.buildFeature(null));
 							// ugly, but have to do it
 							sfBuilder.set("CODE", insee + "000" + "New" + numZone + "Section");
 							sfBuilder.set("CODE_DEP", insee.substring(0, 2));
 							sfBuilder.set("CODE_COM", insee.substring(2, 5));
 							sfBuilder.set("COM_ABS", "000");
 							sfBuilder.set("SECTION", "New" + numZone + "Section");
+							//TODO No numbers????
 							sfBuilder.set("NUMERO", "");
 							sfBuilder.set("INSEE", insee);
 							sfBuilder.set("eval", "0");
@@ -843,6 +842,7 @@ public class VectorFct {
 								sfBuilder.set("CODE_COM", insee.substring(2, 5));
 								sfBuilder.set("COM_ABS", "000");
 								sfBuilder.set("SECTION", "New" + numZone + "Section");
+								//TODO No numbers????
 								sfBuilder.set("NUMERO", "");
 								sfBuilder.set("INSEE", insee);
 								sfBuilder.set("eval", "0");
@@ -864,8 +864,7 @@ public class VectorFct {
 				} else {
 					sfBuilder.set(geometryOutputName, zone.getDefaultGeometry());
 				}
-				write.add(sfBuilder.buildFeature(String.valueOf(nFeat)));
-				nFeat++;
+				write.add(sfBuilder.buildFeature(null));
 				numZone++;
 			}
 		} catch (Exception problem) {
@@ -941,7 +940,7 @@ public class VectorFct {
 	}
 
 	/**
-	 * overload to get the wanted parameter file TODO not tested yet
+	 * overload to get the wanted parameter file
 	 * 
 	 * @param splitZone
 	 * @param parcelCollection

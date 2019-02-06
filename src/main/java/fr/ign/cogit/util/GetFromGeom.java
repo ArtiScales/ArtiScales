@@ -338,7 +338,6 @@ public class GetFromGeom {
 			DefaultFeatureCollection write = new DefaultFeatureCollection();
 
 			// for every made up polygons out of zoning and parcels
-			System.out.println("polygons.size() " +polygons.size());
 			for (Geometry poly : polygons) {
 				// for every parcels around the polygon
 				
