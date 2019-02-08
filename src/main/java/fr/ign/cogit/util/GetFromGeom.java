@@ -401,7 +401,7 @@ public class GetFromGeom {
 		}
 		//under the carpet
 		ReferencedEnvelope carpet = parcels.getBounds();
-		Coordinate[] coord = {new Coordinate(carpet.getMaxX(), carpet.getMaxY()),new Coordinate(carpet.getMaxX(), carpet.getMinY()),new Coordinate(carpet.getMinX(), carpet.getMinY()),new Coordinate(carpet.getMinX(), carpet.getMaxY())};
+		Coordinate[] coord = {new Coordinate(carpet.getMaxX(), carpet.getMaxY()),new Coordinate(carpet.getMaxX(), carpet.getMinY()),new Coordinate(carpet.getMinX(), carpet.getMinY()),new Coordinate(carpet.getMinX(), carpet.getMaxY()),new Coordinate(carpet.getMaxX(), carpet.getMaxY())};
 		
 		GeometryFactory gf = new GeometryFactory();
 		Polygon bbox = gf.createPolygon(coord);
