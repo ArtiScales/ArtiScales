@@ -8,6 +8,7 @@ import java.util.List;
 import org.geotools.feature.SchemaException;
 
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.geom.PrecisionModel;
 import com.vividsolutions.jts.precision.GeometryPrecisionReducer;
@@ -153,16 +154,19 @@ public class SDPCalcPolygonizer {
       List<Polygon> polygons = FeaturePolygonizer.getPolygons(features);
       // FeaturePolygonizer.saveGeometries(polygons, new File("./tmp/polygons.shp"), "Polygon");
       for (Polygon p : polygons) {
-//        Point point = p.getInteriorPoint();
+        Point point = p.getInteriorPoint();
         List<Double> heights = new ArrayList<>();
         for (AbstractSimpleBuilding building : group) {
-          if (building.toGeometry().overlaps(p)) {
+          if (building.toGeometry().intersects(point)) {
             heights.add(building.height);
           }
         }
         if (heights.isEmpty()) {
+          // due to minor modifications of the geometries when noding
 //          FeaturePolygonizer.saveGeometries(polygons, new File("./tmp/polygons.shp"), "Polygon");
-          System.out.println(p.getInteriorPoint());
+//          System.out.println(p.getInteriorPoint());
+//          System.out.println(group.get(0).toGeometry().relate(p));
+//          System.exit(1);
         } else {
           GeomHeightPair pair = new GeomHeightPair(p, Collections.min(heights));
           if (sdp_or_surface) {
