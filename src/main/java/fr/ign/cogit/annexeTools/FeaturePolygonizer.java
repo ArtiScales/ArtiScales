@@ -35,12 +35,12 @@ import com.vividsolutions.jts.precision.GeometryPrecisionReducer;
 
 public class FeaturePolygonizer {
   private static GeometryFactory fact = new GeometryFactory();
+  public static Boolean DEBUG = false;
 
   private static List<Geometry> getLines(List<Geometry> inputFeatures) {
     List<Geometry> linesList = new ArrayList<Geometry>();
     LinearComponentExtracter lineFilter = new LinearComponentExtracter(linesList);
-    for (Geometry feature : inputFeatures)
-      feature.apply(lineFilter);
+    for (Geometry feature : inputFeatures) feature.apply(lineFilter);
     return linesList;
   }
 
@@ -57,16 +57,12 @@ public class FeaturePolygonizer {
     return point;
   }
 
-  private static List<Geometry> nodeLines(List<Geometry> lines) {
+  private static Geometry nodeLines(List<Geometry> lines) {
     MultiLineString linesGeom = fact.createMultiLineString(lines.toArray(new LineString[lines.size()]));
     Geometry unionInput = fact.createMultiLineString(null);
     Point point = extractPoint(lines);
-    if (point != null)
-      unionInput = point;
-    Geometry noded = linesGeom.union(unionInput);
-    List<Geometry> nodedList = new ArrayList<Geometry>();
-    nodedList.add(noded);
-    return nodedList;
+    if (point != null) unionInput = point;
+    return linesGeom.union(unionInput);
   }
 
   private static List<Geometry> getFeatures(File aFile, Function<SimpleFeature, Boolean> filter) throws IOException {
@@ -75,8 +71,7 @@ public class FeaturePolygonizer {
     FeatureReader<SimpleFeatureType, SimpleFeature> reader = store.getFeatureReader();
     while (reader.hasNext()) {
       SimpleFeature feature = reader.next();
-      if (filter.apply(feature))
-        array.add((Geometry) feature.getDefaultGeometry());
+      if (filter.apply(feature)) array.add((Geometry) feature.getDefaultGeometry());
     }
     reader.close();
     store.dispose();
@@ -84,57 +79,52 @@ public class FeaturePolygonizer {
   }
 
   private static void addFeatures(Polygonizer p, List<Geometry> inputFeatures) throws MalformedURLException, IOException, SchemaException {
-    System.out.println(Calendar.getInstance().getTime() + " node lines");
+    if (DEBUG) System.out.println(Calendar.getInstance().getTime() + " node lines");
     List<Geometry> reduced = new ArrayList<Geometry>();
-    for (Geometry g : inputFeatures) {
-      reduced.add(GeometryPrecisionReducer.reduce(g, new PrecisionModel(100)));
-    }
-//    File out = new File("./out");
-//    saveGeometries(reduced, new File(out, "1_reduced.shp"), "Polygon");
+    for (Geometry g : inputFeatures) reduced.add(GeometryPrecisionReducer.reduce(g, new PrecisionModel(100)));
+    // extract linear components from input geometries
     List<Geometry> lines = getLines(reduced);
-//    saveGeometries(lines, new File(out, "2_lines.shp"), "LineString");
-    List<Geometry> nodedLines = nodeLines(lines);
-//    saveGeometries(nodedLines, new File(out, "3_noded.shp"), "LineString");
-    // noding a second time to be sure
-    MultiLineString mls = (MultiLineString) nodedLines.get(0);
-    List<Geometry> geoms = new ArrayList<>(mls.getNumGeometries());
-    for (int i = 0 ; i < mls.getNumGeometries() ; i++) geoms.add(mls.getGeometryN(i));
-    nodedLines = nodeLines(geoms);
-//    saveGeometries(nodedLines, new File(out, "4_noded.shp"), "LineString");
-    int size = nodedLines.size();
-    System.out.println(Calendar.getInstance().getTime() + " insert lines (" + size + ")");
-    for (Geometry geometry : nodedLines)
-      p.add(geometry);
+    // node all geometries together
+    Geometry nodedLines = nodeLines(lines);
+    if (nodedLines instanceof MultiLineString) {
+      // noding a second time to be sure
+      MultiLineString mls = (MultiLineString) nodedLines;
+      List<Geometry> geoms = new ArrayList<>(mls.getNumGeometries());
+      for (int i = 0; i < mls.getNumGeometries(); i++)
+        geoms.add(mls.getGeometryN(i));
+      nodedLines = nodeLines(geoms);
+    }
+    if (DEBUG) System.out.println(Calendar.getInstance().getTime() + " insert lines");
+    p.add(nodedLines);
   }
 
   @SuppressWarnings("unchecked")
   public static List<Polygon> getPolygons(List<Geometry> features) throws IOException, SchemaException {
     Polygonizer polygonizer = new Polygonizer();
     addFeatures(polygonizer, features);
-    System.out.println(Calendar.getInstance().getTime() + " now with the real stuff");
+    if (DEBUG) System.out.println(Calendar.getInstance().getTime() + " now with the real stuff");
     List<Polygon> result = new ArrayList<>();
     result.addAll(polygonizer.getPolygons());
-    System.out.println(Calendar.getInstance().getTime() + " all done now");
-//    for (Polygon p : result)
-//      System.out.println(p);
-//    System.out.println(Calendar.getInstance().getTime() + " all done now");
+    if (DEBUG) System.out.println(Calendar.getInstance().getTime() + " all done now");
+    // for (Polygon p : result)
+    // System.out.println(p);
+    // System.out.println(Calendar.getInstance().getTime() + " all done now");
     return result;
   }
 
   public static List<Polygon> getPolygons(File[] files) throws IOException, SchemaException {
     List<Geometry> features = new ArrayList<>();
     for (File file : files) {
-      System.out.println(Calendar.getInstance().getTime() + " handling " + file);
+      if (DEBUG) System.out.println(Calendar.getInstance().getTime() + " handling " + file);
       features.addAll(getFeatures(file, f -> true));
     }
-    System.out.println(Calendar.getInstance().getTime() + " adding features");
+    if (DEBUG) System.out.println(Calendar.getInstance().getTime() + " adding features");
     return getPolygons(features);
   }
 
   public static List<Polygon> getPolygons(SimpleFeatureCollection sFC) throws IOException, SchemaException {
     List<Geometry> features = new ArrayList<>();
     SimpleFeatureIterator sFCit = sFC.features();
-
     try {
       while (sFCit.hasNext()) {
         features.add((Geometry) sFCit.next().getDefaultGeometry());
@@ -144,12 +134,12 @@ public class FeaturePolygonizer {
     } finally {
       sFCit.close();
     }
-    System.out.println(Calendar.getInstance().getTime() + " adding features");
+    if (DEBUG) System.out.println(Calendar.getInstance().getTime() + " adding features");
     return getPolygons(features);
   }
 
   public static void saveGeometries(List<? extends Geometry> geoms, File file, String geomType) throws MalformedURLException, IOException, SchemaException {
-    String specs = "geom:"+ geomType +":srid=2154";
+    String specs = "geom:" + geomType + ":srid=2154";
     ShapefileDataStoreFactory factory = new ShapefileDataStoreFactory();
     FileDataStore dataStore = factory.createDataStore(file.toURI().toURL());
     String featureTypeName = "Object";
@@ -158,13 +148,13 @@ public class FeaturePolygonizer {
     String typeName = dataStore.getTypeNames()[0];
     FeatureWriter<SimpleFeatureType, SimpleFeature> writer = dataStore.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT);
     System.setProperty("org.geotools.referencing.forceXY", "true");
-    System.out.println(Calendar.getInstance().getTime() + " write shapefile");
+    if (DEBUG) System.out.println(Calendar.getInstance().getTime() + " write shapefile");
     for (Geometry g : geoms) {
       SimpleFeature feature = writer.next();
       feature.setAttributes(new Object[] { g });
       writer.write();
     }
-    System.out.println(Calendar.getInstance().getTime() + " done");
+    if (DEBUG) System.out.println(Calendar.getInstance().getTime() + " done");
     writer.close();
     dataStore.dispose();
   }
