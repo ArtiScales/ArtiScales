@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.geotools.data.shapefile.ShapefileDataStore;
@@ -63,82 +64,9 @@ import fr.ign.parameters.Parameters;
 
 public class VectorFct {
 
-	// public static void main(String[] args) throws Exception {
-	// ShapefileDataStore shpDSZone = new ShapefileDataStore(
-	// new File("/home/mcolomb/informatique/ArtiScales/dataRegulation/zoning.shp").toURI().toURL());
-	// SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
-	//
-	// SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
-	// CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
-	// sfTypeBuilder.setName("testType");
-	// sfTypeBuilder.setCRS(sourceCRS);
-	// sfTypeBuilder.add("the_geom", Polygon.class);
-	// sfTypeBuilder.setDefaultGeometry("the_geom");
-	// sfTypeBuilder.add("DEPCOM", String.class);
-	// sfTypeBuilder.add("NOM_COM", String.class);
-	// sfTypeBuilder.add("typo", String.class);
-	// sfTypeBuilder.add("surface", String.class);
-	// sfTypeBuilder.add("scot", String.class);
-	// sfTypeBuilder.add("log-icone", String.class);
-	//
-	// SimpleFeatureBuilder ft = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
-	//
-	// DefaultFeatureCollection dfC = new DefaultFeatureCollection();
-	// SimpleFeatureIterator it = featuresZones.features();
-	//
-	// try {
-	// while (it.hasNext()) {
-	// SimpleFeature featAdd = it.next();
-	// String insee = (String) featAdd.getAttribute("INSEE");
-	// List<Geometry> lG = new ArrayList<Geometry>();
-	// Geometry g = GeometryPrecisionReducer.reduce((Geometry) featAdd.getDefaultGeometry(), new PrecisionModel(1000));
-	// System.out.println(g);
-	// if (g instanceof MultiPolygon) {
-	// for (int i = 0; i < g.getNumGeometries(); i++) {
-	// lG.add(g.getGeometryN(i));
-	// }
-	// } else if (g instanceof GeometryCollection) {
-	// for (int i = 0; i < g.getNumGeometries(); i++) {
-	// Geometry ge = g.getGeometryN(i);
-	// if (ge instanceof Polygon) {
-	// lG.add(ge.getGeometryN(i));
-	// }
-	// }
-	// } else {
-	// lG.add(g);
-	// }
-	//
-	// SimpleFeatureIterator it2 = dfC.features();
-	// try {
-	// while (it2.hasNext()) {
-	// SimpleFeature featIn = it2.next();
-	// if (((String) featIn.getAttribute("DEPCOM")).equals(insee)) {
-	// lG.add(GeometryPrecisionReducer.reduce((Geometry) featIn.getDefaultGeometry(), new PrecisionModel(1000)));
-	// }
-	// }
-	// } catch (Exception problem) {
-	// problem.printStackTrace();
-	// } finally {
-	// it2.close();
-	// }
-	//
-	// Geometry geom = Vectors.unionGeom(lG);
-	// ft.set("the_geom", geom);
-	// ft.set("DEPCOM", featAdd.getAttribute("INSEE"));
-	// ft.set("NOM_COM", featAdd.getAttribute("NOM_COM"));
-	// ft.set("typo", featAdd.getAttribute("typo"));
-	// ft.set("surface", featAdd.getAttribute("surface"));
-	// ft.set("scot", featAdd.getAttribute("scot"));
-	// ft.set("log-icone", featAdd.getAttribute("log-icone"));
-	// dfC.add(ft.buildFeature(null));
-	// }
-	// } catch (Exception problem) {
-	// problem.printStackTrace();
-	// } finally {
-	// it.close();
-	// }
-	// Vectors.exportSFC(dfC.collection(), new File("tmp/cities.shp"));
-	// }
+	public static void main(String[] args) throws Exception {
+
+	}
 	// File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/exScenar");
 	// List<File> lF = new ArrayList<>();
 	// lF.add(new File(rootParam, "parameterTechnic.xml"));
@@ -232,6 +160,86 @@ public class VectorFct {
 	// Vectors.exportSFC(salut, new File("/tmp/tmp2.shp"));
 	//
 	// }
+
+	public static File makeCommunitiesFromParcels(File communitiesFile, File parcelFile, File outFile)
+			throws IOException, NoSuchAuthorityCodeException, FactoryException {
+		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
+		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
+		sfTypeBuilder.setName("testType");
+		sfTypeBuilder.setCRS(sourceCRS);
+		sfTypeBuilder.add("the_geom", MultiPolygon.class);
+		sfTypeBuilder.setDefaultGeometry("the_geom");
+		sfTypeBuilder.add("DEPCOM", String.class);
+		sfTypeBuilder.add("NOM_COM", String.class);
+		sfTypeBuilder.add("typo", String.class);
+		sfTypeBuilder.add("surface", String.class);
+		sfTypeBuilder.add("scot", String.class);
+		sfTypeBuilder.add("log-icone", String.class);
+
+		SimpleFeatureBuilder ft = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
+
+		ShapefileDataStore shpDSParcels = new ShapefileDataStore(parcelFile.toURI().toURL());
+		SimpleFeatureCollection featuresParcels = shpDSParcels.getFeatureSource().getFeatures();
+		SimpleFeatureIterator it = featuresParcels.features();
+
+		ShapefileDataStore shpDSCommunes = new ShapefileDataStore(communitiesFile.toURI().toURL());
+		SimpleFeatureCollection featuresCommunes = shpDSCommunes.getFeatureSource().getFeatures();
+
+		DefaultFeatureCollection dfC = new DefaultFeatureCollection();
+
+		HashMap<String, List<Geometry>> result = new HashMap<String, List<Geometry>>();
+		try {
+			while (it.hasNext()) {
+				SimpleFeature featAdd = it.next();
+				String insee = ((String) featAdd.getAttribute("CODE_DEP")) + ((String) featAdd.getAttribute("CODE_COM"));
+				List<Geometry> lG = new ArrayList<Geometry>();
+				lG.add((Geometry) featAdd.getDefaultGeometry());
+				if (result.containsKey(insee)) {
+					List<Geometry> tmp = result.remove(insee);
+					tmp.addAll(lG);
+					result.put(insee, tmp);
+				} else {
+					result.put(insee, lG);
+				}
+
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			it.close();
+		}
+
+		for (String insee : result.keySet()) {
+			Geometry geom = Vectors.unionGeom(result.get(insee));
+			SimpleFeatureIterator itCom = featuresCommunes.features();
+			// ft.set("the_geom", geom.buffer(20).buffer(-20));
+			ft.set("the_geom", geom);
+
+			try {
+				while (itCom.hasNext()) {
+					SimpleFeature featAdd = itCom.next();
+					if (insee.equals(featAdd.getAttribute("DEPCOM"))) {
+						ft.set("DEPCOM", featAdd.getAttribute("DEPCOM"));
+						ft.set("NOM_COM", featAdd.getAttribute("NOM_COM"));
+						ft.set("typo", featAdd.getAttribute("typo"));
+						ft.set("surface", featAdd.getAttribute("surface"));
+						ft.set("scot", featAdd.getAttribute("scot"));
+						ft.set("log-icone", featAdd.getAttribute("log-icone"));
+						dfC.add(ft.buildFeature(null));
+						break;
+					}
+				}
+			} catch (Exception problem) {
+				problem.printStackTrace();
+			} finally {
+				itCom.close();
+			}
+		}
+		shpDSParcels.dispose();
+		shpDSCommunes.dispose();
+		return Vectors.exportSFC(dfC.collection(), outFile);
+
+	}
 
 	public static SimpleFeatureCollection parcelDensification(String splitZone, SimpleFeatureCollection parcelCollection, File tmpFile,
 			File mupOutput, File ressource, Parameters p) throws Exception {
@@ -533,7 +541,7 @@ public class VectorFct {
 				if (bigZoned.size() > 0) {
 					System.out.println("we cut the parcels with " + type + " parameters");
 					parcelToNotAdd = notAddPArcel(parcelToNotAdd, bigZoned);
-					result = addAllParcels(result, parcelGenZone(splitZone, bigZoned, tmpFile, mupOutput, pAdded, p.getBoolean("AUAllZoneOrCell")));
+					result = addAllParcels(result, parcelGenZone(splitZone, bigZoned, tmpFile, mupOutput, pAdded, p.getBoolean("allZoneOrCell")));
 				}
 			}
 		}
@@ -558,7 +566,7 @@ public class VectorFct {
 					if (typoed.size() > 0) {
 						parcelToNotAdd = notAddPArcel(parcelToNotAdd, typoed);
 						System.out.println("we cut the parcels with " + type + " parameters");
-						def = parcelGenZone(splitZone, typoed, tmpFile, mupOutput, pAdded, p.getBoolean("AUAllZoneOrCell"));
+						def = parcelGenZone(splitZone, typoed, tmpFile, mupOutput, pAdded, p.getBoolean("allZoneOrCell"));
 						break;
 					}
 				} else {
@@ -567,7 +575,7 @@ public class VectorFct {
 						if (bigZoned.size() > 0) {
 							parcelToNotAdd = notAddPArcel(parcelToNotAdd, bigZoned);
 							System.out.println("we cut the parcels with " + type + " parameters");
-							def = parcelGenZone(splitZone, bigZoned, tmpFile, mupOutput, pAdded, p.getBoolean("AUAllZoneOrCell"));
+							def = parcelGenZone(splitZone, bigZoned, tmpFile, mupOutput, pAdded, p.getBoolean("allZoneOrCell"));
 						}
 					}
 				}
@@ -729,12 +737,11 @@ public class VectorFct {
 
 		SimpleFeatureBuilder sfBuilder = GetFromGeom.getParcelSplitSFBuilder();
 		DefaultFeatureCollection write = new DefaultFeatureCollection();
-		int nFeat = 0;
 
 		for (Geometry poly : polygons) {
 			// if the polygons are not included on the AU zone
 			if (!geomAU.buffer(0.01).contains(poly)) {
-				sfBuilder.add(poly);
+				sfBuilder.set("the_geom", poly);
 				SimpleFeatureIterator parcelIt = parcelsInAU.features();
 				try {
 					while (parcelIt.hasNext()) {
@@ -761,8 +768,7 @@ public class VectorFct {
 				} finally {
 					parcelIt.close();
 				}
-				write.add(sfBuilder.buildFeature(String.valueOf(nFeat)));
-				nFeat++;
+				write.add(sfBuilder.buildFeature(null));
 			}
 		}
 		String geometryOutputName = "";
@@ -820,7 +826,6 @@ public class VectorFct {
 					sfBuilder.set(geometryOutputName, zone.getDefaultGeometry());
 				}
 				write.add(sfBuilder.buildFeature(null));
-				nFeat++;
 				numZone++;
 			}
 		} catch (Exception problem) {
@@ -1023,7 +1028,6 @@ public class VectorFct {
 	public static SimpleFeatureCollection parcelGenMotif(String typeZone, SimpleFeatureCollection parcels, File tmpFile, File rootFile,
 			File mupOutput, double maximalArea, double maximalWidth, double roadWidth, int decompositionLevelWithoutRoad, boolean dontTouchUZones)
 			throws Exception {
-		Vectors.exportSFC(parcels, new File("/tmp/beforeRupture.shp"));
 		File geoFile = new File(rootFile, "dataGeo");
 		Geometry emprise = Vectors.unionSFC(parcels);
 
@@ -1433,8 +1437,8 @@ public class VectorFct {
 		double roadWidth = 5.0;
 		// Boolean forceRoadaccess
 		boolean forceRoadAccess = true;
-		return generateSplitedParcels(parcelsIn, tmpFile, p, maximalArea, maximalWidth, roadEpsilon, extBlock, decompositionLevelWithoutRoad,
-				roadWidth, forceRoadAccess);
+		return generateSplitedParcels(parcelsIn, tmpFile, maximalArea, maximalWidth, roadEpsilon, extBlock, decompositionLevelWithoutRoad, roadWidth,
+				forceRoadAccess);
 
 	}
 
@@ -1469,7 +1473,7 @@ public class VectorFct {
 
 	}
 
-	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeatureCollection parcelsIn, File tmpFile, Parameters p, double maximalArea,
+	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeatureCollection parcelsIn, File tmpFile, double maximalArea,
 			double maximalWidth, double epsilon, IMultiCurve<IOrientableCurve> extBlock, int decompositionLevelWithoutRoad, double roadWidth,
 			boolean forceRoadAccess) throws Exception {
 

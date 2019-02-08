@@ -84,6 +84,7 @@ public class SelectParcels {
 				}
 				// we loop on every cities
 				for (String zip : listZip) {
+			//		if (zip.equals("25056")) {continue;}
 					System.out.println();
 					System.out.println("for the " + zip + " city");
 					System.out.println();

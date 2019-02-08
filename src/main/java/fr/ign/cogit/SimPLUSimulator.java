@@ -14,6 +14,8 @@ import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeature;
 
+import com.vividsolutions.jts.geom.TopologyException;
+
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
 import fr.ign.cogit.geoxygene.api.spatial.geomaggr.IMultiSurface;
@@ -46,6 +48,7 @@ import fr.ign.cogit.simplu3d.model.SubParcel;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.Cuboid;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.optimizer.cuboid.OptimisedBuildingsCuboidFinalDirectRejection;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.optimizer.paralellcuboid.ParallelCuboidOptimizer;
+import fr.ign.cogit.simplu3d.util.merge.OldSDPCalc;
 import fr.ign.cogit.simplu3d.util.merge.SDPCalc;
 import fr.ign.cogit.util.GetFromGeom;
 import fr.ign.cogit.util.SimpluParametersXML;
@@ -656,18 +659,34 @@ public class SimPLUSimulator {
 		}
 		System.out.println(pred.getDenial());
 		// the -0.1 is set to avoid uncounting storeys when its very close to make one storey (which is very frequent)
-		SDPCalc surfGen = new SDPCalc(par.getDouble("heightStorey") - 0.1);
+		double surfacePlancherTotal = 0.0;
+		double surfaceAuSol = 0.0;
+		try {
+			SDPCalc surfGen = new SDPCalc(par.getDouble("heightStorey") - 0.1);
+			List<Cuboid> cubes = cc.getGraph().vertexSet().stream().map(x -> x.getValue()).collect(Collectors.toList());
+			surfacePlancherTotal = surfGen.process(cubes);
+
+			if (RepartitionBuildingType.hasAttic(type)) {
+				surfacePlancherTotal = surfGen.process(cubes, par.getInteger("nbStoreysAttic"), par.getDouble("ratioAttic"));
+			}
+			// cubes = cc.getGraph().vertexSet().stream().map(x ->
+			// x.getValue()).collect(Collectors.toList());
+			surfaceAuSol = surfGen.processSurface(cubes);
+		} catch (TopologyException te) {
+			System.out.println(te);
+			OldSDPCalc surfGen = new OldSDPCalc(par.getDouble("heightStorey") - 0.1);
+			List<Cuboid> cubes = cc.getGraph().vertexSet().stream().map(x -> x.getValue()).collect(Collectors.toList());
+			surfacePlancherTotal = surfGen.process(cubes);
+
+			if (RepartitionBuildingType.hasAttic(type)) {
+				surfacePlancherTotal = surfGen.process(cubes, par.getInteger("nbStoreysAttic"), par.getDouble("ratioAttic"));
+			}
+			// cubes = cc.getGraph().vertexSet().stream().map(x ->
+			// x.getValue()).collect(Collectors.toList());
+			surfaceAuSol = surfGen.processSurface(cubes);
+		}
 		// Getting cuboid into list (we have to redo it because the cuboids are
 		// dissapearing during this procces)
-		List<Cuboid> cubes = cc.getGraph().vertexSet().stream().map(x -> x.getValue()).collect(Collectors.toList());
-		double surfacePlancherTotal = surfGen.process(cubes);
-
-		if (RepartitionBuildingType.hasAttic(type)) {
-			surfacePlancherTotal = surfGen.process(cubes, par.getInteger("nbStoreysAttic"), par.getDouble("ratioAttic"));
-		}
-		// cubes = cc.getGraph().vertexSet().stream().map(x ->
-		// x.getValue()).collect(Collectors.toList());
-		double surfaceAuSol = surfGen.processSurface(cubes);
 
 		// get multiple zone regulation infos infos
 		List<String> typeZones = new ArrayList<>();

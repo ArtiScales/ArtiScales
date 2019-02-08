@@ -43,21 +43,19 @@ import fr.ign.cogit.util.VectorFct;
 
 public class PAUDigger {
 	// cut cluster polygons with limits
-	public static File tmpFile = new File("/home/mcolomb/tmp/");
 
 	public static void main(String[] args) throws Exception {
 
 		DirectPosition.PRECISION = 4;
-
+		
+		File tmpFile = new File("/tmp/");
 		File rootFile = new File("/home/mcolomb/informatique/ArtiScales/");
 
-		File outFile = new File("/media/mcolomb/Data_2/donnee/DocLocal/");
+		File outFile = new File("/home/mcolomb/informatique/ArtiScales/RNU");
 
-		File buildFile = new File("/media/mcolomb/Data_2/donnee/autom/besac2/dataIn/bati/BATI_INDIFFERENCIE.SHP");
-		File parcelFile = new File(rootFile, "geoData/parcel.shp");
-		File morphoLimFile = new File(rootFile, "geoData/PAU-morpholimEnv.shp");
-
-		File rnuCityFiles = new File("/media/mcolomb/Data_2/donnee/DocLocal/communesRNU.shp");
+		File buildFile = new File(rootFile,"dataGeo/building.shp");
+		File parcelFile = new File(rootFile, "dataGeo/parcel.shp");
+		File morphoLimFile = new File(rootFile, "dataGeo/PAU-morpholimEnv.shp");
 
 		// zones NU
 		List<File> nU = new ArrayList<File>();
@@ -75,12 +73,12 @@ public class PAUDigger {
 		File riverFile = new File(rootFile, "dataGeo/river.shp");
 		File railFile = new File("/media/mcolomb/Data_2/donnee/autom/besac2/dataIn/train/TRONCON_VOIE_FERREE.shp");
 
-		File[] buildResult = prepareClusterBuild(buildFile);
+		File[] buildResult = prepareClusterBuild(buildFile, tmpFile);
 		File buildAllegeCluster = buildResult[1];
 		File buildAllege = buildResult[0];
 
-		File limit = prepareLimit(roadFile, riverFile, railFile);
-		File splitedCluster = splitLimClus(limit, buildAllegeCluster, buildAllege);
+		File limit = prepareLimit(roadFile, riverFile, railFile, tmpFile);
+		File splitedCluster = splitLimClus(limit, buildAllegeCluster, buildAllege, tmpFile);
 		ShapefileDataStore clusterSDS = new ShapefileDataStore(splitedCluster.toURI().toURL());
 		SimpleFeatureCollection clusterSFC = clusterSDS.getFeatureSource().getFeatures();
 		Geometry clusterUnion = Vectors.unionSFC(clusterSFC);
@@ -102,11 +100,7 @@ public class PAUDigger {
 		SimpleFeatureCollection parcelSFC = parcelSDS.getFeatureSource().getFeatures();
 		SimpleFeatureCollection parcelPreSelected = parcelSFC.subCollection(filCluster).subCollection(filMorpho);
 
-		// Vectors.exportSFC(parcelPreSelected, new File("/home/mcolomb/tmp/parcelsBeforeCuting.shp"));
-
-		// TODO change this line with a more accurate parcel splitter
-		System.out.println("//TODO change this line with a more accurate parcel splitter");
-		SimpleFeatureCollection parcelSplitted = VectorFct.generateSplitedParcels(parcelPreSelected, rnuCityFiles, null);
+		SimpleFeatureCollection parcelSplitted = VectorFct.generateSplitedParcels(parcelPreSelected, tmpFile, 800.0, 7, 0, null, 99, 15, false);
 		SimpleFeatureCollection pau = parcelSplitted.subCollection(filCluster).subCollection(filMorpho).subCollection(filNU);
 		Vectors.exportSFC(makeEnvelopePAU(pau), new File(outFile, "zonePAU"));
 
@@ -201,7 +195,7 @@ public class PAUDigger {
 
 	}
 
-	private static File prepareLimit(File roadFile, File riverFile, File railFile)
+	private static File prepareLimit(File roadFile, File riverFile, File railFile, File tmpFile)
 			throws IOException, NoSuchAuthorityCodeException, FactoryException {
 
 		DefaultFeatureCollection collecLimit = new DefaultFeatureCollection();
@@ -289,7 +283,7 @@ public class PAUDigger {
 	 * @throws NoSuchAuthorityCodeException
 	 * @throws FactoryException
 	 */
-	public static File[] prepareClusterBuild(File fBuild) throws IOException, NoSuchAuthorityCodeException, FactoryException {
+	public static File[] prepareClusterBuild(File fBuild, File tmpFile) throws IOException, NoSuchAuthorityCodeException, FactoryException {
 		ShapefileDataStore buildSDS = new ShapefileDataStore(fBuild.toURI().toURL());
 		SimpleFeatureCollection buildSFC = buildSDS.getFeatureSource().getFeatures();
 		SimpleFeatureIterator bIt = buildSFC.features();
@@ -362,7 +356,7 @@ public class PAUDigger {
 	 * @throws FactoryException
 	 * @throws SchemaException
 	 */
-	public static File splitLimClus(File fLimit, File fCluster, File fBuild)
+	public static File splitLimClus(File fLimit, File fCluster, File fBuild, File tmpFile)
 			throws IOException, NoSuchAuthorityCodeException, FactoryException, SchemaException {
 
 		ShapefileDataStore buildSDS = new ShapefileDataStore(fBuild.toURI().toURL());
