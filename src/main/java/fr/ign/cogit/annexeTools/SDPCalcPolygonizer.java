@@ -13,21 +13,9 @@ import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.geom.PrecisionModel;
 import com.vividsolutions.jts.precision.GeometryPrecisionReducer;
 
-import fr.ign.cogit.geoxygene.api.feature.IFeature;
-import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
-import fr.ign.cogit.geoxygene.api.spatial.geomaggr.IMultiSurface;
-import fr.ign.cogit.geoxygene.api.spatial.geomprim.IOrientableSurface;
-import fr.ign.cogit.geoxygene.api.spatial.geomroot.IGeometry;
-import fr.ign.cogit.geoxygene.convert.FromGeomToSurface;
-import fr.ign.cogit.geoxygene.feature.DefaultFeature;
-import fr.ign.cogit.geoxygene.feature.FT_FeatureCollection;
-import fr.ign.cogit.geoxygene.sig3d.convert.transform.Extrusion2DObject;
-import fr.ign.cogit.geoxygene.util.attribute.AttributeManager;
-import fr.ign.cogit.geoxygene.util.conversion.ShapefileWriter;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.AbstractSimpleBuilding;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.loader.LoaderCuboid;
 import fr.ign.cogit.simplu3d.util.CuboidGroupCreation;
-import fr.ign.cogit.simplu3d.util.JTS;
 
 /**
  * Computes the "Surface de plancher" from a collection of cuboids, essentially the ground surface x nb of floors. It does it by building a partition from the intersections of the
@@ -151,9 +139,10 @@ public class SDPCalcPolygonizer {
     }
     double sdp = 0;
     try {
+      // polygonize the input polygons
       List<Polygon> polygons = FeaturePolygonizer.getPolygons(features);
-      // FeaturePolygonizer.saveGeometries(polygons, new File("./tmp/polygons.shp"), "Polygon");
       for (Polygon p : polygons) {
+        // for each polygon created, find out which input polygons it belongs to and keep their heights
         Point point = p.getInteriorPoint();
         List<Double> heights = new ArrayList<>();
         for (AbstractSimpleBuilding building : group) {
@@ -161,13 +150,7 @@ public class SDPCalcPolygonizer {
             heights.add(building.height);
           }
         }
-        if (heights.isEmpty()) {
-          // due to minor modifications of the geometries when noding
-//          FeaturePolygonizer.saveGeometries(polygons, new File("./tmp/polygons.shp"), "Polygon");
-//          System.out.println(p.getInteriorPoint());
-//          System.out.println(group.get(0).toGeometry().relate(p));
-//          System.exit(1);
-        } else {
+        if (!heights.isEmpty()) {
           GeomHeightPair pair = new GeomHeightPair(p, Collections.min(heights));
           if (sdp_or_surface) {
             if (nbStoreyAttic == 0 || nbStoreyAttic == 99) {
@@ -200,62 +183,5 @@ public class SDPCalcPolygonizer {
 
   public List<List<GeomHeightPair>> getGeometryPairByGroup() {
     return geometryPairByGroup;
-  }
-
-  public static void main(String[] args) {
-    // The in shapefile
-    String shpeIn = "/home/mbrasebin/Documents/Donnees/IAUIDF/Resultats/ResultatChoisy/results_pchoisy/24/simul_24_true_no_demo_sampler.shp";
-
-    // The out shapefile
-    String shapeOut = "/tmp/tmp/sdp.shp";
-
-    // Instanciating the object
-    SDPCalcPolygonizer sd = new SDPCalcPolygonizer();
-
-    // Calculating sdp and generating the merge geometry
-    double sdp = sd.process(shpeIn);
-
-    System.out.println("SDP :" + sdp);
-    // Getting and adding the merged geometry to the collection
-    IFeatureCollection<IFeature> featColl = new FT_FeatureCollection<>();
-
-    List<List<GeomHeightPair>> llGeomPair = sd.getGeometryPairByGroup();
-
-    int count = 0;
-
-    for (List<GeomHeightPair> geomPairs : llGeomPair) {
-      for (GeomHeightPair g : geomPairs) {
-
-        IGeometry jtsGeom = JTS.fromJTS(g.geom);
-
-        if (jtsGeom == null || jtsGeom.coord().isEmpty()) {
-          continue;
-        }
-
-        IMultiSurface<IOrientableSurface> os = FromGeomToSurface.convertMSGeom(jtsGeom);
-
-        for (IOrientableSurface osTemp : os) {
-          if (osTemp.area() < 0.01) {
-            continue;
-          }
-          IGeometry extruded = Extrusion2DObject.convertFromGeometry(osTemp, 0, g.height);
-
-          IMultiSurface<IOrientableSurface> finalOs = FromGeomToSurface.convertMSGeom(extruded);
-
-          IFeature feat = new DefaultFeature(finalOs);
-
-          AttributeManager.addAttribute(feat, "ID", (count++), "Integer");
-          AttributeManager.addAttribute(feat, "HAUTEUR", g.height, "Double");
-          featColl.add(feat);
-
-        }
-
-      }
-
-    }
-
-    // Export the result
-    ShapefileWriter.write(featColl, shapeOut);
-
   }
 }
