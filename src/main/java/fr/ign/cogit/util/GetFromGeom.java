@@ -21,6 +21,7 @@ import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.filter.text.cql2.CQLException;
+import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
@@ -32,6 +33,8 @@ import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.TransformException;
 
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Polygon;
@@ -396,7 +399,15 @@ public class GetFromGeom {
 			}
 			parcels = write.collection();
 		}
-		SimpleFeatureCollection batiSFC = Vectors.snapDatas(shpDSBati.getFeatureSource().getFeatures(), Vectors.unionSFC(parcels));
+		//under the carpet
+		ReferencedEnvelope carpet = parcels.getBounds();
+		Coordinate[] coord = {new Coordinate(carpet.getMaxX(), carpet.getMaxY()),new Coordinate(carpet.getMaxX(), carpet.getMinY()),new Coordinate(carpet.getMinX(), carpet.getMinY()),new Coordinate(carpet.getMinX(), carpet.getMaxY()),new Coordinate(carpet.getMaxX(), carpet.getMaxY())};
+		
+		GeometryFactory gf = new GeometryFactory();
+		Polygon bbox = gf.createPolygon(coord);
+		SimpleFeatureCollection batiSFC = Vectors.snapDatas(shpDSBati.getFeatureSource().getFeatures(), bbox);
+
+	//	SimpleFeatureCollection batiSFC = Vectors.snapDatas(shpDSBati.getFeatureSource().getFeatures(), Vectors.unionSFC(parcels));
 
 		SimpleFeatureBuilder sfBuilder = getParcelSFBuilder();
 

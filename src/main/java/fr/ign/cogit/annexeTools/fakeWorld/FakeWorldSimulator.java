@@ -84,6 +84,9 @@ public class FakeWorldSimulator {
 
 		for (String type : iterateOnBuildingType()) {
 			try {
+//				if (!type.equals("smallBlockFlat")) {
+//					continue;
+//				}
 				Parameters p = Parameters.unmarshall(lF);
 				File f = new File(rootFolderFile, type);
 
