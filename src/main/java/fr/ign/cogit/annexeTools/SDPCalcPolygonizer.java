@@ -151,7 +151,7 @@ public class SDPCalcPolygonizer {
           }
         }
         if (!heights.isEmpty()) {
-          GeomHeightPair pair = new GeomHeightPair(p, Collections.min(heights));
+          GeomHeightPair pair = new GeomHeightPair(p, Collections.max(heights));
           if (sdp_or_surface) {
             if (nbStoreyAttic == 0 || nbStoreyAttic == 99) {
               sdp += pair.sdp();
