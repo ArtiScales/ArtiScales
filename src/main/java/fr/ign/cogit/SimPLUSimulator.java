@@ -16,6 +16,7 @@ import org.opengis.feature.simple.SimpleFeature;
 
 import com.vividsolutions.jts.geom.TopologyException;
 
+import fr.ign.cogit.annexeTools.SDPCalcPolygonizer;
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
 import fr.ign.cogit.geoxygene.api.spatial.geomaggr.IMultiSurface;
@@ -48,7 +49,6 @@ import fr.ign.cogit.simplu3d.model.SubParcel;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.Cuboid;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.optimizer.cuboid.OptimisedBuildingsCuboidFinalDirectRejection;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.optimizer.paralellcuboid.ParallelCuboidOptimizer;
-import fr.ign.cogit.simplu3d.util.merge.OldSDPCalc;
 import fr.ign.cogit.simplu3d.util.merge.SDPCalc;
 import fr.ign.cogit.util.GetFromGeom;
 import fr.ign.cogit.util.SimpluParametersXML;
@@ -661,29 +661,25 @@ public class SimPLUSimulator {
 		// the -0.1 is set to avoid uncounting storeys when its very close to make one storey (which is very frequent)
 		double surfacePlancherTotal = 0.0;
 		double surfaceAuSol = 0.0;
+		SDPCalcPolygonizer surfGen = new SDPCalcPolygonizer(par.getDouble("heightStorey") - 0.1);
+		if (RepartitionBuildingType.hasAttic(type)) {
+			surfGen = new SDPCalcPolygonizer(par.getDouble("heightStorey") - 0.1, par.getInteger("nbStoreysAttic"), par.getDouble("ratioAttic"));
+		}
+
+		List<Cuboid> cubes = cc.getGraph().vertexSet().stream().map(x -> x.getValue()).collect(Collectors.toList());
+		surfacePlancherTotal = surfGen.process(cubes);
+		surfaceAuSol = surfGen.processSurface(cubes);
 		try {
-			SDPCalc surfGen = new SDPCalc(par.getDouble("heightStorey") - 0.1);
-			List<Cuboid> cubes = cc.getGraph().vertexSet().stream().map(x -> x.getValue()).collect(Collectors.toList());
-			surfacePlancherTotal = surfGen.process(cubes);
-
+			SDPCalc surfGen2 = new SDPCalc(par.getDouble("heightStorey") - 0.1);
 			if (RepartitionBuildingType.hasAttic(type)) {
-				surfacePlancherTotal = surfGen.process(cubes, par.getInteger("nbStoreysAttic"), par.getDouble("ratioAttic"));
+				surfGen2 = new SDPCalc(par.getDouble("heightStorey") - 0.1, par.getInteger("nbStoreysAttic"), par.getDouble("ratioAttic"));
 			}
+			surfacePlancherTotal = surfGen2.process(cubes);
 			// cubes = cc.getGraph().vertexSet().stream().map(x ->
 			// x.getValue()).collect(Collectors.toList());
-			surfaceAuSol = surfGen.processSurface(cubes);
+			surfaceAuSol = surfGen2.processSurface(cubes);
 		} catch (TopologyException te) {
-			System.out.println(te);
-			OldSDPCalc surfGen = new OldSDPCalc(par.getDouble("heightStorey") - 0.1);
-			List<Cuboid> cubes = cc.getGraph().vertexSet().stream().map(x -> x.getValue()).collect(Collectors.toList());
-			surfacePlancherTotal = surfGen.process(cubes);
-
-			if (RepartitionBuildingType.hasAttic(type)) {
-				surfacePlancherTotal = surfGen.process(cubes, par.getInteger("nbStoreysAttic"), par.getDouble("ratioAttic"));
-			}
-			// cubes = cc.getGraph().vertexSet().stream().map(x ->
-			// x.getValue()).collect(Collectors.toList());
-			surfaceAuSol = surfGen.processSurface(cubes);
+			System.out.println("that SDPCalc still fails");
 		}
 		// Getting cuboid into list (we have to redo it because the cuboids are
 		// dissapearing during this procces)

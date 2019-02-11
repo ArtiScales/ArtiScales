@@ -253,7 +253,7 @@ public class VectorFct {
 		List<String> listZones = getLocationParamNames(locationBuildingType, p);
 
 		// split into zones to make correct parcel recomposition
-		for (String stringParam : listZones) {
+		param: for (String stringParam : listZones) {
 			System.out.println("for line " + stringParam);
 			Parameters pTemp = p;
 			pTemp.add(Parameters.unmarshall(new File(locationBuildingType, stringParam)));
@@ -274,9 +274,10 @@ public class VectorFct {
 				SimpleFeatureCollection typoed = getParcelByTypo(stringParam.split("-")[0], parcelCollection, new File(pAdded.getString("rootFile")));
 				SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam.split("-")[1], typoed, new File(pAdded.getString("rootFile")));
 				if (bigZoned.size() > 0) {
-					parcelToNotAdd = notAddPArcel(parcelToNotAdd, bigZoned);
+					parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
 					System.out.println("we cut the parcels with " + type + " parameters (" + p.getDouble("areaParcel") + "m2 max)");
 					result = addAllParcels(result, parcelDensification(splitZone, bigZoned, tmpFile, mupOutput, pAdded));
+					break param;
 				}
 			}
 			// only one specification
@@ -287,7 +288,7 @@ public class VectorFct {
 					SimpleFeatureCollection typoed = getParcelByTypo(stringParam, parcelCollection, new File(pAdded.getString("rootFile")));
 					if (typoed.size() > 0) {
 						System.out.println("we cut the parcels with " + type + " parameters");
-						parcelToNotAdd = notAddPArcel(parcelToNotAdd, typoed);
+						parcelToNotAdd = dontAddParcel(parcelToNotAdd, typoed);
 						result = addAllParcels(result, parcelDensification(splitZone, typoed, tmpFile, mupOutput, pAdded));
 					}
 				} else {
@@ -295,14 +296,14 @@ public class VectorFct {
 						SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam, parcelCollection, new File(pAdded.getString("rootFile")));
 						if (bigZoned.size() > 0) {
 							System.out.println("we cut the parcels with " + type + " parameters");
-							parcelToNotAdd = notAddPArcel(parcelToNotAdd, bigZoned);
+							parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
 							result = addAllParcels(result, parcelDensification(splitZone, bigZoned, tmpFile, mupOutput, pAdded));
 						}
 					}
 				}
 			}
 		}
-		SimpleFeatureCollection realResult = completeParcelMissing(parcelCollection, result.collection());
+		SimpleFeatureCollection realResult = completeParcelMissing(parcelCollection, result.collection(), parcelToNotAdd);
 		return realResult;
 
 	}
@@ -325,56 +326,56 @@ public class VectorFct {
 		return result;
 	}
 
-	public static SimpleFeatureCollection completeParcelMissing(SimpleFeatureCollection parcelTot, SimpleFeatureCollection parcelCuted)
-			throws NoSuchAuthorityCodeException, FactoryException {
-		DefaultFeatureCollection result = new DefaultFeatureCollection();
-		SimpleFeatureType schema = parcelTot.features().next().getFeatureType();
-		// result.addAll(parcelCuted);
-		SimpleFeatureIterator parcelCutedIt = parcelCuted.features();
-		try {
-			while (parcelCutedIt.hasNext()) {
-				SimpleFeature featCut = parcelCutedIt.next();
-				SimpleFeatureBuilder fit = GetFromGeom.setSFBParcelWithFeat(featCut, schema);
-				result.add(fit.buildFeature(null));
-			}
-		} catch (Exception problem) {
-			problem.printStackTrace();
-		} finally {
-			parcelCutedIt.close();
-		}
-
-		SimpleFeatureIterator totIt = parcelTot.features();
-		try {
-			while (totIt.hasNext()) {
-				SimpleFeature featTot = totIt.next();
-				boolean add = true;
-				SimpleFeatureIterator cutIt = parcelCuted.features();
-				try {
-					while (cutIt.hasNext()) {
-						SimpleFeature featCut = cutIt.next();
-						if (((Geometry) featTot.getDefaultGeometry()).buffer(0.1).contains(((Geometry) featCut.getDefaultGeometry()))) {
-							add = false;
-							break;
-						}
-					}
-				} catch (Exception problem) {
-					problem.printStackTrace();
-				} finally {
-					cutIt.close();
-				}
-				if (add) {
-					SimpleFeatureBuilder fit = GetFromGeom.setSFBParcelWithFeat(featTot, schema);
-					result.add(fit.buildFeature(null));
-				}
-			}
-		} catch (Exception problem) {
-			problem.printStackTrace();
-		} finally {
-			totIt.close();
-		}
-
-		return result;
-	}
+	// public static SimpleFeatureCollection completeParcelMissing(SimpleFeatureCollection parcelTot, SimpleFeatureCollection parcelCuted)
+	// throws NoSuchAuthorityCodeException, FactoryException {
+	// DefaultFeatureCollection result = new DefaultFeatureCollection();
+	// SimpleFeatureType schema = parcelTot.features().next().getFeatureType();
+	// // result.addAll(parcelCuted);
+	// SimpleFeatureIterator parcelCutedIt = parcelCuted.features();
+	// try {
+	// while (parcelCutedIt.hasNext()) {
+	// SimpleFeature featCut = parcelCutedIt.next();
+	// SimpleFeatureBuilder fit = GetFromGeom.setSFBParcelWithFeat(featCut, schema);
+	// result.add(fit.buildFeature(null));
+	// }
+	// } catch (Exception problem) {
+	// problem.printStackTrace();
+	// } finally {
+	// parcelCutedIt.close();
+	// }
+	//
+	// SimpleFeatureIterator totIt = parcelTot.features();
+	// try {
+	// while (totIt.hasNext()) {
+	// SimpleFeature featTot = totIt.next();
+	// boolean add = true;
+	// SimpleFeatureIterator cutIt = parcelCuted.features();
+	// try {
+	// while (cutIt.hasNext()) {
+	// SimpleFeature featCut = cutIt.next();
+	// if (((Geometry) featTot.getDefaultGeometry()).buffer(0.1).contains(((Geometry) featCut.getDefaultGeometry()))) {
+	// add = false;
+	// break;
+	// }
+	// }
+	// } catch (Exception problem) {
+	// problem.printStackTrace();
+	// } finally {
+	// cutIt.close();
+	// }
+	// if (add) {
+	// SimpleFeatureBuilder fit = GetFromGeom.setSFBParcelWithFeat(featTot, schema);
+	// result.add(fit.buildFeature(null));
+	// }
+	// }
+	// } catch (Exception problem) {
+	// problem.printStackTrace();
+	// } finally {
+	// totIt.close();
+	// }
+	//
+	// return result;
+	// }
 
 	public static SimpleFeatureCollection completeParcelMissing(SimpleFeatureCollection parcelTot, SimpleFeatureCollection parcelCuted,
 			List<String> parcelToNotAdd) throws NoSuchAuthorityCodeException, FactoryException, IOException {
@@ -540,7 +541,7 @@ public class VectorFct {
 				SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam.split("-")[1], typoed, new File(p.getString("rootFile")));
 				if (bigZoned.size() > 0) {
 					System.out.println("we cut the parcels with " + type + " parameters");
-					parcelToNotAdd = notAddPArcel(parcelToNotAdd, bigZoned);
+					parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
 					result = addAllParcels(result, parcelGenZone(splitZone, bigZoned, tmpFile, mupOutput, pAdded, p.getBoolean("allZoneOrCell")));
 				}
 			}
@@ -564,7 +565,7 @@ public class VectorFct {
 						|| stringParam.equals("centre")) {
 					SimpleFeatureCollection typoed = getParcelByTypo(stringParam, parcelCollection, new File(p.getString("rootFile")));
 					if (typoed.size() > 0) {
-						parcelToNotAdd = notAddPArcel(parcelToNotAdd, typoed);
+						parcelToNotAdd = dontAddParcel(parcelToNotAdd, typoed);
 						System.out.println("we cut the parcels with " + type + " parameters");
 						def = parcelGenZone(splitZone, typoed, tmpFile, mupOutput, pAdded, p.getBoolean("allZoneOrCell"));
 						break;
@@ -573,7 +574,7 @@ public class VectorFct {
 					if (splitZone.equals(stringParam)) {
 						SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam, parcelCollection, new File(p.getString("rootFile")));
 						if (bigZoned.size() > 0) {
-							parcelToNotAdd = notAddPArcel(parcelToNotAdd, bigZoned);
+							parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
 							System.out.println("we cut the parcels with " + type + " parameters");
 							def = parcelGenZone(splitZone, bigZoned, tmpFile, mupOutput, pAdded, p.getBoolean("allZoneOrCell"));
 						}
@@ -936,7 +937,7 @@ public class VectorFct {
 				SimpleFeatureCollection typoed = getParcelByTypo(stringParam.split("-")[0], parcelCollection, new File(pAdded.getString("rootFile")));
 				SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam.split("-")[1], typoed, new File(pAdded.getString("rootFile")));
 				if (bigZoned.size() > 0) {
-					parcelToNotAdd = notAddPArcel(parcelToNotAdd, bigZoned);
+					parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
 					System.out.println("we cut the parcels with " + type + " parameters");
 					result = addAllParcels(result, parcelGenMotif(splitZone, bigZoned, tmpFile, mupOutput, pAdded, dontTouchUZones));
 					break;
@@ -963,7 +964,7 @@ public class VectorFct {
 						|| stringParam.equals("centre")) {
 					SimpleFeatureCollection typoed = getParcelByTypo(stringParam, parcelCollection, new File(p.getString("rootFile")));
 					if (typoed.size() > 0) {
-						parcelToNotAdd = notAddPArcel(parcelToNotAdd, typoed);
+						parcelToNotAdd = dontAddParcel(parcelToNotAdd, typoed);
 						System.out.println("we cut the parcels with " + type + " parameters");
 						def = parcelGenMotif(splitZone, typoed, tmpFile, mupOutput, pAdded, dontTouchUZones);
 
@@ -973,7 +974,7 @@ public class VectorFct {
 					if (splitZone.equals(stringParam)) {
 						SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam, parcelCollection, new File(p.getString("rootFile")));
 						if (bigZoned.size() > 0) {
-							parcelToNotAdd = notAddPArcel(parcelToNotAdd, bigZoned);
+							parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
 							System.out.println("we cut the parcels with " + type + " parameters");
 							def = parcelGenMotif(splitZone, bigZoned, tmpFile, mupOutput, pAdded, dontTouchUZones);
 						}
@@ -1004,9 +1005,9 @@ public class VectorFct {
 		return stringParam;
 	}
 
-	private static List<String> notAddPArcel(List<String> parcelToNotAdd, SimpleFeatureCollection bigZoned) {
-		SimpleFeatureIterator feat = bigZoned.features();
+	private static List<String> dontAddParcel(List<String> parcelToNotAdd, SimpleFeatureCollection bigZoned) {
 
+		SimpleFeatureIterator feat = bigZoned.features();
 		try {
 			while (feat.hasNext()) {
 				parcelToNotAdd.add((String) feat.next().getAttribute("CODE"));
@@ -1637,9 +1638,9 @@ public class VectorFct {
 		// CRS.decode("EPSG:2154"));
 
 		ShapefileDataStore sds = new ShapefileDataStore(fileOut.toURI().toURL());
-		SimpleFeatureCollection parcelUnclean = sds.getFeatureSource().getFeatures();
+		SimpleFeatureCollection parcelOut = sds.getFeatureSource().getFeatures();
 		sds.dispose();
-		return parcelUnclean;
+		return parcelOut;
 
 	}
 

@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.vividsolutions.jts.geom.Geometry;
 
+import fr.ign.cogit.annexeTools.SDPCalcPolygonizer;
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
 import fr.ign.cogit.geoxygene.api.spatial.geomroot.IGeometry;
 import fr.ign.cogit.geoxygene.spatial.coordgeom.DirectPosition;
@@ -18,8 +19,6 @@ import fr.ign.cogit.simplu3d.model.PrescriptionType;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.AbstractSimpleBuilding;
 import fr.ign.cogit.simplu3d.rjmcmc.generic.object.ISimPLU3DPrimitive;
 import fr.ign.cogit.simplu3d.util.CuboidGroupCreation;
-import fr.ign.cogit.simplu3d.util.merge.OldSDPCalc;
-import fr.ign.cogit.simplu3d.util.merge.SDPCalc;
 import fr.ign.parameters.Parameters;
 
 public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
@@ -322,16 +321,19 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	public boolean checkMaxSDP(List<O> lCuboid, Parameters p) {
 		DirectPosition.PRECISION = 4;
 		double sDP = 0.0;
-//		SDPCalc surfGen = new SDPCalc(p.getDouble("heightStorey"));
-//		if (RepartitionBuildingType.hasAttic(p.getString("nameBuildingType"))) {
-//			sDP = surfGen.process(lCuboid, p.getInteger("nbStoreysAttic"), p.getDouble("ratioAttic"));
-//		} else {
-//			sDP = surfGen.process(lCuboid);
-//		}
-		OldSDPCalc surfGen = new OldSDPCalc(p.getDouble("heightStorey"));
+		// SDPCalc surfGen = new SDPCalc(p.getDouble("heightStorey"));
+		// if (RepartitionBuildingType.hasAttic(p.getString("nameBuildingType"))) {
+		// sDP = surfGen.process(lCuboid, p.getInteger("nbStoreysAttic"), p.getDouble("ratioAttic"));
+		// } else {
+		// sDP = surfGen.process(lCuboid);
+		// }
+		SDPCalcPolygonizer surfGen = new SDPCalcPolygonizer(p.getDouble("heightStorey") - 0.1);
+		if (RepartitionBuildingType.hasAttic(p.getString("nameBuildingType"))) {
+			surfGen = new SDPCalcPolygonizer(p.getDouble("heightStorey") - 0.1, p.getInteger("nbStoreysAttic"), p.getDouble("ratioAttic"));
+		}
 
-			sDP = surfGen.process(lCuboid);
-		
+		sDP = surfGen.process(lCuboid);
+
 		return sDP <= p.getDouble("areaMax");
 	}
 
@@ -608,10 +610,13 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		double builtArea = assesBuiltArea(lAllCuboids);
 
 		// Buildings height is used to assess SDP
-		OldSDPCalc c = new OldSDPCalc(p.getDouble("heightStorey"));
+		SDPCalcPolygonizer surfGen = new SDPCalcPolygonizer(p.getDouble("heightStorey") - 0.1);
+		if (RepartitionBuildingType.hasAttic(p.getString("nameBuildingType"))) {
+			surfGen = new SDPCalcPolygonizer(p.getDouble("heightStorey") - 0.1, p.getInteger("nbStoreysAttic"), p.getDouble("ratioAttic"));
+		}
 
 		// We assess the SHON
-		double shon = c.process(lAllCuboids);
+		double shon = surfGen.process(lAllCuboids);
 
 		// Number of dwellings
 		int nbDwellings = (int) Math.round((shon / surfLogement));

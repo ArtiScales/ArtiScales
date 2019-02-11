@@ -6,9 +6,9 @@
 	<!-- Paramètres généraux pour la simulation -->
 	<!-- Configuration générales des simulations ArtiScales -->
 	<param key="seed" value="42"/>
-	<param key = "singleCity" value = "true"/>
+	<param key = "singleCity" value = "false"/>
 <!-- <param key="zip" value ="25569,25078,25197,25508,25468,25163,25117,25598,70189,25444,70036,25563,25582"/>-->
-	 <param key="zip" value ="25056"/> 
+	 <param key="zip" value ="25427"/> 
 	<!-- package pour la distribution contenant un ilot morphologique (=ilot) ou une communes (=communities) -->
 	<param key="package" value ="ilot"/>
 
