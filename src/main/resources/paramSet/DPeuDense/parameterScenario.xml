@@ -84,8 +84,8 @@
 		<param key="splitDensification" value="U" />		
 			<!-- Si true, toutes les parcelles générées dans ces zones remodelées avec le processus de configuration parcellaire pour une zone entière sont sélectionnées. Si false, uniquement les parcelles intersectant les cellules générées par MUP-City sont sélectionnées -->
 			<param key="allZoneOrCell" value="true" />
-		<param key="splitMotifZone" value="AU" />	
-		<param key="splitMotif" value="NC" />
+		<param key="splitTotRecomp" value="AU" />	
+		<param key="splitPartRecomp" value="false" />
 
 	<!-- PARAMETRES DE SIMPLU3D -->
 

@@ -6,11 +6,13 @@
 	<!-- Paramètres généraux pour la simulation -->
 	<!-- Configuration générales des simulations ArtiScales -->
 	<param key="seed" value="42"/>
-	<param key = "singleCity" value = "false"/>
+	<param key = "singleCity" value = "true"/>
 <!-- <param key="zip" value ="25569,25078,25197,25508,25468,25163,25117,25598,70189,25444,70036,25563,25582"/>-->
-	 <param key="zip" value ="25427"/> 
+	 <param key="zip" value ="25056"/> 
 	<!-- package pour la distribution contenant un ilot morphologique (=ilot) ou une communes (=communities) -->
 	<param key="package" value ="ilot"/>
+	<!-- The cities with the following zipCodes will be decomposed into section packages -->
+	<param key = "decompIntoSector" value = "25056" />
 
 
 	<!-- PARAMETRES DE MUP-CITY -->
@@ -42,20 +44,20 @@
 		<param key="ponderation_difference_ext" value="5" />
 		<!-- Pondération négative d'une boîte en intersectant une autre -->
 	<!-- pas sur que ce soit un par tech -->
-		<param key="ponderation_volume_inter" value="50" />
+		<param key="ponderation_volume_inter" value="1" />
 
 		<!-- Probabilités ! -->
 		<!-- Création/destruction d'une boîte ! -->
 		<!-- Les autres mouvements sont équiprobables ! -->
-		<param key="pbirth" value="0.2" />
-		<param key="pdeath" value="0.5" />
+		<param key="pbirth" value="0.4" />
+		<param key="pdeath" value="0.4" />
 		<!-- Déplacements ! -->
 		<!-- Amplitude max d'un changement de dimension (m) ! -->
-		<param key="amplitudeMaxDim" value="2" />
+		<param key="amplitudeMaxDim" value="5" />
 		<!-- Amplitude max d'un changement de hauteur ! -->
 		<param key="amplitudeHeight" value="2" />
 		<!-- Amplitude max d'un déplacement ! -->
-		<param key="amplitudeMove" value="2" />
+		<param key="amplitudeMove" value="5" />
 		<!-- Amplitude max d'une rotation ° ! -->
 		<param key="amplitudeRotate" value="180" />
 
@@ -78,9 +80,9 @@
 		<!-- Nombre d'itération! -->
 		<!-- Indique si il s'agit d'un nombre absolu d'itérations true ou un nombre 
 			relatif à la non amélioration de la configuration -->
-		<param key="end_test_type" value="relative" />
+		<param key="end_test_type" value="composite" />
 		<param key="absolute_nb_iter" value="100000" />
-		<param key="relative_nb_iter" value="50000" />
+		<param key="relative_nb_iter" value="40000" />
 		<param key="delta" value="5" />
 		<param key="poisson" value="20" />
 

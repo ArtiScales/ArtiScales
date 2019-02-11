@@ -10,6 +10,10 @@
 	<!--<param key="zip" value ="25217,25115,25136,25030,25448,25119,25427,25150,25455,25482"/> -->
 	<param key="zip" value ="25598"/>
 	<param key="package" value ="ilot"/>
+		<!-- package pour la distribution contenant un ilot morphologique (=ilot) ou une communes (=communities) -->
+	<param key="package" value ="ilot"/>
+	<!-- The cities with the following zipCodes will be decomposed into section packages -->
+	<param key = "decompIntoSector" value = "25056" />
 
 
 	<!-- PARAMETRES DE MUP-CITY -->

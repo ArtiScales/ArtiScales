@@ -11,7 +11,7 @@ import com.vividsolutions.jts.util.UniqueCoordinateArrayFilter;
  * Computes the convex hull of a {@link Geometry}. The convex hull is the smallest convex Geometry that contains all the points in the input Geometry.
  * <p>
  * Uses the Graham Scan algorithm.
- *
+ * From GEOTOOLS
  * @version 1.7
  */
 public class PreciseConvexHull {

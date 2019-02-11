@@ -419,6 +419,16 @@ public class VectorFct {
 		return result.collection();
 	}
 
+	/**
+	 * Apply the densification process with a Parameter file instead of a 
+	 * @param splitZone
+	 * @param parcelCollection
+	 * @param tmpFile
+	 * @param mupFile
+	 * @param p
+	 * @return
+	 * @throws Exception
+	 */
 	public static SimpleFeatureCollection parcelDensification(String splitZone, SimpleFeatureCollection parcelCollection, File tmpFile, File mupFile,
 			Parameters p) throws Exception {
 		return parcelDensification(splitZone, parcelCollection, tmpFile, new File(p.getString("rootFile")), mupFile, p.getDouble("areaParcel"),
@@ -426,9 +436,7 @@ public class VectorFct {
 	}
 
 	/**
-	 * TODO doesn't work yet. Some weird stuff with the ParcelFlagManager + Some improvement must be done to set if the parcel must save the cut or not TODO the unsimulated parcel
-	 * doesn't fall into the collection
-	 * 
+	 * Apply the densification process
 	 * @param splitZone
 	 * @param parcelCollection
 	 * @param tmpFile
@@ -510,7 +518,7 @@ public class VectorFct {
 	 * @return the whole parcels
 	 * @throws Exception
 	 */
-	public static SimpleFeatureCollection parcelGenZone(String splitZone, SimpleFeatureCollection parcelCollection, File tmpFile, File mupOutput,
+	public static SimpleFeatureCollection parcelTotRecomp(String splitZone, SimpleFeatureCollection parcelCollection, File tmpFile, File mupOutput,
 			Parameters p, File ressource) throws Exception {
 		List<String> parcelToNotAdd = new ArrayList<String>();
 		File locationBuildingType = new File(ressource, "locationBuildingType");
@@ -542,7 +550,7 @@ public class VectorFct {
 				if (bigZoned.size() > 0) {
 					System.out.println("we cut the parcels with " + type + " parameters");
 					parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
-					result = addAllParcels(result, parcelGenZone(splitZone, bigZoned, tmpFile, mupOutput, pAdded, p.getBoolean("allZoneOrCell")));
+					result = addAllParcels(result, parcelTotRecomp(splitZone, bigZoned, tmpFile, mupOutput, pAdded, p.getBoolean("allZoneOrCell")));
 				}
 			}
 		}
@@ -567,7 +575,7 @@ public class VectorFct {
 					if (typoed.size() > 0) {
 						parcelToNotAdd = dontAddParcel(parcelToNotAdd, typoed);
 						System.out.println("we cut the parcels with " + type + " parameters");
-						def = parcelGenZone(splitZone, typoed, tmpFile, mupOutput, pAdded, p.getBoolean("allZoneOrCell"));
+						def = parcelTotRecomp(splitZone, typoed, tmpFile, mupOutput, pAdded, p.getBoolean("allZoneOrCell"));
 						break;
 					}
 				} else {
@@ -576,7 +584,7 @@ public class VectorFct {
 						if (bigZoned.size() > 0) {
 							parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
 							System.out.println("we cut the parcels with " + type + " parameters");
-							def = parcelGenZone(splitZone, bigZoned, tmpFile, mupOutput, pAdded, p.getBoolean("allZoneOrCell"));
+							def = parcelTotRecomp(splitZone, bigZoned, tmpFile, mupOutput, pAdded, p.getBoolean("allZoneOrCell"));
 						}
 					}
 				}
@@ -604,10 +612,10 @@ public class VectorFct {
 	 * @return
 	 * @throws Exception
 	 */
-	public static SimpleFeatureCollection parcelGenZone(String splitZone, SimpleFeatureCollection parcels, File tmpFile, File mupOutput, Parameters p,
+	public static SimpleFeatureCollection parcelTotRecomp(String splitZone, SimpleFeatureCollection parcels, File tmpFile, File mupOutput, Parameters p,
 			boolean allOrCell) throws Exception {
 
-		return parcelGenZone(splitZone, parcels, tmpFile, new File(p.getString("rootFile")), mupOutput, p.getDouble("areaParcel"),
+		return parcelTotRecomp(splitZone, parcels, tmpFile, new File(p.getString("rootFile")), mupOutput, p.getDouble("areaParcel"),
 				p.getDouble("widParcel"), p.getDouble("lenRoad"), p.getInteger("decompositionLevelWithoutRoad"), allOrCell);
 	}
 
@@ -629,7 +637,7 @@ public class VectorFct {
 	 * @return
 	 * @throws Exception
 	 */
-	public static SimpleFeatureCollection parcelGenZone(String splitZone, SimpleFeatureCollection parcels, File tmpFile, File rootFile,
+	public static SimpleFeatureCollection parcelTotRecomp(String splitZone, SimpleFeatureCollection parcels, File tmpFile, File rootFile,
 			File mupOutput, double maximalArea, double maximalWidth, double lenRoad, int decompositionLevelWithoutRoad, boolean allOrCell)
 			throws Exception {
 
@@ -911,7 +919,7 @@ public class VectorFct {
 	 * @return
 	 * @throws Exception
 	 */
-	public static SimpleFeatureCollection parcelGenMotif(String splitZone, SimpleFeatureCollection parcelCollection, File tmpFile, File mupOutput,
+	public static SimpleFeatureCollection parcelPartRecomp(String splitZone, SimpleFeatureCollection parcelCollection, File tmpFile, File mupOutput,
 			Parameters p, File ressource, boolean dontTouchUZones) throws Exception {
 
 		List<String> parcelToNotAdd = new ArrayList<String>();
@@ -939,7 +947,7 @@ public class VectorFct {
 				if (bigZoned.size() > 0) {
 					parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
 					System.out.println("we cut the parcels with " + type + " parameters");
-					result = addAllParcels(result, parcelGenMotif(splitZone, bigZoned, tmpFile, mupOutput, pAdded, dontTouchUZones));
+					result = addAllParcels(result, parcelPartRecomp(splitZone, bigZoned, tmpFile, mupOutput, pAdded, dontTouchUZones));
 					break;
 				}
 
@@ -966,7 +974,7 @@ public class VectorFct {
 					if (typoed.size() > 0) {
 						parcelToNotAdd = dontAddParcel(parcelToNotAdd, typoed);
 						System.out.println("we cut the parcels with " + type + " parameters");
-						def = parcelGenMotif(splitZone, typoed, tmpFile, mupOutput, pAdded, dontTouchUZones);
+						def = parcelPartRecomp(splitZone, typoed, tmpFile, mupOutput, pAdded, dontTouchUZones);
 
 						break;
 					}
@@ -976,7 +984,7 @@ public class VectorFct {
 						if (bigZoned.size() > 0) {
 							parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
 							System.out.println("we cut the parcels with " + type + " parameters");
-							def = parcelGenMotif(splitZone, bigZoned, tmpFile, mupOutput, pAdded, dontTouchUZones);
+							def = parcelPartRecomp(splitZone, bigZoned, tmpFile, mupOutput, pAdded, dontTouchUZones);
 						}
 					}
 				}
@@ -1020,13 +1028,13 @@ public class VectorFct {
 		return parcelToNotAdd;
 	}
 
-	public static SimpleFeatureCollection parcelGenMotif(String typeZone, SimpleFeatureCollection parcels, File tmpFile, File mupOutput, Parameters p,
+	public static SimpleFeatureCollection parcelPartRecomp(String typeZone, SimpleFeatureCollection parcels, File tmpFile, File mupOutput, Parameters p,
 			boolean dontTouchUZones) throws Exception {
-		return parcelGenMotif(typeZone, parcels, tmpFile, new File(p.getString("rootFile")), mupOutput, p.getDouble("areaParcel"),
+		return parcelPartRecomp(typeZone, parcels, tmpFile, new File(p.getString("rootFile")), mupOutput, p.getDouble("areaParcel"),
 				p.getDouble("widParcel"), p.getDouble("lenRoad"), p.getInteger("decompositionLevelWithoutRoad"), dontTouchUZones);
 	}
 
-	public static SimpleFeatureCollection parcelGenMotif(String typeZone, SimpleFeatureCollection parcels, File tmpFile, File rootFile,
+	public static SimpleFeatureCollection parcelPartRecomp(String typeZone, SimpleFeatureCollection parcels, File tmpFile, File rootFile,
 			File mupOutput, double maximalArea, double maximalWidth, double roadWidth, int decompositionLevelWithoutRoad, boolean dontTouchUZones)
 			throws Exception {
 		File geoFile = new File(rootFile, "dataGeo");

@@ -321,19 +321,14 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	public boolean checkMaxSDP(List<O> lCuboid, Parameters p) {
 		DirectPosition.PRECISION = 4;
 		double sDP = 0.0;
-		// SDPCalc surfGen = new SDPCalc(p.getDouble("heightStorey"));
-		// if (RepartitionBuildingType.hasAttic(p.getString("nameBuildingType"))) {
-		// sDP = surfGen.process(lCuboid, p.getInteger("nbStoreysAttic"), p.getDouble("ratioAttic"));
-		// } else {
-		// sDP = surfGen.process(lCuboid);
-		// }
 		SDPCalcPolygonizer surfGen = new SDPCalcPolygonizer(p.getDouble("heightStorey") - 0.1);
 		if (RepartitionBuildingType.hasAttic(p.getString("nameBuildingType"))) {
 			surfGen = new SDPCalcPolygonizer(p.getDouble("heightStorey") - 0.1, p.getInteger("nbStoreysAttic"), p.getDouble("ratioAttic"));
+			sDP = surfGen.process(lCuboid);
+		} else {
+			surfGen = new SDPCalcPolygonizer(p.getDouble("heightStorey") - 0.1);
+			sDP = surfGen.process(lCuboid);
 		}
-
-		sDP = surfGen.process(lCuboid);
-
 		return sDP <= p.getDouble("areaMax");
 	}
 
@@ -610,16 +605,19 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		double builtArea = assesBuiltArea(lAllCuboids);
 
 		// Buildings height is used to assess SDP
-		SDPCalcPolygonizer surfGen = new SDPCalcPolygonizer(p.getDouble("heightStorey") - 0.1);
-		if (RepartitionBuildingType.hasAttic(p.getString("nameBuildingType"))) {
-			surfGen = new SDPCalcPolygonizer(p.getDouble("heightStorey") - 0.1, p.getInteger("nbStoreysAttic"), p.getDouble("ratioAttic"));
-		}
 
 		// We assess the SHON
-		double shon = surfGen.process(lAllCuboids);
-
+		double sdp = 0.0;
+		if (RepartitionBuildingType.hasAttic(p.getString("nameBuildingType"))) {
+			SDPCalcPolygonizer surfGen = new SDPCalcPolygonizer(p.getDouble("heightStorey") - 0.1, p.getInteger("nbStoreysAttic"),
+					p.getDouble("ratioAttic"));
+			sdp = surfGen.process(lAllCuboids);
+		} else {
+			SDPCalcPolygonizer surfGen = new SDPCalcPolygonizer(p.getDouble("heightStorey") - 0.1);
+			sdp = surfGen.process(lAllCuboids);
+		}
 		// Number of dwellings
-		int nbDwellings = (int) Math.round((shon / surfLogement));
+		int nbDwellings = (int) Math.round((sdp / surfLogement));
 
 		// if it's a simple house, it's gon contain only one housing unit
 		if (p.getString("nameBuildingType").equals("detachedHouse") || p.getString("nameBuildingType").equals("smallHouse")) {
@@ -651,7 +649,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		} else if (art12.contains("l")) {
 
 			double limit = Double.valueOf(art12.split("l")[1].split("_")[0]);
-			if (shon < limit) {
+			if (sdp < limit) {
 				multiplierParking = Integer.valueOf(art12.split("l")[0]);
 			} else {
 				multiplierParking = Integer.valueOf(art12.split("l")[1].split("_")[1]);
@@ -659,7 +657,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		} else if (art12.contains("x")) {
 
 			double limit = Double.valueOf(art12.split("x")[1]);
-			multiplierParking = (int) Math.round(shon / limit);
+			multiplierParking = (int) Math.round(sdp / limit);
 
 		} else {
 			System.out.println("parking case unreckognized " + art12);

@@ -79,9 +79,7 @@ public class SelectParcels {
 				spatialConf = varianteSpatialConf;
 				// if we simul on one city (debug) or the whole area
 				List<String> listZip = SimuTool.getIntrestingCommunities(p, geoFile, regulFile, tmpFile);
-				if (listZip == null) {
-					listZip = GetFromGeom.allZip(geoFile);
-				}
+
 				// we loop on every cities
 				for (String zip : listZip) {
 			//		if (zip.equals("25056")) {continue;}
@@ -131,6 +129,8 @@ public class SelectParcels {
 
 					File ressource = new File(this.getClass().getClassLoader().getResource("").getFile());
 
+					//some very few cases are still crashing, so we get the parcels back when
+					
 					if (!p.getString("splitDensification").equals("false") && !p.getString("splitDensification").equals("")) {
 						if (!p.getBoolean("Ubuilt")) {
 							System.out.println("Scenar error. We cannot densify if the U build parcels haven't been selected");
@@ -147,24 +147,24 @@ public class SelectParcels {
 						}
 					}
 
-					if (!p.getString("splitMotifZone").equals("false") && !p.getString("splitMotifZone").equals("")) {
-						String splitZone = p.getString("splitMotifZone");
+					if (!p.getString("splitTotRecomp").equals("false") && !p.getString("splitTotRecomp").equals("")) {
+						String splitZone = p.getString("splitTotRecomp");
 						if (!splitZone.contains("-")) {
 							System.out.println();
-							System.out.println("///// We start the splitMotifZone process\\\\\\");
-							parcelCollection = VectorFct.parcelGenZone(splitZone, parcelCollection, tmpFile, spatialConf, p, ressource);
-							Vectors.exportSFC(parcelCollection, new File(tmpFile, "aftersplitMotifZone"));
+							System.out.println("///// We start the splitTotRecomp process\\\\\\");
+							parcelCollection = VectorFct.parcelTotRecomp(splitZone, parcelCollection, tmpFile, spatialConf, p, ressource);
+							Vectors.exportSFC(parcelCollection, new File(tmpFile, "splitTotRecomp"));
 						} else {
 							System.err.println("splitParcel : complex section non implemented yet");
 						}
 					}
-					if (!p.getString("splitMotif").equals("false") && !p.getString("splitMotif").equals("")) {
-						String splitZone = p.getString("splitMotif");
+					if (!p.getString("splitPartRecomp").equals("false") && !p.getString("splitPartRecomp").equals("")) {
+						String splitZone = p.getString("splitPartRecomp");
 						if (!splitZone.contains("-")) {
 							System.out.println();
-							System.out.println("///// We start the splitMotif process\\\\\\");
-							parcelCollection = VectorFct.parcelGenMotif(splitZone, parcelCollection, tmpFile, spatialConf, p, ressource, true);
-							Vectors.exportSFC(parcelCollection, new File(tmpFile, "aftersplitMotif"));
+							System.out.println("///// We start the splitPartRecomp process\\\\\\");
+							parcelCollection = VectorFct.parcelPartRecomp(splitZone, parcelCollection, tmpFile, spatialConf, p, ressource, true);
+							Vectors.exportSFC(parcelCollection, new File(tmpFile, "aftersplitPartRecomp"));
 						} else {
 							System.err.println("splitParcel : complex section non implemented yet");
 						}

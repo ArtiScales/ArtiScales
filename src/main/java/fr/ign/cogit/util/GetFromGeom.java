@@ -202,7 +202,7 @@ public class GetFromGeom {
 		File fCsv = new File("");
 		try {
 			for (File f : regulFile.listFiles()) {
-				if (f.getName().equals("listRNUCities.csv")) {
+				if (f.getName().equals("listCommunitiesRNU.csv")) {
 					fCsv = f;
 					break;
 				}
@@ -317,11 +317,27 @@ public class GetFromGeom {
 			FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
 			DefaultFeatureCollection df = new DefaultFeatureCollection();
 			for (String zip : listZip) {
-				String codep = zip.substring(0, 2);
-				String cocom = zip.substring(2, 5);
-				Filter filterDep = ff.like(ff.property("CODE_DEP"), codep);
-				Filter filterCom = ff.like(ff.property("CODE_COM"), cocom);
-				df.addAll(parcels.subCollection(filterDep).subCollection(filterCom));
+
+				// could have been nicer, but Filters are some pain in the socks and doesn't work in I factor the code
+				if (zip.length() > 5) {
+					// those zip are containing the Section value too
+					String codep = zip.substring(0, 2);
+					String cocom = zip.substring(2, 5);
+					String section = zip.substring(5);
+
+					Filter filterDep = ff.like(ff.property("CODE_DEP"), codep);
+					Filter filterCom = ff.like(ff.property("CODE_COM"), cocom);
+					Filter filterSection = ff.like(ff.property("SECTION"), section);
+					df.addAll(parcels.subCollection(filterDep).subCollection(filterCom).subCollection(filterSection));
+				} else {
+
+					String codep = zip.substring(0, 2);
+					String cocom = zip.substring(2, 5);
+					Filter filterDep = ff.like(ff.property("CODE_DEP"), codep);
+					Filter filterCom = ff.like(ff.property("CODE_COM"), cocom);
+					df.addAll(parcels.subCollection(filterDep).subCollection(filterCom));
+
+				}
 			}
 			parcels = df.collection();
 		}
@@ -359,7 +375,7 @@ public class GetFromGeom {
 							sfSimpleBuilder.set("SECTION", feat.getAttribute("SECTION"));
 							String num = (String) feat.getAttribute("NUMERO");
 							// if a part has already been added
-							
+
 							if (codeParcelsTot.contains(code)) {
 								while (true) {
 									num = num + "bis";
@@ -376,18 +392,18 @@ public class GetFromGeom {
 							}
 							sfSimpleBuilder.set("CODE", code);
 							write.add(sfSimpleBuilder.buildFeature(null));
-							
+
 							// this could be nicer but it doesn't work
-//							for (int i = 0; i < codeParcelsTot.size(); i++) {
-//								if (codeParcelsTot.get(i).substring(0, 13).equals(code)) {
-//									num = num + "bis";
-//									code = code + "bis";
-//								}
-//							}
-//							sfSimpleBuilder.set("NUMERO", num);
-//							sfSimpleBuilder.set("CODE", code);
-//							codeParcelsTot.add(code);
-//							write.add(sfSimpleBuilder.buildFeature(null));
+							// for (int i = 0; i < codeParcelsTot.size(); i++) {
+							// if (codeParcelsTot.get(i).substring(0, 13).equals(code)) {
+							// num = num + "bis";
+							// code = code + "bis";
+							// }
+							// }
+							// sfSimpleBuilder.set("NUMERO", num);
+							// sfSimpleBuilder.set("CODE", code);
+							// codeParcelsTot.add(code);
+							// write.add(sfSimpleBuilder.buildFeature(null));
 
 						}
 					}
@@ -399,15 +415,17 @@ public class GetFromGeom {
 			}
 			parcels = write.collection();
 		}
-		//under the carpet
+		// under the carpet
 		ReferencedEnvelope carpet = parcels.getBounds();
-		Coordinate[] coord = {new Coordinate(carpet.getMaxX(), carpet.getMaxY()),new Coordinate(carpet.getMaxX(), carpet.getMinY()),new Coordinate(carpet.getMinX(), carpet.getMinY()),new Coordinate(carpet.getMinX(), carpet.getMaxY()),new Coordinate(carpet.getMaxX(), carpet.getMaxY())};
-		
+		Coordinate[] coord = { new Coordinate(carpet.getMaxX(), carpet.getMaxY()), new Coordinate(carpet.getMaxX(), carpet.getMinY()),
+				new Coordinate(carpet.getMinX(), carpet.getMinY()), new Coordinate(carpet.getMinX(), carpet.getMaxY()),
+				new Coordinate(carpet.getMaxX(), carpet.getMaxY()) };
+
 		GeometryFactory gf = new GeometryFactory();
 		Polygon bbox = gf.createPolygon(coord);
 		SimpleFeatureCollection batiSFC = Vectors.snapDatas(shpDSBati.getFeatureSource().getFeatures(), bbox);
 
-	//	SimpleFeatureCollection batiSFC = Vectors.snapDatas(shpDSBati.getFeatureSource().getFeatures(), Vectors.unionSFC(parcels));
+		// SimpleFeatureCollection batiSFC = Vectors.snapDatas(shpDSBati.getFeatureSource().getFeatures(), Vectors.unionSFC(parcels));
 
 		SimpleFeatureBuilder sfBuilder = getParcelSFBuilder();
 
@@ -1134,27 +1152,4 @@ public class GetFromGeom {
 
 		return finalParcelBuilder;
 	}
-
-	public static List<String> allZip(File geoFile) throws IOException {
-		List<String> result = new ArrayList<String>();
-		ShapefileDataStore comSDS = new ShapefileDataStore(getCommunities(geoFile).toURI().toURL());
-		SimpleFeatureIterator it = comSDS.getFeatureSource().getFeatures().features();
-		try {
-			while (it.hasNext()) {
-				SimpleFeature feat = it.next();
-				if (!result.contains(feat.getAttribute("DEPCOM"))) {
-					result.add((String) feat.getAttribute("DEPCOM"));
-				}
-			}
-		} catch (Exception problem) {
-			problem.printStackTrace();
-		} finally {
-			it.close();
-		}
-
-		comSDS.dispose();
-
-		return result;
-	}
-
 }

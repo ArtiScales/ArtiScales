@@ -14,6 +14,8 @@ import java.util.List;
 
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.data.simple.SimpleFeatureIterator;
+import org.opengis.feature.simple.SimpleFeature;
 
 import au.com.bytecode.opencsv.CSVReader;
 import fr.ign.parameters.Parameters;
@@ -45,24 +47,68 @@ public class SimuTool {
 	 * @throws Exception
 	 */
 	public static List<String> getIntrestingCommunities(Parameters p, File geoFile, File regulFile, File tmpFile) throws Exception {
+		List<String> result = new ArrayList<String>();
 		if (p.getString("singleCity").equals("true")) {
 			String zips = p.getString("zip");
-			List<String> listZip = new ArrayList<String>();
 			// if multiple zips
 			if (zips.contains(",")) {
 				for (String z : zips.split(",")) {
-					listZip.add(z);
+					result.add(z);
 				}
-				return listZip;
 			}
 			// if single zip
 			else {
-				listZip.add(zips);
-				return listZip;
+				result.add(zips);
 			}
 		} else {
-			return null;
+			ShapefileDataStore comSDS = new ShapefileDataStore(GetFromGeom.getCommunities(geoFile).toURI().toURL());
+			SimpleFeatureIterator it = comSDS.getFeatureSource().getFeatures().features();
+			try {
+				while (it.hasNext()) {
+					SimpleFeature feat = it.next();
+					if (!result.contains(feat.getAttribute("DEPCOM"))) {
+						result.add((String) feat.getAttribute("DEPCOM"));
+					}
+				}
+			} catch (Exception problem) {
+				problem.printStackTrace();
+			} finally {
+				it.close();
+			}
+			comSDS.dispose();
 		}
+
+		if (!p.getString("decompIntoSector").equals("")) {
+			String zipIntoSector = p.getString("decompIntoSector");
+			try {
+				result.remove(zipIntoSector);
+				List<String> diffSection = new ArrayList<>();
+				ShapefileDataStore parcSDS = new ShapefileDataStore(GetFromGeom.getParcels(geoFile).toURI().toURL());
+				SimpleFeatureIterator it = parcSDS.getFeatureSource().getFeatures().features();
+				try {
+					while (it.hasNext()) {
+						SimpleFeature feat = it.next();
+						if ((((String) feat.getAttribute("CODE_DEP"))+((String) feat.getAttribute("CODE_COM"))).equals(zipIntoSector)) {
+							if (!diffSection.contains(feat.getAttribute("SECTION"))) {
+								diffSection.add((String) feat.getAttribute("SECTION"));
+							}
+						}
+					}
+				} catch (Exception problem) {
+					problem.printStackTrace();
+				} finally {
+					it.close();
+				}
+				for (String s : diffSection) {
+					result.add(zipIntoSector + s);
+				}
+				parcSDS.dispose();
+			} catch (Exception e) {
+				System.out.println("this city " + zipIntoSector + " is not in the set");
+			}
+		}
+		return result;
+
 	}
 
 	public static File createScenarVariantFolders(File packFile, File rootFile, String name) {

@@ -15,11 +15,11 @@
 <!--Paramètres par défaut des différents types de bâtiments simulés -->
 
 	<!-- Largeur -->
-	<param key="minlen" value="10" />
-	<param key="maxlen" value="10" />
+	<param key="minlen" value="5" />
+	<param key="maxlen" value="15" />
 	<!-- Longueur -->
-	<param key="minwid" value="10" />
-	<param key="maxwid" value="10" />
+	<param key="minwid" value="5" />
+	<param key="maxwid" value="15" />
 	<!-- Hauteur -->
 	<param key="minheight" value="7" />
 	<param key="maxheight" value="21" />
@@ -28,7 +28,7 @@
 	<param key="intersection" value="true" />
 
 	<!-- Nombre de boites maximal composant un bâtiment -->
-	<param key="nbCuboid" value="15" />
+	<param key="nbCuboid" value="20" />
 
 	<!-- Surface de plancher maximale pour un bâtiment -->
 	<param key="areaMax" value="27000" />
