@@ -590,10 +590,10 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 		List<List<O>> groupList = groupCreator.createGroup(lAllCuboids, 0.1);
 
-		if (!cRO.numberMaxOfBuilding(groupList, 1)) {
-			denial = SimuTool.increm(denial, "buildingNb");
-			return false;
-		}
+//		if (!cRO.numberMaxOfBuilding(groupList, 1)) {
+//			denial = SimuTool.increm(denial, "buildingNb");
+//			return false;
+//		}
 
 		if (intersection) {
 			// art_8 et //art_form_4

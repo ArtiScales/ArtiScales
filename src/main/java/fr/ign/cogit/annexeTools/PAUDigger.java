@@ -3,10 +3,8 @@ package fr.ign.cogit.annexeTools;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Stack;
 
 import org.geotools.data.DataUtilities;
 import org.geotools.data.FeatureWriter;
@@ -34,19 +32,12 @@ import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
-import com.vividsolutions.jts.algorithm.CGAlgorithms;
-import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.LinearRing;
 import com.vividsolutions.jts.geom.MultiLineString;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Polygon;
-import com.vividsolutions.jts.geom.PrecisionModel;
-import com.vividsolutions.jts.util.UniqueCoordinateArrayFilter;
 
 import fr.ign.cogit.GTFunctions.Vectors;
-import fr.ign.cogit.createGeom.PreciseConvexHull;
 import fr.ign.cogit.geoxygene.spatial.coordgeom.DirectPosition;
 import fr.ign.cogit.util.VectorFct;
 
@@ -145,13 +136,13 @@ public class PAUDigger {
 		filCluster = ff.intersects(pName, ff.literal(clusterUnion));
 		filMorpho = ff.intersects(pName, ff.literal(morphoUnion));
 		filNU = ff.not(ff.intersects(pName, ff.literal(unionNU)));
-		
+
 		SimpleFeatureCollection pau3 = parcelSplitted.subCollection(filCluster);
 		Vectors.exportSFC(pau3, new File("/tmp/salut3.shp"));
 
 		SimpleFeatureCollection pau = pau3.subCollection(filMorpho);
 		Vectors.exportSFC(pau, new File("/tmp/salut.shp"));
-		
+
 		SimpleFeatureCollection pau2 = pau3.subCollection(filNU);
 		Vectors.exportSFC(pau2, new File("/tmp/salut2.shp"));
 

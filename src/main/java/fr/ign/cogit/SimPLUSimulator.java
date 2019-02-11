@@ -669,18 +669,7 @@ public class SimPLUSimulator {
 		List<Cuboid> cubes = cc.getGraph().vertexSet().stream().map(x -> x.getValue()).collect(Collectors.toList());
 		surfacePlancherTotal = surfGen.process(cubes);
 		surfaceAuSol = surfGen.processSurface(cubes);
-		try {
-			SDPCalc surfGen2 = new SDPCalc(par.getDouble("heightStorey") - 0.1);
-			if (RepartitionBuildingType.hasAttic(type)) {
-				surfGen2 = new SDPCalc(par.getDouble("heightStorey") - 0.1, par.getInteger("nbStoreysAttic"), par.getDouble("ratioAttic"));
-			}
-			surfacePlancherTotal = surfGen2.process(cubes);
-			// cubes = cc.getGraph().vertexSet().stream().map(x ->
-			// x.getValue()).collect(Collectors.toList());
-			surfaceAuSol = surfGen2.processSurface(cubes);
-		} catch (TopologyException te) {
-			System.out.println("that SDPCalc still fails");
-		}
+	
 		// Getting cuboid into list (we have to redo it because the cuboids are
 		// dissapearing during this procces)
 

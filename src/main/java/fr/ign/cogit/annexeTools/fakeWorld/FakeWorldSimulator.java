@@ -14,8 +14,8 @@ public class FakeWorldSimulator {
 	public static void main(String[] args) throws Exception {
 
 		// Parent folder with all subfolder
-//		String absoluteRootFolder = "/home/mcolomb/informatique/fakeWorld/";
-		String absoluteRootFolder = "/home/ubuntu/boulot/these/fakeWorld/";
+		String absoluteRootFolder = "/home/mcolomb/informatique/fakeWorld/";
+//		String absoluteRootFolder = "/home/ubuntu/boulot/these/fakeWorld/";
 
 		
 		File rootFolderFile = new File(absoluteRootFolder);

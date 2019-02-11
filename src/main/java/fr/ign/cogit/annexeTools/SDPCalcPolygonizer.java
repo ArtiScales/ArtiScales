@@ -89,19 +89,16 @@ public class SDPCalcPolygonizer {
 		return process(LoaderCuboid.loadFromShapeFile(shape));
 	}
 
-	public double process(List<? extends AbstractSimpleBuilding> cubes, int nbStoreyAttic, double ratioAttic) {
+	public double process(List<? extends AbstractSimpleBuilding> cubes) {
 		double sdp = 0;
 		CuboidGroupCreation<AbstractSimpleBuilding> cGC = new CuboidGroupCreation<AbstractSimpleBuilding>();
 		List<List<AbstractSimpleBuilding>> lGroupes = cGC.createGroup(cubes, 0);
 		// System.out.println("nb groupes formé " + lGroupes.size());
 		for (List<AbstractSimpleBuilding> g : lGroupes)
-			sdp += sdpGroup(g, true, nbStoreyAttic, ratioAttic);
+			sdp += sdpGroup(g, true);
 		return sdp;
 	}
 
-	public double process(List<? extends AbstractSimpleBuilding> cubes) {
-		return process(cubes, 0, 0.0);
-	}
 
 	public double processSurface(String shape) {
 		return process(LoaderCuboid.loadFromShapeFile(shape));
@@ -113,7 +110,7 @@ public class SDPCalcPolygonizer {
 		List<List<AbstractSimpleBuilding>> lGroupes = cGC.createGroup(cubes, 0);
 		// System.out.println("nb groupes formé " + lGroupes.size());
 		for (List<AbstractSimpleBuilding> g : lGroupes) {
-			sdp += sdpGroup(g, false, 0, 0.0);
+			sdp += sdpGroup(g, false);
 		}
 		return sdp;
 	}
@@ -131,7 +128,7 @@ public class SDPCalcPolygonizer {
 	 *            : ratio of the last storey that is set as an attic.
 	 * @return
 	 */
-	private double sdpGroup(List<? extends AbstractSimpleBuilding> group, boolean sdp_or_surface, int nbStoreyAttic, double ratioAttic) {
+	private double sdpGroup(List<? extends AbstractSimpleBuilding> group, boolean sdp_or_surface) {
 		List<Geometry> features = new ArrayList<>();
 		for (AbstractSimpleBuilding building : group) {
 			features.add(building.toGeometry());
