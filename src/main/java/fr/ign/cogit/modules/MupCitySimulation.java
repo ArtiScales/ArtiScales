@@ -27,7 +27,7 @@ public class MupCitySimulation {
 	 *
 	 */
 
-	// root where everything's happenning
+	// root where everything's happening
 	File rootFile;
 	Parameters p;
 	String[] variant;

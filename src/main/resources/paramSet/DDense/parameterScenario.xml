@@ -2,15 +2,15 @@
 <parameters>
 
 	<!--PARAMÈTRES SCÉNARISTIQUES POUR LES SIMULATIONS AVEC ARTISCALES -->
-
+	
 	<!-- Nom du scénario -->
 	<param key="name" value="DDense" />
 	<param key="scenarioPMSP3D" value="dense" />
 
 	<!-- Dossiers et fichiers nécessaires à la simulation -->
 	<!-- Emplacement de la simulation (données d'entrée, résultats intermédiaires et finaux) -->
-<!--  	<param key="rootFile" value="/home/ubuntu/informatique/ArtiScales" />--> 
-<param key="rootFile" value="/home/ubuntu/boulot/these/newZoning/" /> 
+  	<param key="rootFile" value="/home/mcolomb/informatique/ArtiScalesLikeTBLunch" />
+<!--<param key="rootFile" value="/home/ubuntu/boulot/these/newZoning/" /> --> 
 		
 	<!-- PARAMETRES DU MODULE MUP-CITY -->
 

@@ -69,12 +69,14 @@ public class SimPLUSimulator {
 	SimpleFeature singleFeat;
 	boolean isSingleFeat = false;
 
-	File rootFile;
+	// File rootFile;
 
 	// Parameters from technical parameters and scenario parameters files
 	Parameters p;
 	// backup when p has been overwritted
 	// Parameters pSaved;
+
+	File folderOut;
 
 	// Building file
 	File buildFile;
@@ -159,7 +161,7 @@ public class SimPLUSimulator {
 		// // SimPLUSimulator.fillSelectedParcels(new File(rootFolder), geoFile,
 		// // pluFile, selectedParcels, 50, "25495", p);
 
-		File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/dense");
+		File rootParam = new File("./src/main/resources/paramSet/DDense");
 		List<File> lF = new ArrayList<>();
 		lF.add(new File(rootParam, "parameterTechnic.xml"));
 		lF.add(new File(rootParam, "parameterScenario.xml"));
@@ -168,13 +170,13 @@ public class SimPLUSimulator {
 		// AttribNames.setATT_CODE_PARC("CODE");
 		// USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
 
-		File f = new File("/home/mcolomb/informatique/ArtiScales/ParcelSelectionFile/dense/variante0/");
-
+		File f = new File("./ArtiScalesLikeTBLunch/ParcelSelectionFile/DDense/variante0/");
+		File fOut = new File("./ArtiScalesLikeTBLunch/SimPLUDepot/DDense/variante0/");
 		List<File> listBatiSimu = new ArrayList<File>();
 		for (File ff : f.listFiles()) {
 			if (ff.isDirectory()) {
 				System.out.println("start pack " + ff);
-				SimPLUSimulator sim = new SimPLUSimulator(ff, p);
+				SimPLUSimulator sim = new SimPLUSimulator(ff, p, fOut);
 				List<File> simued = sim.run();
 				if (simued != null) {
 					listBatiSimu.addAll(simued);
@@ -207,12 +209,13 @@ public class SimPLUSimulator {
 	 *            : list of the initials parameters
 	 * @throws Exception
 	 */
-	public SimPLUSimulator(File packFile, Parameters pa) throws Exception {
+	public SimPLUSimulator(File packFile, Parameters pa, File fileOut) throws Exception {
 
 		// some static parameters needed
 		this.p = pa;
-		this.rootFile = new File(pa.getString("rootFile"));
+		// this.rootFile = new File(pa.getString("rootFile"));
 		simuFile = packFile;
+		this.folderOut = fileOut;
 		parcelsFile = new File(packFile, "/parcelle.shp");
 		zoningFile = new File(packFile, "/geoSnap/zone_urba.shp");
 		buildFile = new File(packFile, "/geoSnap/batiment.shp");
@@ -240,8 +243,7 @@ public class SimPLUSimulator {
 		IFeatureCollection<Prescription> prescriptions = env.getPrescriptions();
 		IFeatureCollection<Prescription> prescriptionUse = PrescriptionPreparator.preparePrescription(prescriptions, par);
 
-		boolean association = ZoneRulesAssociation.associate(env, predicateFile, FromGeom.rnuZip(new File(rootFile, "dataRegulation")),
-				willWeAssociateAnyway(par));
+		boolean association = ZoneRulesAssociation.associate(env, predicateFile, zoningFile, willWeAssociateAnyway(par));
 
 		if (!association) {
 			System.out.println("Association between rules and UrbanZone failed");
@@ -287,7 +289,6 @@ public class SimPLUSimulator {
 			}
 
 			// saving the output
-			File folderOut = SimuTool.createScenarVariantFolders(simuFile, rootFile, "SimPLUDepot");
 			folderOut.mkdirs();
 
 			File output = new File(folderOut, "out-parcel_" + codeParcel + ".shp");
@@ -362,8 +363,7 @@ public class SimPLUSimulator {
 		IFeatureCollection<Prescription> prescriptions = env.getPrescriptions();
 		IFeatureCollection<Prescription> prescriptionUse = PrescriptionPreparator.preparePrescription(prescriptions, pUsed);
 
-		boolean association = ZoneRulesAssociation.associate(env, predicateFile, FromGeom.rnuZip(new File(rootFile, "dataRegulation")),
-				willWeAssociateAnyway(pUsed));
+		boolean association = ZoneRulesAssociation.associate(env, predicateFile, zoningFile, willWeAssociateAnyway(pUsed));
 
 		if (!association) {
 			System.out.println("Association between rules and UrbanZone failed");
@@ -454,7 +454,6 @@ public class SimPLUSimulator {
 				}
 			}
 			// saving the output
-			File folderOut = SimuTool.createScenarVariantFolders(simuFile, rootFile, "SimPLUDepot");
 			folderOut.mkdirs();
 
 			File output = new File(folderOut, "out-parcel_" + codeParcel + ".shp");
@@ -668,7 +667,7 @@ public class SimPLUSimulator {
 		List<Cuboid> cubes = cc.getGraph().vertexSet().stream().map(x -> x.getValue()).collect(Collectors.toList());
 		surfacePlancherTotal = surfGen.process(cubes);
 		surfaceAuSol = surfGen.processSurface(cubes);
-	
+
 		// Getting cuboid into list (we have to redo it because the cuboids are
 		// dissapearing during this procces)
 

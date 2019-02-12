@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.geotools.data.DataUtilities;
 import org.geotools.data.FeatureWriter;
@@ -22,6 +24,7 @@ import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
+import org.geotools.util.logging.Logging;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
@@ -74,9 +77,9 @@ public class PAUDigger {
 		DirectPosition.PRECISION = 4;
 
 		File tmpFile = new File("/tmp/");
-		File rootFile = new File("/home/ubuntu/boulot/these/newZoning/");
+		File rootFile = new File("/home/mcolomb/informatique/ArtiScales/");
 
-		File outFile = new File("/home/ubuntu/boulot/these/newZoning/");
+		File outFile = new File("/home/mcolomb/informatique/ArtiScales/PAU");
 
 		File buildFile = new File(rootFile, "dataGeo/building.shp");
 		File parcelFile = new File(rootFile, "dataGeo/parcel.shp");
@@ -85,7 +88,7 @@ public class PAUDigger {
 
 		// zones NU
 		List<File> nU = new ArrayList<File>();
-		File NUroot = new File("/home/ubuntu/boulot/these/newZoning/PAU/");
+		File NUroot = new File("/media/mcolomb/Data_2/donnee/zonesAU/Zones_non_urbanisables_AU_Besancon/Shapefiles_Complets_AU/");
 		nU.add(new File(NUroot, "PPRI_Ognon_AU.shp"));
 		nU.add(new File(NUroot, "PPRI_Loue_AU.shp"));
 		nU.add(new File(NUroot, "PPRI_Doubs_AU.shp"));
@@ -134,16 +137,20 @@ public class PAUDigger {
 		// selection with geographical filters
 		pName = ff.property(parcelSplitted.getSchema().getGeometryDescriptor().getLocalName());
 		filCluster = ff.intersects(pName, ff.literal(clusterUnion));
-		filMorpho = ff.intersects(pName, ff.literal(morphoUnion));
-		filNU = ff.not(ff.intersects(pName, ff.literal(unionNU)));
-
+		System.out.println(pName);
+		Vectors.exportGeom(clusterUnion, new File("/tmp/clusterUnion.shp"));
 		SimpleFeatureCollection pau3 = parcelSplitted.subCollection(filCluster);
+		System.out.println(pau3.size());
 		Vectors.exportSFC(pau3, new File("/tmp/salut3.shp"));
 
+		pName = ff.property(pau3.getSchema().getGeometryDescriptor().getLocalName());
+		filMorpho = ff.intersects(pName, ff.literal(morphoUnion));
 		SimpleFeatureCollection pau = pau3.subCollection(filMorpho);
 		Vectors.exportSFC(pau, new File("/tmp/salut.shp"));
 
-		SimpleFeatureCollection pau2 = pau3.subCollection(filNU);
+		pName = ff.property(pau.getSchema().getGeometryDescriptor().getLocalName());
+		filNU = ff.not(ff.intersects(pName, ff.literal(unionNU)));
+		SimpleFeatureCollection pau2 = pau.subCollection(filNU);
 		Vectors.exportSFC(pau2, new File("/tmp/salut2.shp"));
 
 		SimpleFeatureCollection out = makeEnvelopePAU(pau2, communitiesFile);

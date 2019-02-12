@@ -8,7 +8,7 @@
 	<param key="seed" value="42"/>
 	<param key = "singleCity" value = "true"/>
 
- <param key="zip" value ="25509,25564,25103,25328,25473,25287,25195,25622,25593,25115,25455,25217,25448,25212,25454,25186,70107,25200,25073,25612,70575,70109,25612,25560,25111,25112,25297,25628,25508,25197,25078,25163,25566,70036,25582,25563"/>
+ <param key="zip" value ="25576,25560,25111,25566,70154,25186,70107,70224,70174,70575,25200,25073"/>
 	<!-- package pour la distribution contenant un ilot morphologique (=ilot) ou une communes (=communities) -->
 	<param key="package" value ="ilot"/>
 	<!-- The cities with the following zipCodes will be decomposed into section packages -->

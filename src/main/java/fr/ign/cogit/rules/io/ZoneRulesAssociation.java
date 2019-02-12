@@ -9,6 +9,7 @@ import java.util.Map;
 import fr.ign.cogit.rules.regulation.ArtiScalesRegulation;
 import fr.ign.cogit.simplu3d.model.Environnement;
 import fr.ign.cogit.simplu3d.model.UrbaZone;
+import fr.ign.cogit.util.SimuTool;
 
 public class ZoneRulesAssociation {
 
@@ -20,7 +21,7 @@ public class ZoneRulesAssociation {
 	 * @return
 	 * @throws IOException
 	 */
-	public static boolean associate(Environnement env, File predicateFile, List<String> listRNU, HashMap<String, Boolean> tryToAssociateAnyway)
+	public static boolean associate(Environnement env, File predicateFile, File zoningFile, HashMap<String, Boolean> tryToAssociateAnyway)
 			throws IOException {
 		// We associate regulation to UrbanZone
 		System.out.println("--- SEARCHING FOR REGULATION ---");
@@ -37,16 +38,16 @@ public class ZoneRulesAssociation {
 
 		// For each zone we associate a regulation to the zone
 		for (UrbaZone zone : env.getUrbaZones()) {
-			System.out.println("Insee " + zone.getInsee());
-			String finalLibelle = zone.getLibelle() + "-" + zone.getInsee();
+			String insee = zone.getInsee();
+			System.out.println("Insee " + insee);
+			String finalLibelle = zone.getLibelle() + "-" + insee;
 
 			// if the city is at the rnu, insee code's the same
-			if (listRNU != null) {
-				if (listRNU.contains(zone.getInsee())) {
-					System.out.println("city follows RNU");
-					finalLibelle = zone.getLibelle() + "-" + "7";
-				}
+			if (SimuTool.isCommunityRNU(zoningFile, insee)) {
+				System.out.println("city follows RNU");
+				finalLibelle = zone.getLibelle() + "-" + "7";
 			}
+
 			regle = regles.get(finalLibelle);
 			if (regle != null) {
 				zone.setZoneRegulation(regle);

@@ -92,7 +92,7 @@ public class SelectParcels {
 					System.out.println();
 					System.out.println("for the " + zip + " city");
 					System.out.println();
-					parcelFile = FromGeom.getParcels(geoFile, regulFile, tmpFile, zip);
+					parcelFile = ParcelFonction.getParcels(geoFile, regulFile, tmpFile, zip);
 
 					ShapefileDataStore shpDSparcel = new ShapefileDataStore((parcelFile).toURI().toURL());
 					SimpleFeatureCollection parcelCollection = shpDSparcel.getFeatureSource().getFeatures();
