@@ -11,9 +11,7 @@ public class DataPreparator {
 		File fileIn = new File("/home/mickael/Bureau/Temp/parcel/parcel.shp");
 		File folderTemp = new File("/tmp/tmp");
 		File folderOut = new File("/home/mickael/Bureau/Temp/out/");
-
 		createPackages(fileIn, folderTemp, folderOut, "25000");
-
 	}
 
 	public static void createPackages(File fileIn, File folderTemp, File folderOut, String codeCom) throws Exception {

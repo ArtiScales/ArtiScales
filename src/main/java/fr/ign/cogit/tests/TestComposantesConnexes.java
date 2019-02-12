@@ -1,4 +1,4 @@
-package fr.ign.cogit;
+package fr.ign.cogit.tests;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -8,8 +8,8 @@ import java.util.NoSuchElementException;
 
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
-import fr.ign.cogit.util.GetFromGeom;
-import fr.ign.cogit.util.VectorFct;
+import fr.ign.cogit.util.FromGeom;
+import fr.ign.cogit.util.ParcelFonction;
 import fr.ign.parameters.Parameters;
 
 public class MultipleRepartitionBuildingType extends RepartitionBuildingType {
@@ -23,7 +23,7 @@ public class MultipleRepartitionBuildingType extends RepartitionBuildingType {
 		parcelsInZone = new HashMap<String, List<String>>();
 		for (IFeature parcel : parcelles) {
 			if (parcel.getAttribute("CODE") != null) {
-				String bigZone = GetFromGeom.affectZoneAndTypoToLocation(p.getString("useRepartition"), p.getString("scenarioPMSP3D"), parcel,
+				String bigZone = FromGeom.affectZoneAndTypoToLocation(p.getString("useRepartition"), p.getString("scenarioPMSP3D"), parcel,
 						new File(p.getString("rootFile")), true);
 				if (parcelsInZone.containsKey(bigZone)) {
 					List<String> tmpList = parcelsInZone.get(bigZone);
@@ -47,7 +47,7 @@ public class MultipleRepartitionBuildingType extends RepartitionBuildingType {
 			}
 		}
 
-		IFeatureCollection<IFeature> parcelRepart = VectorFct.getParcelByCode(parcelles, parcelsWanted);
+		IFeatureCollection<IFeature> parcelRepart = ParcelFonction.getParcelByCode(parcelles, parcelsWanted);
 
 		makeRepart(p, parcelRepart);
 

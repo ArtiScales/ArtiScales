@@ -15,7 +15,7 @@ import org.opengis.referencing.NoSuchAuthorityCodeException;
 import com.vividsolutions.jts.geom.Geometry;
 
 import fr.ign.cogit.GTFunctions.Vectors;
-import fr.ign.cogit.util.GetFromGeom;
+import fr.ign.cogit.util.FromGeom;
 import fr.ign.parameters.Parameters;
 
 public class ParcelStat extends Indicators {
@@ -104,7 +104,7 @@ public class ParcelStat extends Indicators {
 
 		Indicators.firstLineGen = true;
 
-		for (String city : GetFromGeom.getInsee(parcelFile)) {
+		for (String city : FromGeom.getInsee(parcelFile)) {
 			double surfSelect = 0;
 			double surfSelectU = 0;
 			double surfSelectAU = 0;

@@ -1,4 +1,4 @@
-package fr.ign.cogit;
+package fr.ign.cogit.modules;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -9,7 +9,7 @@ import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.indicators.BuildingToHousingUnit;
 import fr.ign.cogit.indicators.ParcelStat;
 import fr.ign.cogit.util.SimuTool;
-import fr.ign.cogit.util.VectorFct;
+import fr.ign.cogit.util.ParcelFonction;
 import fr.ign.parameters.Parameters;
 
 public class MainTask {

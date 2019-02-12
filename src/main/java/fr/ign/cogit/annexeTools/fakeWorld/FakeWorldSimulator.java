@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.ign.cogit.SimPLUSimulator;
+import fr.ign.cogit.modules.SimPLUSimulator;
 import fr.ign.cogit.rules.regulation.buildingType.BuildingType;
 import fr.ign.cogit.simplu3d.io.feature.AttribNames;
 import fr.ign.parameters.Parameters;

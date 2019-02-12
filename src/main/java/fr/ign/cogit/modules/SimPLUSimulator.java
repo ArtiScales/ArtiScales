@@ -1,4 +1,4 @@
-package fr.ign.cogit;
+package fr.ign.cogit.modules;
 
 import java.io.File;
 import java.io.IOException;
@@ -50,10 +50,10 @@ import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.Cuboid;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.optimizer.cuboid.OptimisedBuildingsCuboidFinalDirectRejection;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.optimizer.paralellcuboid.ParallelCuboidOptimizer;
 import fr.ign.cogit.simplu3d.util.merge.SDPCalc;
-import fr.ign.cogit.util.GetFromGeom;
+import fr.ign.cogit.util.FromGeom;
 import fr.ign.cogit.util.SimpluParametersXML;
 import fr.ign.cogit.util.SimuTool;
-import fr.ign.cogit.util.VectorFct;
+import fr.ign.cogit.util.ParcelFonction;
 import fr.ign.mpp.configuration.BirthDeathModification;
 import fr.ign.mpp.configuration.GraphConfiguration;
 import fr.ign.mpp.configuration.GraphVertex;
@@ -183,8 +183,7 @@ public class SimPLUSimulator {
 				System.out.println("done with pack " + ff.getName());
 			}
 		}
-		VectorFct.mergeBatis(listBatiSimu);
-
+		FromGeom.mergeBatis(listBatiSimu);
 	}
 
 	/**
@@ -241,7 +240,7 @@ public class SimPLUSimulator {
 		IFeatureCollection<Prescription> prescriptions = env.getPrescriptions();
 		IFeatureCollection<Prescription> prescriptionUse = PrescriptionPreparator.preparePrescription(prescriptions, par);
 
-		boolean association = ZoneRulesAssociation.associate(env, predicateFile, GetFromGeom.rnuZip(new File(rootFile, "dataRegulation")),
+		boolean association = ZoneRulesAssociation.associate(env, predicateFile, FromGeom.rnuZip(new File(rootFile, "dataRegulation")),
 				willWeAssociateAnyway(par));
 
 		if (!association) {
@@ -336,7 +335,7 @@ public class SimPLUSimulator {
 		IFeatureCollection<CadastralParcel> parcels = env.getCadastralParcels();
 
 		for (CadastralParcel parcel : parcels) {
-			String tmp = GetFromGeom.affectZoneAndTypoToLocation(pUsed.getString("useRepartition"), pUsed.getString("scenarioPMSP3D"), parcel,
+			String tmp = FromGeom.affectZoneAndTypoToLocation(pUsed.getString("useRepartition"), pUsed.getString("scenarioPMSP3D"), parcel,
 					new File(pUsed.getString("rootFile")), true);
 			if (!zones.contains(tmp)) {
 				zones.add(tmp);
@@ -363,7 +362,7 @@ public class SimPLUSimulator {
 		IFeatureCollection<Prescription> prescriptions = env.getPrescriptions();
 		IFeatureCollection<Prescription> prescriptionUse = PrescriptionPreparator.preparePrescription(prescriptions, pUsed);
 
-		boolean association = ZoneRulesAssociation.associate(env, predicateFile, GetFromGeom.rnuZip(new File(rootFile, "dataRegulation")),
+		boolean association = ZoneRulesAssociation.associate(env, predicateFile, FromGeom.rnuZip(new File(rootFile, "dataRegulation")),
 				willWeAssociateAnyway(pUsed));
 
 		if (!association) {

@@ -7,8 +7,8 @@
 	<!-- Configuration générales des simulations ArtiScales -->
 	<param key="seed" value="42"/>
 	<param key = "singleCity" value = "true"/>
-<!-- <param key="zip" value ="25217,25115,25136,25030,25448,25119,25427,25150,25455,25482"/>-->
-	<param key="zip" value ="25195"/> 
+ <param key="zip" value ="25056,25598,25444,70189, 25444,70036,25612,25117,25468,70154, 25566,25575,25576,25611,70224,25631,25594,25561"/>
+	<!--<param key="zip" value ="25195"/> -->
 	<!-- package pour la distribution contenant un ilot morphologique (=ilot) ou une communes (=communities) -->
 	<param key="package" value ="ilot"/>
 	<!-- The cities with the following zipCodes will be decomposed into section packages -->
@@ -42,7 +42,7 @@
 		<param key="ponderation_volume" value="1" />
 		<!-- Pondération négative du volume dépassant de la parcelle -->
 		<param key="ponderation_difference_ext" value="5" />
-		<!-- Pondération négative d'une boîte en intersectant une autre -->
+		<!-- Pondération négative d'un,e boîte en intersectant une autre -->
 	<!-- pas sur que ce soit un par tech -->
 		<param key="ponderation_volume_inter" value="50" />
 

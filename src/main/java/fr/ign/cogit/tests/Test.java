@@ -1,4 +1,4 @@
-package fr.ign.cogit;
+package fr.ign.cogit.tests;
 
 import java.io.File;
 

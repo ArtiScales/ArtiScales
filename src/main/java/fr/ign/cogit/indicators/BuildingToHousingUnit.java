@@ -17,7 +17,7 @@ import org.opengis.feature.simple.SimpleFeature;
 import au.com.bytecode.opencsv.CSVReader;
 import fr.ign.cogit.rules.regulation.buildingType.BuildingType;
 import fr.ign.cogit.rules.regulation.buildingType.RepartitionBuildingType;
-import fr.ign.cogit.util.GetFromGeom;
+import fr.ign.cogit.util.FromGeom;
 import fr.ign.cogit.util.SimuTool;
 import fr.ign.parameters.Parameters;
 
@@ -205,7 +205,7 @@ public class BuildingToHousingUnit extends Indicators {
 
 			System.out.println("somme_de_la_surface_au_sol_des_logements" + groundAreaStat.getSum());
 
-			int housingUnitDiff = sumLgt - GetFromGeom.getHousingUnitsGoals(new File(rootFile, "dataGeo"), zipCode);
+			int housingUnitDiff = sumLgt - FromGeom.getHousingUnitsGoals(new File(rootFile, "dataGeo"), zipCode);
 			line = zipCode + "," + sumLgt + "," + sumIndiv + "," + sumDlbIndiv + "," + sumSDwell + "," + sumLDwell + "," + sumLgtU + "," + sumLgtAU
 					+ "," + sumLgtOther + "," + groundAreaStat.getSum() + "," + groundAreaStat.getMean() + "," + groundAreaStat.getStandardDeviation()
 					+ "," + floorAreaStat.getSum() + "," + floorAreaStat.getMean() + "," + floorAreaStat.getStandardDeviation() + ","

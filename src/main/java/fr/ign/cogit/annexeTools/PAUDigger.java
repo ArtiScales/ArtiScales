@@ -39,7 +39,7 @@ import com.vividsolutions.jts.geom.Polygon;
 
 import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.geoxygene.spatial.coordgeom.DirectPosition;
-import fr.ign.cogit.util.VectorFct;
+import fr.ign.cogit.util.ParcelFonction;
 
 public class PAUDigger {
 	// cut cluster polygons with limits
@@ -129,7 +129,7 @@ public class PAUDigger {
 		SimpleFeatureCollection parcelSFC = parcelSDS.getFeatureSource().getFeatures();
 		SimpleFeatureCollection parcelPreSelected = parcelSFC.subCollection(filCluster).subCollection(filMorpho);
 
-		SimpleFeatureCollection parcelSplitted = VectorFct.generateSplitedParcels(parcelPreSelected, tmpFile, 2000.0, 7, 0, null, 99, 15, false);
+		SimpleFeatureCollection parcelSplitted = ParcelFonction.generateSplitedParcels(parcelPreSelected, tmpFile, 2000.0, 7, 0, null, 99, 15, false);
 
 		// selection with geographical filters
 		pName = ff.property(parcelSplitted.getSchema().getGeometryDescriptor().getLocalName());

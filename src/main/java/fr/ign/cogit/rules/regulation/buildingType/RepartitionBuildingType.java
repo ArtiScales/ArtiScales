@@ -11,7 +11,7 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileReader;
-import fr.ign.cogit.util.GetFromGeom;
+import fr.ign.cogit.util.FromGeom;
 import fr.ign.parameters.Parameters;
 
 public class RepartitionBuildingType {
@@ -278,7 +278,7 @@ public class RepartitionBuildingType {
 	 */
 	public static Parameters addRepartitionToParameters(Parameters p, IFeature parcel, File profileBuildings) throws Exception {
 
-		String affect = GetFromGeom.affectZoneAndTypoToLocation(p.getString("useRepartition"), p.getString("scenarioPMSP3D"), parcel,
+		String affect = FromGeom.affectZoneAndTypoToLocation(p.getString("useRepartition"), p.getString("scenarioPMSP3D"), parcel,
 				new File(p.getString("rootFile")), true);
 
 		// we seek for if there's a special default repartition for the scenario

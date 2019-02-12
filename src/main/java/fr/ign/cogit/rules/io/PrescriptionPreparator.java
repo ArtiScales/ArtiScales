@@ -1,8 +1,8 @@
 package fr.ign.cogit.rules.io;
 
-import fr.ign.cogit.SimPLUSimulator;
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
 import fr.ign.cogit.geoxygene.feature.FT_FeatureCollection;
+import fr.ign.cogit.modules.SimPLUSimulator;
 import fr.ign.cogit.simplu3d.model.Prescription;
 import fr.ign.parameters.Parameters;
 

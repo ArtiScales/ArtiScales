@@ -49,7 +49,7 @@ import fr.ign.cogit.geoxygene.spatial.coordgeom.DirectPosition;
 import fr.ign.cogit.geoxygene.util.conversion.AdapterFactory;
 import fr.ign.cogit.geoxygene.util.conversion.GeOxygeneGeoToolsTypes;
 
-public class GetFromGeom {
+public class FromGeom {
 
 	// public static void main(String[] args) throws Exception {
 	// File rootParam = new
@@ -100,7 +100,7 @@ public class GetFromGeom {
 
 		return affectZoneAndTypoToLocation(mainLine, code, feature, rootFile, priorTypoOrZone);
 	}
-
+	
 	/**
 	 * 
 	 * @param paramLine
@@ -123,8 +123,8 @@ public class GetFromGeom {
 
 		List<String> mayOccur = new ArrayList<String>();
 		// TODO make sure that this returns the best answer
-		String zone = GetFromGeom.parcelInBigZone(new File(rootFile + "/dataRegulation"), parcel);
-		String typo = GetFromGeom.parcelInTypo(new File(rootFile + "/dataGeo"), parcel);
+		String zone = FromGeom.parcelInBigZone(new File(rootFile + "/dataRegulation"), parcel);
+		String typo = FromGeom.parcelInTypo(new File(rootFile + "/dataGeo"), parcel);
 		String[] tabRepart = mainLine.split("_");
 
 		for (String s : tabRepart) {
@@ -310,7 +310,7 @@ public class GetFromGeom {
 		ShapefileDataStore parcelSDS = new ShapefileDataStore(result.toURI().toURL());
 		SimpleFeatureCollection parcels = parcelSDS.getFeatureSource().getFeatures();
 
-		ShapefileDataStore shpDSBati = new ShapefileDataStore(GetFromGeom.getBuild(geoFile).toURI().toURL());
+		ShapefileDataStore shpDSBati = new ShapefileDataStore(FromGeom.getBuild(geoFile).toURI().toURL());
 
 		// if we decided to work on a set of cities
 		if (!listZip.isEmpty()) {
@@ -352,7 +352,7 @@ public class GetFromGeom {
 			List<String> codeParcelsTot = new ArrayList<String>();
 
 			// auto parcel feature builder
-			SimpleFeatureBuilder sfSimpleBuilder = GetFromGeom.getSimpleParcelSFBuilder();
+			SimpleFeatureBuilder sfSimpleBuilder = FromGeom.getSimpleParcelSFBuilder();
 
 			DefaultFeatureCollection write = new DefaultFeatureCollection();
 
@@ -487,6 +487,38 @@ public class GetFromGeom {
 		return ((String) feat.getAttribute("CODE_DEP")) + ((String) feat.getAttribute("CODE_COM")) + ((String) feat.getAttribute("COM_ABS"))
 				+ ((String) feat.getAttribute("SECTION")) + ((String) feat.getAttribute("NUMERO"));
 	}
+	
+	/**
+	 * Merge all the shapefile of a folder (made for simPLU buildings) into one shapefile
+	 * 
+	 * @param file2MergeIn
+	 *            : list of files containing the shapefiles
+	 * @return : file where everything is saved (here whith a building name)
+	 * @throws Exception
+	 */
+	public static File mergeBatis(List<File> file2MergeIn) throws Exception {
+		File out = new File(file2MergeIn.get(0).getParentFile(), "TotBatSimuFill.shp");
+		return Vectors.mergeVectFiles(file2MergeIn, out);
+	}
+
+	/**
+	 * Merge all the shapefile of a folder (made for simPLU buildings) into one shapefile
+	 * 
+	 * @param file2MergeIn
+	 *            : folder containing the shapefiles
+	 * @return : file where everything is saved (here whith a building name)
+	 * @throws Exception
+	 */
+	public static File mergeBatis(File file2MergeIn) throws Exception {
+		List<File> listBatiFile = new ArrayList<File>();
+		for (File f : file2MergeIn.listFiles()) {
+			if (f.getName().endsWith(".shp") && f.getName().startsWith("out")) {
+				listBatiFile.add(f);
+			}
+		}
+		return mergeBatis(listBatiFile);
+	}
+
 
 	public static boolean isBuilt(SimpleFeature parcel, SimpleFeatureCollection batiSFC) {
 		return isBuilt(parcel, batiSFC, 0.0);
