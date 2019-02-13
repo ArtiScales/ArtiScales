@@ -203,11 +203,10 @@ public class SimuTool {
 		ShapefileDataStore zoningSDS = new ShapefileDataStore(zoningFile.toURI().toURL());
 		SimpleFeatureIterator it = zoningSDS.getFeatureSource().getFeatures().features();
 		try {
-			while (it.hasNext()) {
+			while (it.hasNext() && !answer) {
 				SimpleFeature feat = it.next();
-				if (feat.getAttribute("INSEE").equals(insee) && feat.getAttribute("TYPEPLAN").equals("RNU")){
+				if (feat.getAttribute("INSEE") != null && feat.getAttribute("INSEE").equals(insee) && feat.getAttribute("TYPEPLAN") != null && feat.getAttribute("TYPEPLAN").equals("RNU")) {
 					answer = true ;
-				break;	
 				}
 			}
 		} catch (Exception problem) {

@@ -488,7 +488,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 							return false;
 						}
 					} else {
-						if (art_6 != "99") {
+						if (art_6 != "99" && !art_6.isEmpty()) {
 							if (!cRO.checkDistanceToGeometry(cuboid, jtsCurveLimiteFrontParcel, Double.valueOf(art_6))) {
 								denial = SimuTool.increm(denial, "art6");
 								return false;

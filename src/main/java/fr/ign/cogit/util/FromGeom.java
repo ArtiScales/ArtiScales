@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 
+import org.geotools.data.DataUtilities;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
@@ -123,8 +124,8 @@ public class FromGeom {
 
 		List<String> mayOccur = new ArrayList<String>();
 		// TODO make sure that this returns the best answer
-		String zone = FromGeom.parcelInBigZone(new File(rootFile + "/dataRegulation"), parcel);
-		String typo = FromGeom.parcelInTypo(new File(rootFile + "/dataGeo"), parcel);
+		String zone = FromGeom.parcelInBigZone(new File(rootFile, "dataRegulation"), parcel);
+		String typo = FromGeom.parcelInTypo(new File(rootFile, "dataGeo"), parcel);
 		String[] tabRepart = mainLine.split("_");
 
 		for (String s : tabRepart) {
@@ -598,11 +599,11 @@ public class FromGeom {
 	 * @throws Exception
 	 */
 	public static List<String> parcelInBigZone(SimpleFeature parcelIn, File regulFile) throws Exception {
-System.out.println(regulFile);
 		List<String> result = new LinkedList<String>();
+		System.out.println("regulFile = " + regulFile);
+    System.out.println("Parcel = " + parcelIn.getDefaultGeometry());
+    System.out.println("Zoning = " + getZoning(regulFile).toURI().toURL());
 		ShapefileDataStore shpDSZone = new ShapefileDataStore(getZoning(regulFile).toURI().toURL());
-		System.out.println(getZoning(regulFile).toURI().toURL());
-		System.out.println(parcelIn.getDefaultGeometry());
 		SimpleFeatureCollection shpDSZoneReduced = Vectors.snapDatas(shpDSZone.getFeatureSource().getFeatures(),
 				(Geometry) parcelIn.getDefaultGeometry());
 		SimpleFeatureIterator featuresZones = shpDSZoneReduced.features();
