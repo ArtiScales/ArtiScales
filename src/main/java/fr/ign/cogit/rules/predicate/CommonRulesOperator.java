@@ -452,7 +452,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 			System.out.println("case not programmed : only one height for the building");
 			h = Double.valueOf(regle.getArt_10_1().split("-")[0]);
 		} else {
-			h = Double.valueOf(regle.getArt_10_1());
+			h = regle.getArt_10_1().isEmpty() ? 99 : Double.valueOf(regle.getArt_10_1());
 		}
 
 		if (h == 99) {
@@ -576,7 +576,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	}
 
 	public boolean checkParking(List<O> lAllCuboids, BasicPropertyUnit currentBPU, String art12, Parameters p) {
-		if (art12.equals("99") || art12.equals("0")) {
+		if (art12.isEmpty() || art12.equals("99") || art12.equals("0")) {
 			return true;
 		}
 
@@ -647,7 +647,6 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 				multiplierParking = Integer.valueOf(art12.split("m")[1].split("_")[1]);
 			}
 		} else if (art12.contains("l")) {
-
 			double limit = Double.valueOf(art12.split("l")[1].split("_")[0]);
 			if (sdp < limit) {
 				multiplierParking = Integer.valueOf(art12.split("l")[0]);
@@ -655,10 +654,8 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 				multiplierParking = Integer.valueOf(art12.split("l")[1].split("_")[1]);
 			}
 		} else if (art12.contains("x")) {
-
 			double limit = Double.valueOf(art12.split("x")[1]);
 			multiplierParking = (int) Math.round(sdp / limit);
-
 		} else {
 			System.out.println("parking case unreckognized " + art12);
 		}

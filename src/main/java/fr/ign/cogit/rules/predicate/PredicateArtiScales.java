@@ -69,7 +69,7 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 		}
 
 		if (!(regle.getArt_5().contains("_"))) {
-			double aireMinimale = Double.valueOf(regle.getArt_5());
+			double aireMinimale = regle.getArt_5().isEmpty() ? 99.0 : Double.valueOf(regle.getArt_5());
 
 			// ##Rule-art-005
 			if (aireMinimale != 99.0) {
@@ -132,6 +132,7 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 				coeff13 = Double.valueOf(regles.getArt_13().split(">")[0]);
 			}
 		} else {
+		  if (regles.getArt_13().isEmpty()) return regles.getArt_9();
 			coeff13 = Double.valueOf(regles.getArt_13());
 		}
 

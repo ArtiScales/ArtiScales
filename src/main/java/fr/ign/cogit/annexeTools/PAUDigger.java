@@ -191,7 +191,7 @@ public class PAUDigger {
 			} finally {
 				it.close();
 			}
-			//TODO some insee are set to null
+			// TODO some insee are set to null
 			sfBuilder.set("INSEE", insee);
 			df.add(sfBuilder.buildFeature(null));
 		}

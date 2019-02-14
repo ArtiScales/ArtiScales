@@ -300,14 +300,13 @@ public class ParcelFonction {
 		DefaultFeatureCollection result = new DefaultFeatureCollection();
 		List<String> listZones = SimuTool.getLocationParamNames(locationBuildingType, p);
 
-		//we'll try to alway use two infos sectors rather than one info sector
-		List<String> listZonesOneSector = new ArrayList<String>(); 
-		List<String> listZonesTwoSector = new ArrayList<String>(); 
+		// we'll try to alway use two infos sectors rather than one info sector
+		List<String> listZonesOneSector = new ArrayList<String>();
+		List<String> listZonesTwoSector = new ArrayList<String>();
 		for (String stringParam : listZones) {
 			if (stringParam.split("-").length == 2) {
 				listZonesTwoSector.add(stringParam);
-			}
-			else {
+			} else {
 				listZonesOneSector.add(stringParam);
 			}
 		}
@@ -341,7 +340,7 @@ public class ParcelFonction {
 		}
 		if (result.isEmpty()) {
 			for (String stringParam : listZonesOneSector) {
-			// only one specification
+				// only one specification
 				System.out.println("for line " + stringParam);
 				Parameters pTemp = p;
 				pTemp.add(Parameters.unmarshall(new File(locationBuildingType, stringParam)));
@@ -378,7 +377,7 @@ public class ParcelFonction {
 				}
 			}
 		}
-	
+
 		SimpleFeatureCollection realResult = completeParcelMissing(parcelCollection, result.collection(), parcelToNotAdd);
 		return realResult;
 
@@ -461,20 +460,20 @@ public class ParcelFonction {
 
 		SimpleFeatureType schema = parcelToComplete.features().next().getFeatureType();
 		// result.addAll(parcelCuted);
-	
-		SimpleFeatureIterator parcelToCompletetIt = parcelToComplete.features();		
+
+		SimpleFeatureIterator parcelToCompletetIt = parcelToComplete.features();
 		try {
 			while (parcelToCompletetIt.hasNext()) {
 				SimpleFeature featToComplete = parcelToCompletetIt.next();
 				Geometry geomToComplete = (Geometry) featToComplete.getDefaultGeometry();
 				Geometry geomsOrigin = Vectors.unionSFC(Vectors.snapDatas(originalParcel, geomToComplete));
 				if (!geomsOrigin.contains(geomToComplete)) {
-					System.out.println("this parcel has disapeard : "+geomToComplete);
-//					SimpleFeatureBuilder fit = FromGeom.setSFBParcelWithFeat(featToComplete, schema);
-//					result.add(fit.buildFeature(null));
-//					SimpleFeatureBuilder builder = FromGeom.setSFBOriginalParcelWithFeat(featToComplete, schema);
-//					result.add(builder.buildFeature(null));
-//					codeParcelAdded.add(ParcelFonction.makeParcelCode(featToComplete));
+					System.out.println("this parcel has disapeard : " + geomToComplete);
+					// SimpleFeatureBuilder fit = FromGeom.setSFBParcelWithFeat(featToComplete, schema);
+					// result.add(fit.buildFeature(null));
+					// SimpleFeatureBuilder builder = FromGeom.setSFBOriginalParcelWithFeat(featToComplete, schema);
+					// result.add(builder.buildFeature(null));
+					// codeParcelAdded.add(ParcelFonction.makeParcelCode(featToComplete));
 				}
 			}
 		} catch (Exception problem) {
@@ -482,29 +481,28 @@ public class ParcelFonction {
 		} finally {
 			parcelToCompletetIt.close();
 		}
-		
-//		SimpleFeatureIterator parcelOriginal = originalParcel.features();		
-//		try {
-//			while (parcelOriginal.hasNext()) {
-//				SimpleFeature featOriginal = parcelOriginal.next();
-//				Geometry geom = (Geometry) featOriginal.getDefaultGeometry();
-//				Geometry geomToComplete = Vectors.unionSFC(Vectors.snapDatas(parcelToComplete, geom.buffer(10)));
-//				if (!geomToComplete.contains(geom.buffer(-1))) {
-//					System.out.println(geomToComplete);
-//					System.out.println();
-//					SimpleFeatureBuilder builder = FromGeom.setSFBOriginalParcelWithFeat(featOriginal, schema);
-//					result.add(builder.buildFeature(null));
-//					codeParcelAdded.add(ParcelFonction.makeParcelCode(featOriginal));
-//				}
-//				SimpleFeatureBuilder fit = FromGeom.setSFBParcelWithFeat(featOriginal, schema);
-//				result.add(fit.buildFeature(null));
-//			}
-//		} catch (Exception problem) {
-//			problem.printStackTrace();
-//		} finally {
-//			parcelOriginal.close();
-//		}
 
+		// SimpleFeatureIterator parcelOriginal = originalParcel.features();
+		// try {
+		// while (parcelOriginal.hasNext()) {
+		// SimpleFeature featOriginal = parcelOriginal.next();
+		// Geometry geom = (Geometry) featOriginal.getDefaultGeometry();
+		// Geometry geomToComplete = Vectors.unionSFC(Vectors.snapDatas(parcelToComplete, geom.buffer(10)));
+		// if (!geomToComplete.contains(geom.buffer(-1))) {
+		// System.out.println(geomToComplete);
+		// System.out.println();
+		// SimpleFeatureBuilder builder = FromGeom.setSFBOriginalParcelWithFeat(featOriginal, schema);
+		// result.add(builder.buildFeature(null));
+		// codeParcelAdded.add(ParcelFonction.makeParcelCode(featOriginal));
+		// }
+		// SimpleFeatureBuilder fit = FromGeom.setSFBParcelWithFeat(featOriginal, schema);
+		// result.add(fit.buildFeature(null));
+		// }
+		// } catch (Exception problem) {
+		// problem.printStackTrace();
+		// } finally {
+		// parcelOriginal.close();
+		// }
 
 		return result;
 	}
@@ -660,13 +658,12 @@ public class ParcelFonction {
 		// séparation entre les différentes zones
 		DefaultFeatureCollection result = new DefaultFeatureCollection();
 		List<String> listZones = SimuTool.getLocationParamNames(locationBuildingType, p);
-		List<String> listZonesOneSector = new ArrayList<String>(); 
-		List<String> listZonesTwoSector = new ArrayList<String>(); 
+		List<String> listZonesOneSector = new ArrayList<String>();
+		List<String> listZonesTwoSector = new ArrayList<String>();
 		for (String stringParam : listZones) {
 			if (stringParam.split("-").length == 2) {
 				listZonesTwoSector.add(stringParam);
-			}
-			else {
+			} else {
 				listZonesOneSector.add(stringParam);
 			}
 		}
@@ -1073,13 +1070,12 @@ public class ParcelFonction {
 		DefaultFeatureCollection result = new DefaultFeatureCollection();
 		List<String> listZones = SimuTool.getLocationParamNames(locationBuildingType, p);
 
-		List<String> listZonesOneSector = new ArrayList<String>(); 
-		List<String> listZonesTwoSector = new ArrayList<String>(); 
+		List<String> listZonesOneSector = new ArrayList<String>();
+		List<String> listZonesTwoSector = new ArrayList<String>();
 		for (String stringParam : listZones) {
 			if (stringParam.split("-").length == 2) {
 				listZonesTwoSector.add(stringParam);
-			}
-			else {
+			} else {
 				listZonesOneSector.add(stringParam);
 			}
 		}

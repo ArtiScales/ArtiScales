@@ -21,7 +21,6 @@ import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.filter.text.cql2.CQLException;
-import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
@@ -33,8 +32,6 @@ import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.TransformException;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Polygon;
@@ -43,9 +40,7 @@ import com.vividsolutions.jts.precision.GeometryPrecisionReducer;
 
 import au.com.bytecode.opencsv.CSVReader;
 import fr.ign.cogit.GTFunctions.Vectors;
-import fr.ign.cogit.annexeTools.FeaturePolygonizer;
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
-import fr.ign.cogit.geoxygene.spatial.coordgeom.DirectPosition;
 import fr.ign.cogit.geoxygene.util.conversion.AdapterFactory;
 import fr.ign.cogit.geoxygene.util.conversion.GeOxygeneGeoToolsTypes;
 
@@ -100,7 +95,7 @@ public class FromGeom {
 
 		return affectZoneAndTypoToLocation(mainLine, code, feature, rootFile, priorTypoOrZone);
 	}
-	
+
 	/**
 	 * 
 	 * @param paramLine
@@ -123,8 +118,8 @@ public class FromGeom {
 
 		List<String> mayOccur = new ArrayList<String>();
 		// TODO make sure that this returns the best answer
-		String zone = FromGeom.parcelInBigZone(new File(rootFile + "/dataRegulation"), parcel);
-		String typo = FromGeom.parcelInTypo(new File(rootFile + "/dataGeo"), parcel);
+		String zone = FromGeom.parcelInBigZone(new File(rootFile, "dataRegulation"), parcel);
+		String typo = FromGeom.parcelInTypo(new File(rootFile, "dataGeo"), parcel);
 		String[] tabRepart = mainLine.split("_");
 
 		for (String s : tabRepart) {
@@ -220,7 +215,7 @@ public class FromGeom {
 		read.close();
 		return result;
 	}
-	
+
 	/**
 	 * Merge all the shapefile of a folder (made for simPLU buildings) into one shapefile
 	 * 
@@ -251,7 +246,6 @@ public class FromGeom {
 		}
 		return mergeBatis(listBatiFile);
 	}
-
 
 	public static boolean isBuilt(SimpleFeature parcel, SimpleFeatureCollection batiSFC) {
 		return isBuilt(parcel, batiSFC, 0.0);
@@ -599,6 +593,9 @@ public class FromGeom {
 	 */
 	public static List<String> parcelInBigZone(SimpleFeature parcelIn, File regulFile) throws Exception {
 		List<String> result = new LinkedList<String>();
+		System.out.println("regulFile = " + regulFile);
+		System.out.println("Parcel = " + parcelIn.getDefaultGeometry());
+		System.out.println("Zoning = " + getZoning(regulFile).toURI().toURL());
 		ShapefileDataStore shpDSZone = new ShapefileDataStore(getZoning(regulFile).toURI().toURL());
 		SimpleFeatureCollection shpDSZoneReduced = Vectors.snapDatas(shpDSZone.getFeatureSource().getFeatures(),
 				(Geometry) parcelIn.getDefaultGeometry());
@@ -916,7 +913,7 @@ public class FromGeom {
 
 		return finalParcelBuilder;
 	}
-	
+
 	public static SimpleFeatureBuilder setSFBOriginalParcelWithFeat(SimpleFeature feat, SimpleFeatureType schema) {
 		SimpleFeatureBuilder finalParcelBuilder = new SimpleFeatureBuilder(schema);
 		finalParcelBuilder.set(schema.getGeometryDescriptor().getName().toString(), (Geometry) feat.getDefaultGeometry());
@@ -926,12 +923,12 @@ public class FromGeom {
 		finalParcelBuilder.set("COM_ABS", feat.getAttribute("COM_ABS"));
 		finalParcelBuilder.set("SECTION", feat.getAttribute("SECTION"));
 		finalParcelBuilder.set("NUMERO", feat.getAttribute("NUMERO"));
-		finalParcelBuilder.set("INSEE",(String) feat.getAttribute("CODE_DEP")+(String)feat.getAttribute("CODE_COM"));
+		finalParcelBuilder.set("INSEE", (String) feat.getAttribute("CODE_DEP") + (String) feat.getAttribute("CODE_COM"));
 		finalParcelBuilder.set("eval", "0");
 		finalParcelBuilder.set("DoWeSimul", "false");
 		finalParcelBuilder.set("IsBuild", "false");
 		finalParcelBuilder.set("U", "false");
-		finalParcelBuilder.set("AU","false");
+		finalParcelBuilder.set("AU", "false");
 		finalParcelBuilder.set("NC", "false");
 
 		return finalParcelBuilder;

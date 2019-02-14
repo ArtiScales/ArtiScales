@@ -32,8 +32,8 @@ import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.outputs.XmlGen;
 import fr.ign.cogit.util.DataPreparator;
 import fr.ign.cogit.util.FromGeom;
-import fr.ign.cogit.util.SimuTool;
 import fr.ign.cogit.util.ParcelFonction;
+import fr.ign.cogit.util.SimuTool;
 import fr.ign.parameters.Parameters;
 
 public class SelectParcels {
@@ -98,7 +98,7 @@ public class SelectParcels {
 					ShapefileDataStore shpDSparcel = new ShapefileDataStore((parcelFile).toURI().toURL());
 					SimpleFeatureCollection parcelCollection = DataUtilities.collection(shpDSparcel.getFeatureSource().getFeatures());
 					shpDSparcel.dispose();
-					
+
 					/////////////
 					// first selection regarding on the scenarios
 					/////////////
@@ -181,9 +181,9 @@ public class SelectParcels {
 					// if there's been a bug and a parcel is missing
 					ShapefileDataStore shpDSparcel2 = new ShapefileDataStore(FromGeom.getParcels(geoFile).toURI().toURL());
 					SimpleFeatureCollection parcelOriginal = shpDSparcel2.getFeatureSource().getFeatures();
-					parcelCollection = ParcelFonction.completeParcelMissingWithOriginal(parcelCollection,parcelOriginal);
+					parcelCollection = ParcelFonction.completeParcelMissingWithOriginal(parcelCollection, parcelOriginal);
 					shpDSparcel2.dispose();
-					
+
 					File parcelSelectedFile = Vectors.exportSFC(parcelCollection, new File(packFile, "parcelPartExport.shp"));
 
 					// merge the multiple parcels into a unique parcelFile
@@ -194,7 +194,6 @@ public class SelectParcels {
 					lFile.add(parcelSelectedFile);
 					Vectors.mergeVectFiles(lFile, parcGen);
 
-					
 					shpDSparcel.dispose();
 
 				}
@@ -627,7 +626,7 @@ public class SelectParcels {
 
 				// by defalut, creation of empty shapefiles (better empty than
 				// non extitant
-		//		createPackOfEmptyShp(snapPack);
+				// createPackOfEmptyShp(snapPack);
 
 				ShapefileDataStore build_datastore = new ShapefileDataStore(FromGeom.getBuild(geoFile).toURI().toURL());
 				SimpleFeatureCollection buildFeatures = build_datastore.getFeatureSource().getFeatures();
@@ -737,7 +736,7 @@ public class SelectParcels {
 
 				// by defalut, creation of empty shapefiles (better empty than
 				// non extitant
-			//	createPackOfEmptyShp(snapPack);
+				// createPackOfEmptyShp(snapPack);
 
 				ShapefileDataStore build_datastore = new ShapefileDataStore(FromGeom.getBuild(geoFile).toURI().toURL());
 				SimpleFeatureCollection buildFeatures = build_datastore.getFeatureSource().getFeatures();

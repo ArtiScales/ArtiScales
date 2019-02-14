@@ -14,12 +14,11 @@ public class FakeWorldSimulator {
 	public static void main(String[] args) throws Exception {
 
 		// Parent folder with all subfolder
-		String absoluteRootFolder = "/home/mcolomb/informatique/fakeWorld/";
-//		String absoluteRootFolder = "/home/ubuntu/boulot/these/fakeWorld/";
+		String absoluteRootFolder = "./fakeWorld/";
+		// String absoluteRootFolder = "/home/ubuntu/boulot/these/fakeWorld/";
 
-		
 		File rootFolderFile = new File(absoluteRootFolder);
-		testBuildingTypes(rootFolderFile);
+		testBuildingTypes(rootFolderFile, new File("/tmp/yop"));
 	}
 
 	public static void tryRules(File rootFolderFile) throws Exception {
@@ -35,8 +34,8 @@ public class FakeWorldSimulator {
 
 				String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenarFakeWorldMax/").getPath();
 
-				lF.add(new File(rootParam + "parameterTechnic.xml"));
-				lF.add(new File(rootParam + "parameterScenario.xml"));
+				lF.add(new File(rootParam, "parameterTechnic.xml"));
+				lF.add(new File(rootParam, "parameterScenario.xml"));
 
 				Parameters p = Parameters.unmarshall(lF);
 
@@ -67,9 +66,9 @@ public class FakeWorldSimulator {
 				// p.set("simu", simulOut);
 				// SimPLUSimulator.ID_PARCELLE_TO_SIMULATE.add("30000");
 				// Selected parcels shapefile
-				File outFolder = new File(pathSubFolder,"out");
-				outFolder.mkdir();
-				SimPLUSimulator simplu = new SimPLUSimulator(new File(p.getString("rootFile")), p, outFolder);
+
+				SimPLUSimulator simplu = new SimPLUSimulator(new File("./src/main/resources/"), new File(p.getString("rootFile")), p,
+						new File("/tmp/yop"));
 
 				simplu.run();
 			}
@@ -77,7 +76,7 @@ public class FakeWorldSimulator {
 
 	}
 
-	public static void testBuildingTypes(File rootFolderFile) throws Exception {
+	public static void testBuildingTypes(File rootFolderFile, File outputFolder) throws Exception {
 
 		List<File> lF = new ArrayList<>();
 		// Line to change to select the right scenario
@@ -88,20 +87,18 @@ public class FakeWorldSimulator {
 
 		for (String type : iterateOnBuildingType()) {
 			try {
-//				if (!type.equals("smallBlockFlat")) {
-//					continue;
-//				}
+				// if (!type.equals("smallBlockFlat")) {
+				// continue;
+				// }
 				Parameters p = Parameters.unmarshall(lF);
 				File f = new File(rootFolderFile, type);
 
 				AttribNames.setATT_CODE_PARC("CODE");
 
 				p.set("rootFile", f);
-				
-				File outFolder = new File(f,"out");
-				outFolder.mkdir();
-				
-				SimPLUSimulator plu = new SimPLUSimulator(f, p,outFolder);
+
+				SimPLUSimulator plu = new SimPLUSimulator(new File("./src/main/resources/"), f, p, outputFolder);
+
 				plu.run(BuildingType.valueOf(type.toUpperCase()), p);
 			} catch (Exception e) {
 				System.out.println(e);
