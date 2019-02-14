@@ -71,13 +71,15 @@ public class SimPLUSimulator {
 	// backup when p has been overwritted
 	// Parameters pSaved;
 
-	File rootFile;
+	File paramFile;
 	File folderOut;
 
 	// Building file
 	File buildFile;
 	// Road file
 	File roadFile;
+	// Communities file
+	File communitiesFile;
 
 	// Predicate File (a csv with a key to make a join with zoning file between id
 	// and libelle)
@@ -167,8 +169,8 @@ public class SimPLUSimulator {
 		// USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
 
 		File root = new File("./src/main/resources/");
-		File f = new File("./ArtiScalesLikeTBLunch/ParcelSelectionFile/DDense/variante0/");
-		File fOut = new File("./ArtiScalesLikeTBLunch/SimPLUDepot/DDense/variante0/");
+		File f = new File("./ArtiScalesTest/ParcelSelectionFile/DDense/variante0/");
+		File fOut = new File("./ArtiScalesTest/SimPLUDepot/DDense/variante0/");
 		List<File> listBatiSimu = new ArrayList<File>();
 		for (File ff : f.listFiles()) {
 			if (ff.isDirectory()) {
@@ -178,7 +180,6 @@ public class SimPLUSimulator {
 				if (simued != null) {
 					listBatiSimu.addAll(simued);
 				}
-
 				System.out.println("done with pack " + ff.getName());
 			}
 		}
@@ -208,13 +209,13 @@ public class SimPLUSimulator {
 	 *            : list of the initials parameters
 	 * @throws Exception
 	 */
-	public SimPLUSimulator(File rootFile, File packFile, Parameters pa, File fileOut) throws Exception {
+	public SimPLUSimulator(File paramFile, File packFile, Parameters pa, File fileOut) throws Exception {
 
 		// some static parameters needed
 		this.p = pa;
-		System.out.println("Root file = " + rootFile);
+		System.out.println("Root file = " + paramFile);
 		System.out.println("Simu file = " + packFile);
-		this.rootFile = rootFile;
+		this.paramFile = paramFile;
 		this.simuFile = packFile;
 		this.folderOut = fileOut;
 		this.parcelsFile = new File(packFile, "parcelle.shp");
@@ -222,6 +223,7 @@ public class SimPLUSimulator {
 		this.zoningFile = new File(geoSnap, "zone_urba.shp");
 		this.buildFile = new File(geoSnap, "batiment.shp");
 		this.roadFile = new File(geoSnap, "route.shp");
+		this.communitiesFile = new File(geoSnap, "communities.shp");
 
 		this.predicateFile = new File(packFile, "snapPredicate.csv");
 
@@ -281,7 +283,7 @@ public class SimPLUSimulator {
 			IFeatureCollection<IFeature> building = null;
 			Parameters pTemp = par;
 
-			pTemp.add(RepartitionBuildingType.getParam(new File(rootFile, "profileBuildingType"), type));
+			pTemp.add(RepartitionBuildingType.getParam(new File(paramFile, "profileBuildingType"), type));
 
 			System.out.println("nombre de boites autorisées : " + pTemp.getString("nbCuboid"));
 
@@ -336,28 +338,28 @@ public class SimPLUSimulator {
 		// asses repartition to pacels
 		///////////
 		// know if there's only one or multiple zones in the parcel pack
-		List<String> zones = new ArrayList<String>();
+		List<String> sectors = new ArrayList<String>();
 		IFeatureCollection<CadastralParcel> parcels = env.getCadastralParcels();
 
 		for (CadastralParcel parcel : parcels) {
-			String tmp = FromGeom.affectZoneAndTypoToLocation(pUsed.getString("useRepartition"), pUsed.getString("scenarioPMSP3D"), parcel, rootFile,
-					true);
-			if (!zones.contains(tmp)) {
-				zones.add(tmp);
+			String tmp = FromGeom.affectZoneAndTypoToLocation(pUsed.getString("useRepartition"), pUsed.getString("scenarioPMSP3D"), parcel,
+					zoningFile, communitiesFile, true);
+			if (!sectors.contains(tmp)) {
+				sectors.add(tmp);
 			}
 		}
 
 		// loading the type of housing to build
-		RepartitionBuildingType housingUnit = new RepartitionBuildingType(pUsed, rootFile, parcelsFile);
+		RepartitionBuildingType housingUnit = new RepartitionBuildingType(pUsed, paramFile, zoningFile, communitiesFile, parcelsFile);
 		boolean multipleRepartitionBuildingType = false;
-		if (zones.size() > 1) {
+		if (sectors.size() > 1) {
 			System.out.println("multiple zones in the same parcel lot : there's gon be approximations");
 			System.out.println("zones are ");
-			for (String s : zones) {
+			for (String s : sectors) {
 				System.out.println(s);
 			}
 			System.out.println();
-			housingUnit = new MultipleRepartitionBuildingType(pUsed, rootFile, parcelsFile);
+			housingUnit = new MultipleRepartitionBuildingType(pUsed, paramFile, parcelsFile);
 			multipleRepartitionBuildingType = true;
 		} else {
 			System.out.println("it's all normal");
@@ -421,7 +423,7 @@ public class SimPLUSimulator {
 				// we add the parameters for the building type want to simulate
 				Parameters pTemp = new Parameters();
 				pTemp = pUsed;
-				pTemp.add(RepartitionBuildingType.getParam(new File(rootFile, "profileBuildingType"), type));
+				pTemp.add(RepartitionBuildingType.getParam(new File(paramFile, "profileBuildingType"), type));
 				System.out.println("new height back to reg val " + pTemp.getDouble("maxheight"));
 
 				building = runSimulation(env, i, pTemp, type, prescriptionUse);

@@ -22,17 +22,26 @@ public class RepartitionBuildingType {
 	double pDetachedHouse, pSmallHouse, pMultifamilyHouse, pSmallBlockFlat, pMidBlockFlat;
 	DescriptiveStatistics dsc;
 	BuildingType defautBT;
-	File rootFile;
-	public RepartitionBuildingType(Parameters p, File rootFile, File parcelFile) throws NoSuchElementException, Exception {
-	  System.out.println("parcelFile = " + parcelFile);
-    this.parcelles = ShapefileReader.read(parcelFile.getAbsolutePath());
-		this.rootFile = rootFile;
+	File paramFile;
+	File zoningFile;
+	File communeFile;
+
+	public RepartitionBuildingType(Parameters p, File paramFile, File zoningFile, File communeFile, File parcelFile)
+			throws NoSuchElementException, Exception {
+		System.out.println("parcelFile = " + parcelFile);
+		this.parcelles = ShapefileReader.read(parcelFile.getAbsolutePath());
+		this.paramFile = paramFile;
+		this.zoningFile = zoningFile;
+		this.communeFile = communeFile;
 		makeRepart(p, parcelles);
 	}
 
-	public RepartitionBuildingType(Parameters p, File rootFile, IFeatureCollection<IFeature> parcel) throws NoSuchElementException, Exception {
-	  this.parcelles = parcel;
-    this.rootFile = rootFile;
+	public RepartitionBuildingType(Parameters p, File paramFile, File zoningFile, File communeFile, IFeatureCollection<IFeature> parcel)
+			throws NoSuchElementException, Exception {
+		this.parcelles = parcel;
+		this.paramFile = paramFile;
+		this.zoningFile = zoningFile;
+		this.communeFile = communeFile;
 		makeRepart(p, parcelles);
 
 	}
@@ -42,8 +51,8 @@ public class RepartitionBuildingType {
 		HashMap<BuildingType, Double> rep = new HashMap<BuildingType, Double>();
 
 		// add the zone parameters with the first parcel (redone for each parcel if it's a multizone type)
-		File location = new File(rootFile, "locationBuildingType");
-		p = addRepartitionToParameters(p, rootFile, parcelles.get(0), location);
+		File location = new File(paramFile, "locationBuildingType");
+		p = addRepartitionToParameters(p, zoningFile, communeFile, parcelles.get(0), location);
 
 		pDetachedHouse = p.getDouble("detachedHouse");
 
@@ -277,11 +286,12 @@ public class RepartitionBuildingType {
 	 * @return
 	 * @throws Exception
 	 */
-	public static Parameters addRepartitionToParameters(Parameters p, File rootFile, IFeature parcel, File profileBuildings) throws Exception {
-System.out.println("rootFile = " + p.getString("rootFile"));
-		String affect = FromGeom.affectZoneAndTypoToLocation(p.getString("useRepartition"), p.getString("scenarioPMSP3D"), parcel,
-				rootFile, true);
-System.out.println("profileBuildings = " + profileBuildings);
+	public static Parameters addRepartitionToParameters(Parameters p, File zoningFile, File communeFile, IFeature parcel, File profileBuildings)
+			throws Exception {
+		System.out.println("rootFile = " + p.getString("rootFile"));
+		String affect = FromGeom.affectZoneAndTypoToLocation(p.getString("useRepartition"), p.getString("scenarioPMSP3D"), parcel, zoningFile,
+				communeFile, true);
+		System.out.println("profileBuildings = " + profileBuildings);
 		// we seek for if there's a special default repartition for the scenario
 		if (affect.equals("default")) {
 			for (File f : profileBuildings.listFiles()) {
@@ -372,7 +382,7 @@ System.out.println("profileBuildings = " + profileBuildings);
 
 		Parameters p = Parameters.unmarshall(lF);
 
-		RepartitionBuildingType u = new RepartitionBuildingType(p,new File(""),
+		RepartitionBuildingType u = new RepartitionBuildingType(p, new File(""), new File(""), new File(""),
 				new File("/home/mcolomb/informatique/ArtiScales2/ParcelSelectionFile/intenseRegulatedSpread/variant0/parcelGenExport.shp"));
 		System.out.println(u.rangeInterest(0.52));
 		System.out.println(u.distribution);

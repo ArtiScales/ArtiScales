@@ -91,9 +91,29 @@ public class FromGeom {
 		SimpleFeatureBuilder sfBuilder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
 		sfBuilder.add(AdapterFactory.toGeometry(new GeometryFactory(), parcel.getGeom()));
 
-		SimpleFeature feature = sfBuilder.buildFeature(String.valueOf(1));
+		SimpleFeature feature = sfBuilder.buildFeature(null);
 
-		return affectZoneAndTypoToLocation(mainLine, code, feature, rootFile, priorTypoOrZone);
+		File zoningFile = FromGeom.getZoning(new File(rootFile, "dataRegulation"));
+		File communeFile = FromGeom.getCommunities(new File(rootFile, "dataGeo"));
+		
+		return affectZoneAndTypoToLocation(mainLine, code, feature, zoningFile,communeFile, priorTypoOrZone);
+	}
+	
+	public static String affectZoneAndTypoToLocation(String mainLine, String code, IFeature parcel,File zoningFile,File communeFile, boolean priorTypoOrZone)
+			throws Exception {
+		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
+		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
+		sfTypeBuilder.setName("testType");
+		sfTypeBuilder.setCRS(sourceCRS);
+		sfTypeBuilder.add("the_geom", Polygon.class);
+		sfTypeBuilder.setDefaultGeometry("the_geom");
+
+		SimpleFeatureBuilder sfBuilder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
+		sfBuilder.add(AdapterFactory.toGeometry(new GeometryFactory(), parcel.getGeom()));
+
+		SimpleFeature feature = sfBuilder.buildFeature(null);
+		
+		return affectZoneAndTypoToLocation(mainLine, code, feature, zoningFile,communeFile, priorTypoOrZone);
 	}
 
 	/**
@@ -112,14 +132,14 @@ public class FromGeom {
 	 * @return
 	 * @throws Exception
 	 */
-	public static String affectZoneAndTypoToLocation(String mainLine, String code, SimpleFeature parcel, File rootFile, boolean priorTypoOrZone)
+	public static String affectZoneAndTypoToLocation(String mainLine, String code, SimpleFeature parcel, File zoningFile,File communeFile, boolean priorTypoOrZone)
 			throws Exception {
 		String occurConcerned = "";
 
 		List<String> mayOccur = new ArrayList<String>();
 		// TODO make sure that this returns the best answer
-		String zone = FromGeom.parcelInBigZone(new File(rootFile, "dataRegulation"), parcel);
-		String typo = FromGeom.parcelInTypo(new File(rootFile, "dataGeo"), parcel);
+		String zone = FromGeom.parcelInBigZone(zoningFile, parcel);
+		String typo = FromGeom.parcelInTypo(communeFile, parcel);
 		String[] tabRepart = mainLine.split("_");
 
 		for (String s : tabRepart) {
@@ -475,8 +495,8 @@ public class FromGeom {
 	 * @return
 	 * @throws Exception
 	 */
-	public static String parcelInTypo(File geoFile, SimpleFeature parcelIn) throws Exception {
-		return parcelInTypo(parcelIn, geoFile).get(0);
+	public static String parcelInTypo(File communeFile, SimpleFeature parcelIn) throws Exception {
+		return parcelInTypo(parcelIn, communeFile).get(0);
 	}
 
 	/**
@@ -487,9 +507,9 @@ public class FromGeom {
 	 * @return the multiple parcel intersected, sorted by area of occupation
 	 * @throws Exception
 	 */
-	public static List<String> parcelInTypo(SimpleFeature parcelIn, File geoFile) throws Exception {
+	public static List<String> parcelInTypo(SimpleFeature parcelIn, File communeFile) throws Exception {
 		List<String> result = new ArrayList<String>();
-		ShapefileDataStore shpDSZone = new ShapefileDataStore(getCommunities(geoFile).toURI().toURL());
+		ShapefileDataStore shpDSZone = new ShapefileDataStore(communeFile.toURI().toURL());
 		SimpleFeatureCollection shpDSZoneReduced = Vectors.snapDatas(shpDSZone.getFeatureSource().getFeatures(),
 				(Geometry) parcelIn.getDefaultGeometry());
 
@@ -569,34 +589,31 @@ public class FromGeom {
 	 * return a single TYPEZONE that a parcels intersect if the parcel intersects multiple, we select the one that covers the most area
 	 * 
 	 * @param parcelIn
-	 * @param regulFile
+	 * @param zoningFile
 	 * @return
 	 * @throws Exception
 	 */
-	public static String parcelInBigZone(File regulFile, SimpleFeature parcelIn) throws Exception {
-		List<String> yo = parcelInBigZone(parcelIn, regulFile);
+	public static String parcelInBigZone(File zoningFile, SimpleFeature parcelIn) throws Exception {
+		List<String> yo = parcelInBigZone(parcelIn, zoningFile);
 		return yo.get(0);
 	}
 
-	public static List<String> parcelInBigZone(IFeature parcelIn, File regulFile) throws Exception {
+	public static List<String> parcelInBigZone(IFeature parcelIn, File zoningFile) throws Exception {
 
-		return parcelInBigZone(GeOxygeneGeoToolsTypes.convert2SimpleFeature(parcelIn, CRS.decode("EPSG:2154")), regulFile);
+		return parcelInBigZone(GeOxygeneGeoToolsTypes.convert2SimpleFeature(parcelIn, CRS.decode("EPSG:2154")), zoningFile);
 	}
 
 	/**
 	 * return the TYPEZONEs that a parcels intersect
 	 * 
 	 * @param parcelIn
-	 * @param regulFile
+	 * @param zoningFile
 	 * @return the multiple parcel intersected, sorted by area of occupation
 	 * @throws Exception
 	 */
-	public static List<String> parcelInBigZone(SimpleFeature parcelIn, File regulFile) throws Exception {
+	public static List<String> parcelInBigZone(SimpleFeature parcelIn, File zoningFile) throws Exception {
 		List<String> result = new LinkedList<String>();
-		System.out.println("regulFile = " + regulFile);
-		System.out.println("Parcel = " + parcelIn.getDefaultGeometry());
-		System.out.println("Zoning = " + getZoning(regulFile).toURI().toURL());
-		ShapefileDataStore shpDSZone = new ShapefileDataStore(getZoning(regulFile).toURI().toURL());
+		ShapefileDataStore shpDSZone = new ShapefileDataStore(zoningFile.toURI().toURL());
 		SimpleFeatureCollection shpDSZoneReduced = Vectors.snapDatas(shpDSZone.getFeatureSource().getFeatures(),
 				(Geometry) parcelIn.getDefaultGeometry());
 		SimpleFeatureIterator featuresZones = shpDSZoneReduced.features();

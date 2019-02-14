@@ -1499,7 +1499,7 @@ public class ParcelFonction {
 				}
 			}
 
-			List<String> zones = FromGeom.parcelInBigZone(newFeat, new File(rootFile, "dataRegulation"));
+			List<String> zones = FromGeom.parcelInBigZone(newFeat, FromGeom.getZoning(new File(rootFile, "dataRegulation")));
 
 			if (zones.contains("U")) {
 				u = true;
@@ -2244,7 +2244,7 @@ public class ParcelFonction {
 					boolean au = false;
 					boolean nc = false;
 
-					for (String s : FromGeom.parcelInBigZone(feat, regulFile)) {
+					for (String s : FromGeom.parcelInBigZone(feat, FromGeom.getZoning(regulFile))) {
 						if (s.equals("AU")) {
 							au = true;
 						} else if (s.equals("U")) {

@@ -658,6 +658,14 @@ public class SelectParcels {
 				Vectors.exportSFC(Vectors.snapDatas(prescSurfFeatures, fBBox), new File(snapPack, "prescription_surf.shp"));
 				prescSurf_datastore.dispose();
 
+				ShapefileDataStore communitiesDatastore = new ShapefileDataStore(FromGeom.getCommunities(geoFile).toURI().toURL());
+				SimpleFeatureCollection communitiesFeatures = communitiesDatastore.getFeatureSource().getFeatures();
+				SimpleFeatureCollection communitiesSS = Vectors.snapDatas(communitiesFeatures, fBBox);
+				if (!communitiesSS.isEmpty()) {
+					Vectors.exportSFC(communitiesSS, new File(snapPack, "communities.shp"));
+				}
+				communitiesDatastore.dispose();
+
 				// selection of the right lines from the predicate file
 				// CSVWriter newPredicate = new CSVWriter(new FileWriter(new
 				// File(pack,
@@ -785,6 +793,14 @@ public class SelectParcels {
 					Vectors.exportSFC(prescSS, new File(snapPack, "prescription_surf.shp"));
 				}
 				prescSurf_datastore.dispose();
+
+				ShapefileDataStore communitiesDatastore = new ShapefileDataStore(FromGeom.getCommunities(geoFile).toURI().toURL());
+				SimpleFeatureCollection communitiesFeatures = communitiesDatastore.getFeatureSource().getFeatures();
+				SimpleFeatureCollection communitiesSS = Vectors.snapDatas(communitiesFeatures, fBBox);
+				if (!communitiesSS.isEmpty()) {
+					Vectors.exportSFC(communitiesSS, new File(snapPack, "communities.shp"));
+				}
+				communitiesDatastore.dispose();
 
 				// selection of the right lines from the predicate file
 				// CSVWriter newPredicate = new CSVWriter(new FileWriter(new
