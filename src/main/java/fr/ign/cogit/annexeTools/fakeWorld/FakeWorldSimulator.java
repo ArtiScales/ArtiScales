@@ -67,7 +67,9 @@ public class FakeWorldSimulator {
 				// p.set("simu", simulOut);
 				// SimPLUSimulator.ID_PARCELLE_TO_SIMULATE.add("30000");
 				// Selected parcels shapefile
-				SimPLUSimulator simplu = new SimPLUSimulator(new File(p.getString("rootFile")), p);
+				File outFolder = new File(pathSubFolder,"out");
+				outFolder.mkdir();
+				SimPLUSimulator simplu = new SimPLUSimulator(new File(p.getString("rootFile")), p, outFolder);
 
 				simplu.run();
 			}
@@ -95,7 +97,11 @@ public class FakeWorldSimulator {
 				AttribNames.setATT_CODE_PARC("CODE");
 
 				p.set("rootFile", f);
-				SimPLUSimulator plu = new SimPLUSimulator(f, p);
+				
+				File outFolder = new File(f,"out");
+				outFolder.mkdir();
+				
+				SimPLUSimulator plu = new SimPLUSimulator(f, p,outFolder);
 				plu.run(BuildingType.valueOf(type.toUpperCase()), p);
 			} catch (Exception e) {
 				System.out.println(e);

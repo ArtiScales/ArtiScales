@@ -14,8 +14,6 @@ import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeature;
 
-import com.vividsolutions.jts.geom.TopologyException;
-
 import fr.ign.cogit.annexeTools.SDPCalcPolygonizer;
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
@@ -49,11 +47,8 @@ import fr.ign.cogit.simplu3d.model.SubParcel;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.Cuboid;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.optimizer.cuboid.OptimisedBuildingsCuboidFinalDirectRejection;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.optimizer.paralellcuboid.ParallelCuboidOptimizer;
-import fr.ign.cogit.simplu3d.util.merge.SDPCalc;
 import fr.ign.cogit.util.FromGeom;
 import fr.ign.cogit.util.SimpluParametersXML;
-import fr.ign.cogit.util.SimuTool;
-import fr.ign.cogit.util.ParcelFonction;
 import fr.ign.mpp.configuration.BirthDeathModification;
 import fr.ign.mpp.configuration.GraphConfiguration;
 import fr.ign.mpp.configuration.GraphVertex;
@@ -725,7 +720,7 @@ public class SimPLUSimulator {
 			AttributeManager.addAttribute(feat, "SurfaceBox", feat.getGeom().area(), "Double");
 			AttributeManager.addAttribute(feat, "SDPShon", surfacePlancherTotal * 0.8, "Double");
 			AttributeManager.addAttribute(feat, "SurfacePar", areaParcels, "Double");
-			AttributeManager.addAttribute(feat, "SurfaceSol", surfaceAuSol, "Double"); // TODO doesn't work
+			AttributeManager.addAttribute(feat, "SurfaceSol", surfaceAuSol, "Double");
 			AttributeManager.addAttribute(feat, "CODE", bPU.getCadastralParcels().get(0).getCode(), "String");
 			AttributeManager.addAttribute(feat, "LIBELLE", libellesFinal, "String");
 			AttributeManager.addAttribute(feat, "TYPEZONE", typeZonesFinal, "String");

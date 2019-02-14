@@ -598,11 +598,8 @@ public class FromGeom {
 	 * @throws Exception
 	 */
 	public static List<String> parcelInBigZone(SimpleFeature parcelIn, File regulFile) throws Exception {
-System.out.println(regulFile);
 		List<String> result = new LinkedList<String>();
 		ShapefileDataStore shpDSZone = new ShapefileDataStore(getZoning(regulFile).toURI().toURL());
-		System.out.println(getZoning(regulFile).toURI().toURL());
-		System.out.println(parcelIn.getDefaultGeometry());
 		SimpleFeatureCollection shpDSZoneReduced = Vectors.snapDatas(shpDSZone.getFeatureSource().getFeatures(),
 				(Geometry) parcelIn.getDefaultGeometry());
 		SimpleFeatureIterator featuresZones = shpDSZoneReduced.features();
@@ -916,6 +913,26 @@ System.out.println(regulFile);
 		finalParcelBuilder.set("U", feat.getAttribute("U"));
 		finalParcelBuilder.set("AU", feat.getAttribute("AU"));
 		finalParcelBuilder.set("NC", feat.getAttribute("NC"));
+
+		return finalParcelBuilder;
+	}
+	
+	public static SimpleFeatureBuilder setSFBOriginalParcelWithFeat(SimpleFeature feat, SimpleFeatureType schema) {
+		SimpleFeatureBuilder finalParcelBuilder = new SimpleFeatureBuilder(schema);
+		finalParcelBuilder.set(schema.getGeometryDescriptor().getName().toString(), (Geometry) feat.getDefaultGeometry());
+		finalParcelBuilder.set("CODE", ParcelFonction.makeParcelCode(feat));
+		finalParcelBuilder.set("CODE_DEP", feat.getAttribute("CODE_DEP"));
+		finalParcelBuilder.set("CODE_COM", feat.getAttribute("CODE_COM"));
+		finalParcelBuilder.set("COM_ABS", feat.getAttribute("COM_ABS"));
+		finalParcelBuilder.set("SECTION", feat.getAttribute("SECTION"));
+		finalParcelBuilder.set("NUMERO", feat.getAttribute("NUMERO"));
+		finalParcelBuilder.set("INSEE",(String) feat.getAttribute("CODE_DEP")+(String)feat.getAttribute("CODE_COM"));
+		finalParcelBuilder.set("eval", "0");
+		finalParcelBuilder.set("DoWeSimul", "false");
+		finalParcelBuilder.set("IsBuild", "false");
+		finalParcelBuilder.set("U", "false");
+		finalParcelBuilder.set("AU","false");
+		finalParcelBuilder.set("NC", "false");
 
 		return finalParcelBuilder;
 	}

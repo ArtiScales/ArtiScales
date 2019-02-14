@@ -5,8 +5,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.geotools.data.DataUtilities;
 import org.geotools.data.FeatureWriter;
@@ -24,7 +22,6 @@ import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
-import org.geotools.util.logging.Logging;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
@@ -134,27 +131,8 @@ public class PAUDigger {
 
 		SimpleFeatureCollection parcelSplitted = ParcelFonction.generateSplitedParcels(parcelPreSelected, tmpFile, 2000.0, 7, 0, null, 99, 15, false);
 
-		// selection with geographical filters
-		pName = ff.property(parcelSplitted.getSchema().getGeometryDescriptor().getLocalName());
-		filCluster = ff.intersects(pName, ff.literal(clusterUnion));
-		System.out.println(pName);
-		Vectors.exportGeom(clusterUnion, new File("/tmp/clusterUnion.shp"));
-		SimpleFeatureCollection pau3 = parcelSplitted.subCollection(filCluster);
-		System.out.println(pau3.size());
-		Vectors.exportSFC(pau3, new File("/tmp/salut3.shp"));
-
-		pName = ff.property(pau3.getSchema().getGeometryDescriptor().getLocalName());
-		filMorpho = ff.intersects(pName, ff.literal(morphoUnion));
-		SimpleFeatureCollection pau = pau3.subCollection(filMorpho);
-		Vectors.exportSFC(pau, new File("/tmp/salut.shp"));
-
-		pName = ff.property(pau.getSchema().getGeometryDescriptor().getLocalName());
-		filNU = ff.not(ff.intersects(pName, ff.literal(unionNU)));
-		SimpleFeatureCollection pau2 = pau.subCollection(filNU);
-		Vectors.exportSFC(pau2, new File("/tmp/salut2.shp"));
-
-		SimpleFeatureCollection out = makeEnvelopePAU(pau2, communitiesFile);
-		Vectors.exportSFC(out, new File("/tmp/salot.shp"));
+		SimpleFeatureCollection out = makeEnvelopePAU(parcelSplitted.subCollection(filNU).subCollection(filMorpho).subCollection(filCluster),
+				communitiesFile);
 
 		nUSDS.dispose();
 		clusterSDS.dispose();
@@ -194,7 +172,7 @@ public class PAUDigger {
 
 		for (int i = 0; i < nbGeom; i++) {
 			Geometry geom = mp.getGeometryN(i);
-			sfBuilder.set("the_geom", geom);
+			sfBuilder.set("the_geom", geom.buffer(0));
 			sfBuilder.set("LIBELLE", "ZC");
 			sfBuilder.set("TYPEZONE", "ZC");
 			sfBuilder.set("TYPEPLAN", "RNU");
@@ -213,6 +191,7 @@ public class PAUDigger {
 			} finally {
 				it.close();
 			}
+			//TODO some insee are set to null
 			sfBuilder.set("INSEE", insee);
 			df.add(sfBuilder.buildFeature(null));
 		}

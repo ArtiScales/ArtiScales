@@ -8,6 +8,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.geotools.data.DataUtilities;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
@@ -78,11 +79,11 @@ public class SelectParcels {
 				Parameters p = SimuTool.getParamFile(lP, scenarName);
 				List<String> listeAction = selectionType(p);
 				spatialConf = varianteSpatialConf;
-				
-				File packFile = new File(rootFile,
-						"ParcelSelectionFile/" + scenarName + "/" + varianteSpatialConf.getParentFile().getName() + "/");
+
+				File packFile = new File(rootFile, "ParcelSelectionFile/" + scenarName + "/" + varianteSpatialConf.getParentFile().getName() + "/");
 				packFile.mkdirs();
-				
+				File parcGen = new File(packFile, "parcelGenExport.shp");
+
 				// if we simul on one city (debug) or the whole area
 				List<String> listZip = SimuTool.getIntrestingCommunities(p, geoFile, regulFile, tmpFile, packFile);
 
@@ -92,11 +93,12 @@ public class SelectParcels {
 					System.out.println();
 					System.out.println("for the " + zip + " city");
 					System.out.println();
-					parcelFile = ParcelFonction.getParcels(geoFile, regulFile, tmpFile, zip);
+					parcelFile = ParcelFonction.getParcels(geoFile, regulFile, tmpFile, zip, p.getBoolean("preCutParcels"));
 
 					ShapefileDataStore shpDSparcel = new ShapefileDataStore((parcelFile).toURI().toURL());
-					SimpleFeatureCollection parcelCollection = shpDSparcel.getFeatureSource().getFeatures();
-
+					SimpleFeatureCollection parcelCollection = DataUtilities.collection(shpDSparcel.getFeatureSource().getFeatures());
+					shpDSparcel.dispose();
+					
 					/////////////
 					// first selection regarding on the scenarios
 					/////////////
@@ -127,7 +129,6 @@ public class SelectParcels {
 							break;
 						}
 					}
-
 					////////////////
 					// Split parcel processes
 					////////////////
@@ -177,33 +178,41 @@ public class SelectParcels {
 						}
 					}
 
-					////////////////
-					////// Packing the parcels for SimPLU3D distribution
-					////////////////
-
+					// if there's been a bug and a parcel is missing
+					ShapefileDataStore shpDSparcel2 = new ShapefileDataStore(FromGeom.getParcels(geoFile).toURI().toURL());
+					SimpleFeatureCollection parcelOriginal = shpDSparcel2.getFeatureSource().getFeatures();
+					parcelCollection = ParcelFonction.completeParcelMissingWithOriginal(parcelCollection,parcelOriginal);
+					shpDSparcel2.dispose();
+					
 					File parcelSelectedFile = Vectors.exportSFC(parcelCollection, new File(packFile, "parcelPartExport.shp"));
 
 					// merge the multiple parcels into a unique parcelFile
 					List<File> lFile = new ArrayList<File>();
-					File parcGen = new File(packFile, "parcelGenExport.shp");
 					if (parcGen.exists()) {
 						lFile.add(parcGen);
 					}
 					lFile.add(parcelSelectedFile);
 					Vectors.mergeVectFiles(lFile, parcGen);
 
-					// optimized packages
-					if (p.getString("package").equals("ilot")) {
-						separateToDifferentOptimizedPack(parcelSelectedFile, packFile, zip);
-						listScenar.add(packFile);
-					}
-					// city (better for a continuous urbanisation)
-					else if (p.getString("package").equals("communities")) {
-						separateToDifferentCitiesPack(parcelSelectedFile, packFile);
-						listScenar.add(packFile);
-					}
+					
 					shpDSparcel.dispose();
+
 				}
+
+				////////////////
+				////// Packing the parcels for SimPLU3D distribution
+				////////////////
+				// optimized packages
+				if (p.getString("package").equals("ilot")) {
+					separateToDifferentOptimizedPack(parcGen, packFile);
+					listScenar.add(packFile);
+				}
+				// city (better for a continuous urbanisation)
+				else if (p.getString("package").equals("communities")) {
+					separateToDifferentCitiesPack(parcGen, packFile);
+					listScenar.add(packFile);
+				}
+
 			}
 			selectionFile.add(listScenar);
 
@@ -572,9 +581,6 @@ public class SelectParcels {
 			new File(fileOut, city).mkdirs();
 		}
 
-		// if the city is following the RNU
-		List<String> rnuZip = FromGeom.rnuZip(regulFile);
-
 		CSVReader predicate = new CSVReader(new FileReader(FromGeom.getPredicate(regulFile)));
 		predicate.readNext();
 		String[] rnu = null;
@@ -621,7 +627,7 @@ public class SelectParcels {
 
 				// by defalut, creation of empty shapefiles (better empty than
 				// non extitant
-				createPackOfEmptyShp(snapPack);
+		//		createPackOfEmptyShp(snapPack);
 
 				ShapefileDataStore build_datastore = new ShapefileDataStore(FromGeom.getBuild(geoFile).toURI().toURL());
 				SimpleFeatureCollection buildFeatures = build_datastore.getFeatureSource().getFeatures();
@@ -680,12 +686,7 @@ public class SelectParcels {
 				predicate = new CSVReader(new FileReader(FromGeom.getPredicate(regulFile)));
 
 				newPredicate.writeNext(predicate.readNext());
-				for (String nIinsee : insee) {
-					if (rnuZip.contains(nIinsee)) {
-						newPredicate.writeNext(rnu);
-						break;
-					}
-				}
+
 				for (String[] line : predicate.readAll()) {
 					for (String nIinsee : insee) {
 						if (line[1].equals(nIinsee)) {
@@ -693,6 +694,7 @@ public class SelectParcels {
 						}
 					}
 				}
+				newPredicate.writeNext(rnu);
 				newPredicate.writeNext(out);
 				newPredicate.close();
 			}
@@ -700,11 +702,9 @@ public class SelectParcels {
 		predicate.close();
 	}
 
-	public void separateToDifferentOptimizedPack(File parcelCollection, File fileOut, String codeCom) throws Exception {
+	public void separateToDifferentOptimizedPack(File parcelCollection, File fileOut) throws Exception {
 
-		DataPreparator.createPackages(parcelCollection, tmpFile, fileOut, codeCom);
-		// if the city is following the RNU
-		List<String> rnuZip = FromGeom.rnuZip(regulFile);
+		DataPreparator.createPackages(parcelCollection, tmpFile, fileOut);
 
 		CSVReader predicate = new CSVReader(new FileReader(FromGeom.getPredicate(regulFile)));
 		predicate.readNext();
@@ -724,7 +724,7 @@ public class SelectParcels {
 		predicate.close();
 
 		for (File pack : fileOut.listFiles()) {
-			if (pack.isDirectory() && pack.getName().contains(codeCom)) {
+			if (pack.isDirectory()) {
 				File fBBox = new File(pack, "bbox.shp");
 				System.setOut(new PrintStream(System.out));
 
@@ -737,42 +737,60 @@ public class SelectParcels {
 
 				// by defalut, creation of empty shapefiles (better empty than
 				// non extitant
-				createPackOfEmptyShp(snapPack);
+			//	createPackOfEmptyShp(snapPack);
 
 				ShapefileDataStore build_datastore = new ShapefileDataStore(FromGeom.getBuild(geoFile).toURI().toURL());
 				SimpleFeatureCollection buildFeatures = build_datastore.getFeatureSource().getFeatures();
-				Vectors.exportSFC(Vectors.snapDatas(buildFeatures, fBBox), new File(snapPack, "batiment.shp"));
+				SimpleFeatureCollection buildSnapped = Vectors.snapDatas(buildFeatures, fBBox);
+				if (!buildSnapped.isEmpty()) {
+					Vectors.exportSFC(buildSnapped, new File(snapPack, "batiment.shp"));
+				}
 				build_datastore.dispose();
 
 				ShapefileDataStore road_datastore = new ShapefileDataStore(FromGeom.getRoute(geoFile).toURI().toURL());
 				SimpleFeatureCollection roadFeatures = road_datastore.getFeatureSource().getFeatures();
-				Vectors.exportSFC(Vectors.snapDatas(roadFeatures, fBBox, 15), new File(snapPack, "route.shp"));
+				SimpleFeatureCollection roadSnap = Vectors.snapDatas(roadFeatures, fBBox, 15);
+				if (!roadSnap.isEmpty()) {
+					Vectors.exportSFC(roadSnap, new File(snapPack, "route.shp"));
+				}
 				road_datastore.dispose();
 
 				ShapefileDataStore zoning_datastore = new ShapefileDataStore(FromGeom.getZoning(regulFile).toURI().toURL());
 				SimpleFeatureCollection zoningFeatures = zoning_datastore.getFeatureSource().getFeatures();
-				Vectors.exportSFC(Vectors.snapDatas(zoningFeatures, fBBox), new File(snapPack, "zone_urba.shp"));
+				SimpleFeatureCollection zoningSnap = Vectors.snapDatas(zoningFeatures, fBBox);
+				if (!zoningSnap.isEmpty()) {
+					Vectors.exportSFC(Vectors.snapDatas(zoningFeatures, fBBox), new File(snapPack, "zone_urba.shp"));
+				}
 				zoning_datastore.dispose();
 
 				ShapefileDataStore prescPonct_datastore = new ShapefileDataStore(FromGeom.getPrescPonct(regulFile).toURI().toURL());
 				SimpleFeatureCollection prescPonctFeatures = prescPonct_datastore.getFeatureSource().getFeatures();
-				Vectors.exportSFC(Vectors.snapDatas(prescPonctFeatures, fBBox), new File(snapPack, "prescription_pct.shp"));
+				SimpleFeatureCollection prescPSnap = Vectors.snapDatas(prescPonctFeatures, fBBox);
+				if (!prescPSnap.isEmpty()) {
+					Vectors.exportSFC(prescPSnap, new File(snapPack, "prescription_pct.shp"));
+				}
 				prescPonct_datastore.dispose();
 
 				ShapefileDataStore prescLin_datastore = new ShapefileDataStore(FromGeom.getPrescLin(regulFile).toURI().toURL());
 				SimpleFeatureCollection prescLinFeatures = prescLin_datastore.getFeatureSource().getFeatures();
-				Vectors.exportSFC(Vectors.snapDatas(prescLinFeatures, fBBox), new File(snapPack, "prescription_lin.shp"));
+				SimpleFeatureCollection prescLSnap = Vectors.snapDatas(prescLinFeatures, fBBox);
+				if (!prescLSnap.isEmpty()) {
+					Vectors.exportSFC(prescLSnap, new File(snapPack, "prescription_lin.shp"));
+				}
 				prescLin_datastore.dispose();
 
 				ShapefileDataStore prescSurf_datastore = new ShapefileDataStore(FromGeom.getPrescSurf(regulFile).toURI().toURL());
 				SimpleFeatureCollection prescSurfFeatures = prescSurf_datastore.getFeatureSource().getFeatures();
-				Vectors.exportSFC(Vectors.snapDatas(prescSurfFeatures, fBBox), new File(snapPack, "prescription_surf.shp"));
+				SimpleFeatureCollection prescSS = Vectors.snapDatas(prescSurfFeatures, fBBox);
+				if (!prescSS.isEmpty()) {
+					Vectors.exportSFC(prescSS, new File(snapPack, "prescription_surf.shp"));
+				}
 				prescSurf_datastore.dispose();
 
 				// selection of the right lines from the predicate file
 				// CSVWriter newPredicate = new CSVWriter(new FileWriter(new
 				// File(pack,
-				// "snapPredicate.csv")),",","","");
+				// "snapPredicate.csv")),",","",""); System.out.println(geom
 
 				CSVWriter newPredicate = new CSVWriter(new FileWriter(new File(pack, "snapPredicate.csv")), ',', '\0');
 
@@ -796,12 +814,7 @@ public class SelectParcels {
 				predicate = new CSVReader(new FileReader(FromGeom.getPredicate(regulFile)));
 
 				newPredicate.writeNext(predicate.readNext());
-				for (String nIinsee : insee) {
-					if (rnuZip.contains(nIinsee)) {
-						newPredicate.writeNext(rnu);
-						break;
-					}
-				}
+
 				for (String[] line : predicate.readAll()) {
 					for (String nIinsee : insee) {
 						if (line[1].equals(nIinsee)) {
@@ -809,6 +822,7 @@ public class SelectParcels {
 						}
 					}
 				}
+				newPredicate.writeNext(rnu);
 				newPredicate.writeNext(out);
 				newPredicate.close();
 			}

@@ -11,10 +11,10 @@ public class DataPreparator {
 		File fileIn = new File("/home/mickael/Bureau/Temp/parcel/parcel.shp");
 		File folderTemp = new File("/tmp/tmp");
 		File folderOut = new File("/home/mickael/Bureau/Temp/out/");
-		createPackages(fileIn, folderTemp, folderOut, "25000");
+		createPackages(fileIn, folderTemp, folderOut);
 	}
 
-	public static void createPackages(File fileIn, File folderTemp, File folderOut, String codeCom) throws Exception {
+	public static void createPackages(File fileIn, File folderTemp, File folderOut) throws Exception {
 
 		ZonePackager.ATTRIBUTE_SIMUL = "DoWeSimul";
 		ZonePackager.ATTRIBUTE_SIMUL_TYPE = "String";
@@ -34,7 +34,7 @@ public class DataPreparator {
 		double areaMax = 5000;
 
 		ZonePackager.createParcelGroupsAndExport(ShapefileReader.read(fileIn.getAbsolutePath()), numberOfParcels, areaMax,
-				folderTemp.getAbsolutePath(), folderOut.getAbsolutePath(), codeCom, true);
+				folderTemp.getAbsolutePath(), folderOut.getAbsolutePath(),"", true);
 	}
 
 }
