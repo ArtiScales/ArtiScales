@@ -168,14 +168,14 @@ public class SimPLUSimulator {
 		// AttribNames.setATT_CODE_PARC("CODE");
 		// USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
 
-		File root = new File("./src/main/resources/");
+		File paramFile = new File("./src/main/resources/");
 		File f = new File("./ArtiScalesTest/ParcelSelectionFile/DDense/variante0/");
 		File fOut = new File("./ArtiScalesTest/SimPLUDepot/DDense/variante0/");
 		List<File> listBatiSimu = new ArrayList<File>();
 		for (File ff : f.listFiles()) {
 			if (ff.isDirectory()) {
 				System.out.println("start pack " + ff);
-				SimPLUSimulator sim = new SimPLUSimulator(root, ff, p, fOut);
+				SimPLUSimulator sim = new SimPLUSimulator(paramFile, ff, p, fOut);
 				List<File> simued = sim.run();
 				if (simued != null) {
 					listBatiSimu.addAll(simued);
@@ -224,7 +224,6 @@ public class SimPLUSimulator {
 		this.buildFile = new File(geoSnap, "batiment.shp");
 		this.roadFile = new File(geoSnap, "route.shp");
 		this.communitiesFile = new File(geoSnap, "communities.shp");
-
 		this.predicateFile = new File(packFile, "snapPredicate.csv");
 
 		this.filePrescPonct = new File(geoSnap, "prescription_ponct.shp");
@@ -359,7 +358,7 @@ public class SimPLUSimulator {
 				System.out.println(s);
 			}
 			System.out.println();
-			housingUnit = new MultipleRepartitionBuildingType(pUsed, paramFile, parcelsFile);
+			housingUnit = new MultipleRepartitionBuildingType(pUsed, paramFile, zoningFile, communitiesFile, parcelsFile);
 			multipleRepartitionBuildingType = true;
 		} else {
 			System.out.println("it's all normal");

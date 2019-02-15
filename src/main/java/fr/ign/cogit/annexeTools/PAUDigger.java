@@ -74,9 +74,9 @@ public class PAUDigger {
 		DirectPosition.PRECISION = 4;
 
 		File tmpFile = new File("/tmp/");
-		File rootFile = new File("/home/mcolomb/informatique/ArtiScales/");
+		File rootFile = new File("/home/ubuntu/boulot/these/newZoning/");
 
-		File outFile = new File("/home/mcolomb/informatique/ArtiScales/PAU");
+		File outFile = new File("/home/ubuntu/boulot/these/newZoning/final");
 
 		File buildFile = new File(rootFile, "dataGeo/building.shp");
 		File parcelFile = new File(rootFile, "dataGeo/parcel.shp");
@@ -85,7 +85,7 @@ public class PAUDigger {
 
 		// zones NU
 		List<File> nU = new ArrayList<File>();
-		File NUroot = new File("/media/mcolomb/Data_2/donnee/zonesAU/Zones_non_urbanisables_AU_Besancon/Shapefiles_Complets_AU/");
+		File NUroot = new File("/home/ubuntu/boulot/these/newZoning/PAU/");
 		nU.add(new File(NUroot, "PPRI_Ognon_AU.shp"));
 		nU.add(new File(NUroot, "PPRI_Loue_AU.shp"));
 		nU.add(new File(NUroot, "PPRI_Doubs_AU.shp"));

@@ -211,7 +211,6 @@ public class SelectParcels {
 					separateToDifferentCitiesPack(parcGen, packFile);
 					listScenar.add(packFile);
 				}
-
 			}
 			selectionFile.add(listScenar);
 

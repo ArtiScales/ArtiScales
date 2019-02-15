@@ -2129,13 +2129,11 @@ public class ParcelFonction {
 					Filter filterSection = ff.like(ff.property("SECTION"), section);
 					df.addAll(parcels.subCollection(filterDep).subCollection(filterCom).subCollection(filterSection));
 				} else {
-
 					String codep = zip.substring(0, 2);
 					String cocom = zip.substring(2, 5);
 					Filter filterDep = ff.like(ff.property("CODE_DEP"), codep);
 					Filter filterCom = ff.like(ff.property("CODE_COM"), cocom);
 					df.addAll(parcels.subCollection(filterDep).subCollection(filterCom));
-
 				}
 			}
 			parcels = df.collection();

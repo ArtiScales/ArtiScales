@@ -15,16 +15,18 @@ import fr.ign.parameters.Parameters;
 public class MultipleRepartitionBuildingType extends RepartitionBuildingType {
 	HashMap<String, List<String>> parcelsInZone;
 
-	public MultipleRepartitionBuildingType(Parameters p, File rootFile, File parcelFile) throws NoSuchElementException, Exception {
-		super(p, rootFile, parcelFile);
-		p = addRepartitionToParameters(p, rootFile, parcelles.get(0), new File(this.getClass().getClassLoader().getResource("locationBuildingType").getFile()));
+	public MultipleRepartitionBuildingType(Parameters p, File paramFile, File zoningFile, File communeFile, File parcelFile)
+			throws NoSuchElementException, Exception {
+		super(p, paramFile, zoningFile, communeFile, parcelFile);
+		p = addRepartitionToParameters(p, zoningFile, communeFile, parcelles.get(0),
+				new File(this.getClass().getClassLoader().getResource("locationBuildingType").getFile()));
 
 		// we put all of the parcels into different lists regarding to their zones
 		parcelsInZone = new HashMap<String, List<String>>();
 		for (IFeature parcel : parcelles) {
 			if (parcel.getAttribute("CODE") != null) {
 				String bigZone = FromGeom.affectZoneAndTypoToLocation(p.getString("useRepartition"), p.getString("scenarioPMSP3D"), parcel,
-						rootFile, true);
+						zoningFile, communeFile, true);
 				if (parcelsInZone.containsKey(bigZone)) {
 					List<String> tmpList = parcelsInZone.get(bigZone);
 					tmpList.add((String) parcel.getAttribute("CODE"));

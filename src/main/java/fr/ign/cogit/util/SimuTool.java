@@ -3,6 +3,7 @@ package fr.ign.cogit.util;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -32,15 +33,13 @@ public class SimuTool {
 		throw new FileNotFoundException("no corresponding param file");
 	}
 
-
-
 	/**
 	 * remove scenario specification and .xml attribute from a sector file contained in the ressource.
 	 * 
 	 * @param stringParam
 	 * @return
 	 */
-	
+
 	public static String cleanSectorName(String stringParam) {
 		// delete name of specials parameters
 		if (stringParam.split(":").length == 2) {
@@ -50,11 +49,11 @@ public class SimuTool {
 		stringParam = stringParam.replace(".xml", "");
 		return stringParam;
 	}
-	
+
 	public static void deleteDirectoryStream(Path path) throws IOException {
 		Files.walk(path).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
 	}
-	
+
 	/**
 	 * get one or multiple communities parcels from infos contained in a parameter file
 	 * 
@@ -100,7 +99,7 @@ public class SimuTool {
 		if (!p.getString("decompIntoSector").equals("") && result.contains(p.getString("decompIntoSector"))) {
 			String zipIntoSector = p.getString("decompIntoSector");
 			try {
-				System.out.println("this "+zipIntoSector+" is split into Sections");
+				System.out.println("this " + zipIntoSector + " is split into Sections");
 				result.remove(zipIntoSector);
 				List<String> diffSection = new ArrayList<>();
 				ShapefileDataStore parcSDS = new ShapefileDataStore(FromGeom.getParcels(geoFile).toURI().toURL());
@@ -128,83 +127,80 @@ public class SimuTool {
 			}
 		}
 
-		// check the integrity of parcel
-//		System.out.println(result.size());
-//		List<String> zip = new ArrayList<String>();
-//		ShapefileDataStore parcSDS = new ShapefileDataStore(FromGeom.getParcels(geoFile).toURI().toURL());
-//		SimpleFeatureIterator it = parcSDS.getFeatureSource().getFeatures().features();
-//		try {
-//			while (it.hasNext()) {
-//				SimpleFeature feat = it.next();
-//				
-//					String insee = (String) feat.getAttribute("CODE_DEP") + (String) feat.getAttribute("CODE_COM");
-//					if (zip) {
-//						zip.remove(insee);
-//					} else if (!out && !zip.contains(insee)) {
-//						zip.add(insee);
-//					}
-//			}
-//		} catch (Exception problem) {
-//			problem.printStackTrace();
-//		} finally {
-//			it.close();
-//		}
-//		parcSDS.dispose();
-//		
-//		System.out.println(result.size());
-//
-//		File parcelPart = new File(variantFile, "parcelPartExport.shp");
-//		//check if this zip is already done
-//		if (parcelPart.exists()) {
-//			result = ParcelFonction.checkIfParcelIn(parcelPart, result, false, true);
-//			
-//			List<String> zip = new ArrayList<String>();
-//			ShapefileDataStore parcSDS = new ShapefileDataStore(file.toURI().toURL());
-//			SimpleFeatureIterator it = parcSDS.getFeatureSource().getFeatures().features();
-//			try {
-//				while (it.hasNext()) {
-//					SimpleFeature feat = it.next();
-//					if (isDepcom) {
-//						String insee = (String) feat.getAttribute("CODE_DEP") + (String) feat.getAttribute("CODE_COM");
-//						if (out && result.contains(insee)) {
-//							zip.remove(insee);
-//						} else if (!out && !zip.contains(insee)) {
-//							zip.add(insee);
-//						}
-//					} else {
-//						String insee = (String) feat.getAttribute("INSEE");
-//						if (out) {
-//
-//							zip.remove(insee);
-//						} else if (!zip.contains(insee)) {
-//
-//							zip.add(insee);
-//						}
-//
-//					}
-//				}
-//			} catch (Exception problem) {
-//				problem.printStackTrace();
-//			} finally {
-//				it.close();
-//			}
-//			parcSDS.dispose();
-//			return zip;
-//			System.out.println(result.size());
-//
-//		}
+		// // check the integrity of parcel
+		// //if the parcels doesn't exists
+		// System.out.println(result.size());
+		// List<String> zip = new ArrayList<String>();
+		// ShapefileDataStore parcSDS = new ShapefileDataStore(FromGeom.getParcels(geoFile).toURI().toURL());
+		// SimpleFeatureIterator it = parcSDS.getFeatureSource().getFeatures().features();
+		// try {
+		// while (it.hasNext()) {
+		// SimpleFeature feat = it.next();
+		// String insee = (String) feat.getAttribute("CODE_DEP") + (String) feat.getAttribute("CODE_COM");
+		// if (zip) {
+		// zip.remove(insee);
+		// } else if (!out && !zip.contains(insee)) {
+		// zip.add(insee);
+		// }
+		// }
+		// } catch (Exception problem) {
+		// problem.printStackTrace();
+		// } finally {
+		// it.close();
+		// }
+		// parcSDS.dispose();
+		//
+		// System.out.println(result.size());
+		//
+		// check if this zip is already done
+		File parcelPart = new File(variantFile, "parcelGenExport.shp");
+
+		if (parcelPart.exists()) {
+
+			List<String> zip = new ArrayList<String>();
+			ShapefileDataStore parcSDS = new ShapefileDataStore(parcelPart.toURI().toURL());
+			SimpleFeatureIterator it = parcSDS.getFeatureSource().getFeatures().features();
+			try {
+				while (it.hasNext()) {
+					SimpleFeature feat = it.next();
+					String insee = (String) feat.getAttribute("INSEE");
+					if (!zip.contains(insee)) {
+						zip.add(insee);
+					}
+				}
+			} catch (Exception problem) {
+				problem.printStackTrace();
+			} finally {
+				it.close();
+			}
+			parcSDS.dispose();
+			for (String z : zip) {
+				if (result.contains(z)) {
+					result.remove(z);
+				}
+			}
+		}
 		return result;
 	}
-	
-	public static boolean isCommunityRNU (File zoningFile, String insee) throws IOException{
-		boolean answer = false ;
+
+	public static void writteError(String zipError,String error, File rootFile) throws IOException {
+		FileWriter writer = new FileWriter(new File(rootFile, "mistakenCommunities"), true);
+		writer.append(zipError + "\n");
+		writer.append(error);
+		writer.append("\n");
+		writer.close();
+	}
+
+	public static boolean isCommunityRNU(File zoningFile, String insee) throws IOException {
+		boolean answer = false;
 		ShapefileDataStore zoningSDS = new ShapefileDataStore(zoningFile.toURI().toURL());
 		SimpleFeatureIterator it = zoningSDS.getFeatureSource().getFeatures().features();
 		try {
 			while (it.hasNext() && !answer) {
 				SimpleFeature feat = it.next();
-				if (feat.getAttribute("INSEE") != null && feat.getAttribute("INSEE").equals(insee) && feat.getAttribute("TYPEPLAN") != null && feat.getAttribute("TYPEPLAN").equals("RNU")) {
-					answer = true ;
+				if (feat.getAttribute("INSEE") != null && feat.getAttribute("INSEE").equals(insee) && feat.getAttribute("TYPEPLAN") != null
+						&& feat.getAttribute("TYPEPLAN").equals("RNU")) {
+					answer = true;
 				}
 			}
 		} catch (Exception problem) {
@@ -245,7 +241,6 @@ public class SimuTool {
 		return listZones;
 	}
 
-	
 	public static File createScenarVariantFolders(File packFile, File rootFile, String name) {
 
 		String varFile = packFile.getParentFile().getName();
