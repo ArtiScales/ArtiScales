@@ -690,7 +690,7 @@ public class ParcelFonction {
 				if (bigZoned.size() > 0) {
 					System.out.println("we cut the parcels with " + type + " parameters");
 					parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
-					result = addAllParcels(result, parcelTotRecomp(splitZone, bigZoned, tmpFile, mupOutput, pAdded, p.getBoolean("allZoneOrCell")));
+					result = addAllParcels(result, parcelTotRecomp(splitZone, bigZoned, tmpFile, mupOutput, pAdded, p.getBoolean("allZone")));
 				}
 			}
 		}
@@ -715,7 +715,7 @@ public class ParcelFonction {
 					if (typoed.size() > 0) {
 						parcelToNotAdd = dontAddParcel(parcelToNotAdd, typoed);
 						System.out.println("we cut the parcels with " + type + " parameters");
-						def = parcelTotRecomp(splitZone, typoed, tmpFile, mupOutput, pAdded, p.getBoolean("allZoneOrCell"));
+						def = parcelTotRecomp(splitZone, typoed, tmpFile, mupOutput, pAdded, p.getBoolean("allZone"));
 						break;
 					}
 				} else {
@@ -724,7 +724,7 @@ public class ParcelFonction {
 						if (bigZoned.size() > 0) {
 							parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
 							System.out.println("we cut the parcels with " + type + " parameters");
-							def = parcelTotRecomp(splitZone, bigZoned, tmpFile, mupOutput, pAdded, p.getBoolean("allZoneOrCell"));
+							def = parcelTotRecomp(splitZone, bigZoned, tmpFile, mupOutput, pAdded, p.getBoolean("allZone"));
 						}
 					}
 				}
