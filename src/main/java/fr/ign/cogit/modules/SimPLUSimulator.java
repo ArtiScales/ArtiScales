@@ -213,7 +213,7 @@ public class SimPLUSimulator {
 
 		// some static parameters needed
 		this.p = pa;
-		System.out.println("Root file = " + paramFile);
+		System.out.println("Param file = " + paramFile);
 		System.out.println("Simu file = " + packFile);
 		this.paramFile = paramFile;
 		this.simuFile = packFile;

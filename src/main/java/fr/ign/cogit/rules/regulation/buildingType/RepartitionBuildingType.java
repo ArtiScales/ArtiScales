@@ -417,24 +417,26 @@ public class RepartitionBuildingType {
 	public static BuildingType getBiggestRepartition(Parameters p) {
 		Integer max = 0;
 		BuildingType result = null;
-		if (p.getInteger("detachedHouse") > max && p.getInteger("detachedHouse") != -1) {
+		if (p.getInteger("detachedHouse") > max) {
 			max = p.getInteger("detachedHouse");
 			result = BuildingType.DETACHEDHOUSE;
 		}
-		if (p.getInteger("smallHouse") > max && p.getInteger("smallHouse") != -1) {
+		if (p.getInteger("smallHouse") > max ) {
 			max = p.getInteger("smallHouse");
+			System.out.println("fucckk");
 			result = BuildingType.SMALLHOUSE;
 		}
-		if (p.getInteger("multifamilyHouse") > max && p.getInteger("multifamilyHouse") != -1) {
+		if (p.getInteger("multifamilyHouse") > max ) {
 			max = p.getInteger("multifamilyHouse");
 			result = BuildingType.MULTIFAMILYHOUSE;
 		}
-		if (p.getInteger("smallBlockFlat") > max && p.getInteger("smallBlockFlat") != -1) {
+		if (p.getInteger("smallBlockFlat") > max) {
 			max = p.getInteger("smallBlockFlat");
 			result = BuildingType.SMALLBLOCKFLAT;
 		}
-		if (p.getInteger("midBlockFlat") > max && p.getInteger("midBlockFlat") != -1) {
+		if (p.getInteger("midBlockFlat") > max ) {
 			max = p.getInteger("midBlockFlat");
+			System.out.println("this tyep");
 			result = BuildingType.MIDBLOCKFLAT;
 		}
 		return result;

@@ -53,5 +53,10 @@ public class SimpluParametersXML implements SimpluParameters{
 	public void set(String name, Object value) {
 		 p.set(name, value);
 	}
+	
+public static Parameters emptyParam(Parameters p) {
+	p.entry = null;
+	return p;
+	}
 
 }

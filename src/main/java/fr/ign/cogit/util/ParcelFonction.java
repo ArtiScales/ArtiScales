@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -68,48 +69,48 @@ import fr.ign.parameters.Parameters;
 
 public class ParcelFonction {
 
-	public static void main(String[] args) throws Exception {
-		ShapefileDataStore parcelSDS = new ShapefileDataStore(
-				new File("/home/mcolomb/informatique/ArtiScalesLikeTBLunch/ParcelSelectionFile/DDense/variante0/parcelGenExport.shp").toURI()
-						.toURL());
-		int tot = parcelSDS.getFeatureSource().getFeatures().size();
-		DefaultFeatureCollection result = new DefaultFeatureCollection();
-		SimpleFeatureIterator parcelIt = parcelSDS.getFeatureSource().getFeatures().features();
-		// initialize the
-		result.add(parcelIt.next());
-		int count = 0;
-		try {
-			while (parcelIt.hasNext()) {
-				SimpleFeature feat = parcelIt.next();
-				SimpleFeatureIterator resIt = (Vectors.snapDatas(result.collection(), ((Geometry) feat.getDefaultGeometry()).buffer(10))).features();
-				boolean add = true;
-				try {
-					while (resIt.hasNext()) {
-						SimpleFeature featRes = resIt.next();
-						if (featRes.getAttribute("CODE").equals(feat.getAttribute("CODE"))) {
-							add = false;
-							break;
-						}
-					}
-				} catch (Exception problem) {
-					problem.printStackTrace();
-				} finally {
-					resIt.close();
-				}
-				if (add) {
-					result.add(feat);
-				}
-				System.out.println(count++ + " on " + tot);
-			}
-		} catch (Exception problem) {
-			problem.printStackTrace();
-		} finally {
-			parcelIt.close();
-		}
-		parcelSDS.dispose();
-		Vectors.exportSFC(result,
-				new File("/home/mcolomb/informatique/ArtiScalesLikeTBLunch/ParcelSelectionFile/DDense/variante0/parcelGenExportNoDouble.shp"));
-	}
+	// public static void main(String[] args) throws Exception {
+	// ShapefileDataStore parcelSDS = new ShapefileDataStore(
+	// new File("/home/mcolomb/informatique/ArtiScalesLikeTBLunch/ParcelSelectionFile/DDense/variante0/parcelGenExport.shp").toURI()
+	// .toURL());
+	// int tot = parcelSDS.getFeatureSource().getFeatures().size();
+	// DefaultFeatureCollection result = new DefaultFeatureCollection();
+	// SimpleFeatureIterator parcelIt = parcelSDS.getFeatureSource().getFeatures().features();
+	// // initialize the
+	// result.add(parcelIt.next());
+	// int count = 0;
+	// try {
+	// while (parcelIt.hasNext()) {
+	// SimpleFeature feat = parcelIt.next();
+	// SimpleFeatureIterator resIt = (Vectors.snapDatas(result.collection(), ((Geometry) feat.getDefaultGeometry()).buffer(10))).features();
+	// boolean add = true;
+	// try {
+	// while (resIt.hasNext()) {
+	// SimpleFeature featRes = resIt.next();
+	// if (featRes.getAttribute("CODE").equals(feat.getAttribute("CODE"))) {
+	// add = false;
+	// break;
+	// }
+	// }
+	// } catch (Exception problem) {
+	// problem.printStackTrace();
+	// } finally {
+	// resIt.close();
+	// }
+	// if (add) {
+	// result.add(feat);
+	// }
+	// System.out.println(count++ + " on " + tot);
+	// }
+	// } catch (Exception problem) {
+	// problem.printStackTrace();
+	// } finally {
+	// parcelIt.close();
+	// }
+	// parcelSDS.dispose();
+	// Vectors.exportSFC(result,
+	// new File("/home/mcolomb/informatique/ArtiScalesLikeTBLunch/ParcelSelectionFile/DDense/variante0/parcelGenExportNoDouble.shp"));
+	// }
 	// File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/exScenar");
 	// List<File> lF = new ArrayList<>();
 	// lF.add(new File(rootParam, "parameterTechnic.xml"));
@@ -467,7 +468,7 @@ public class ParcelFonction {
 				SimpleFeature featToComplete = parcelToCompletetIt.next();
 				Geometry geomToComplete = (Geometry) featToComplete.getDefaultGeometry();
 				Geometry geomsOrigin = Vectors.unionSFC(Vectors.snapDatas(originalParcel, geomToComplete));
-				if (!geomsOrigin.contains(geomToComplete)) {
+				if (!geomsOrigin.buffer(1).contains(geomToComplete)) {
 					System.out.println("this parcel has disapeard : " + geomToComplete);
 					// SimpleFeatureBuilder fit = FromGeom.setSFBParcelWithFeat(featToComplete, schema);
 					// result.add(fit.buildFeature(null));
@@ -670,7 +671,7 @@ public class ParcelFonction {
 		// split into zones to make correct parcel recomposition
 		for (String stringParam : listZonesTwoSector) {
 			System.out.println("for line " + stringParam);
-			Parameters pTemp = p;
+			Parameters pTemp = new Parameters();
 			pTemp.add(Parameters.unmarshall(new File(locationBuildingType, stringParam)));
 			// @simplification : as only one BuildingType is set per zones, we select the type that is the most represented
 			BuildingType type = RepartitionBuildingType.getBiggestRepartition(pTemp);
@@ -681,7 +682,7 @@ public class ParcelFonction {
 			try {
 				System.out.println(stringParam + " this iz " + stringParam.split("-")[1] + " for " + splitZone);
 			} catch (Exception e) {
-
+				pTemp.entry = null;
 			}
 			// two specifications emprise
 			if (stringParam.split("-").length == 2 && stringParam.split("-")[1].equals(splitZone)) {
@@ -693,6 +694,7 @@ public class ParcelFonction {
 					result = addAllParcels(result, parcelTotRecomp(splitZone, bigZoned, tmpFile, mupOutput, pAdded, p.getBoolean("allZone")));
 				}
 			}
+			p.reset();
 		}
 		if (result.isEmpty()) {
 			System.out.println("one sector attribute");
@@ -840,9 +842,9 @@ public class ParcelFonction {
 		try {
 			while (zoneAUIt.hasNext()) {
 				SimpleFeature feat = zoneAUIt.next();
-				Geometry intersection = ((Geometry) feat.getDefaultGeometry()).intersection(unionParcel);
+				Geometry intersection = Vectors
+						.scaledGeometryReductionIntersection(Arrays.asList(((Geometry) feat.getDefaultGeometry()), unionParcel));
 				if (!intersection.isEmpty() && intersection.getArea() > 5.0) {
-
 					if (intersection instanceof MultiPolygon) {
 						for (int i = 0; i < intersection.getNumGeometries(); i++) {
 							simpleSFB.set("the_geom", GeometryPrecisionReducer.reduce(intersection.getGeometryN(i), new PrecisionModel(100)));
@@ -952,8 +954,10 @@ public class ParcelFonction {
 				sfBuilder.set("AU", true);
 				sfBuilder.set("NC", false);
 				// avoid multi geom bugs
-				Geometry intersectedGeom = GeometryPrecisionReducer.reduce((Geometry) zone.getDefaultGeometry(), new PrecisionModel(100))
-						.intersection(GeometryPrecisionReducer.reduce(unionParcel, new PrecisionModel(100)));
+
+				Geometry intersectedGeom = Vectors
+						.scaledGeometryReductionIntersection(Arrays.asList((Geometry) zone.getDefaultGeometry(), unionParcel));
+
 				if (!intersectedGeom.isEmpty()) {
 					if (intersectedGeom instanceof MultiPolygon) {
 						for (int i = 0; i < intersectedGeom.getNumGeometries(); i++) {
@@ -972,6 +976,7 @@ public class ParcelFonction {
 						sfBuilder.set(geometryOutputName, intersectedGeom);
 					}
 				} else {
+					System.out.println("it's empty");
 					sfBuilder.set(geometryOutputName, zone.getDefaultGeometry());
 				}
 				write.add(sfBuilder.buildFeature(null));
@@ -987,6 +992,7 @@ public class ParcelFonction {
 		SimpleFeatureCollection toSplit = Vectors.delTinyParcels(write.collection(), 5.0);
 		double roadEpsilon = 00;
 		double noise = 0;
+		//Sometimes it bugs (like on Sector NV in Besançon)
 		SimpleFeatureCollection splitedAUParcels = splitParcels(toSplit, maximalArea, maximalWidth, roadEpsilon, noise, null, lenRoad, false,
 				decompositionLevelWithoutRoad, tmpFile);
 
@@ -1255,7 +1261,6 @@ public class ParcelFonction {
 
 		SimpleFeatureIterator bigParcelIt = mergedParcels.features();
 		DefaultFeatureCollection cutParcels = new DefaultFeatureCollection();
-
 		try {
 			while (bigParcelIt.hasNext()) {
 				SimpleFeature feat = bigParcelIt.next();
@@ -1270,7 +1275,6 @@ public class ParcelFonction {
 						cutParcels.add(sfBuilderSimple.buildFeature(null, new Object[] { f.getDefaultGeometry() }));
 					}
 					it.close();
-
 				} else {
 					cutParcels.add(sfBuilderSimple.buildFeature(null, new Object[] { feat.getDefaultGeometry() }));
 				}
@@ -2348,9 +2352,8 @@ public class ParcelFonction {
 							result.add(parcelFeat);
 						}
 						// if the intersection is less than 50% of the parcel, we let it to the other (with the hypothesis that there is only 2 features)
-						else if (GeometryPrecisionReducer.reduce(parcelGeom, new PrecisionModel(100))
-								.intersection(GeometryPrecisionReducer.reduce(zoneGeom, new PrecisionModel(100)))
-								.getArea() > parcelGeom.getArea() / 2) {
+						else if (Vectors.scaledGeometryReductionIntersection(Arrays.asList(parcelGeom, zoneGeom)).getArea() > parcelGeom.getArea()
+								/ 2) {
 							result.add(parcelFeat);
 						}
 					}
@@ -2395,7 +2398,9 @@ public class ParcelFonction {
 								break;
 							}
 							// if the intersection is less than 50% of the parcel, we let it to the other (with the hypothesis that there is only 2 features)
-							else if (parcelGeom.intersection(typoGeom).getArea() > parcelGeom.getArea() / 2) {
+//							else if (parcelGeom.intersection(typoGeom).getArea() > parcelGeom.getArea() / 2) {
+	
+							else if (Vectors.scaledGeometryReductionIntersection(Arrays.asList(typoGeom,parcelGeom)).getArea() > parcelGeom.getArea() / 2) {
 								result.add(parcelFeat);
 								break;
 							} else {

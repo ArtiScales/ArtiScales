@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -652,10 +653,10 @@ public class FromGeom {
 						break zoneLoop;
 					}
 				}
-				// maybe the parcel is in between two zones (less optimized)
+				// maybe the parcel is in between two zones (less optimized) intersection
 				else if ((featGeometry).intersects(parcelInGeometry)) {
 					twoZones = true;
-					double area = (featGeometry.intersection(parcelInGeometry)).getArea();
+					double area = Vectors.scaledGeometryReductionIntersection(Arrays.asList(featGeometry, parcelInGeometry)).getArea();
 					switch ((String) feat.getAttribute("TYPEZONE")) {
 					case "U":
 					case "ZC":

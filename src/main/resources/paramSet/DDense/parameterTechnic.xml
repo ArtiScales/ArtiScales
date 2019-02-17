@@ -7,7 +7,7 @@
 	<!-- Configuration générales des simulations ArtiScales -->
 	<param key="seed" value="42"/>
 	<param key = "singleCity" value = "true"/>
-	 <param key="zip" value ="25014"/>
+	 <param key="zip" value ="25056NV"/>
 	<!-- package pour la distribution contenant un ilot morphologique (=ilot) ou une communes (=communities) -->
 	<param key="package" value ="ilot"/>
 	<!-- The cities with the following zipCodes will be decomposed into section packages -->

@@ -24,7 +24,6 @@ import fr.ign.parameters.Parameters;
 public class SimuTool {
 
 	public static Parameters getParamFile(List<Parameters> lP, String scenar) throws FileNotFoundException {
-
 		for (Parameters p : lP) {
 			if (p.getString("name").equals(scenar)) {
 				return p;
