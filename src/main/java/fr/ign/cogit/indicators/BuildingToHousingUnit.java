@@ -17,9 +17,9 @@ import org.opengis.feature.simple.SimpleFeature;
 import au.com.bytecode.opencsv.CSVReader;
 import fr.ign.cogit.rules.regulation.buildingType.BuildingType;
 import fr.ign.cogit.rules.regulation.buildingType.RepartitionBuildingType;
+import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.cogit.util.FromGeom;
 import fr.ign.cogit.util.SimuTool;
-import fr.ign.parameters.Parameters;
 
 public class BuildingToHousingUnit extends Indicators {
 
@@ -45,7 +45,7 @@ public class BuildingToHousingUnit extends Indicators {
 	final String SDWELLING = "petit logement collectif";
 	final String LDWELLING = "grand logement collectif";
 
-	public BuildingToHousingUnit(List<File> buildingList, File simuFile, Parameters par) {
+	public BuildingToHousingUnit(List<File> buildingList, File simuFile, SimpluParametersJSON par) {
 		super(par);
 		this.buildingList = buildingList;
 		this.simuFile = simuFile;
@@ -71,7 +71,7 @@ public class BuildingToHousingUnit extends Indicators {
 		lF.add(new File(rootParam, "parameterTechnic.xml"));
 		lF.add(new File(rootParam, "parameterScenario.xml"));
 
-		Parameters p = Parameters.unmarshall(lF);
+		SimpluParametersJSON p = new SimpluParametersJSON(lF);
 
 		File batisSimulatedFile = new File("/home/mcolomb/informatique/ArtiScalesDanemarie/SimPLUDepot/dense/variante0");
 		File simuFile = new File("/home/mcolomb/informatique/ArtiScalesDanemarie/indic/bTH/dense/variante0");
@@ -87,7 +87,7 @@ public class BuildingToHousingUnit extends Indicators {
 		// bhtU.simpleCityEstimate();
 	}
 
-	public static void runParticularSimpleEstimation(List<File> filebati, File simuFile, Parameters p) throws IOException {
+	public static void runParticularSimpleEstimation(List<File> filebati, File simuFile, SimpluParametersJSON p) throws IOException {
 		BuildingToHousingUnit bth = new BuildingToHousingUnit(filebati, simuFile, p);
 		bth.runParticularSimpleEstimation();
 	}
@@ -331,7 +331,7 @@ public class BuildingToHousingUnit extends Indicators {
 	@SuppressWarnings("unchecked")
 	public HashMap<String, HashMap<String, Integer>> makeCollectiveHousingRepartition(SimpleFeature bati, BuildingType type) throws Exception {
 
-		Parameters pType = RepartitionBuildingType.getParam(new File(this.getClass().getClassLoader().getResource("profileBuildingType").getFile()),
+	  SimpluParametersJSON pType = RepartitionBuildingType.getParam(new File(this.getClass().getClassLoader().getResource("profileBuildingType").getFile()),
 				type);
 
 		int minLgt = pType.getInteger("minHousingUnit");

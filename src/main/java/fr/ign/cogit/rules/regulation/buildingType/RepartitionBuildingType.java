@@ -11,8 +11,9 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileReader;
+import fr.ign.cogit.simplu3d.util.SimpluParameters;
+import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.cogit.util.FromGeom;
-import fr.ign.parameters.Parameters;
 
 public class RepartitionBuildingType {
 
@@ -22,28 +23,37 @@ public class RepartitionBuildingType {
 	double pDetachedHouse, pSmallHouse, pMultifamilyHouse, pSmallBlockFlat, pMidBlockFlat;
 	DescriptiveStatistics dsc;
 	BuildingType defautBT;
-	File rootFile;
-	public RepartitionBuildingType(Parameters p, File rootFile, File parcelFile) throws NoSuchElementException, Exception {
-	  System.out.println("parcelFile = " + parcelFile);
-    this.parcelles = ShapefileReader.read(parcelFile.getAbsolutePath());
-		this.rootFile = rootFile;
+	File paramFile;
+	File zoningFile;
+	File communeFile;
+
+	public RepartitionBuildingType(SimpluParametersJSON p, File paramFile, File zoningFile, File communeFile, File parcelFile)
+			throws NoSuchElementException, Exception {
+		System.out.println("parcelFile = " + parcelFile);
+		this.parcelles = ShapefileReader.read(parcelFile.getAbsolutePath());
+		this.paramFile = paramFile;
+		this.zoningFile = zoningFile;
+		this.communeFile = communeFile;
 		makeRepart(p, parcelles);
 	}
 
-	public RepartitionBuildingType(Parameters p, File rootFile, IFeatureCollection<IFeature> parcel) throws NoSuchElementException, Exception {
-	  this.parcelles = parcel;
-    this.rootFile = rootFile;
+	public RepartitionBuildingType(SimpluParametersJSON p, File paramFile, File zoningFile, File communeFile, IFeatureCollection<IFeature> parcel)
+			throws NoSuchElementException, Exception {
+		this.parcelles = parcel;
+		this.paramFile = paramFile;
+		this.zoningFile = zoningFile;
+		this.communeFile = communeFile;
 		makeRepart(p, parcelles);
 
 	}
 
-	public void makeRepart(Parameters p, IFeatureCollection<IFeature> parcelles) throws NoSuchElementException, Exception {
+	public void makeRepart(SimpluParametersJSON p, IFeatureCollection<IFeature> parcelles) throws NoSuchElementException, Exception {
 
 		HashMap<BuildingType, Double> rep = new HashMap<BuildingType, Double>();
 
 		// add the zone parameters with the first parcel (redone for each parcel if it's a multizone type)
-		File location = new File(rootFile, "locationBuildingType");
-		p = addRepartitionToParameters(p, rootFile, parcelles.get(0), location);
+		File location = new File(paramFile, "locationBuildingType");
+		p = addRepartitionToParameters(p, zoningFile, communeFile, parcelles.get(0), location);
 
 		pDetachedHouse = p.getDouble("detachedHouse");
 
@@ -277,11 +287,12 @@ public class RepartitionBuildingType {
 	 * @return
 	 * @throws Exception
 	 */
-	public static Parameters addRepartitionToParameters(Parameters p, File rootFile, IFeature parcel, File profileBuildings) throws Exception {
-System.out.println("rootFile = " + p.getString("rootFile"));
-		String affect = FromGeom.affectZoneAndTypoToLocation(p.getString("useRepartition"), p.getString("scenarioPMSP3D"), parcel,
-				rootFile, true);
-System.out.println("profileBuildings = " + profileBuildings);
+	public static SimpluParametersJSON addRepartitionToParameters(SimpluParametersJSON p, File zoningFile, File communeFile, IFeature parcel, File profileBuildings)
+			throws Exception {
+		System.out.println("rootFile = " + p.getString("rootFile"));
+		String affect = FromGeom.affectZoneAndTypoToLocation(
+		    p.getString("useRepartition"), p.getString("scenarioPMSP3D"), parcel, zoningFile, communeFile, true);
+		System.out.println("profileBuildings = " + profileBuildings);
 		// we seek for if there's a special default repartition for the scenario
 		if (affect.equals("default")) {
 			for (File f : profileBuildings.listFiles()) {
@@ -292,7 +303,7 @@ System.out.println("profileBuildings = " + profileBuildings);
 			}
 		}
 
-		Parameters addParam = Parameters.unmarshall(new File(profileBuildings + "/" + affect + ".xml"));
+		SimpluParametersJSON addParam = new SimpluParametersJSON(new File(profileBuildings + "/" + affect + ".xml"));
 
 		System.out.println("we affect the " + affect + ".xml" + " folder");
 
@@ -300,18 +311,18 @@ System.out.println("profileBuildings = " + profileBuildings);
 		return p;
 	}
 
-	public static Parameters getParam(File ressourceFile, BuildingType type) throws Exception {
+	public static SimpluParametersJSON getParam(File ressourceFile, BuildingType type) throws Exception {
 		switch (type) {
 		case DETACHEDHOUSE:
-			return Parameters.unmarshall(new File(ressourceFile, "detachedHouse.xml"));
+			return new SimpluParametersJSON(new File(ressourceFile, "detachedHouse.xml"));
 		case SMALLHOUSE:
-			return Parameters.unmarshall(new File(ressourceFile, "smallHouse.xml"));
+			return new SimpluParametersJSON(new File(ressourceFile, "smallHouse.xml"));
 		case MULTIFAMILYHOUSE:
-			return Parameters.unmarshall(new File(ressourceFile, "multifamilyHouse.xml"));
+			return new SimpluParametersJSON(new File(ressourceFile, "multifamilyHouse.xml"));
 		case MIDBLOCKFLAT:
-			return Parameters.unmarshall(new File(ressourceFile, "midBlockFlat.xml"));
+			return new SimpluParametersJSON(new File(ressourceFile, "midBlockFlat.xml"));
 		case SMALLBLOCKFLAT:
-			return Parameters.unmarshall(new File(ressourceFile, "smallBlockFlat.xml"));
+			return new SimpluParametersJSON(new File(ressourceFile, "smallBlockFlat.xml"));
 		}
 		throw new Exception("no parameter file found");
 	}
@@ -370,9 +381,9 @@ System.out.println("profileBuildings = " + profileBuildings);
 		lF.add(new File(rootParam, "parameterTechnic.xml"));
 		lF.add(new File(rootParam, "parameterScenario.xml"));
 
-		Parameters p = Parameters.unmarshall(lF);
+		SimpluParametersJSON p = new SimpluParametersJSON(lF);
 
-		RepartitionBuildingType u = new RepartitionBuildingType(p,new File(""),
+		RepartitionBuildingType u = new RepartitionBuildingType(p, new File(""), new File(""), new File(""),
 				new File("/home/mcolomb/informatique/ArtiScales2/ParcelSelectionFile/intenseRegulatedSpread/variant0/parcelGenExport.shp"));
 		System.out.println(u.rangeInterest(0.52));
 		System.out.println(u.distribution);
@@ -404,27 +415,29 @@ System.out.println("profileBuildings = " + profileBuildings);
 	 * @param p
 	 * @return
 	 */
-	public static BuildingType getBiggestRepartition(Parameters p) {
+	public static BuildingType getBiggestRepartition(SimpluParameters p) {
 		Integer max = 0;
 		BuildingType result = null;
-		if (p.getInteger("detachedHouse") > max && p.getInteger("detachedHouse") != -1) {
+		if (p.getInteger("detachedHouse") > max) {
 			max = p.getInteger("detachedHouse");
 			result = BuildingType.DETACHEDHOUSE;
 		}
-		if (p.getInteger("smallHouse") > max && p.getInteger("smallHouse") != -1) {
+		if (p.getInteger("smallHouse") > max ) {
 			max = p.getInteger("smallHouse");
+			System.out.println("fucckk");
 			result = BuildingType.SMALLHOUSE;
 		}
-		if (p.getInteger("multifamilyHouse") > max && p.getInteger("multifamilyHouse") != -1) {
+		if (p.getInteger("multifamilyHouse") > max ) {
 			max = p.getInteger("multifamilyHouse");
 			result = BuildingType.MULTIFAMILYHOUSE;
 		}
-		if (p.getInteger("smallBlockFlat") > max && p.getInteger("smallBlockFlat") != -1) {
+		if (p.getInteger("smallBlockFlat") > max) {
 			max = p.getInteger("smallBlockFlat");
 			result = BuildingType.SMALLBLOCKFLAT;
 		}
-		if (p.getInteger("midBlockFlat") > max && p.getInteger("midBlockFlat") != -1) {
+		if (p.getInteger("midBlockFlat") > max ) {
 			max = p.getInteger("midBlockFlat");
+			System.out.println("this tyep");
 			result = BuildingType.MIDBLOCKFLAT;
 		}
 		return result;

@@ -7,7 +7,7 @@ import java.util.List;
 import fr.ign.cogit.modules.SimPLUSimulator;
 import fr.ign.cogit.rules.regulation.buildingType.BuildingType;
 import fr.ign.cogit.simplu3d.io.feature.AttribNames;
-import fr.ign.parameters.Parameters;
+import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 
 public class FakeWorldSimulator {
 
@@ -15,9 +15,8 @@ public class FakeWorldSimulator {
 
 		// Parent folder with all subfolder
 		String absoluteRootFolder = "./fakeWorld/";
-//		String absoluteRootFolder = "/home/ubuntu/boulot/these/fakeWorld/";
+		// String absoluteRootFolder = "/home/ubuntu/boulot/these/fakeWorld/";
 
-		
 		File rootFolderFile = new File(absoluteRootFolder);
 		testBuildingTypes(rootFolderFile, new File("/tmp/yop"));
 	}
@@ -38,7 +37,7 @@ public class FakeWorldSimulator {
 				lF.add(new File(rootParam, "parameterTechnic.xml"));
 				lF.add(new File(rootParam, "parameterScenario.xml"));
 
-				Parameters p = Parameters.unmarshall(lF);
+				SimpluParametersJSON p = new SimpluParametersJSON(lF);
 
 				// Rappel de la construction du code :
 
@@ -67,7 +66,9 @@ public class FakeWorldSimulator {
 				// p.set("simu", simulOut);
 				// SimPLUSimulator.ID_PARCELLE_TO_SIMULATE.add("30000");
 				// Selected parcels shapefile
-				SimPLUSimulator simplu = new SimPLUSimulator(new File("./src/main/resources/"), new File(p.getString("rootFile")), p, new File("/tmp/yop"));
+
+				SimPLUSimulator simplu = new SimPLUSimulator(new File("./src/main/resources/"), new File(p.getString("rootFile")), p,
+						new File("/tmp/yop"));
 
 				simplu.run();
 			}
@@ -86,16 +87,18 @@ public class FakeWorldSimulator {
 
 		for (String type : iterateOnBuildingType()) {
 			try {
-//				if (!type.equals("smallBlockFlat")) {
-//					continue;
-//				}
-				Parameters p = Parameters.unmarshall(lF);
+				// if (!type.equals("smallBlockFlat")) {
+				// continue;
+				// }
+			  SimpluParametersJSON p = new SimpluParametersJSON(lF);
 				File f = new File(rootFolderFile, type);
 
 				AttribNames.setATT_CODE_PARC("CODE");
 
 				p.set("rootFile", f);
+
 				SimPLUSimulator plu = new SimPLUSimulator(new File("./src/main/resources/"), f, p, outputFolder);
+
 				plu.run(BuildingType.valueOf(type.toUpperCase()), p);
 			} catch (Exception e) {
 				System.out.println(e);
