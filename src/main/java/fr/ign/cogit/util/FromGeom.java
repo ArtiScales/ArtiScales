@@ -397,7 +397,7 @@ public class FromGeom {
 	}
 
 	public static File getPrescLin(File regulFile) throws FileNotFoundException {
-		for (File f : regulFile.listFiles()) {
+		if (regulFile != null) for (File f : regulFile.listFiles()) {
 			if (f.getName().startsWith("prescLin") && f.getName().endsWith(".shp")) {
 				return f;
 			}
@@ -601,6 +601,7 @@ public class FromGeom {
 	public static List<String> parcelInBigZone(SimpleFeature parcelIn, File regulFile) throws Exception {
 		List<String> result = new LinkedList<String>();
 		System.out.println("regulFile = " + regulFile);
+		System.out.println("regulFile is directory? " + regulFile.isDirectory());
     System.out.println("Parcel = " + parcelIn.getDefaultGeometry());
     System.out.println("Zoning = " + getZoning(regulFile).toURI().toURL());
 		ShapefileDataStore shpDSZone = new ShapefileDataStore(getZoning(regulFile).toURI().toURL());
