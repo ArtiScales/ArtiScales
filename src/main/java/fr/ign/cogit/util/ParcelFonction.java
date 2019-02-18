@@ -673,19 +673,24 @@ public class ParcelFonction {
 		// split into zones to make correct parcel recomposition
 		for (String stringParam : listZonesTwoSector) {
 			System.out.println("for line " + stringParam);
-			SimpluParametersJSON pTemp = new SimpluParametersJSON(p);
-			pTemp.add(new SimpluParametersJSON(new File(locationBuildingType, stringParam)));
+
+			SimpluParametersJSON pLoc = new SimpluParametersJSON(p);
+			pLoc.add(new SimpluParametersJSON(new File(locationBuildingType, stringParam)));
 			// @simplification : as only one BuildingType is set per zones, we select the type that is the most represented
-			BuildingType type = RepartitionBuildingType.getBiggestRepartition(pTemp);
-			SimpluParametersJSON pAdded = new SimpluParametersJSON(p);
-			pAdded.add(RepartitionBuildingType.getParam(profileBuildingType, type));
+			BuildingType type = RepartitionBuildingType.getBiggestRepartition(pLoc);
+			SimpluParametersJSON pBuildingType = new SimpluParametersJSON(p);
+			pBuildingType.add(RepartitionBuildingType.getParam(profileBuildingType, type));
+
 
 			stringParam = SimuTool.cleanSectorName(stringParam);
 			try {
 				System.out.println(stringParam + " this iz " + stringParam.split("-")[1] + " for " + splitZone);
 			} catch (Exception e) {
+
 //				pTemp.entry = null;
+
 			}
+			System.out.println("profile type : " + pBuildingType.getString("nameBuildingType"));
 			// two specifications emprise
 			if (stringParam.split("-").length == 2 && stringParam.split("-")[1].equals(splitZone)) {
 				SimpleFeatureCollection typoed = getParcelByTypo(stringParam.split("-")[0], parcelCollection, new File(p.getString("rootFile")));
@@ -693,10 +698,11 @@ public class ParcelFonction {
 				if (bigZoned.size() > 0) {
 					System.out.println("we cut the parcels with " + type + " parameters");
 					parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
-					result = addAllParcels(result, parcelTotRecomp(splitZone, bigZoned, tmpFile, mupOutput, pAdded, p.getBoolean("allZone")));
+					result = addAllParcels(result, parcelTotRecomp(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType, p.getBoolean("allZone")));
 				}
-			}
-//			p.reset();
+
+			}	
+
 		}
 		if (result.isEmpty()) {
 			System.out.println("one sector attribute");

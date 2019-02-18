@@ -32,9 +32,8 @@ public class DataPreparator {
 
 		int numberOfParcels = 20;
 		double areaMax = 5000;
-
 		ZonePackager.createParcelGroupsAndExport(ShapefileReader.read(fileIn.getAbsolutePath()), numberOfParcels, areaMax,
-				folderTemp.getAbsolutePath(), folderOut.getAbsolutePath(),"", true);
+				folderTemp.getAbsolutePath(), folderOut.getAbsolutePath(), "500", true);
 	}
 
 }

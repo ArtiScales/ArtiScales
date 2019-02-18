@@ -86,7 +86,6 @@ public class MainTask {
 				}
 			}
 		}
-
 		////////////////
 		// Selection and parcel management part
 		////////////////
@@ -97,9 +96,11 @@ public class MainTask {
 			String scenarName = scenar.get(0).getName().split("-")[0];
 			List<File> variantParcelPackages = new ArrayList<File>();
 			for (File varianteSpatialConf : scenar) {
-				File fileOut = new File(rootFile, "SimPLUDepot/" + scenarName + "/" + varianteSpatialConf.getName());
-				fileOut.mkdir();
+
+				File fileOut = new File(rootFile, "ParcelSelectionDepot/" + scenarName + "/" + varianteSpatialConf.getParentFile().getName());
+				fileOut.mkdirs();
 				SimpluParametersJSON p = SimuTool.getParamFile(listScenarioParameters, scenarName);
+
 				SelectParcels selecPar = new SelectParcels(rootFile, fileOut, varianteSpatialConf, p);
 				File parcelPackage = selecPar.run();
 				variantParcelPackages.add(parcelPackage);
@@ -115,14 +116,20 @@ public class MainTask {
 			String scenarName = listVariantes.get(0).getParentFile().getName();
 			for (File varianteFile : listVariantes) {
 				List<File> buildingSimulatedPerVariant = new ArrayList<File>();
-				SimpluParametersJSON p = SimuTool.getParamFile(listScenarioParameters, scenarName);
-				for (File packFile : varianteFile.listFiles()) {
-					if (packFile.isDirectory()) {
-						File fileOut = new File(rootFile, "SimPLUDepot/" + scenarName + "/" + varianteFile.getName());
-						SimPLUSimulator simPluSim = new SimPLUSimulator(paramSet.getParentFile(), packFile, p, fileOut);
-						List<File> listFilesSimul = simPluSim.run();
-						if (!(listFilesSimul == null)) {
-							buildingSimulatedPerVariant.addAll(listFilesSimul);
+
+				for (File superPackFile : varianteFile.listFiles()) {
+					if (superPackFile.isDirectory()) {
+						for (File packFile : superPackFile.listFiles()) {
+							if (packFile.isDirectory()) {
+								SimpluParametersJSON p = SimuTool.getParamFile(listScenarioParameters, scenarName);
+
+								File fileOut = new File(rootFile, "SimPLUDepot/" + scenarName + "/" + varianteFile.getName());
+								SimPLUSimulator simPluSim = new SimPLUSimulator(paramSet.getParentFile(), packFile, p, fileOut);
+								List<File> listFilesSimul = simPluSim.run();
+								if (!(listFilesSimul == null)) {
+									buildingSimulatedPerVariant.addAll(listFilesSimul);
+								}
+							}
 						}
 					}
 				}

@@ -2,36 +2,41 @@ package fr.ign.cogit.tests;
 
 import java.io.File;
 
-import fr.ign.cogit.modules.SimPLUSimulator;
-import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
+import fr.ign.cogit.modules.SelectParcels;
 
 public class Test {
 
   public static void main(String[] args) throws Exception {
-    String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenarFakeWorldMax/").getPath();
+//    String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenarFakeWorldMax/").getPath();
 
-    File f1 = new File(rootParam, "parameterTechnic.xml");
-    SimpluParametersJSON p1 = new SimpluParametersJSON(f1);
-    
-    System.out.println(p1);
-    
-    SimpluParametersJSON p = new SimpluParametersJSON(p1);
-    
-    File f2 = new File(rootParam, "parameterScenario.xml");
-    SimpluParametersJSON p2 = new SimpluParametersJSON(f2);
-    System.out.println(p2);
+		SelectParcels.separateToDifferentOptimizedPack(
+				new File("/home/mcolomb/workspace/ArtiScales/ArtiScales/ParcelSelectionDepot/DDense/variante0/parcelGenExport.shp"),
+				new File("/home/mcolomb/workspace/ArtiScales/ArtiScales/ParcelSelectionDepot/DDense/variante0/"),
+				new File("/home/mcolomb/workspace/ArtiScales/ArtiScales/tmp"),
+				new File("/home/mcolomb/workspace/ArtiScales/ArtiScales/dataRegulation"),
+				new File("/home/mcolomb/workspace/ArtiScales/ArtiScales/dataGeo"));
 
-    p.add(p2);
+		// SelectParcels.separateToDifferentOptimizedPack(new File(rootFile, "ParcelSelectionFile/DDense/variante0/parcelGenExport.shp"),
+		// new File(rootFile,"ParcelSelectionFile/DDense/variante0/"), new File("/tmp/"), new File(rootFile,"dataGeo"), new File(rootFile,"dataRegulation"));
+		// IFeatureCollection<IFeature> collec = ShapefileReader.read("/home/mcolomb/informatique/ArtiScales/dataGeo/building.shp");
+		// IFeatureCollection<IFeature> result = new FT_FeatureCollection<>();
+		//
+		// for (IFeature feat : collec) {
+		// double hmin = ((double) feat.getAttribute("Z_MIN") + (double) feat.getAttribute("Z_MAX")) / 2;
+		// double hmax = hmin + (int) feat.getAttribute("HAUTEUR");
+		// IGeometry extruded = Extrusion2DObject.convertFromGeometry(feat.getGeom(), hmin, hmax);
+		// IMultiSurface<IOrientableSurface> finalOs = FromGeomToSurface.convertMSGeom(extruded);
+		// DefaultFeature salut = new DefaultFeature(finalOs);
+		// AttributeManager.addAttribute(salut, "ID", feat.getAttribute("ID"), "String");
+		// AttributeManager.addAttribute(salut, "HAUTEUR", feat.getAttribute("HAUTEUR"), "Integer");
+		// AttributeManager.addAttribute(salut, "NATURE", feat.getAttribute("NATURE"), "String");
+		//
+		// //if (res.getFeatureType().getGeometryType().equals(GeometryCollection))
+		// result.add(salut);
+		//
+		// }
+		// ShapefileWriter.write(result, "/home/mcolomb/informatique/ArtiScales/dataGeo/building3d.shp", CRS.decode("EPSG:2154"));
     
-    
-//    List<File> lF = new ArrayList<>();
-//    lF.add(f1);
-//    lF.add(f2);
-//
-//    SimpluParametersJSON p = new SimpluParametersJSON(lF);
-    System.out.println(p);
-
-    System.out.println(p1);
     // File rootFile = new File("/home/ubuntu/workspace/ArtiScales/ArtiScalesLikeTBLunch");
 
     // SelectParcels.separateToDifferentOptimizedPack(new File(rootFile, "ParcelSelectionFile/DDense/variante0/parcelGenExport.shp"),
