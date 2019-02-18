@@ -93,16 +93,34 @@
 			<groupId>fr.ign.cogit</groupId>
 			<artifactId>simplu3d</artifactId>
 			<version>${simplu3d.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.vividsolutions</groupId>
+					<artifactId>jts</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 				<dependency>
 			<groupId>org.geotools</groupId>
 			<artifactId>gt-grid</artifactId>
 			<version>${geotools.version}</version>
-		</dependency>
+			<exclusions>
+				<exclusion>
+					<groupId>com.vividsolutions</groupId>
+					<artifactId>jts-core</artifactId>
+				</exclusion>
+			</exclusions>
+				</dependency>
 		<dependency>
 			<groupId>fr.ign</groupId>
 			<artifactId>mupcity-openMole</artifactId>
 			<version>${mupcity-openMole.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.vividsolutions</groupId>
+					<artifactId>jts-core</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>fr.ign.cogit</groupId>
