@@ -411,7 +411,7 @@ public class FromGeom {
 	}
 
 	public static File getPrescLin(File regulFile) throws FileNotFoundException {
-		for (File f : regulFile.listFiles()) {
+		if (regulFile != null) for (File f : regulFile.listFiles()) {
 			if (f.getName().startsWith("prescLin") && f.getName().endsWith(".shp")) {
 				return f;
 			}

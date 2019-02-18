@@ -8,14 +8,14 @@ import java.util.NoSuchElementException;
 
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
+import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.cogit.util.FromGeom;
 import fr.ign.cogit.util.ParcelFonction;
-import fr.ign.parameters.Parameters;
 
 public class MultipleRepartitionBuildingType extends RepartitionBuildingType {
 	HashMap<String, List<String>> parcelsInZone;
 
-	public MultipleRepartitionBuildingType(Parameters p, File paramFile, File zoningFile, File communeFile, File parcelFile)
+	public MultipleRepartitionBuildingType(SimpluParametersJSON p, File paramFile, File zoningFile, File communeFile, File parcelFile)
 			throws NoSuchElementException, Exception {
 		super(p, paramFile, zoningFile, communeFile, parcelFile);
 		p = addRepartitionToParameters(p, zoningFile, communeFile, parcelles.get(0),
@@ -40,7 +40,7 @@ public class MultipleRepartitionBuildingType extends RepartitionBuildingType {
 		}
 	}
 
-	public BuildingType rangeInterest(double eval, String codeParcel, Parameters p) throws NoSuchElementException, Exception {
+	public BuildingType rangeInterest(double eval, String codeParcel, SimpluParametersJSON p) throws NoSuchElementException, Exception {
 
 		List<String> parcelsWanted = new ArrayList<String>();
 		for (List<String> parcels : parcelsInZone.values()) {

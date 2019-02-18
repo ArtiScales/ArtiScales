@@ -19,12 +19,13 @@ import org.geotools.data.simple.SimpleFeatureIterator;
 import org.opengis.feature.simple.SimpleFeature;
 
 import au.com.bytecode.opencsv.CSVReader;
-import fr.ign.parameters.Parameters;
+import fr.ign.cogit.simplu3d.util.SimpluParameters;
+import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 
 public class SimuTool {
 
-	public static Parameters getParamFile(List<Parameters> lP, String scenar) throws FileNotFoundException {
-		for (Parameters p : lP) {
+	public static SimpluParametersJSON getParamFile(List<SimpluParametersJSON> lP, String scenar) throws FileNotFoundException {
+		for (SimpluParametersJSON p : lP) {
 			if (p.getString("name").equals(scenar)) {
 				return p;
 			}
@@ -63,7 +64,7 @@ public class SimuTool {
 	 * @return
 	 * @throws Exception
 	 */
-	public static List<String> getIntrestingCommunities(Parameters p, File geoFile, File regulFile, File tmpFile, File variantFile) throws Exception {
+	public static List<String> getIntrestingCommunities(SimpluParameters p, File geoFile, File regulFile, File tmpFile, File variantFile) throws Exception {
 		List<String> result = new ArrayList<String>();
 		if (p.getString("singleCity").equals("true")) {
 			String zips = p.getString("zip");
@@ -211,7 +212,7 @@ public class SimuTool {
 		return answer;
 	}
 
-	public static List<String> getLocationParamNames(File locationBuildingType, Parameters p) {
+	public static List<String> getLocationParamNames(File locationBuildingType, SimpluParameters p) {
 		List<String> listZones = new ArrayList<String>();
 		List<String> specialScenarZone = new ArrayList<String>();
 		System.out.println(locationBuildingType);

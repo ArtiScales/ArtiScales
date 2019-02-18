@@ -19,9 +19,9 @@ import fr.ign.cogit.simplu3d.model.Prescription;
 import fr.ign.cogit.simplu3d.model.SubParcel;
 import fr.ign.cogit.simplu3d.model.UrbaZone;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.AbstractSimpleBuilding;
+import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.mpp.configuration.AbstractBirthDeathModification;
 import fr.ign.mpp.configuration.AbstractGraphConfiguration;
-import fr.ign.parameters.Parameters;
 
 public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C extends AbstractGraphConfiguration<O, C, M>, M extends AbstractBirthDeathModification<O, C, M>>
 		extends CommonPredicateArtiScales<O, C, M> {
@@ -44,7 +44,7 @@ public class MultiplePredicateArtiScales<O extends AbstractSimpleBuilding, C ext
 	 * @param env
 	 * @throws Exception
 	 */
-	public MultiplePredicateArtiScales(BasicPropertyUnit currentBPU, boolean align, Parameters p, IFeatureCollection<Prescription> presc,
+	public MultiplePredicateArtiScales(BasicPropertyUnit currentBPU, boolean align, SimpluParametersJSON p, IFeatureCollection<Prescription> presc,
 			Environnement env) throws Exception {
 		/*
 		 * All the job is done in the abstract class

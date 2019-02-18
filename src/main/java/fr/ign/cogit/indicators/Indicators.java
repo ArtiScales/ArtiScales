@@ -6,10 +6,10 @@ import java.io.IOException;
 
 import fr.ign.analyse.obj.ProjetAnalyse;
 import fr.ign.analyse.obj.ScenarAnalyse;
-import fr.ign.parameters.Parameters;
+import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 
 public abstract class Indicators {
-	Parameters p;
+  SimpluParametersJSON p;
 	File rootFile;
 	File simuFile;
 	static boolean firstLineGen = true;
@@ -17,7 +17,7 @@ public abstract class Indicators {
 	static boolean particularExists = false;
 	ScenarAnalyse sA;
 
-	public Indicators(Parameters p) {
+	public Indicators(SimpluParametersJSON p) {
 		this.p = p;
 		// lazy way to get MUP-City's informations
 		String strictStr = "St";

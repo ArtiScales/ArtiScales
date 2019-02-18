@@ -19,7 +19,7 @@ import fr.ign.cogit.simplu3d.model.PrescriptionType;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.AbstractSimpleBuilding;
 import fr.ign.cogit.simplu3d.rjmcmc.generic.object.ISimPLU3DPrimitive;
 import fr.ign.cogit.simplu3d.util.CuboidGroupCreation;
-import fr.ign.parameters.Parameters;
+import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 
 public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 
@@ -318,7 +318,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	 *            ; the floor area to not go further
 	 * @return true if the SDP of the configuration is not higher than the limit
 	 */
-	public boolean checkMaxSDP(List<O> lCuboid, Parameters p) {
+	public boolean checkMaxSDP(List<O> lCuboid, SimpluParametersJSON p) {
 		DirectPosition.PRECISION = 4;
 		double sDP = 0.0;
 		SDPCalcPolygonizer surfGen = new SDPCalcPolygonizer(p.getDouble("heightStorey") - 0.1);
@@ -435,7 +435,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 	 * 
 	 * @return
 	 */
-	public Double[] hauteur(Parameters p, ArtiScalesRegulation regle, Double heighSurroundingBuildings) {
+	public Double[] hauteur(SimpluParametersJSON p, ArtiScalesRegulation regle, Double heighSurroundingBuildings) {
 		// @ART 10 : a faire complétement
 		//////// Checking the height of the cuboid
 		double minPar = p.getDouble("minheight");
@@ -575,7 +575,7 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		return true;
 	}
 
-	public boolean checkParking(List<O> lAllCuboids, BasicPropertyUnit currentBPU, String art12, Parameters p) {
+	public boolean checkParking(List<O> lAllCuboids, BasicPropertyUnit currentBPU, String art12, SimpluParametersJSON p) {
 		if (art12.isEmpty() || art12.equals("99") || art12.equals("0")) {
 			return true;
 		}

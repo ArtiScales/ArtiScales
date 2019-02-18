@@ -4,7 +4,7 @@ import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
 import fr.ign.cogit.geoxygene.feature.FT_FeatureCollection;
 import fr.ign.cogit.modules.SimPLUSimulator;
 import fr.ign.cogit.simplu3d.model.Prescription;
-import fr.ign.parameters.Parameters;
+import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 
 public class PrescriptionPreparator {
 
@@ -17,7 +17,7 @@ public class PrescriptionPreparator {
 	 *            : Parameter file
 	 * @return
 	 */
-	public static IFeatureCollection<Prescription> preparePrescription(IFeatureCollection<Prescription> prescriptions, Parameters p) {
+	public static IFeatureCollection<Prescription> preparePrescription(IFeatureCollection<Prescription> prescriptions, SimpluParametersJSON p) {
 		IFeatureCollection<Prescription> prescriptionUse = new FT_FeatureCollection<>();
 
 		for (Prescription prescription : prescriptions) {

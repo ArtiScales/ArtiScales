@@ -32,10 +32,10 @@ import fr.ign.cogit.simplu3d.model.ParcelBoundaryType;
 import fr.ign.cogit.simplu3d.model.Prescription;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.AbstractSimpleBuilding;
 import fr.ign.cogit.simplu3d.util.CuboidGroupCreation;
+import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.cogit.util.SimuTool;
 import fr.ign.mpp.configuration.AbstractBirthDeathModification;
 import fr.ign.mpp.configuration.AbstractGraphConfiguration;
-import fr.ign.parameters.Parameters;
 import fr.ign.rjmcmc.configuration.ConfigurationModificationPredicate;
 
 /**
@@ -58,7 +58,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 	// Maxmimal number of cuboids
 	protected int nbCuboid = 0;
 	// Technical and scenario parameters
-	protected Parameters p;
+	protected SimpluParametersJSON p;
 	// Selected prescriptinons
 	protected IFeatureCollection<Prescription> prescriptions;
 	// Is intersection between cuboids allowed ?
@@ -103,7 +103,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 	 * @param presc
 	 * @throws Exceptiondistance
 	 */
-	protected CommonPredicateArtiScales(BasicPropertyUnit currentBPU, boolean align, Parameters pA, IFeatureCollection<Prescription> presc,
+	protected CommonPredicateArtiScales(BasicPropertyUnit currentBPU, boolean align, SimpluParametersJSON pA, IFeatureCollection<Prescription> presc,
 			Environnement env) throws Exception {
 
 		// Set the different initial values

@@ -5,9 +5,9 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
+import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.cogit.util.FromGeom;
 import fr.ign.cogit.util.SimuTool;
-import fr.ign.parameters.Parameters;
 
 public class MainTask {
 
@@ -31,7 +31,7 @@ public class MainTask {
 		// list of different scenarios to test "div"
 		// List<Parameters> listScenarios = getParamFile("DDense", new File("/home/ubuntu/workspace/ArtiScales/src/main/resources/paramSet"));
 		File paramSet = new File("./src/main/resources/paramSet");
-		List<Parameters> listScenarioParameters = getParamFile("DDense", paramSet);
+		List<SimpluParametersJSON> listScenarioParameters = getParamFile("DDense", paramSet);
 
 		// List<Parameters> listScenarios = getParamFile("scenar0MKDom", new
 		// File("/home/mbrasebin/Documents/Code/ArtiScales/ArtiScales/src/main/resources/paramSet/"));
@@ -54,7 +54,7 @@ public class MainTask {
 		// if we want to simulate MUPCity part or we directly using outputs
 		if (listScenarioParameters.get(0).getBoolean("createMUPSimu")) {
 			File mupCityDepot = new File(rootFile, "MupCityDepot");
-			for (Parameters p : listScenarioParameters) {
+			for (SimpluParametersJSON p : listScenarioParameters) {
 				List<File> listVariant = new ArrayList<File>();
 				String name = p.getString("name");
 				File scenarFile = new File(mupCityDepot, name);
@@ -96,9 +96,11 @@ public class MainTask {
 			String scenarName = scenar.get(0).getName().split("-")[0];
 			List<File> variantParcelPackages = new ArrayList<File>();
 			for (File varianteSpatialConf : scenar) {
+
 				File fileOut = new File(rootFile, "ParcelSelectionDepot/" + scenarName + "/" + varianteSpatialConf.getParentFile().getName());
 				fileOut.mkdirs();
-				Parameters p = SimuTool.getParamFile(listScenarioParameters, scenarName);
+				SimpluParametersJSON p = SimuTool.getParamFile(listScenarioParameters, scenarName);
+
 				SelectParcels selecPar = new SelectParcels(rootFile, fileOut, varianteSpatialConf, p);
 				File parcelPackage = selecPar.run();
 				variantParcelPackages.add(parcelPackage);
@@ -114,11 +116,13 @@ public class MainTask {
 			String scenarName = listVariantes.get(0).getParentFile().getName();
 			for (File varianteFile : listVariantes) {
 				List<File> buildingSimulatedPerVariant = new ArrayList<File>();
-				Parameters p = SimuTool.getParamFile(listScenarioParameters, scenarName);
+
 				for (File superPackFile : varianteFile.listFiles()) {
 					if (superPackFile.isDirectory()) {
 						for (File packFile : superPackFile.listFiles()) {
 							if (packFile.isDirectory()) {
+								SimpluParametersJSON p = SimuTool.getParamFile(listScenarioParameters, scenarName);
+
 								File fileOut = new File(rootFile, "SimPLUDepot/" + scenarName + "/" + varianteFile.getName());
 								SimPLUSimulator simPluSim = new SimPLUSimulator(paramSet.getParentFile(), packFile, p, fileOut);
 								List<File> listFilesSimul = simPluSim.run();
@@ -175,7 +179,7 @@ public class MainTask {
 		// }
 	}
 
-	public static Hashtable<String, String[]> prepareVariant(Parameters p) {
+	public static Hashtable<String, String[]> prepareVariant(SimpluParametersJSON p) {
 		Hashtable<String, String[]> variants = new Hashtable<String, String[]>();
 		try {
 			String[] originalScenar = { p.getString("emprise"), p.getString("cm"), p.getString("seuil"), p.getString("data"),
@@ -223,8 +227,8 @@ public class MainTask {
 	 * @return list : list of Parameters object to run
 	 * @throws Exception
 	 */
-	private static List<Parameters> getParamFile(File fIn) throws Exception {
-		List<Parameters> listParameters = new ArrayList<Parameters>();
+	private static List<SimpluParametersJSON> getParamFile(File fIn) throws Exception {
+		List<SimpluParametersJSON> listParameters = new ArrayList<SimpluParametersJSON>();
 		for (File folder : fIn.listFiles()) {
 			if (folder.isDirectory()) {
 				for (File paramFile : folder.listFiles()) {
@@ -232,7 +236,7 @@ public class MainTask {
 						List<File> templistFile = new ArrayList<File>();
 						templistFile.add(paramFile);
 						templistFile.add(paramFile);
-						listParameters.add(Parameters.unmarshall(templistFile));
+						listParameters.add(new SimpluParametersJSON(templistFile));
 					}
 				}
 			}
@@ -240,8 +244,8 @@ public class MainTask {
 		return listParameters;
 	}
 
-	private static List<Parameters> getParamFile(String nameComputer, File fIn) throws Exception {
-		List<Parameters> listParameters = new ArrayList<Parameters>();
+	private static List<SimpluParametersJSON> getParamFile(String nameComputer, File fIn) throws Exception {
+		List<SimpluParametersJSON> listParameters = new ArrayList<>();
 		for (File folder : fIn.listFiles()) {
 			if (folder.isDirectory() && folder.getName().contains(nameComputer)) {
 				List<File> templistFile = new ArrayList<File>();
@@ -250,7 +254,7 @@ public class MainTask {
 						templistFile.add(paramFile);
 					}
 				}
-				listParameters.add(Parameters.unmarshall(templistFile));
+				listParameters.add(new SimpluParametersJSON(templistFile));
 			}
 		}
 		return listParameters;

@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.tuple.MutablePair;
 
 import fr.ign.cogit.GTFunctions.Rasters;
-import fr.ign.parameters.Parameters;
+import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.task.Initialize;
 import fr.ign.task.ProjectCreationDecompTask;
 import fr.ign.task.SimulTask;
@@ -29,12 +29,12 @@ public class MupCitySimulation {
 
 	// root where everything's happening
 	File rootFile;
-	Parameters p;
+	SimpluParametersJSON p;
 	String[] variant;
 	File variantFile;
 	File geoFile;
 
-	public MupCitySimulation(Parameters p, String[] variant, File variantFile, File rootFile, File geoFile) {
+	public MupCitySimulation(SimpluParametersJSON p, String[] variant, File variantFile, File rootFile, File geoFile) {
 		this.rootFile = rootFile;
 		this.p = p;
 		this.variant = variant;
@@ -50,7 +50,7 @@ public class MupCitySimulation {
 
 	}
 
-	public static File run(Parameters p, String[] variant, File variantFile, File rootFile, File geoFile) throws Exception {
+	public static File run(SimpluParametersJSON p, String[] variant, File variantFile, File rootFile, File geoFile) throws Exception {
 
 		// calculation of mup city's simulation and vectorizaton
 		MupCitySimulation mupSim = new MupCitySimulation(p, variant, variantFile, rootFile, geoFile);
@@ -70,7 +70,7 @@ public class MupCitySimulation {
 		return variantFile;
 	}
 
-	public static File mupCityTask(Parameters p, String[] variant, File variantFile, File geoFile) throws Exception {
+	public static File mupCityTask(SimpluParametersJSON p, String[] variant, File variantFile, File geoFile) throws Exception {
 
 		Initialize.init();
 		String name = p.getString("name");

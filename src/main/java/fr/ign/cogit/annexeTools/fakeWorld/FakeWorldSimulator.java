@@ -7,7 +7,7 @@ import java.util.List;
 import fr.ign.cogit.modules.SimPLUSimulator;
 import fr.ign.cogit.rules.regulation.buildingType.BuildingType;
 import fr.ign.cogit.simplu3d.io.feature.AttribNames;
-import fr.ign.parameters.Parameters;
+import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 
 public class FakeWorldSimulator {
 
@@ -37,7 +37,7 @@ public class FakeWorldSimulator {
 				lF.add(new File(rootParam, "parameterTechnic.xml"));
 				lF.add(new File(rootParam, "parameterScenario.xml"));
 
-				Parameters p = Parameters.unmarshall(lF);
+				SimpluParametersJSON p = new SimpluParametersJSON(lF);
 
 				// Rappel de la construction du code :
 
@@ -90,7 +90,7 @@ public class FakeWorldSimulator {
 				// if (!type.equals("smallBlockFlat")) {
 				// continue;
 				// }
-				Parameters p = Parameters.unmarshall(lF);
+			  SimpluParametersJSON p = new SimpluParametersJSON(lF);
 				File f = new File(rootFolderFile, type);
 
 				AttribNames.setATT_CODE_PARC("CODE");

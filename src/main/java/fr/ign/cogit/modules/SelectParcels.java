@@ -30,24 +30,25 @@ import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
 import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.outputs.XmlGen;
+import fr.ign.cogit.simplu3d.util.SimpluParameters;
+import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.cogit.util.DataPreparator;
 import fr.ign.cogit.util.FromGeom;
 import fr.ign.cogit.util.ParcelFonction;
 import fr.ign.cogit.util.SimuTool;
-import fr.ign.parameters.Parameters;
 
 public class SelectParcels {
 
 	File rootFile, tmpFile, geoFile, regulFile, parcelFile, zoningFile, outFile, spatialConfigurationMUP;
 
 	String action;
-	Parameters p;
+	SimpluParametersJSON p;
 
 	// result parameters
 	int nbParcels;
 	float moyEval;
-
-	public SelectParcels(File rootfile, File outfile, File spatialconfiguration, Parameters par) throws Exception {
+	
+	public SelectParcels(File rootfile, File outfile, File spatialconfiguration, SimpluParametersJSON par) throws Exception {
 		// objet contenant les paramètres
 		p = par;
 		// where everything's happends
@@ -215,7 +216,7 @@ public class SelectParcels {
 	 * 
 	 * @return
 	 */
-	private static List<String> selectionType(Parameters p) {
+	private static List<String> selectionType(SimpluParameters p) {
 		List<String> routine = new ArrayList<String>();
 		if (p.getBoolean("JustEval")) {
 			routine.add("justEval");
@@ -391,7 +392,7 @@ public class SelectParcels {
 	 * @return a (shape)file containing the selection of parcel to urbanise
 	 * @throws Exception
 	 */
-	public SimpleFeatureCollection runNaturalLand(SimpleFeatureCollection parcelSFC, Parameters p, boolean flagONormal) throws Exception {
+	public SimpleFeatureCollection runNaturalLand(SimpleFeatureCollection parcelSFC, SimpluParameters p, boolean flagONormal) throws Exception {
 		SimpleFeatureIterator parcelIt = parcelSFC.features();
 
 		DefaultFeatureCollection result = new DefaultFeatureCollection();

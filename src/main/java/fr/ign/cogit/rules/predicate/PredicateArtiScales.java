@@ -10,17 +10,17 @@ import fr.ign.cogit.simplu3d.model.Environnement;
 import fr.ign.cogit.simplu3d.model.ParcelBoundaryType;
 import fr.ign.cogit.simplu3d.model.Prescription;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.AbstractSimpleBuilding;
+import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.cogit.util.SimuTool;
 import fr.ign.mpp.configuration.AbstractBirthDeathModification;
 import fr.ign.mpp.configuration.AbstractGraphConfiguration;
-import fr.ign.parameters.Parameters;
 
 public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends AbstractGraphConfiguration<O, C, M>, M extends AbstractBirthDeathModification<O, C, M>>
 		extends CommonPredicateArtiScales<O, C, M> {
 
 	// There is only one regulation
 	ArtiScalesRegulation regles;
-	Parameters p;
+	SimpluParametersJSON p;
 	CommonRulesOperator<O> cRO = new CommonRulesOperator<O>();
 
 	/**
@@ -35,7 +35,7 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 	 *            Considered prescription
 	 * @throws Exception
 	 */
-	public PredicateArtiScales(BasicPropertyUnit currentBPU, boolean align, ArtiScalesRegulation regle, Parameters pA,
+	public PredicateArtiScales(BasicPropertyUnit currentBPU, boolean align, ArtiScalesRegulation regle, SimpluParametersJSON pA,
 			IFeatureCollection<Prescription> presc, Environnement env) throws Exception {
 		/*
 		 * All the job is done in the abstract class

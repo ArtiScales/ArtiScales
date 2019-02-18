@@ -15,8 +15,8 @@ import org.opengis.referencing.NoSuchAuthorityCodeException;
 import com.vividsolutions.jts.geom.Geometry;
 
 import fr.ign.cogit.GTFunctions.Vectors;
+import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.cogit.util.FromGeom;
-import fr.ign.parameters.Parameters;
 
 public class ParcelStat extends Indicators {
 
@@ -26,7 +26,7 @@ public class ParcelStat extends Indicators {
 
 	String firstLine;
 
-	public ParcelStat(Parameters p, File parcelFile) throws IOException, NoSuchAuthorityCodeException, FactoryException {
+	public ParcelStat(SimpluParametersJSON p, File parcelFile) throws IOException, NoSuchAuthorityCodeException, FactoryException {
 		super(p);
 
 		this.parcelFile = parcelFile;
@@ -46,7 +46,7 @@ public class ParcelStat extends Indicators {
 		lF.add(new File(rootParam, "parameterTechnic.xml"));
 		lF.add(new File(rootParam, "parameterScenario.xml"));
 
-		Parameters p = Parameters.unmarshall(lF);
+		SimpluParametersJSON p = new SimpluParametersJSON(lF);
 
 		File parcelFile = new File("/home/mcolomb/informatique/ArtiScales/indic/parcelOut/teststp/variant0/parcelGenExport.shp");
 
