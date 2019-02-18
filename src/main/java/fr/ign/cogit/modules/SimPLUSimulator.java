@@ -344,6 +344,11 @@ public class SimPLUSimulator {
 
     for (CadastralParcel parcel : parcels) {
       String tmp = FromGeom.affectZoneAndTypoToLocation(pUsed.getString("useRepartition"), pUsed.getString("scenarioPMSP3D"), parcel, zoningFile, communitiesFile, true);
+      if (tmp == null) {
+        System.out.println("Could not affect zone and typo to location");
+        System.out.println("&&&&&&&&&&&&&& Aucun bâtiment n'a été simulé &&&&&&&&&&&&&&");
+        return null;
+      }
       if (!sectors.contains(tmp)) {
         sectors.add(tmp);
       }
