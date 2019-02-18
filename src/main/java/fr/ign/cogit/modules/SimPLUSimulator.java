@@ -382,7 +382,8 @@ public class SimPLUSimulator {
 		int nbBPU = env.getBpU().size();
 		bpu: for (int i = 0; i < nbBPU; i++) {
 			pUsed = new Parameters();
-			pUsed = p;
+			pUsed.add(p);
+
 			CadastralParcel CadParc = env.getBpU().get(i).getCadastralParcels().get(0);
 			String codeParcel = CadParc.getCode();
 

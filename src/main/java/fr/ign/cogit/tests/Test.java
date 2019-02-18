@@ -11,8 +11,15 @@ public class Test {
 	public static void main(String[] args) throws Exception {
 		File rootFile = new File("/home/ubuntu/workspace/ArtiScales/ArtiScalesLikeTBLunch");
 
-//		SelectParcels.separateToDifferentOptimizedPack(new File(rootFile, "ParcelSelectionFile/DDense/variante0/parcelGenExport.shp"),
-//				new File(rootFile,"ParcelSelectionFile/DDense/variante0/"), new File("/tmp/"), new File(rootFile,"dataGeo"), new File(rootFile,"dataRegulation"));
+		SelectParcels.separateToDifferentOptimizedPack(
+				new File("/home/mcolomb/workspace/ArtiScales/ArtiScales/ParcelSelectionDepot/DDense/variante0/parcelGenExport.shp"),
+				new File("/home/mcolomb/workspace/ArtiScales/ArtiScales/ParcelSelectionDepot/DDense/variante0/"),
+				new File("/home/mcolomb/workspace/ArtiScales/ArtiScales/tmp"),
+				new File("/home/mcolomb/workspace/ArtiScales/ArtiScales/dataRegulation"),
+				new File("/home/mcolomb/workspace/ArtiScales/ArtiScales/dataGeo"));
+
+		// SelectParcels.separateToDifferentOptimizedPack(new File(rootFile, "ParcelSelectionFile/DDense/variante0/parcelGenExport.shp"),
+		// new File(rootFile,"ParcelSelectionFile/DDense/variante0/"), new File("/tmp/"), new File(rootFile,"dataGeo"), new File(rootFile,"dataRegulation"));
 		// IFeatureCollection<IFeature> collec = ShapefileReader.read("/home/mcolomb/informatique/ArtiScales/dataGeo/building.shp");
 		// IFeatureCollection<IFeature> result = new FT_FeatureCollection<>();
 		//
