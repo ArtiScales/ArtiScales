@@ -14,6 +14,9 @@
 	<param key="package" value ="ilot"/>
 	<!-- The cities with the following zipCodes will be decomposed into section packages -->
 	<param key = "decompIntoSector" value = "25056" />
+	<!-- Do we pre cut the parcels with the sectors shapefile? -->
+	<param key = "preCutParcels" value = "true" />
+
 
 
 	<!-- PARAMETRES DE MUP-CITY -->

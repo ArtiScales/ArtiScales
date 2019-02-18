@@ -7,8 +7,7 @@
 	<!-- Configuration générales des simulations ArtiScales -->
 	<param key="seed" value="42"/>
 	<param key = "singleCity" value = "true"/>
-
- <param key="zip" value ="25576,25560,25111,25566,70154,25186,70107,70224,70174,70575,25200,25073"/>
+	 <param key="zip" value ="25056NV"/>
 	<!-- package pour la distribution contenant un ilot morphologique (=ilot) ou une communes (=communities) -->
 	<param key="package" value ="ilot"/>
 	<!-- The cities with the following zipCodes will be decomposed into section packages -->
@@ -37,7 +36,7 @@
 	<!-- paramètre conduisant au scénario d'étalement urbain -->
 		<!-- Paramètres relatifs à l'énergie -->
 		<!-- Énergie de création d'un cube dans une configuration m^3 -->
-		<param key="energy" value="50" />
+		<param key="energy" value="10" />
 		<!-- Pondération du critère de volume -->
 		<param key="ponderation_volume" value="1" />
 		<!-- Pondération négative du volume dépassant de la parcelle -->
@@ -81,7 +80,7 @@
 		<!-- Indique si il s'agit d'un nombre absolu d'itérations true ou un nombre 
 			relatif à la non amélioration de la configuration -->
 		<param key="end_test_type" value="composite" />
-		<param key="absolute_nb_iter" value="100000" />
+		<param key="absolute_nb_iter" value="1000000" />
 		<param key="relative_nb_iter" value="40000" />
 		<param key="delta" value="5" />
 		<param key="poisson" value="20" />

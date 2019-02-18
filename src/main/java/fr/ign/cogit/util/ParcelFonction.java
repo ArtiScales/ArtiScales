@@ -461,6 +461,7 @@ public class ParcelFonction {
 //		List<String> codeParcelAdded = new ArrayList<String>();
 
 //		SimpleFeatureType schema = parcelToComplete.features().next().getFeatureType();
+
 		// result.addAll(parcelCuted);
 
 		SimpleFeatureIterator parcelToCompletetIt = parcelToComplete.features();

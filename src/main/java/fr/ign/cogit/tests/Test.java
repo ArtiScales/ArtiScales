@@ -3,16 +3,16 @@ package fr.ign.cogit.tests;
 import java.io.File;
 
 import fr.ign.cogit.GTFunctions.Rasters;
+import fr.ign.cogit.modules.SelectParcels;
 import fr.ign.tools.OutputTools;
 
 public class Test {
 
 	public static void main(String[] args) throws Exception {
+		File rootFile = new File("/home/ubuntu/workspace/ArtiScales/ArtiScalesLikeTBLunch");
 
-		OutputTools.vectorizeMupOutput(Rasters.importRaster(new File(
-				"/media/mcolomb/Data_2/resultFinal/testAHP/comparaison/compAHP-Autom-CM20.0-S0.0-GP_915948.0_6677337.0/N7_Ba_YagahpT_Yag_seed_42/N7_Ba_YagahpT_Yag_seed_42-evalAnal-20.0.tif")),
-				new File("/media/mcolomb/Data_2/resultFinal/testAHP/extra/vector/N7_Ba_Yag_ahpT.shp"), 20);
-
+//		SelectParcels.separateToDifferentOptimizedPack(new File(rootFile, "ParcelSelectionFile/DDense/variante0/parcelGenExport.shp"),
+//				new File(rootFile,"ParcelSelectionFile/DDense/variante0/"), new File("/tmp/"), new File(rootFile,"dataGeo"), new File(rootFile,"dataRegulation"));
 		// IFeatureCollection<IFeature> collec = ShapefileReader.read("/home/mcolomb/informatique/ArtiScales/dataGeo/building.shp");
 		// IFeatureCollection<IFeature> result = new FT_FeatureCollection<>();
 		//

@@ -8,7 +8,6 @@ import java.util.List;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.cogit.util.FromGeom;
 import fr.ign.cogit.util.SimuTool;
-import fr.ign.parameters.Parameters;
 
 public class MainTask {
 
@@ -221,8 +220,8 @@ public class MainTask {
 	 * @return list : list of Parameters object to run
 	 * @throws Exception
 	 */
-	private static List<Parameters> getParamFile(File fIn) throws Exception {
-		List<Parameters> listParameters = new ArrayList<Parameters>();
+	private static List<SimpluParametersJSON> getParamFile(File fIn) throws Exception {
+		List<SimpluParametersJSON> listParameters = new ArrayList<SimpluParametersJSON>();
 		for (File folder : fIn.listFiles()) {
 			if (folder.isDirectory()) {
 				for (File paramFile : folder.listFiles()) {
@@ -230,7 +229,7 @@ public class MainTask {
 						List<File> templistFile = new ArrayList<File>();
 						templistFile.add(paramFile);
 						templistFile.add(paramFile);
-						listParameters.add(Parameters.unmarshall(templistFile));
+						listParameters.add(new SimpluParametersJSON(templistFile));
 					}
 				}
 			}
