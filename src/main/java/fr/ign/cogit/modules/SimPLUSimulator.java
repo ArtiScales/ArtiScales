@@ -328,6 +328,11 @@ public class SimPLUSimulator {
     // information and simulated annealing configuration
     // SimuTool.setEnvEnglishName();
 
+    if (!zoningFile.exists()) {
+      System.out.println("Zoning File not found: " + zoningFile);
+      System.out.println("&&&&&&&&&&&&&& Aucun bâtiment n'a été simulé &&&&&&&&&&&&&&");
+      return null;
+    }
     Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile, parcelsFile, roadFile, buildFile, filePrescPonct, filePrescLin, filePrescSurf, null);
     SimpluParametersJSON pUsed = p;
     ///////////
