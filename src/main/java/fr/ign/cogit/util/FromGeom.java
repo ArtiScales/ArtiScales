@@ -140,6 +140,10 @@ public class FromGeom {
 		List<String> mayOccur = new ArrayList<String>();
 		// TODO make sure that this returns the best answer
 		String zone = FromGeom.parcelInBigZone(zoningFile, parcel);
+		if (zone == null) {
+      System.out.println("Could not affect zone in " + zoningFile + " to " + parcel);
+		  return null;
+		}
 		String typo = FromGeom.parcelInTypo(communeFile, parcel);
 		String[] tabRepart = mainLine.split("_");
 
@@ -596,11 +600,11 @@ public class FromGeom {
 	 */
 	public static String parcelInBigZone(File zoningFile, SimpleFeature parcelIn) throws Exception {
 		List<String> yo = parcelInBigZone(parcelIn, zoningFile);
+		if (yo.isEmpty()) return null;
 		return yo.get(0);
 	}
 
 	public static List<String> parcelInBigZone(IFeature parcelIn, File zoningFile) throws Exception {
-
 		return parcelInBigZone(GeOxygeneGeoToolsTypes.convert2SimpleFeature(parcelIn, CRS.decode("EPSG:2154")), zoningFile);
 	}
 
