@@ -436,7 +436,6 @@ public class RepartitionBuildingType {
 		}
 		if (p.getInteger("smallHouse") > max ) {
 			max = p.getInteger("smallHouse");
-			System.out.println("smallHouse type taken");
 			result = BuildingType.SMALLHOUSE;
 		}
 		if (p.getInteger("multifamilyHouse") > max ) {
@@ -449,7 +448,6 @@ public class RepartitionBuildingType {
 		}
 		if (p.getInteger("midBlockFlat") > max ) {
 			max = p.getInteger("midBlockFlat");
-			System.out.println("this tyep");
 			result = BuildingType.MIDBLOCKFLAT;
 		}
 		return result;

@@ -334,7 +334,7 @@ public class ParcelFonction {
 					SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam.split("-")[1], typoed, new File(pBuildingType.getString("rootFile")));
 					if (bigZoned.size() > 0) {
 						parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
-						System.out.println("we cut the parcels with " + type + " parameters (" + p.getDouble("areaParcel") + "m2 max)");
+						System.out.println("we cut the parcels with " + type + " parameters (" + pBuildingType.getDouble("areaParcel") + "m2 max)");
 						result = addAllParcels(result, parcelDensification(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType));
 					}
 				}
@@ -682,12 +682,12 @@ public class ParcelFonction {
 			System.out.println("profile type : " + pBuildingType.getString("nameBuildingType"));
 			// two specifications emprise
 			if (stringParam.split("-").length == 2 && stringParam.split("-")[1].equals(splitZone)) {
-				SimpleFeatureCollection typoed = getParcelByTypo(stringParam.split("-")[0], parcelCollection, new File(p.getString("rootFile")));
-				SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam.split("-")[1], typoed, new File(p.getString("rootFile")));
+				SimpleFeatureCollection typoed = getParcelByTypo(stringParam.split("-")[0], parcelCollection, new File(pBuildingType.getString("rootFile")));
+				SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam.split("-")[1], typoed, new File(pBuildingType.getString("rootFile")));
 				if (bigZoned.size() > 0) {
 					System.out.println("we cut the parcels with " + type + " parameters");
 					parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
-					result = addAllParcels(result, parcelTotRecomp(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType, p.getBoolean("allZone")));
+					result = addAllParcels(result, parcelTotRecomp(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType, pBuildingType.getBoolean("allZone")));
 				}
 
 			}
