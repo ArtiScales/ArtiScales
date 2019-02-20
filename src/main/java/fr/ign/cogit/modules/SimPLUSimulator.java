@@ -14,6 +14,8 @@ import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeature;
 
+import com.vividsolutions.jts.geom.TopologyException;
+
 import fr.ign.cogit.annexeTools.SDPCalcPolygonizer;
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
@@ -160,26 +162,30 @@ public class SimPLUSimulator {
 
 		File rootParam = new File("./src/main/resources/paramSet/DDense");
 		List<File> lF = new ArrayList<>();
-		lF.add(new File(rootParam, "parameterTechnic.xml"));
-		lF.add(new File(rootParam, "parameterScenario.xml"));
+		lF.add(new File(rootParam, "parameterTechnic.json"));
+		lF.add(new File(rootParam, "parameterScenario.json"));
 
 		SimpluParametersJSON p = new SimpluParametersJSON(lF);
 		// AttribNames.setATT_CODE_PARC("CODE");
 		// USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
 
 		File paramFile = new File("./src/main/resources/");
-		File f = new File("./ArtiScalesTest/ParcelSelectionFile/DDense/variante0/");
+		File f = new File("./ArtiScalesTest/ParcelSelectionDepot/DDense/variante0/");
 		File fOut = new File("./ArtiScalesTest/SimPLUDepot/DDense/variante0/");
 		List<File> listBatiSimu = new ArrayList<File>();
-		for (File ff : f.listFiles()) {
-			if (ff.isDirectory()) {
-				System.out.println("start pack " + ff);
-				SimPLUSimulator sim = new SimPLUSimulator(paramFile, ff, p, fOut);
-				List<File> simued = sim.run();
-				if (simued != null) {
-					listBatiSimu.addAll(simued);
+		for (File superPack : f.listFiles()) {
+			if (superPack.isDirectory()) {
+				for (File pack : superPack.listFiles()) {
+					if (pack.isDirectory()) {
+						System.out.println("start pack " + pack);
+						SimPLUSimulator sim = new SimPLUSimulator(paramFile, pack, p, fOut);
+						List<File> simued = sim.run();
+						if (simued != null) {
+							listBatiSimu.addAll(simued);
+						}
+						System.out.println("done with pack " + pack.getName());
+					}
 				}
-				System.out.println("done with pack " + ff.getName());
 			}
 		}
 		FromGeom.mergeBatis(listBatiSimu);
@@ -237,6 +243,16 @@ public class SimPLUSimulator {
 		}
 	}
 
+	/**
+	 * Run overload if the BuildingType has already been decided
+	 * 
+	 * @param type
+	 *            : The chosen BuildingType
+	 * @param par
+	 *            : the scenario&technic parameters
+	 * @return a list of simulated building shapefile
+	 * @throws Exception
+	 */
 	public List<File> run(BuildingType type, SimpluParametersJSON par) throws Exception {
 		Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile, parcelsFile, roadFile, buildFile, filePrescPonct, filePrescLin,
 				filePrescSurf, null);
@@ -336,7 +352,8 @@ public class SimPLUSimulator {
 		}
 		Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile, parcelsFile, roadFile, buildFile, filePrescPonct, filePrescLin,
 				filePrescSurf, null);
-		SimpluParametersJSON pUsed = p;
+		SimpluParametersJSON pUsed = new SimpluParametersJSON(p);
+
 		///////////
 		// asses repartition to pacels
 		///////////
@@ -348,13 +365,16 @@ public class SimPLUSimulator {
 			String tmp = FromGeom.affectZoneAndTypoToLocation(pUsed.getString("useRepartition"), pUsed.getString("scenarioPMSP3D"), parcel,
 					zoningFile, communitiesFile, true);
 			if (tmp == null) {
-				System.out.println("Could not affect zone and typo to location");
-				System.out.println("&&&&&&&&&&&&&& Aucun bâtiment n'a été simulé &&&&&&&&&&&&&&");
-				return null;
+				break;
 			}
 			if (!sectors.contains(tmp)) {
 				sectors.add(tmp);
 			}
+		}
+		
+		//of no sectors, we use the default file
+		if (sectors.isEmpty()) {
+			sectors.add("default.json");
 		}
 
 		// loading the type of housing to build
@@ -370,7 +390,7 @@ public class SimPLUSimulator {
 			housingUnit = new MultipleRepartitionBuildingType(pUsed, paramFile, zoningFile, communitiesFile, parcelsFile);
 			multipleRepartitionBuildingType = true;
 		} else {
-			System.out.println("it's all normal");
+			System.out.println("it's all normal : one sector");
 		}
 
 		// Prescription setting
@@ -637,7 +657,14 @@ public class SimPLUSimulator {
 			switch (alignementsGeometries.getType()) {
 			// #Art71 case 1 or 2
 			case ART7112:
-				cc = article71Case12(alignementsGeometries, pred, env, i, bPU, par);
+				// TODO fix that defaite
+				try {
+					cc = article71Case12(alignementsGeometries, pred, env, i, bPU, par);
+				} catch (TopologyException tp) {
+					System.out.println("cuboid from ART7112 failed");
+					OptimisedBuildingsCuboidFinalDirectRejection oCB = new OptimisedBuildingsCuboidFinalDirectRejection();
+					cc = oCB.process(bPU, par, env, i, pred);
+				}
 				break;
 			// #Art71 case 3
 			case ART713:

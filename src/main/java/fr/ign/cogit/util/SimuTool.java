@@ -34,7 +34,7 @@ public class SimuTool {
 	}
 
 	/**
-	 * remove scenario specification and .xml attribute from a sector file contained in the ressource.
+	 * remove scenario specification and .json attribute from a sector file contained in the ressource.
 	 * 
 	 * @param stringParam
 	 * @return
@@ -46,7 +46,7 @@ public class SimuTool {
 			stringParam = stringParam.split(":")[1];
 		}
 		// del the .xml ref
-		stringParam = stringParam.replace(".xml", "");
+		stringParam = stringParam.replace(".json", "");
 		return stringParam;
 	}
 
@@ -218,7 +218,7 @@ public class SimuTool {
 		System.out.println(locationBuildingType);
 		for (File param : locationBuildingType.listFiles()) {
 			String nameParam = param.getName();
-			if (nameParam.equals("default.xml")) {
+			if (nameParam.equals("default.json")) {
 				continue;
 			}
 			// if the param repartition concerns a special scenario and it's not ours
