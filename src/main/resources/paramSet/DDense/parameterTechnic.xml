@@ -6,7 +6,7 @@
 	<!-- Paramètres généraux pour la simulation -->
 	<!-- Configuration générales des simulations ArtiScales -->
 	<param key="seed" value="42"/>
-	<param key = "singleCity" value = "false"/>
+	<param key = "singleCity" value = "true"/>
 	 <param key="zip" value ="25495"/>
 	<!-- package pour la distribution contenant un ilot morphologique (=ilot) ou une communes (=communities) -->
 	<param key="package" value ="ilot"/>
@@ -80,8 +80,8 @@
 		<!-- Indique si il s'agit d'un nombre absolu d'itérations true ou un nombre 
 			relatif à la non amélioration de la configuration -->
 		<param key="end_test_type" value="composite" />
-		<param key="absolute_nb_iter" value="1000000" />
-		<param key="relative_nb_iter" value="40000" />
+		<param key="absolute_nb_iter" value="1200000" />
+		<param key="relative_nb_iter" value="50000" />
 		<param key="delta" value="5" />
 		<param key="poisson" value="20" />
 

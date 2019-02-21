@@ -8,6 +8,7 @@ import java.util.List;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.cogit.util.FromGeom;
 import fr.ign.cogit.util.SimuTool;
+import fr.ign.cogit.util.TransformXMLToJSON;
 
 public class MainTask {
 
@@ -28,11 +29,14 @@ public class MainTask {
 
 		// general parameters
 
+		//convert from xml (that is more useful for commenting and changing values) to json (which is the common format for parameters exchanges)
+//		TransformXMLToJSON.convert(new File(MainTask.class.getClassLoader().getResource(".").getPath()));
+		
 		// list of different scenarios to test "div"
 		// List<Parameters> listScenarios = getParamFile("DDense", new File("/home/ubuntu/workspace/ArtiScales/src/main/resources/paramSet"));
 		File paramSet = new File("./src/main/resources/paramSet");
 		List<SimpluParametersJSON> listScenarioParameters = getParamFile("DDense", paramSet);
-
+System.out.println(listScenarioParameters);
 		// List<Parameters> listScenarios = getParamFile("scenar0MKDom", new
 		// File("/home/mbrasebin/Documents/Code/ArtiScales/ArtiScales/src/main/resources/paramSet/"));
 

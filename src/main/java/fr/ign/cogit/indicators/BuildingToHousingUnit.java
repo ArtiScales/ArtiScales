@@ -68,8 +68,8 @@ public class BuildingToHousingUnit extends Indicators {
 	public static void main(String[] args) throws Exception {
 		File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/dense");
 		List<File> lF = new ArrayList<>();
-		lF.add(new File(rootParam, "parameterTechnic.xml"));
-		lF.add(new File(rootParam, "parameterScenario.xml"));
+		lF.add(new File(rootParam, "parameterTechnic.json"));
+		lF.add(new File(rootParam, "parameterScenario.json"));
 
 		SimpluParametersJSON p = new SimpluParametersJSON(lF);
 

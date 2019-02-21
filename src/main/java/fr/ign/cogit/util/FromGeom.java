@@ -96,28 +96,34 @@ public class FromGeom {
 
 		File zoningFile = FromGeom.getZoning(new File(rootFile, "dataRegulation"));
 		File communeFile = FromGeom.getCommunities(new File(rootFile, "dataGeo"));
-		
-		return affectZoneAndTypoToLocation(mainLine, code, feature, zoningFile,communeFile, priorTypoOrZone);
-	}
-	
-	public static String affectZoneAndTypoToLocation(String mainLine, String code, IFeature parcel,File zoningFile,File communeFile, boolean priorTypoOrZone)
-			throws Exception {
-		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
-		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
-		sfTypeBuilder.setName("testType");
-		sfTypeBuilder.setCRS(sourceCRS);
-		sfTypeBuilder.add("the_geom", Polygon.class);
-		sfTypeBuilder.setDefaultGeometry("the_geom");
 
-		SimpleFeatureBuilder sfBuilder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
-		sfBuilder.add(AdapterFactory.toGeometry(new GeometryFactory(), parcel.getGeom()));
-
-		SimpleFeature feature = sfBuilder.buildFeature(null);
-		
-		return affectZoneAndTypoToLocation(mainLine, code, feature, zoningFile,communeFile, priorTypoOrZone);
+		return affectZoneAndTypoToLocation(mainLine, code, feature, zoningFile, communeFile, priorTypoOrZone);
 	}
 
 	/**
+	 * affect a repartition file for a specific parcel overload to accept geotool's IFeature
+	 * 
+	 * @param mainLine
+	 * @param code
+	 * @param parcel
+	 * @param zoningFile
+	 * @param communeFile
+	 * @param priorTypoOrZone
+	 * @return
+	 * @throws Exception
+	 */
+	public static String affectZoneAndTypoToLocation(String mainLine, String code, IFeature parcel, File zoningFile, File communeFile,
+			boolean priorTypoOrZone) throws Exception {
+
+		SimpleFeatureBuilder sfBuilder = FromGeom.getParcelSFBuilder();
+		sfBuilder.set("the_geom", AdapterFactory.toGeometry(new GeometryFactory(), parcel.getGeom()));
+		SimpleFeature feature = sfBuilder.buildFeature(null);
+
+		return affectZoneAndTypoToLocation(mainLine, code, feature, zoningFile, communeFile, priorTypoOrZone);
+	}
+
+	/**
+	 * affect a repartition file for a specific parcel
 	 * 
 	 * @param paramLine
 	 *            : value of the parameter file that concerns the zone repartition
@@ -133,52 +139,55 @@ public class FromGeom {
 	 * @return
 	 * @throws Exception
 	 */
-	public static String affectZoneAndTypoToLocation(String mainLine, String code, SimpleFeature parcel, File zoningFile,File communeFile, boolean priorTypoOrZone)
-			throws Exception {
-		String occurConcerned = "";
+	public static String affectZoneAndTypoToLocation(String mainLine, String code, SimpleFeature parcel, File zoningFile, File communeFile,
+			boolean priorTypoOrZone) throws Exception {
 
+		String result = "";
+		String isCode = "";
 		List<String> mayOccur = new ArrayList<String>();
 		// TODO make sure that this returns the best answer
 		String zone = FromGeom.parcelInBigZone(zoningFile, parcel);
 		if (zone == null) {
-      System.out.println("Could not affect zone in " + zoningFile + " to " + parcel);
-		  return null;
+			System.out.println("Could not affect zone in " + zoningFile + " to " + parcel);
+			return null;
 		}
 		String typo = FromGeom.parcelInTypo(communeFile, parcel);
+
 		String[] tabRepart = mainLine.split("_");
 
+		// for all the options specified in the parameters file
 		for (String s : tabRepart) {
 			// If the paramFile speak for a particular scenario
 			String[] scenarRepart = s.split(":");
-			// if its no longer than 1, no particular scénario
+			// if its no longer than 1, no particular scenario
 			if (scenarRepart.length > 1) {
 				// if codes doesn't match, we continue with another one
 				if (!scenarRepart[0].equals(code)) {
 					continue;
 				}
+				s = scenarRepart[1];
+				isCode = scenarRepart[0];
 			}
 			// seek for the different special locations
 			// if both, it's a perfect match !!
 			if (s.split("-").length > 1) {
-				if (s.split("-")[0].toLowerCase().equals(typo.toLowerCase()) && s.split("-")[1].equals(zone)) {
-					occurConcerned = s;
+				if (s.split("-")[0].toLowerCase().equals(typo.toLowerCase()) && s.split("-")[1].toLowerCase().equals(zone.toLowerCase())) {
+					result = isCode + ":" + s;
 					break;
 				}
-			}
-			//
-			else if (s.equals(zone)) {
-				mayOccur.add(s);
+			} else if (s.equals(zone)) {
+				mayOccur.add(isCode + ":" + s);
 			} else if (s.equals(typo)) {
-				mayOccur.add(s);
+				mayOccur.add(isCode + ":" + s);
 			}
 		}
 		// if no perfect match found, we seek for a simple zone identifier
-		if (occurConcerned.equals("")) {
+		if (result.equals("")) {
 			// we prior typo infos than zone infos
 			if (priorTypoOrZone) {
 				for (String s : mayOccur) {
 					if (s.equals(typo)) {
-						occurConcerned = s;
+						result = s;
 					}
 				}
 			}
@@ -186,19 +195,16 @@ public class FromGeom {
 			else if (!priorTypoOrZone) {
 				for (String s : mayOccur) {
 					if (s.equals(zone)) {
-						occurConcerned = s;
+						result = s;
 					}
 				}
 			}
 			// the type found is not the one priorized. We return it anyway
 			else {
-				occurConcerned = mayOccur.get(0);
+				result = mayOccur.get(0);
 			}
 		}
-		if (occurConcerned == "") {
-			occurConcerned = "default";
-		}
-		return occurConcerned;
+		return result;
 	}
 
 	public static String getBigZone(String unbigZone) {
@@ -415,11 +421,12 @@ public class FromGeom {
 	}
 
 	public static File getPrescLin(File regulFile) throws FileNotFoundException {
-		if (regulFile != null) for (File f : regulFile.listFiles()) {
-			if (f.getName().startsWith("prescLin") && f.getName().endsWith(".shp")) {
-				return f;
+		if (regulFile != null)
+			for (File f : regulFile.listFiles()) {
+				if (f.getName().startsWith("prescLin") && f.getName().endsWith(".shp")) {
+					return f;
+				}
 			}
-		}
 		throw new FileNotFoundException("prescLin file not found");
 	}
 
@@ -600,7 +607,8 @@ public class FromGeom {
 	 */
 	public static String parcelInBigZone(File zoningFile, SimpleFeature parcelIn) throws Exception {
 		List<String> yo = parcelInBigZone(parcelIn, zoningFile);
-		if (yo.isEmpty()) return null;
+		if (yo.isEmpty())
+			return null;
 		return yo.get(0);
 	}
 

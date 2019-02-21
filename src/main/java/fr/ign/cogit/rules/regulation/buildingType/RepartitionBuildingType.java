@@ -204,10 +204,9 @@ public class RepartitionBuildingType {
 		// throw new Exception("value not in the range");
 	}
 
-	private HashMap<BuildingType, String> adjustDistribution(double evalParcel, BuildingType takenBuildingType, boolean upOrDown) throws Exception {
-
+	@SuppressWarnings("unused")
+  private HashMap<BuildingType, String> adjustDistribution(double evalParcel, BuildingType takenBuildingType, boolean upOrDown) throws Exception {
 		return adjustDistribution(evalParcel, takenBuildingType, rangeInterest(evalParcel), upOrDown);
-
 	}
 
 	/**
@@ -292,40 +291,54 @@ public class RepartitionBuildingType {
 			throws Exception {
 		String affect = FromGeom.affectZoneAndTypoToLocation(
 		    p.getString("useRepartition"), p.getString("scenarioPMSP3D"), parcel, zoningFile, communeFile, true);
-		System.out.println("profileBuildings = " + profileBuildings);
 		System.out.println("affect = " + affect);
 		// we seek for if there's a special default repartition for the scenario
-		if (affect.equals("default")) {
+//		System.out.println("profileBuildings = " + profileBuildings);
+		// if nothing is returned, we use the default parameter file
+		if (affect.equals("")) {
 			for (File f : profileBuildings.listFiles()) {
 				String name = f.getName();
+				//first if there is a special default comportment for the scenario
 				if (name.startsWith(p.getString("scenarioPMSP3D")) && name.contains("default")) {
-					affect = f.getName().replace(".xml", "");
+					affect = f.getName().replace(".json", "");
+					break;
+				}
+				//else the default default
+				else  {
+					affect = "default";
 				}
 			}
 		}
 
-		SimpluParametersJSON addParam = new SimpluParametersJSON(new File(profileBuildings + "/" + affect + ".xml"));
+		SimpluParametersJSON addParam = new SimpluParametersJSON(new File(profileBuildings + "/" + affect + ".json"));
 
-		System.out.println("we affect the " + affect + ".xml" + " folder");
-		System.out.println("JSON Param = " + addParam);
+		System.out.println("we affect the " + affect + ".json" + " folder");
+    System.out.println("JSON Param = " + addParam);
 
 		p.add(addParam);
 		System.out.println("p = " + p);
 		return p;
 	}
 
-	public static SimpluParametersJSON getParam(File ressourceFile, BuildingType type) throws Exception {
+	/**
+	 * return the json data related to the given building type 
+	 * @param ressourceFolder : Folder where the .xml files are stored
+	 * @param type : given Building Type
+	 * @return
+	 * @throws Exception
+	 */
+	public static SimpluParametersJSON getParam(File ressourceFolder, BuildingType type) throws Exception {
 		switch (type) {
 		case DETACHEDHOUSE:
-			return new SimpluParametersJSON(new File(ressourceFile, "detachedHouse.xml"));
+			return new SimpluParametersJSON(new File(ressourceFolder, "detachedHouse.json"));
 		case SMALLHOUSE:
-			return new SimpluParametersJSON(new File(ressourceFile, "smallHouse.xml"));
+			return new SimpluParametersJSON(new File(ressourceFolder, "smallHouse.json"));
 		case MULTIFAMILYHOUSE:
-			return new SimpluParametersJSON(new File(ressourceFile, "multifamilyHouse.xml"));
+			return new SimpluParametersJSON(new File(ressourceFolder, "multifamilyHouse.json"));
 		case MIDBLOCKFLAT:
-			return new SimpluParametersJSON(new File(ressourceFile, "midBlockFlat.xml"));
+			return new SimpluParametersJSON(new File(ressourceFolder, "midBlockFlat.json"));
 		case SMALLBLOCKFLAT:
-			return new SimpluParametersJSON(new File(ressourceFile, "smallBlockFlat.xml"));
+			return new SimpluParametersJSON(new File(ressourceFolder, "smallBlockFlat.json"));
 		}
 		throw new Exception("no parameter file found");
 	}
@@ -378,21 +391,21 @@ public class RepartitionBuildingType {
 		return result;
 	}
 
-	public static void main(String[] args) throws Exception {
-		File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/etalIntenseRegul");
-		List<File> lF = new ArrayList<>();
-		lF.add(new File(rootParam, "parameterTechnic.xml"));
-		lF.add(new File(rootParam, "parameterScenario.xml"));
-
-		SimpluParametersJSON p = new SimpluParametersJSON(lF);
-
-		RepartitionBuildingType u = new RepartitionBuildingType(p, new File(""), new File(""), new File(""),
-				new File("/home/mcolomb/informatique/ArtiScales2/ParcelSelectionFile/intenseRegulatedSpread/variant0/parcelGenExport.shp"));
-		System.out.println(u.rangeInterest(0.52));
-		System.out.println(u.distribution);
-		System.out.println(u.adjustDistribution(0.35285416, BuildingType.MULTIFAMILYHOUSE, false));
-
-	}
+//	public static void main(String[] args) throws Exception {
+//		File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/etalIntenseRegul");
+//		List<File> lF = new ArrayList<>();
+//		lF.add(new File(rootParam, "parameterTechnic.xml"));
+//		lF.add(new File(rootParam, "parameterScenario.xml"));
+//
+//		SimpluParametersJSON p = new SimpluParametersJSON(lF);
+//
+//		RepartitionBuildingType u = new RepartitionBuildingType(p, new File(""), new File(""), new File(""),
+//				new File("/home/mcolomb/informatique/ArtiScales2/ParcelSelectionFile/intenseRegulatedSpread/variant0/parcelGenExport.shp"));
+//		System.out.println(u.rangeInterest(0.52));
+//		System.out.println(u.distribution);
+//		System.out.println(u.adjustDistribution(0.35285416, BuildingType.MULTIFAMILYHOUSE, false));
+//
+//	}
 
 	/**
 	 * says if the building possess an attic
@@ -427,7 +440,6 @@ public class RepartitionBuildingType {
 		}
 		if (p.getInteger("smallHouse") > max ) {
 			max = p.getInteger("smallHouse");
-			System.out.println("smallHouse type taken");
 			result = BuildingType.SMALLHOUSE;
 		}
 		if (p.getInteger("multifamilyHouse") > max ) {
@@ -440,7 +452,6 @@ public class RepartitionBuildingType {
 		}
 		if (p.getInteger("midBlockFlat") > max ) {
 			max = p.getInteger("midBlockFlat");
-			System.out.println("this tyep");
 			result = BuildingType.MIDBLOCKFLAT;
 		}
 		return result;

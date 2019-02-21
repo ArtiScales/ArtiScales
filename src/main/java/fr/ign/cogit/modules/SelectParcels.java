@@ -47,7 +47,7 @@ public class SelectParcels {
 	// result parameters
 	int nbParcels;
 	float moyEval;
-	
+
 	public SelectParcels(File rootfile, File outfile, File spatialconfiguration, SimpluParametersJSON par) throws Exception {
 		// objet contenant les paramètres
 		p = par;
@@ -74,10 +74,6 @@ public class SelectParcels {
 
 	public File run() throws Exception {
 
-		// List<List<File>> selectionFile = new ArrayList<List<File>>();
-
-		List<String> listeAction = selectionType(p);
-
 		File parcGen = new File(outFile, "parcelGenExport.shp");
 
 		// if we simul on one city (debug) or the whole area
@@ -85,112 +81,7 @@ public class SelectParcels {
 
 		// we loop on every cities
 		for (String zip : listZip) {
-			// if (zip.equals("25056")) {continue;}
-			System.out.println();
-			System.out.println("for the " + zip + " city");
-			System.out.println();
-			parcelFile = ParcelFonction.getParcels(geoFile, regulFile, tmpFile, zip, p.getBoolean("preCutParcels"));
-
-			ShapefileDataStore shpDSparcel = new ShapefileDataStore((parcelFile).toURI().toURL());
-			SimpleFeatureCollection parcelCollection = DataUtilities.collection(shpDSparcel.getFeatureSource().getFeatures());
-			shpDSparcel.dispose();
-
-			/////////////
-			// first selection regarding on the scenarios
-			/////////////
-
-			for (String action : listeAction) {
-				System.out.println("---=+Pour le remplissage " + action + "+=---");
-				switch (action) {
-				case "Ubuilt":
-					parcelCollection = runBrownfieldConstructed(parcelCollection);
-					break;
-				case "UnotBuilt":
-					parcelCollection = runBrownfieldUnconstructed(parcelCollection);
-					break;
-				case "AU":
-					parcelCollection = runGreenfieldSelected(parcelCollection);
-					break;
-				case "NC":
-					parcelCollection = runNaturalLand(parcelCollection, p, false);
-					break;
-				case "justEval":
-					parcelCollection = runAll(parcelCollection);
-					break;
-				case "random":
-					parcelCollection = random(parcelCollection, 10000);
-					break;
-				case "JustZoning":
-					parcelCollection = runZoningAllowed(parcelCollection);
-					break;
-				}
-			}
-			////////////////
-			// Split parcel processes
-			////////////////
-			Vectors.exportSFC(parcelCollection, new File(tmpFile, "parcelBeforeSplit"));
-
-			File ressource = new File(this.getClass().getClassLoader().getResource("").getFile());
-
-			// some very few cases are still crashing, so we get the parcels back when
-
-			if (!p.getString("splitDensification").equals("false") && !p.getString("splitDensification").equals("")) {
-				if (!p.getBoolean("Ubuilt")) {
-					System.out.println("Scenar error. We cannot densify if the U build parcels haven't been selected");
-				} else {
-					String splitZone = p.getString("splitDensification");
-					if (!splitZone.contains("-")) {
-						System.out.println();
-						System.out.println("///// We start the densification process\\\\\\");
-						parcelCollection = ParcelFonction.parcelDensification(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP,
-								ressource, p);
-						Vectors.exportSFC(parcelCollection, new File(tmpFile, "afterDensification"));
-					} else {
-						System.err.println("splitParcel : complex section non implemented yet");
-					}
-				}
-			}
-
-			if (!p.getString("splitTotRecomp").equals("false") && !p.getString("splitTotRecomp").equals("")) {
-				String splitZone = p.getString("splitTotRecomp");
-				if (!splitZone.contains("-")) {
-					System.out.println();
-					System.out.println("///// We start the splitTotRecomp process\\\\\\");
-					parcelCollection = ParcelFonction.parcelTotRecomp(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP, p, ressource);
-					Vectors.exportSFC(parcelCollection, new File(tmpFile, "splitTotRecomp"));
-				} else {
-					System.err.println("splitParcel : complex section non implemented yet");
-				}
-			}
-			if (!p.getString("splitPartRecomp").equals("false") && !p.getString("splitPartRecomp").equals("")) {
-				String splitZone = p.getString("splitPartRecomp");
-				if (!splitZone.contains("-")) {
-					System.out.println();
-					System.out.println("///// We start the splitPartRecomp process\\\\\\");
-					parcelCollection = ParcelFonction.parcelPartRecomp(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP, p, ressource,
-							true);
-					Vectors.exportSFC(parcelCollection, new File(tmpFile, "aftersplitPartRecomp"));
-				} else {
-					System.err.println("splitParcel : complex section non implemented yet");
-				}
-			}
-
-			// if there's been a bug and a parcel is missing
-			ShapefileDataStore shpDSparcel2 = new ShapefileDataStore(FromGeom.getParcels(geoFile).toURI().toURL());
-			SimpleFeatureCollection parcelOriginal = shpDSparcel2.getFeatureSource().getFeatures();
-			parcelCollection = ParcelFonction.completeParcelMissingWithOriginal(parcelCollection, parcelOriginal);
-			shpDSparcel2.dispose();
-
-			File parcelSelectedFile = Vectors.exportSFC(parcelCollection, new File(outFile, "parcelPartExport.shp"));
-
-			// merge the multiple parcels into a unique parcelFile
-			List<File> lFile = new ArrayList<File>();
-			if (parcGen.exists()) {
-				lFile.add(parcGen);
-			}
-			lFile.add(parcelSelectedFile);
-			Vectors.mergeVectFiles(lFile, parcGen);
-			shpDSparcel.dispose();
+			selectAndDecompParcels(zip, true, parcGen);
 		}
 
 		////////////////
@@ -207,6 +98,124 @@ public class SelectParcels {
 
 		// SimuTool.deleteDirectoryStream(tmpFile.toPath());
 		return outFile;
+	}
+
+	public void selectAndDecompParcels(String zip, Boolean mergeParcels, File mergeFile) throws Exception {
+
+		List<String> listeAction = selectionType(p);
+
+		// if (zip.equals("25056")) {continue;}
+		System.out.println();
+		System.out.println("for the " + zip + " city");
+		System.out.println();
+		parcelFile = ParcelFonction.getParcels(geoFile, regulFile, tmpFile, zip, p.getBoolean("preCutParcels"));
+
+		ShapefileDataStore shpDSparcel = new ShapefileDataStore((parcelFile).toURI().toURL());
+		SimpleFeatureCollection parcelCollection = DataUtilities.collection(shpDSparcel.getFeatureSource().getFeatures());
+		shpDSparcel.dispose();
+
+		/////////////
+		// first selection regarding on the scenarios
+		/////////////
+
+		for (String action : listeAction) {
+			System.out.println("---=+Pour le remplissage " + action + "+=---");
+			switch (action) {
+			case "Ubuilt":
+				parcelCollection = runBrownfieldConstructed(parcelCollection);
+				break;
+			case "UnotBuilt":
+				parcelCollection = runBrownfieldUnconstructed(parcelCollection);
+				break;
+			case "AU":
+				parcelCollection = runGreenfieldSelected(parcelCollection);
+				break;
+			case "NC":
+				parcelCollection = runNaturalLand(parcelCollection, p, false);
+				break;
+			case "justEval":
+				parcelCollection = runAll(parcelCollection);
+				break;
+			case "random":
+				parcelCollection = random(parcelCollection, 10000);
+				break;
+			case "JustZoning":
+				parcelCollection = runZoningAllowed(parcelCollection);
+				break;
+			}
+		}
+		////////////////
+		// Split parcel processes
+		////////////////
+		Vectors.exportSFC(parcelCollection, new File(tmpFile, "parcelBeforeSplit"));
+
+		File ressource = new File(this.getClass().getClassLoader().getResource("").getFile());
+
+		// some very few cases are still crashing, so we get the parcels back when
+
+		if (!p.getString("splitDensification").equals("false") && !p.getString("splitDensification").equals("")) {
+			if (!p.getBoolean("Ubuilt")) {
+				System.out.println("Scenar error. We cannot densify if the U build parcels haven't been selected");
+			} else {
+				String splitZone = p.getString("splitDensification");
+				if (!splitZone.contains("-")) {
+					System.out.println();
+					System.out.println("///// We start the densification process\\\\\\");
+					parcelCollection = ParcelFonction.parcelDensification(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP, ressource,
+							p);
+					Vectors.exportSFC(parcelCollection, new File(tmpFile, "afterDensification"));
+				} else {
+					System.err.println("splitParcel : complex section non implemented yet");
+				}
+			}
+		}
+
+		if (!p.getString("splitTotRecomp").equals("false") && !p.getString("splitTotRecomp").equals("")) {
+			String splitZone = p.getString("splitTotRecomp");
+			if (!splitZone.contains("-")) {
+				System.out.println();
+				System.out.println("///// We start the splitTotRecomp process\\\\\\");
+				parcelCollection = ParcelFonction.parcelTotRecomp(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP, p, ressource);
+				Vectors.exportSFC(parcelCollection, new File(tmpFile, "splitTotRecomp"));
+			} else {
+				System.err.println("splitParcel : complex section non implemented yet");
+			}
+		}
+		if (!p.getString("splitPartRecomp").equals("false") && !p.getString("splitPartRecomp").equals("")) {
+			String splitZone = p.getString("splitPartRecomp");
+			if (!splitZone.contains("-")) {
+				System.out.println();
+				System.out.println("///// We start the splitPartRecomp process\\\\\\");
+				parcelCollection = ParcelFonction.parcelPartRecomp(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP, p, ressource, true);
+				Vectors.exportSFC(parcelCollection, new File(tmpFile, "aftersplitPartRecomp"));
+			} else {
+				System.err.println("splitParcel : complex section non implemented yet");
+			}
+		}
+
+		// if there's been a bug and a parcel is missing
+		ShapefileDataStore shpDSparcel2 = new ShapefileDataStore(FromGeom.getParcels(geoFile).toURI().toURL());
+		SimpleFeatureCollection parcelOriginal = shpDSparcel2.getFeatureSource().getFeatures();
+		parcelCollection = ParcelFonction.completeParcelMissingWithOriginal(parcelCollection, parcelOriginal);
+		shpDSparcel2.dispose();
+
+		// if used in the normal case, we append the newly generated file onto parcelGenExport
+		if (mergeParcels) {
+			File parcelSelectedFile = Vectors.exportSFC(parcelCollection, new File(mergeFile.getParentFile(), "parcelPartExport.shp"));
+			List<File> lFile = new ArrayList<File>();
+			if (mergeFile.exists()) {
+				lFile.add(mergeFile);
+			}
+			lFile.add(parcelSelectedFile);
+			Vectors.mergeVectFiles(lFile, mergeFile);
+		}
+		// else, if distributed calculation, we create a shapeFile for each zip
+		else {
+			File zipFolder = new File(outFile, zip);
+			zipFolder.mkdir();
+			Vectors.exportSFC(parcelCollection, new File(zipFolder, "parcelOut-" + zip));
+		}
+		shpDSparcel.dispose();
 	}
 
 	/**

@@ -302,7 +302,7 @@ public class ParcelFonction {
 		DefaultFeatureCollection result = new DefaultFeatureCollection();
 		List<String> listZones = SimuTool.getLocationParamNames(locationBuildingType, p);
 
-		// we'll try to alway use two infos sectors rather than one info sector
+		// we'll try to always use two informations for define a sector rather than one information
 		List<String> listZonesOneSector = new ArrayList<String>();
 		List<String> listZonesTwoSector = new ArrayList<String>();
 		for (String stringParam : listZones) {
@@ -314,29 +314,29 @@ public class ParcelFonction {
 		}
 		// split into zones to make correct parcel recomposition
 		for (String stringParam : listZonesTwoSector) {
-			System.out.println("for line " + stringParam);
-			SimpluParametersJSON pTemp = new SimpluParametersJSON((SimpluParametersJSON)p);
-			pTemp.add(new SimpluParametersJSON(new File(locationBuildingType, stringParam)));
-			// @simplification : as only one BuildingType is set per zones, we select the type that is the most represented
-			BuildingType type = RepartitionBuildingType.getBiggestRepartition(pTemp);
-			SimpluParametersJSON pAdded = new SimpluParametersJSON((SimpluParametersJSON)p);
-			pAdded.add(RepartitionBuildingType.getParam(profileBuildingType, type));
+			// we only deal with the json files
+			if (stringParam.endsWith(".json")) {
+				System.out.println("for line " + stringParam);
+				SimpluParametersJSON pLoc = new SimpluParametersJSON((SimpluParametersJSON) p);
+				pLoc.add(new SimpluParametersJSON(new File(locationBuildingType, stringParam)));
+				// @simplification : as only one BuildingType is set per zones, we select the type that is the most represented
+				BuildingType type = RepartitionBuildingType.getBiggestRepartition(pLoc);
+				SimpluParametersJSON pBuildingType = new SimpluParametersJSON((SimpluParametersJSON) p);
+				pBuildingType.add(RepartitionBuildingType.getParam(profileBuildingType, type));
 
-			// delete name of specials parameters
-			if (stringParam.split(":").length == 2) {
-				stringParam = stringParam.split(":")[1];
-			}
-			// del the .xml ref
-			stringParam = stringParam.replace(".xml", "");
+				// cleaning that name
+				stringParam = SimuTool.cleanSectorName(stringParam);
 
-			// two specifications
-			if (stringParam.split("-").length == 2 && stringParam.split("-")[1].equals(splitZone)) {
-				SimpleFeatureCollection typoed = getParcelByTypo(stringParam.split("-")[0], parcelCollection, new File(pAdded.getString("rootFile")));
-				SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam.split("-")[1], typoed, new File(pAdded.getString("rootFile")));
-				if (bigZoned.size() > 0) {
-					parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
-					System.out.println("we cut the parcels with " + type + " parameters (" + p.getDouble("areaParcel") + "m2 max)");
-					result = addAllParcels(result, parcelDensification(splitZone, bigZoned, tmpFile, mupOutput, pAdded));
+				// two specifications .xml
+				if (stringParam.split("-").length == 2 && stringParam.split("-")[1].equals(splitZone)) {
+					SimpleFeatureCollection typoed = getParcelByTypo(stringParam.split("-")[0], parcelCollection,
+							new File(pBuildingType.getString("rootFile")));
+					SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam.split("-")[1], typoed, new File(pBuildingType.getString("rootFile")));
+					if (bigZoned.size() > 0) {
+						parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
+						System.out.println("we cut the parcels with " + type + " parameters (" + pBuildingType.getDouble("areaParcel") + "m2 max)");
+						result = addAllParcels(result, parcelDensification(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType));
+					}
 				}
 			}
 		}
@@ -344,19 +344,15 @@ public class ParcelFonction {
 			for (String stringParam : listZonesOneSector) {
 				// only one specification
 				System.out.println("for line " + stringParam);
-				SimpluParametersJSON pTemp = new SimpluParametersJSON((SimpluParametersJSON)p);
+				SimpluParametersJSON pTemp = new SimpluParametersJSON((SimpluParametersJSON) p);
 				pTemp.add(new SimpluParametersJSON(new File(locationBuildingType, stringParam)));
 				// @simplification : as only one BuildingType is set per zones, we select the type that is the most represented
 				BuildingType type = RepartitionBuildingType.getBiggestRepartition(pTemp);
-				SimpluParametersJSON pAdded = new SimpluParametersJSON((SimpluParametersJSON)p);
+				SimpluParametersJSON pAdded = new SimpluParametersJSON((SimpluParametersJSON) p);
 				pAdded.add(RepartitionBuildingType.getParam(profileBuildingType, type));
 
-				// delete name of specials parameters
-				if (stringParam.split(":").length == 2) {
-					stringParam = stringParam.split(":")[1];
-				}
-				// del the .xml ref
-				stringParam = stringParam.replace(".xml", "");
+				//cleaning that name
+				stringParam = SimuTool.cleanSectorName(stringParam);
 
 				System.out.println("we go for a one attribute sector mode");
 				if (stringParam.equals("periUrbain") || stringParam.equals("rural") || stringParam.equals("banlieue")
@@ -458,9 +454,9 @@ public class ParcelFonction {
 			SimpleFeatureCollection originalParcel) throws NoSuchAuthorityCodeException, FactoryException, IOException {
 		DefaultFeatureCollection result = new DefaultFeatureCollection();
 		result.addAll(parcelToComplete);
-//		List<String> codeParcelAdded = new ArrayList<String>();
+		// List<String> codeParcelAdded = new ArrayList<String>();
 
-//		SimpleFeatureType schema = parcelToComplete.features().next().getFeatureType();
+		// SimpleFeatureType schema = parcelToComplete.features().next().getFeatureType();
 
 		// result.addAll(parcelCuted);
 
@@ -564,7 +560,7 @@ public class ParcelFonction {
 	 * @throws Exception
 	 */
 	public static SimpleFeatureCollection parcelDensification(String splitZone, SimpleFeatureCollection parcelCollection, File tmpFile, File mupFile,
-	    SimpluParametersJSON p) throws Exception {
+			SimpluParametersJSON p) throws Exception {
 		return parcelDensification(splitZone, parcelCollection, tmpFile, new File(p.getString("rootFile")), mupFile, p.getDouble("areaParcel"),
 				p.getDouble("widParcel"), p.getDouble("lenDriveway"));
 	}
@@ -654,7 +650,7 @@ public class ParcelFonction {
 	 * @throws Exception
 	 */
 	public static SimpleFeatureCollection parcelTotRecomp(String splitZone, SimpleFeatureCollection parcelCollection, File tmpFile, File mupOutput,
-	    SimpluParametersJSON p, File ressource) throws Exception {
+			SimpluParametersJSON p, File ressource) throws Exception {
 		List<String> parcelToNotAdd = new ArrayList<String>();
 		File locationBuildingType = new File(ressource, "locationBuildingType");
 		File profileBuildingType = new File(ressource, "profileBuildingType");
@@ -681,27 +677,20 @@ public class ParcelFonction {
 			SimpluParametersJSON pBuildingType = new SimpluParametersJSON(p);
 			pBuildingType.add(RepartitionBuildingType.getParam(profileBuildingType, type));
 
-
 			stringParam = SimuTool.cleanSectorName(stringParam);
-			try {
-				System.out.println(stringParam + " this iz " + stringParam.split("-")[1] + " for " + splitZone);
-			} catch (Exception e) {
 
-//				pTemp.entry = null;
-
-			}
 			System.out.println("profile type : " + pBuildingType.getString("nameBuildingType"));
 			// two specifications emprise
 			if (stringParam.split("-").length == 2 && stringParam.split("-")[1].equals(splitZone)) {
-				SimpleFeatureCollection typoed = getParcelByTypo(stringParam.split("-")[0], parcelCollection, new File(p.getString("rootFile")));
-				SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam.split("-")[1], typoed, new File(p.getString("rootFile")));
+				SimpleFeatureCollection typoed = getParcelByTypo(stringParam.split("-")[0], parcelCollection, new File(pBuildingType.getString("rootFile")));
+				SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam.split("-")[1], typoed, new File(pBuildingType.getString("rootFile")));
 				if (bigZoned.size() > 0) {
 					System.out.println("we cut the parcels with " + type + " parameters");
 					parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
-					result = addAllParcels(result, parcelTotRecomp(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType, p.getBoolean("allZone")));
+					result = addAllParcels(result, parcelTotRecomp(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType, pBuildingType.getBoolean("allZone")));
 				}
 
-			}	
+			}
 
 		}
 		if (result.isEmpty()) {
@@ -763,7 +752,7 @@ public class ParcelFonction {
 	 * @throws Exception
 	 */
 	public static SimpleFeatureCollection parcelTotRecomp(String splitZone, SimpleFeatureCollection parcels, File tmpFile, File mupOutput,
-	    SimpluParametersJSON p, boolean allOrCell) throws Exception {
+			SimpluParametersJSON p, boolean allOrCell) throws Exception {
 
 		return parcelTotRecomp(splitZone, parcels, tmpFile, new File(p.getString("rootFile")), mupOutput, p.getDouble("areaParcel"),
 				p.getDouble("widParcel"), p.getDouble("lenRoad"), p.getInteger("decompositionLevelWithoutRoad"), allOrCell);
@@ -1000,7 +989,7 @@ public class ParcelFonction {
 		SimpleFeatureCollection toSplit = Vectors.delTinyParcels(write.collection(), 5.0);
 		double roadEpsilon = 00;
 		double noise = 0;
-		//Sometimes it bugs (like on Sector NV in Besançon)
+		// Sometimes it bugs (like on Sector NV in Besançon)
 		SimpleFeatureCollection splitedAUParcels = splitParcels(toSplit, maximalArea, maximalWidth, roadEpsilon, noise, null, lenRoad, false,
 				decompositionLevelWithoutRoad, tmpFile);
 
@@ -1074,7 +1063,7 @@ public class ParcelFonction {
 	 * @throws Exception
 	 */
 	public static SimpleFeatureCollection parcelPartRecomp(String splitZone, SimpleFeatureCollection parcelCollection, File tmpFile, File mupOutput,
-	    SimpluParametersJSON p, File ressource, boolean dontTouchUZones) throws Exception {
+			SimpluParametersJSON p, File ressource, boolean dontTouchUZones) throws Exception {
 
 		List<String> parcelToNotAdd = new ArrayList<String>();
 
@@ -1095,59 +1084,63 @@ public class ParcelFonction {
 		}
 		// split into zones to make correct parcel recomposition
 		for (String stringParam : listZonesTwoSector) {
-			System.out.println("for line " + stringParam);
-			SimpluParametersJSON pTemp = new SimpluParametersJSON(p);
-			pTemp.add(new SimpluParametersJSON(new File(locationBuildingType, stringParam)));
-			// @simplification : as only one BuildingType is set per zones, we select the type that is the most represented
-			BuildingType type = RepartitionBuildingType.getBiggestRepartition(pTemp);
-			SimpluParametersJSON pAdded = new SimpluParametersJSON(p);
-			pAdded.add(RepartitionBuildingType.getParam(profileBuildingType, type));
-			stringParam = SimuTool.cleanSectorName(stringParam);
-			// two specifications
-			if (stringParam.split("-").length == 2 && splitZone.equals(stringParam.split("-")[1])) {
-				SimpleFeatureCollection typoed = getParcelByTypo(stringParam.split("-")[0], parcelCollection, new File(pAdded.getString("rootFile")));
-				SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam.split("-")[1], typoed, new File(pAdded.getString("rootFile")));
-				if (bigZoned.size() > 0) {
-					parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
-					System.out.println("we cut the parcels with " + type + " parameters");
-					result = addAllParcels(result, parcelPartRecomp(splitZone, bigZoned, tmpFile, mupOutput, pAdded, dontTouchUZones));
-					break;
+			if (stringParam.endsWith(".json")) {
+				System.out.println("for line " + stringParam);
+				SimpluParametersJSON pLoc = new SimpluParametersJSON(p);
+				pLoc.add(new SimpluParametersJSON(new File(locationBuildingType, stringParam)));
+				// @simplification : as only one BuildingType is set per zones, we select the type that is the most represented
+				BuildingType type = RepartitionBuildingType.getBiggestRepartition(pLoc);
+				SimpluParametersJSON pBuildingType = new SimpluParametersJSON(p);
+				pBuildingType.add(RepartitionBuildingType.getParam(profileBuildingType, type));
+				stringParam = SimuTool.cleanSectorName(stringParam);
+				// two specifications
+				if (stringParam.split("-").length == 2 && splitZone.equals(stringParam.split("-")[1])) {
+					SimpleFeatureCollection typoed = getParcelByTypo(stringParam.split("-")[0], parcelCollection,
+							new File(pBuildingType.getString("rootFile")));
+					SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam.split("-")[1], typoed, new File(pBuildingType.getString("rootFile")));
+					if (bigZoned.size() > 0) {
+						parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
+						System.out.println("we cut the parcels with " + type + " parameters");
+						result = addAllParcels(result, parcelPartRecomp(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType, dontTouchUZones));
+						break;
+					}
 				}
-
 			}
 		}
 		if (result.isEmpty()) {
 			SimpleFeatureCollection def = new DefaultFeatureCollection();
 			// only one specification
 			for (String stringParam : listZonesOneSector) {
-				System.out.println("one sector attribute");
-				System.out.println("for line " + stringParam);
-				SimpluParametersJSON pTemp = new SimpluParametersJSON(p);
-				pTemp.add(new SimpluParametersJSON(new File(locationBuildingType, stringParam)));
-				// @simplification : as only one BuildingType is set per zones, we select the type that is the most represented
-				BuildingType type = RepartitionBuildingType.getBiggestRepartition(pTemp);
-				SimpluParametersJSON pAdded = new SimpluParametersJSON(p);
-				pAdded.add(RepartitionBuildingType.getParam(profileBuildingType, type));
+				if (stringParam.endsWith(".json")) {
+					System.out.println("one sector attribute");
+					System.out.println("for line " + stringParam);
+					SimpluParametersJSON pTemp = new SimpluParametersJSON(p);
+					pTemp.add(new SimpluParametersJSON(new File(locationBuildingType, stringParam)));
+					// @simplification : as only one BuildingType is set per zones, we select the type that is the most represented
+					BuildingType type = RepartitionBuildingType.getBiggestRepartition(pTemp);
+					SimpluParametersJSON pAdded = new SimpluParametersJSON(p);
+					pAdded.add(RepartitionBuildingType.getParam(profileBuildingType, type));
 
-				stringParam = SimuTool.cleanSectorName(stringParam);
+					stringParam = SimuTool.cleanSectorName(stringParam);
 
-				if (stringParam.equals("periUrbain") || stringParam.equals("rural") || stringParam.equals("banlieue")
-						|| stringParam.equals("centre")) {
-					SimpleFeatureCollection typoed = getParcelByTypo(stringParam, parcelCollection, new File(p.getString("rootFile")));
-					if (typoed.size() > 0) {
-						parcelToNotAdd = dontAddParcel(parcelToNotAdd, typoed);
-						System.out.println("we cut the parcels with " + type + " parameters");
-						def = parcelPartRecomp(splitZone, typoed, tmpFile, mupOutput, pAdded, dontTouchUZones);
-
-						break;
-					}
-				} else {
-					if (splitZone.equals(stringParam)) {
-						SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam, parcelCollection, new File(p.getString("rootFile")));
-						if (bigZoned.size() > 0) {
-							parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
+					if (stringParam.equals("periUrbain") || stringParam.equals("rural") || stringParam.equals("banlieue")
+							|| stringParam.equals("centre")) {
+						SimpleFeatureCollection typoed = getParcelByTypo(stringParam, parcelCollection, new File(p.getString("rootFile")));
+						if (typoed.size() > 0) {
+							parcelToNotAdd = dontAddParcel(parcelToNotAdd, typoed);
 							System.out.println("we cut the parcels with " + type + " parameters");
-							def = parcelPartRecomp(splitZone, bigZoned, tmpFile, mupOutput, pAdded, dontTouchUZones);
+							def = parcelPartRecomp(splitZone, typoed, tmpFile, mupOutput, pAdded, dontTouchUZones);
+
+							break;
+						}
+					} else {
+						if (splitZone.equals(stringParam)) {
+							SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam, parcelCollection, new File(p.getString("rootFile")));
+							if (bigZoned.size() > 0) {
+								parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
+								System.out.println("we cut the parcels with " + type + " parameters");
+								def = parcelPartRecomp(splitZone, bigZoned, tmpFile, mupOutput, pAdded, dontTouchUZones);
+							}
 						}
 					}
 				}
@@ -1176,7 +1169,7 @@ public class ParcelFonction {
 	}
 
 	public static SimpleFeatureCollection parcelPartRecomp(String typeZone, SimpleFeatureCollection parcels, File tmpFile, File mupOutput,
-	    SimpluParametersJSON p, boolean dontTouchUZones) throws Exception {
+			SimpluParametersJSON p, boolean dontTouchUZones) throws Exception {
 		return parcelPartRecomp(typeZone, parcels, tmpFile, new File(p.getString("rootFile")), mupOutput, p.getDouble("areaParcel"),
 				p.getDouble("widParcel"), p.getDouble("lenRoad"), p.getInteger("decompositionLevelWithoutRoad"), dontTouchUZones);
 	}
@@ -1383,8 +1376,8 @@ public class ParcelFonction {
 	 * @return
 	 * @throws Exception
 	 */
-	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeatureCollection parcelIn, File filterFile, File tmpFile, SimpluParametersJSON p)
-			throws Exception {
+	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeatureCollection parcelIn, File filterFile, File tmpFile,
+			SimpluParametersJSON p) throws Exception {
 
 		ShapefileDataStore morphoSDS = new ShapefileDataStore(filterFile.toURI().toURL());
 		SimpleFeatureCollection morphoSFC = morphoSDS.getFeatureSource().getFeatures();
@@ -1555,13 +1548,6 @@ public class ParcelFonction {
 		double maximalWidth = p.getDouble("maximalWidthSplitParcel");
 		double maximalArea = p.getDouble("maximalAreaSplitParcel");
 		int decompositionLevelWithoutRoad = p.getInteger("decompositionLevelWithoutRoad");
-		// File geoFile = new File(p.getString("rootFile"), "dataGeo");
-		// String inputUrbanBlock = GetFromGeom.getIlots(geoFile).getAbsolutePath();
-		// System.out.println(inputUrbanBlock);
-		// IFeatureCollection<IFeature> featC = ShapefileReader.read(inputUrbanBlock);
-		// List<IOrientableCurve> lOC =
-		// FromGeomToLineString.convert(featC.get(0).getGeom());
-		// IMultiCurve<IOrientableCurve> iMultiCurve = new GM_MultiCurve<>(lOC);
 
 		return generateSplitParcels(parcelIn, tmpFile, maximalArea, maximalWidth, 0, null, p.getDouble("lenRoad"), decompositionLevelWithoutRoad,
 				false);
@@ -1575,7 +1561,8 @@ public class ParcelFonction {
 	 * @return
 	 * @throws Exception
 	 */
-	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeatureCollection parcelsIn, File tmpFile, SimpluParametersJSON p) throws Exception {
+	public static SimpleFeatureCollection generateSplitedParcels(SimpleFeatureCollection parcelsIn, File tmpFile, SimpluParametersJSON p)
+			throws Exception {
 
 		// splitting method option
 
@@ -2406,9 +2393,10 @@ public class ParcelFonction {
 								break;
 							}
 							// if the intersection is less than 50% of the parcel, we let it to the other (with the hypothesis that there is only 2 features)
-//							else if (parcelGeom.intersection(typoGeom).getArea() > parcelGeom.getArea() / 2) {
-	
-							else if (Vectors.scaledGeometryReductionIntersection(Arrays.asList(typoGeom,parcelGeom)).getArea() > parcelGeom.getArea() / 2) {
+							// else if (parcelGeom.intersection(typoGeom).getArea() > parcelGeom.getArea() / 2) {
+
+							else if (Vectors.scaledGeometryReductionIntersection(Arrays.asList(typoGeom, parcelGeom)).getArea() > parcelGeom.getArea()
+									/ 2) {
 								result.add(parcelFeat);
 								break;
 							} else {

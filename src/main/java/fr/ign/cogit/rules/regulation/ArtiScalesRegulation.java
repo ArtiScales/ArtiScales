@@ -207,7 +207,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 		if (!file.exists()) {
 			return table;
 		}
-System.out.println("read file = " + file);
+//System.out.println("read file = " + file);
 		// On lit le fichier
 		BufferedReader in = new BufferedReader(new FileReader(file));
 
@@ -217,8 +217,8 @@ System.out.println("read file = " + file);
 		// On traite chaque ligne
 		while ((line = in.readLine()) != null) {
 			log.info(line);
-      System.out.println("fLine = " + fLine);
-			System.out.println("line = " + line);
+    //  System.out.println("fLine = " + fLine);
+		//	System.out.println("line = " + line);
 			// On instancier la réglementation
 			ArtiScalesRegulation r = new ArtiScalesRegulation(fLine, line);
 			// On regarde si le code imu a été rencontré auparavant
