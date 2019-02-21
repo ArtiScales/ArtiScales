@@ -111,6 +111,7 @@ public class RepartitionBuildingType {
 		}
 
 		this.repartition = rep;
+    System.out.println("repartition = " + repartition);
 
 		// this.parcelles = parcelles;
 
@@ -289,10 +290,10 @@ public class RepartitionBuildingType {
 	 */
 	public static SimpluParametersJSON addRepartitionToParameters(SimpluParametersJSON p, File zoningFile, File communeFile, IFeature parcel, File profileBuildings)
 			throws Exception {
-		System.out.println("rootFile = " + p.getString("rootFile"));
 		String affect = FromGeom.affectZoneAndTypoToLocation(
 		    p.getString("useRepartition"), p.getString("scenarioPMSP3D"), parcel, zoningFile, communeFile, true);
 		System.out.println("profileBuildings = " + profileBuildings);
+		System.out.println("affect = " + affect);
 		// we seek for if there's a special default repartition for the scenario
 		if (affect.equals("default")) {
 			for (File f : profileBuildings.listFiles()) {
@@ -306,8 +307,10 @@ public class RepartitionBuildingType {
 		SimpluParametersJSON addParam = new SimpluParametersJSON(new File(profileBuildings + "/" + affect + ".xml"));
 
 		System.out.println("we affect the " + affect + ".xml" + " folder");
+		System.out.println("JSON Param = " + addParam);
 
 		p.add(addParam);
+		System.out.println("p = " + p);
 		return p;
 	}
 
