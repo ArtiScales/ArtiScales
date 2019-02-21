@@ -330,12 +330,12 @@ public class ParcelFonction {
 				// two specifications .xml
 				if (stringParam.split("-").length == 2 && stringParam.split("-")[1].equals(splitZone)) {
 					SimpleFeatureCollection typoed = getParcelByTypo(stringParam.split("-")[0], parcelCollection,
-							new File(pBuildingType.getString("rootFile")));
-					SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam.split("-")[1], typoed, new File(pBuildingType.getString("rootFile")));
+							ressource);
+					SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam.split("-")[1], typoed, ressource);
 					if (bigZoned.size() > 0) {
 						parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
 						System.out.println("we cut the parcels with " + type + " parameters (" + pBuildingType.getDouble("areaParcel") + "m2 max)");
-						result = addAllParcels(result, parcelDensification(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType));
+						result = addAllParcels(result, parcelDensification(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType, ressource));
 					}
 				}
 			}
@@ -357,19 +357,19 @@ public class ParcelFonction {
 				System.out.println("we go for a one attribute sector mode");
 				if (stringParam.equals("periUrbain") || stringParam.equals("rural") || stringParam.equals("banlieue")
 						|| stringParam.equals("centre")) {
-					SimpleFeatureCollection typoed = getParcelByTypo(stringParam, parcelCollection, new File(pAdded.getString("rootFile")));
+					SimpleFeatureCollection typoed = getParcelByTypo(stringParam, parcelCollection, ressource);
 					if (typoed.size() > 0) {
 						System.out.println("we cut the parcels with " + type + " parameters");
 						parcelToNotAdd = dontAddParcel(parcelToNotAdd, typoed);
-						result = addAllParcels(result, parcelDensification(splitZone, typoed, tmpFile, mupOutput, pAdded));
+						result = addAllParcels(result, parcelDensification(splitZone, typoed, tmpFile, mupOutput, pAdded, ressource));
 					}
 				} else {
 					if (stringParam.equals(splitZone)) {
-						SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam, parcelCollection, new File(pAdded.getString("rootFile")));
+						SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam, parcelCollection, ressource);
 						if (bigZoned.size() > 0) {
 							System.out.println("we cut the parcels with " + type + " parameters");
 							parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
-							result = addAllParcels(result, parcelDensification(splitZone, bigZoned, tmpFile, mupOutput, pAdded));
+							result = addAllParcels(result, parcelDensification(splitZone, bigZoned, tmpFile, mupOutput, pAdded, ressource));
 						}
 					}
 				}
@@ -560,8 +560,8 @@ public class ParcelFonction {
 	 * @throws Exception
 	 */
 	public static SimpleFeatureCollection parcelDensification(String splitZone, SimpleFeatureCollection parcelCollection, File tmpFile, File mupFile,
-			SimpluParametersJSON p) throws Exception {
-		return parcelDensification(splitZone, parcelCollection, tmpFile, new File(p.getString("rootFile")), mupFile, p.getDouble("areaParcel"),
+			SimpluParametersJSON p, File rootFile) throws Exception {
+		return parcelDensification(splitZone, parcelCollection, tmpFile, rootFile, mupFile, p.getDouble("areaParcel"),
 				p.getDouble("widParcel"), p.getDouble("lenDriveway"));
 	}
 
@@ -682,12 +682,12 @@ public class ParcelFonction {
 			System.out.println("profile type : " + pBuildingType.getString("nameBuildingType"));
 			// two specifications emprise
 			if (stringParam.split("-").length == 2 && stringParam.split("-")[1].equals(splitZone)) {
-				SimpleFeatureCollection typoed = getParcelByTypo(stringParam.split("-")[0], parcelCollection, new File(pBuildingType.getString("rootFile")));
-				SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam.split("-")[1], typoed, new File(pBuildingType.getString("rootFile")));
+				SimpleFeatureCollection typoed = getParcelByTypo(stringParam.split("-")[0], parcelCollection, ressource);
+				SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam.split("-")[1], typoed, ressource);
 				if (bigZoned.size() > 0) {
 					System.out.println("we cut the parcels with " + type + " parameters");
 					parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
-					result = addAllParcels(result, parcelTotRecomp(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType, pBuildingType.getBoolean("allZone")));
+					result = addAllParcels(result, parcelTotRecomp(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType, pBuildingType.getBoolean("allZone"), ressource));
 				}
 
 			}
@@ -710,20 +710,20 @@ public class ParcelFonction {
 
 				if (stringParam.equals("periUrbain") || stringParam.equals("rural") || stringParam.equals("banlieue")
 						|| stringParam.equals("centre")) {
-					SimpleFeatureCollection typoed = getParcelByTypo(stringParam, parcelCollection, new File(p.getString("rootFile")));
+					SimpleFeatureCollection typoed = getParcelByTypo(stringParam, parcelCollection, ressource);
 					if (typoed.size() > 0) {
 						parcelToNotAdd = dontAddParcel(parcelToNotAdd, typoed);
 						System.out.println("we cut the parcels with " + type + " parameters");
-						def = parcelTotRecomp(splitZone, typoed, tmpFile, mupOutput, pAdded, p.getBoolean("allZone"));
+						def = parcelTotRecomp(splitZone, typoed, tmpFile, mupOutput, pAdded, p.getBoolean("allZone"), ressource);
 						break;
 					}
 				} else {
 					if (splitZone.equals(stringParam)) {
-						SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam, parcelCollection, new File(p.getString("rootFile")));
+						SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam, parcelCollection, ressource);
 						if (bigZoned.size() > 0) {
 							parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
 							System.out.println("we cut the parcels with " + type + " parameters");
-							def = parcelTotRecomp(splitZone, bigZoned, tmpFile, mupOutput, pAdded, p.getBoolean("allZone"));
+							def = parcelTotRecomp(splitZone, bigZoned, tmpFile, mupOutput, pAdded, p.getBoolean("allZone"), ressource);
 						}
 					}
 				}
@@ -752,9 +752,9 @@ public class ParcelFonction {
 	 * @throws Exception
 	 */
 	public static SimpleFeatureCollection parcelTotRecomp(String splitZone, SimpleFeatureCollection parcels, File tmpFile, File mupOutput,
-			SimpluParametersJSON p, boolean allOrCell) throws Exception {
+			SimpluParametersJSON p, boolean allOrCell, File rootFile) throws Exception {
 
-		return parcelTotRecomp(splitZone, parcels, tmpFile, new File(p.getString("rootFile")), mupOutput, p.getDouble("areaParcel"),
+		return parcelTotRecomp(splitZone, parcels, tmpFile, rootFile, mupOutput, p.getDouble("areaParcel"),
 				p.getDouble("widParcel"), p.getDouble("lenRoad"), p.getInteger("decompositionLevelWithoutRoad"), allOrCell);
 	}
 
@@ -1095,13 +1095,12 @@ public class ParcelFonction {
 				stringParam = SimuTool.cleanSectorName(stringParam);
 				// two specifications
 				if (stringParam.split("-").length == 2 && splitZone.equals(stringParam.split("-")[1])) {
-					SimpleFeatureCollection typoed = getParcelByTypo(stringParam.split("-")[0], parcelCollection,
-							new File(pBuildingType.getString("rootFile")));
-					SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam.split("-")[1], typoed, new File(pBuildingType.getString("rootFile")));
+					SimpleFeatureCollection typoed = getParcelByTypo(stringParam.split("-")[0], parcelCollection, ressource);
+					SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam.split("-")[1], typoed, ressource);
 					if (bigZoned.size() > 0) {
 						parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
 						System.out.println("we cut the parcels with " + type + " parameters");
-						result = addAllParcels(result, parcelPartRecomp(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType, dontTouchUZones));
+						result = addAllParcels(result, parcelPartRecomp(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType, dontTouchUZones, ressource));
 						break;
 					}
 				}
@@ -1125,21 +1124,21 @@ public class ParcelFonction {
 
 					if (stringParam.equals("periUrbain") || stringParam.equals("rural") || stringParam.equals("banlieue")
 							|| stringParam.equals("centre")) {
-						SimpleFeatureCollection typoed = getParcelByTypo(stringParam, parcelCollection, new File(p.getString("rootFile")));
+						SimpleFeatureCollection typoed = getParcelByTypo(stringParam, parcelCollection, ressource);
 						if (typoed.size() > 0) {
 							parcelToNotAdd = dontAddParcel(parcelToNotAdd, typoed);
 							System.out.println("we cut the parcels with " + type + " parameters");
-							def = parcelPartRecomp(splitZone, typoed, tmpFile, mupOutput, pAdded, dontTouchUZones);
+							def = parcelPartRecomp(splitZone, typoed, tmpFile, mupOutput, pAdded, dontTouchUZones, ressource);
 
 							break;
 						}
 					} else {
 						if (splitZone.equals(stringParam)) {
-							SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam, parcelCollection, new File(p.getString("rootFile")));
+							SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam, parcelCollection, ressource);
 							if (bigZoned.size() > 0) {
 								parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
 								System.out.println("we cut the parcels with " + type + " parameters");
-								def = parcelPartRecomp(splitZone, bigZoned, tmpFile, mupOutput, pAdded, dontTouchUZones);
+								def = parcelPartRecomp(splitZone, bigZoned, tmpFile, mupOutput, pAdded, dontTouchUZones, ressource);
 							}
 						}
 					}
@@ -1169,8 +1168,8 @@ public class ParcelFonction {
 	}
 
 	public static SimpleFeatureCollection parcelPartRecomp(String typeZone, SimpleFeatureCollection parcels, File tmpFile, File mupOutput,
-			SimpluParametersJSON p, boolean dontTouchUZones) throws Exception {
-		return parcelPartRecomp(typeZone, parcels, tmpFile, new File(p.getString("rootFile")), mupOutput, p.getDouble("areaParcel"),
+			SimpluParametersJSON p, boolean dontTouchUZones, File rootFile) throws Exception {
+		return parcelPartRecomp(typeZone, parcels, tmpFile, rootFile, mupOutput, p.getDouble("areaParcel"),
 				p.getDouble("widParcel"), p.getDouble("lenRoad"), p.getInteger("decompositionLevelWithoutRoad"), dontTouchUZones);
 	}
 

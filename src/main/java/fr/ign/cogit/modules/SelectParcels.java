@@ -149,7 +149,7 @@ public class SelectParcels {
 		////////////////
 		Vectors.exportSFC(parcelCollection, new File(tmpFile, "parcelBeforeSplit"));
 
-		File ressource = new File(this.getClass().getClassLoader().getResource("").getFile());
+//		File ressource = new File(this.getClass().getClassLoader().getResource("").getFile());
 
 		// some very few cases are still crashing, so we get the parcels back when
 
@@ -161,8 +161,7 @@ public class SelectParcels {
 				if (!splitZone.contains("-")) {
 					System.out.println();
 					System.out.println("///// We start the densification process\\\\\\");
-					parcelCollection = ParcelFonction.parcelDensification(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP, ressource,
-							p);
+					parcelCollection = ParcelFonction.parcelDensification(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP, rootFile, p);
 					Vectors.exportSFC(parcelCollection, new File(tmpFile, "afterDensification"));
 				} else {
 					System.err.println("splitParcel : complex section non implemented yet");
@@ -175,7 +174,7 @@ public class SelectParcels {
 			if (!splitZone.contains("-")) {
 				System.out.println();
 				System.out.println("///// We start the splitTotRecomp process\\\\\\");
-				parcelCollection = ParcelFonction.parcelTotRecomp(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP, p, ressource);
+				parcelCollection = ParcelFonction.parcelTotRecomp(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP, p, rootFile);
 				Vectors.exportSFC(parcelCollection, new File(tmpFile, "splitTotRecomp"));
 			} else {
 				System.err.println("splitParcel : complex section non implemented yet");
@@ -186,7 +185,7 @@ public class SelectParcels {
 			if (!splitZone.contains("-")) {
 				System.out.println();
 				System.out.println("///// We start the splitPartRecomp process\\\\\\");
-				parcelCollection = ParcelFonction.parcelPartRecomp(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP, p, ressource, true);
+				parcelCollection = ParcelFonction.parcelPartRecomp(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP, p, rootFile, true);
 				Vectors.exportSFC(parcelCollection, new File(tmpFile, "aftersplitPartRecomp"));
 			} else {
 				System.err.println("splitParcel : complex section non implemented yet");
@@ -212,7 +211,9 @@ public class SelectParcels {
 		// else, if distributed calculation, we create a shapeFile for each zip
 		else {
 			File zipFolder = new File(outFile, zip);
-			zipFolder.mkdir();
+			zipFolder.mkdirs();
+			System.out.println("Export into " + zipFolder + " ? " + zipFolder.exists());
+			System.out.println("Writing " + new File(zipFolder, "parcelOut-" + zip));
 			Vectors.exportSFC(parcelCollection, new File(zipFolder, "parcelOut-" + zip));
 		}
 		shpDSparcel.dispose();
@@ -268,7 +269,8 @@ public class SelectParcels {
 	 * @param parc
 	 * @return
 	 */
-	private void moyenneEval(SimpleFeatureCollection parc) {
+	@SuppressWarnings("unused")
+  private void moyenneEval(SimpleFeatureCollection parc) {
 		float sommeEval = 0;
 		int i = 0;
 		SimpleFeatureIterator parcelIt = parc.features();
@@ -869,8 +871,6 @@ public class SelectParcels {
 		String[] stuffs = { "building.shp", "road.shp", "zoning.shp", "prescPonct.shp", "prescLin.shp", "prescSurf.shp" };
 		for (String object : stuffs) {
 			Vectors.exportSFC(vide, new File(f, object));
-
 		}
 	}
-
 }
