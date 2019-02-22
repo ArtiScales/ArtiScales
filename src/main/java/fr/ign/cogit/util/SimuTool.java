@@ -24,7 +24,8 @@ import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 
 public class SimuTool {
 
-	public static SimpluParametersJSON getParamFile(List<SimpluParametersJSON> lP, String scenar) throws FileNotFoundException {
+	public static SimpluParametersJSON getParamFile(List<SimpluParametersJSON> lP, String scenar)
+			throws FileNotFoundException {
 		for (SimpluParametersJSON p : lP) {
 			if (p.getString("name").equals(scenar)) {
 				return p;
@@ -34,7 +35,8 @@ public class SimuTool {
 	}
 
 	/**
-	 * remove scenario specification and .json attribute from a sector file contained in the ressource.
+	 * remove scenario specification and .json attribute from a sector file
+	 * contained in the ressource.
 	 * 
 	 * @param stringParam
 	 * @return
@@ -55,7 +57,8 @@ public class SimuTool {
 	}
 
 	/**
-	 * get one or multiple communities parcels from infos contained in a parameter file
+	 * get one or multiple communities parcels from infos contained in a parameter
+	 * file
 	 * 
 	 * @param p
 	 * @param geoFile
@@ -64,7 +67,8 @@ public class SimuTool {
 	 * @return
 	 * @throws Exception
 	 */
-	public static List<String> getIntrestingCommunities(SimpluParameters p, File geoFile, File regulFile, File tmpFile, File variantFile) throws Exception {
+	public static List<String> getIntrestingCommunities(SimpluParameters p, File geoFile, File regulFile, File tmpFile,
+			File variantFile) throws Exception {
 		List<String> result = new ArrayList<String>();
 		if (p.getString("singleCity").equals("true")) {
 			String zips = p.getString("zip");
@@ -107,7 +111,8 @@ public class SimuTool {
 				try {
 					while (it.hasNext()) {
 						SimpleFeature feat = it.next();
-						if ((((String) feat.getAttribute("CODE_DEP")) + ((String) feat.getAttribute("CODE_COM"))).equals(zipIntoSector)) {
+						if ((((String) feat.getAttribute("CODE_DEP")) + ((String) feat.getAttribute("CODE_COM")))
+								.equals(zipIntoSector)) {
 							if (!diffSection.contains(feat.getAttribute("SECTION"))) {
 								diffSection.add((String) feat.getAttribute("SECTION"));
 							}
@@ -131,12 +136,15 @@ public class SimuTool {
 		// //if the parcels doesn't exists
 		// System.out.println(result.size());
 		// List<String> zip = new ArrayList<String>();
-		// ShapefileDataStore parcSDS = new ShapefileDataStore(FromGeom.getParcels(geoFile).toURI().toURL());
-		// SimpleFeatureIterator it = parcSDS.getFeatureSource().getFeatures().features();
+		// ShapefileDataStore parcSDS = new
+		// ShapefileDataStore(FromGeom.getParcels(geoFile).toURI().toURL());
+		// SimpleFeatureIterator it =
+		// parcSDS.getFeatureSource().getFeatures().features();
 		// try {
 		// while (it.hasNext()) {
 		// SimpleFeature feat = it.next();
-		// String insee = (String) feat.getAttribute("CODE_DEP") + (String) feat.getAttribute("CODE_COM");
+		// String insee = (String) feat.getAttribute("CODE_DEP") + (String)
+		// feat.getAttribute("CODE_COM");
 		// if (zip) {
 		// zip.remove(insee);
 		// } else if (!out && !zip.contains(insee)) {
@@ -183,7 +191,7 @@ public class SimuTool {
 		return result;
 	}
 
-	public static void writteError(String zipError,String error, File rootFile) throws IOException {
+	public static void writteError(String zipError, String error, File rootFile) throws IOException {
 		FileWriter writer = new FileWriter(new File(rootFile, "mistakenCommunities"), true);
 		writer.append(zipError + "\n");
 		writer.append(error);
@@ -198,8 +206,8 @@ public class SimuTool {
 		try {
 			while (it.hasNext() && !answer) {
 				SimpleFeature feat = it.next();
-				if (feat.getAttribute("INSEE") != null && feat.getAttribute("INSEE").equals(insee) && feat.getAttribute("TYPEPLAN") != null
-						&& feat.getAttribute("TYPEPLAN").equals("RNU")) {
+				if (feat.getAttribute("INSEE") != null && feat.getAttribute("INSEE").equals(insee)
+						&& feat.getAttribute("TYPEPLAN") != null && feat.getAttribute("TYPEPLAN").equals("RNU")) {
 					answer = true;
 				}
 			}
@@ -225,14 +233,13 @@ public class SimuTool {
 			if (nameParam.split(":").length > 1) {
 				if (nameParam.split(":")[0].equals(p.getString("scenarioPMSP3D"))) {
 					specialScenarZone.add(nameParam);
-				} else {
-					continue;
 				}
 			}
 			listZones.add(nameParam);
 		}
 
-		// if theres a zone special for the scenario and a regular one, the regular one must be erased
+		// if theres a zone special for the scenario and a regular one, the regular one
+		// must be erased
 		if (!specialScenarZone.isEmpty()) {
 			for (String s : specialScenarZone) {
 				listZones.remove((s.split(":")[1]));
@@ -250,7 +257,8 @@ public class SimuTool {
 		return newFile;
 	}
 
-	public static Hashtable<String, List<String[]>> getCitiesFromparticularHousingUnit(File housingUnit) throws IOException {
+	public static Hashtable<String, List<String[]>> getCitiesFromparticularHousingUnit(File housingUnit)
+			throws IOException {
 		Hashtable<String, List<String[]>> result = new Hashtable<String, List<String[]>>();
 
 		CSVReader csv = new CSVReader(new FileReader(housingUnit));
