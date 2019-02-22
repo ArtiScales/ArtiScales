@@ -105,10 +105,4 @@ public class FakeWorldSimulator {
 			}
 		}
 	}
-
-	public static String[] iterateOnBuildingType() {
-		String[] result = { "detachedHouse", "midBlockFlat", "multifamilyHouse", "smallBlockFlat", "smallHouse" };
-		return result;
-	}
-
 }

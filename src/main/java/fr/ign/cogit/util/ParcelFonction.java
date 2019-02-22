@@ -720,67 +720,71 @@ public class ParcelFonction {
 		}
 		// split into zones to make correct parcel recomposition
 		for (String stringParam : listZonesTwoSector) {
-			System.out.println("for line " + stringParam);
+			if (stringParam.endsWith(".json")) {
+				System.out.println("for line " + stringParam);
 
-			SimpluParametersJSON pLoc = new SimpluParametersJSON(p);
-			pLoc.add(new SimpluParametersJSON(new File(locationBuildingType, stringParam)));
-			// @simplification : as only one BuildingType is set per zones, we select the
-			// type that is the most represented
-			BuildingType type = RepartitionBuildingType.getBiggestRepartition(pLoc);
-			SimpluParametersJSON pBuildingType = new SimpluParametersJSON(p);
-			pBuildingType.add(RepartitionBuildingType.getParam(profileBuildingType, type));
+				SimpluParametersJSON pLoc = new SimpluParametersJSON(p);
+				pLoc.add(new SimpluParametersJSON(new File(locationBuildingType, stringParam)));
+				// @simplification : as only one BuildingType is set per zones, we select the
+				// type that is the most represented
+				BuildingType type = RepartitionBuildingType.getBiggestRepartition(pLoc);
+				SimpluParametersJSON pBuildingType = new SimpluParametersJSON(p);
+				pBuildingType.add(RepartitionBuildingType.getParam(profileBuildingType, type));
 
-			stringParam = SimuTool.cleanSectorName(stringParam);
+				stringParam = SimuTool.cleanSectorName(stringParam);
 
-			System.out.println("profile type : " + pBuildingType.getString("nameBuildingType"));
-			// two specifications emprise
-			if (stringParam.split("-").length == 2 && stringParam.split("-")[1].equals(splitZone)) {
-				SimpleFeatureCollection typoed = getParcelByTypo(stringParam.split("-")[0], parcelCollection, rootFile);
-				SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam.split("-")[1], typoed, rootFile);
-				if (bigZoned.size() > 0) {
-					System.out.println("we cut the parcels with " + type + " parameters");
-					parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
-					result = addAllParcels(result, parcelTotRecomp(splitZone, bigZoned, tmpFile, mupOutput,
-							pBuildingType, pBuildingType.getBoolean("allZone"), rootFile));
+				System.out.println("profile type : " + pBuildingType.getString("nameBuildingType"));
+				// two specifications emprise
+				if (stringParam.split("-").length == 2 && stringParam.split("-")[1].equals(splitZone)) {
+					SimpleFeatureCollection typoed = getParcelByTypo(stringParam.split("-")[0], parcelCollection,
+							rootFile);
+					SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam.split("-")[1], typoed, rootFile);
+					if (bigZoned.size() > 0) {
+						System.out.println("we cut the parcels with " + type + " parameters");
+						parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
+						result = addAllParcels(result, parcelTotRecomp(splitZone, bigZoned, tmpFile, mupOutput,
+								pBuildingType, pBuildingType.getBoolean("allZone"), rootFile));
+					}
 				}
-
 			}
-
 		}
 		if (result.isEmpty()) {
 			System.out.println("one sector attribute");
 			SimpleFeatureCollection def = new DefaultFeatureCollection();
 			// only one specification
 			for (String stringParam : listZonesOneSector) {
-				System.out.println("for line " + stringParam);
-				SimpluParametersJSON pTemp = new SimpluParametersJSON(p);
-				pTemp.add(new SimpluParametersJSON(new File(locationBuildingType, stringParam)));
-				// @simplification : as only one BuildingType is set per zones, we select the
-				// type that is the most represented
-				BuildingType type = RepartitionBuildingType.getBiggestRepartition(pTemp);
-				SimpluParametersJSON pAdded = new SimpluParametersJSON(p);
-				pAdded.add(RepartitionBuildingType.getParam(profileBuildingType, type));
+				if (stringParam.endsWith(".json")) {
+					System.out.println("for line " + stringParam);
+					SimpluParametersJSON pTemp = new SimpluParametersJSON(p);
+					pTemp.add(new SimpluParametersJSON(new File(locationBuildingType, stringParam)));
+					// @simplification : as only one BuildingType is set per zones, we select the
+					// type that is the most represented
+					BuildingType type = RepartitionBuildingType.getBiggestRepartition(pTemp);
+					SimpluParametersJSON pAdded = new SimpluParametersJSON(p);
+					pAdded.add(RepartitionBuildingType.getParam(profileBuildingType, type));
 
-				stringParam = SimuTool.cleanSectorName(stringParam);
+					stringParam = SimuTool.cleanSectorName(stringParam);
 
-				if (stringParam.equals("periUrbain") || stringParam.equals("rural") || stringParam.equals("banlieue")
-						|| stringParam.equals("centre")) {
-					SimpleFeatureCollection typoed = getParcelByTypo(stringParam, parcelCollection, rootFile);
-					if (typoed.size() > 0) {
-						parcelToNotAdd = dontAddParcel(parcelToNotAdd, typoed);
-						System.out.println("we cut the parcels with " + type + " parameters");
-						def = parcelTotRecomp(splitZone, typoed, tmpFile, mupOutput, pAdded, p.getBoolean("allZone"),
-								rootFile);
-						break;
-					}
-				} else {
-					if (splitZone.equals(stringParam)) {
-						SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam, parcelCollection, rootFile);
-						if (bigZoned.size() > 0) {
-							parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
+					if (stringParam.equals("periUrbain") || stringParam.equals("rural")
+							|| stringParam.equals("banlieue") || stringParam.equals("centre")) {
+						SimpleFeatureCollection typoed = getParcelByTypo(stringParam, parcelCollection, rootFile);
+						if (typoed.size() > 0) {
+							parcelToNotAdd = dontAddParcel(parcelToNotAdd, typoed);
 							System.out.println("we cut the parcels with " + type + " parameters");
-							def = parcelTotRecomp(splitZone, bigZoned, tmpFile, mupOutput, pAdded,
+							def = parcelTotRecomp(splitZone, typoed, tmpFile, mupOutput, pAdded,
 									p.getBoolean("allZone"), rootFile);
+							break;
+						}
+					} else {
+						if (splitZone.equals(stringParam)) {
+							SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam, parcelCollection,
+									rootFile);
+							if (bigZoned.size() > 0) {
+								parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
+								System.out.println("we cut the parcels with " + type + " parameters");
+								def = parcelTotRecomp(splitZone, bigZoned, tmpFile, mupOutput, pAdded,
+										p.getBoolean("allZone"), rootFile);
+							}
 						}
 					}
 				}
