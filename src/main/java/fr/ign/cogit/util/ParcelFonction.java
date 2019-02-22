@@ -702,7 +702,7 @@ public class ParcelFonction {
 	public static SimpleFeatureCollection parcelTotRecomp(String splitZone, SimpleFeatureCollection parcelCollection,
 			File tmpFile, File mupOutput, SimpluParametersJSON p, File rootFile) throws Exception {
 		List<String> parcelToNotAdd = new ArrayList<String>();
-		File paramFile = new File(rootFile, "paramFile");
+		File paramFile = new File(rootFile, "paramFolder");
 
 		File locationBuildingType = new File(paramFile, "locationBuildingType");
 		File profileBuildingType = new File(paramFile, "profileBuildingType");
@@ -1137,7 +1137,7 @@ public class ParcelFonction {
 			throws Exception {
 
 		List<String> parcelToNotAdd = new ArrayList<String>();
-		File paramFile = new File(rootFile, "paramFile");
+		File paramFile = new File(rootFile, "paramFolder");
 		File locationBuildingType = new File(paramFile, "locationBuildingType");
 		File profileBuildingType = new File(paramFile, "profileBuildingType");
 		// séparation entre les différentes zones
