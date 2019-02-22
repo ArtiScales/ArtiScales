@@ -18,7 +18,7 @@ public class FakeWorldSimulator {
 		// String absoluteRootFolder = "/home/ubuntu/boulot/these/fakeWorld/";
 
 		File rootFolderFile = new File(absoluteRootFolder);
-		testBuildingTypes(rootFolderFile, new File("/tmp/yop"));
+		testBuildingTypes(rootFolderFile, new File(absoluteRootFolder+"/out"));
 	}
 
 	public static void tryRules(File rootFolderFile) throws Exception {
@@ -82,28 +82,26 @@ public class FakeWorldSimulator {
 		List<File> lF = new ArrayList<>();
 		// Line to change to select the right scenario
 
-		String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenarFakeWorldMax/").getPath();
-		lF.add(new File(rootParam + "parameterScenario.xml"));
-		lF.add(new File(rootParam + "parameterTechnic.xml"));
+		File paramFile = new File(rootFolderFile, "/paramFolder");
+		lF.add(new File(paramFile + "/paramSet/DDense/parameterScenario.json"));
+		lF.add(new File(paramFile + "/paramSet/DDense/parameterTechnic.json"));
 
-		for (String type : iterateOnBuildingType()) {
-			try {
-				// if (!type.equals("smallBlockFlat")) {
-				// continue;
-				// }
-				SimpluParametersJSON p = new SimpluParametersJSON(lF);
-				File f = new File(rootFolderFile, type);
-
-				AttribNames.setATT_CODE_PARC("CODE");
-
-				p.set("rootFile", f);
-
-				SimPLUSimulator plu = new SimPLUSimulator(new File("./src/main/resources/"), f, p, outputFolder);
-
-				plu.run(BuildingType.valueOf(type.toUpperCase()), p);
-			} catch (Exception e) {
-				System.out.println(e);
-				System.out.println("get lost");
+		for (File buildingTypeFile : new File(paramFile, "/profileBuildingType/").listFiles()) {
+			if (buildingTypeFile.getName().endsWith(".json")) {
+				try {
+					// if (!type.equals("smallBlockFlat")) {
+					// continue;
+					// }
+					SimpluParametersJSON p = new SimpluParametersJSON(lF);
+					AttribNames.setATT_CODE_PARC("CODE");
+					outputFolder = new File(outputFolder, buildingTypeFile.getName());
+					outputFolder.mkdirs();
+					SimPLUSimulator plu = new SimPLUSimulator(paramFile, rootFolderFile, p, outputFolder);
+					plu.run(BuildingType.valueOf(buildingTypeFile.getName().replace(".json", "").toUpperCase()), p);
+				} catch (Exception e) {
+					System.out.println(e);
+					System.out.println("get lost");
+				}
 			}
 		}
 	}
