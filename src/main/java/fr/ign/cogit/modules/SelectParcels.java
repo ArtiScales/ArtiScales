@@ -58,7 +58,6 @@ public class SelectParcels {
 
 		// where the regulation data are stored
 		regulFile = new File(rootFile, "dataRegulation");
-
 		outFile = outfile;
 
 		// where temporary stuff are stored

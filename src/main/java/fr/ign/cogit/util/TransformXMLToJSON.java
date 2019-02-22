@@ -39,6 +39,6 @@ public class TransformXMLToJSON {
   public static void main(String[] args) throws Exception {
     String folderName = TransformXMLToJSON.class.getClassLoader().getResource(".").getPath();
     File folder = new File(folderName);
-    convert(new File("/home/mcolomb/workspace/ArtiScales/src/main/resources"));
+    convert(new File("/home/yo/Documents/these/ArtiScales/paramFolder/"));
   }
 }

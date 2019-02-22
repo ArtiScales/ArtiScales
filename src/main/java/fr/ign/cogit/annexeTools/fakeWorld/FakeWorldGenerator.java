@@ -34,7 +34,7 @@ public class FakeWorldGenerator {
 
 	public static void main(String[] args) throws IOException {
 		// Folder where to generate the fake data
-		String folderOut = "/home/mcolomb/informatique/fakeWorld/";
+		String folderOut = "/home/yo/Documents/these/fakeWorld/";
 		(new File(folderOut)).mkdirs();
 		generateTestForBuildingType(folderOut);
 		// generateTestForArticle5(folderOut + "art5/");

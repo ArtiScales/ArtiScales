@@ -12,9 +12,7 @@ import fr.ign.cogit.util.TransformXMLToJSON;
 
 public class MainTask {
 
-	static File rootFile;
-	static File geoFile;
-	static File regulFile;
+	static File rootFile, geoFile, regulFile, paramFile;
 
 	public static void main(String[] args) throws Exception {
 		runScenar();
@@ -29,20 +27,26 @@ public class MainTask {
 
 		// general parameters
 
-		//convert from xml (that is more useful for commenting and changing values) to json (which is the common format for parameters exchanges)
+		// convert from xml (that is more useful for commenting and changing values) to
+		// json (which is the common format for parameters exchanges)
 //		TransformXMLToJSON.convert(new File(MainTask.class.getClassLoader().getResource(".").getPath()));
-		
+
 		// list of different scenarios to test "div"
-		// List<Parameters> listScenarios = getParamFile("DDense", new File("/home/ubuntu/workspace/ArtiScales/src/main/resources/paramSet"));
-		File paramSet = new File("./src/main/resources/paramSet");
-		List<SimpluParametersJSON> listScenarioParameters = getParamFile("DDense", paramSet);
-System.out.println(listScenarioParameters);
+		// List<Parameters> listScenarios = getParamFile("DDense", new
+		// File("/home/ubuntu/workspace/ArtiScales/src/main/resources/paramSet"));
+
 		// List<Parameters> listScenarios = getParamFile("scenar0MKDom", new
 		// File("/home/mbrasebin/Documents/Code/ArtiScales/ArtiScales/src/main/resources/paramSet/"));
 
-		rootFile = new File(listScenarioParameters.get(0).getString("rootFile"));
+		rootFile = new File("./ArtiScalesTest/");
+		paramFile = new File(rootFile, "paramFolder");
 		geoFile = new File(rootFile, "dataGeo");
 		regulFile = new File(rootFile, "dataRegulation");
+
+		File paramSet = new File(paramFile, "paramSet");
+
+		List<SimpluParametersJSON> listScenarioParameters = getParamFile("DDense", paramSet);
+		System.out.println(listScenarioParameters);
 		// kind verification
 		if (!rootFile.exists() || !geoFile.exists() || !regulFile.exists()) {
 			System.out.println("please check the file setting in the parameter file ");
@@ -95,13 +99,13 @@ System.out.println(listScenarioParameters);
 		////////////////
 		// File parcelPackages = parcelManagerSelectionAndPack();
 		List<List<File>> parcelPackagesOutput = new ArrayList<List<File>>();
-
 		for (List<File> scenar : mupCityOutput) {
 			String scenarName = scenar.get(0).getName().split("-")[0];
 			List<File> variantParcelPackages = new ArrayList<File>();
 			for (File varianteSpatialConf : scenar) {
 
-				File fileOut = new File(rootFile, "ParcelSelectionDepot/" + scenarName + "/" + varianteSpatialConf.getParentFile().getName());
+				File fileOut = new File(rootFile,
+						"ParcelSelectionDepot/" + scenarName + "/" + varianteSpatialConf.getParentFile().getName());
 				fileOut.mkdirs();
 				SimpluParametersJSON p = SimuTool.getParamFile(listScenarioParameters, scenarName);
 
@@ -127,8 +131,10 @@ System.out.println(listScenarioParameters);
 							if (packFile.isDirectory()) {
 								SimpluParametersJSON p = SimuTool.getParamFile(listScenarioParameters, scenarName);
 
-								File fileOut = new File(rootFile, "SimPLUDepot/" + scenarName + "/" + varianteFile.getName());
-								SimPLUSimulator simPluSim = new SimPLUSimulator(paramSet.getParentFile(), packFile, p, fileOut);
+								File fileOut = new File(rootFile,
+										"SimPLUDepot/" + scenarName + "/" + varianteFile.getName());
+								SimPLUSimulator simPluSim = new SimPLUSimulator(paramSet.getParentFile(), packFile, p,
+										fileOut);
 								List<File> listFilesSimul = simPluSim.run();
 								if (!(listFilesSimul == null)) {
 									buildingSimulatedPerVariant.addAll(listFilesSimul);
@@ -154,12 +160,15 @@ System.out.println(listScenarioParameters);
 		// buildingSimulatedPerSimu = SimuTool.generateResultConfigSimPLU(rootFile);
 		// }
 		// for (List<List<File>> listVariantes : buildingSimulatedPerSimu) {
-		// String scenarName = listVariantes.get(0).get(0).getParentFile().getParentFile().getName();
+		// String scenarName =
+		// listVariantes.get(0).get(0).getParentFile().getParentFile().getName();
 		// for (List<File> buildingSimulatedPerVariant : listVariantes) {
 		// Parameters p = SimuTool.getParamFile(listScenarios, scenarName);
-		// File bTHFile = new File(rootFile, "indic/bTH/" + scenarName + "/" + buildingSimulatedPerVariant.get(0).getParentFile().getName());
+		// File bTHFile = new File(rootFile, "indic/bTH/" + scenarName + "/" +
+		// buildingSimulatedPerVariant.get(0).getParentFile().getName());
 		// bTHFile.mkdirs();
-		// BuildingToHousingUnit bTH = new BuildingToHousingUnit(buildingSimulatedPerVariant, bTHFile, p);
+		// BuildingToHousingUnit bTH = new
+		// BuildingToHousingUnit(buildingSimulatedPerVariant, bTHFile, p);
 		// bTH.distributionEstimate();
 		// }
 		// }
@@ -170,13 +179,16 @@ System.out.println(listScenarioParameters);
 		// List<List<File>> parcelGen = SimuTool.generateResultParcels(rootFile);
 		// // we calculate
 		// for (List<File> listVariantes : parcelGen) {
-		// String scenarName = listVariantes.get(0).getParentFile().getParentFile().getName();
+		// String scenarName =
+		// listVariantes.get(0).getParentFile().getParentFile().getName();
 		// for (File parcelsPerVariant : listVariantes) {
 		// Parameters p = SimuTool.getParamFile(listScenarios, scenarName);
-		// File parcelOutFile = new File(rootFile, "indic/parcelOut/" + scenarName + "/" + parcelsPerVariant.getParentFile().getName());
+		// File parcelOutFile = new File(rootFile, "indic/parcelOut/" + scenarName + "/"
+		// + parcelsPerVariant.getParentFile().getName());
 		// parcelOutFile.mkdirs();
 		// File parcelOut = new File(parcelOutFile, "parcelGenExport.shp");
-		// Vectors.copyShp("parcelGen", parcelsPerVariant.getParentFile(), parcelOutFile);
+		// Vectors.copyShp("parcelGen", parcelsPerVariant.getParentFile(),
+		// parcelOutFile);
 		// ParcelStat pc = new ParcelStat(p, parcelOut);
 		// pc.run();
 		// }
@@ -186,8 +198,8 @@ System.out.println(listScenarioParameters);
 	public static Hashtable<String, String[]> prepareVariant(SimpluParametersJSON p) {
 		Hashtable<String, String[]> variants = new Hashtable<String, String[]>();
 		try {
-			String[] originalScenar = { p.getString("emprise"), p.getString("cm"), p.getString("seuil"), p.getString("data"),
-					p.getString("nivCellUtilise"), p.getString("seed") };
+			String[] originalScenar = { p.getString("emprise"), p.getString("cm"), p.getString("seuil"),
+					p.getString("data"), p.getString("nivCellUtilise"), p.getString("seed") };
 			variants.put("original", originalScenar);
 			for (int i = 1; i <= 1000; i++) {
 				if (!p.getString("variante" + i).isEmpty()) {
@@ -205,10 +217,10 @@ System.out.println(listScenarioParameters);
 	/**
 	 * return technical parameters from the parameter file
 	 * 
-	 * @param line
-	 *            from the parameter file
-	 * @return tab with parameters sorted like that : \n 0 : emprise \n 1 : minimal size of cell \n 2 : threshold of building density \n 3 : dataset to use \n 4 : level of cell
-	 *         size to use \n 5 : seed \n
+	 * @param line from the parameter file
+	 * @return tab with parameters sorted like that : \n 0 : emprise \n 1 : minimal
+	 *         size of cell \n 2 : threshold of building density \n 3 : dataset to
+	 *         use \n 4 : level of cell size to use \n 5 : seed \n
 	 */
 	private static String[] unmarshalVariant(String line) {
 		String[] result = new String[6];
@@ -224,10 +236,10 @@ System.out.println(listScenarioParameters);
 	}
 
 	/**
-	 * Scan all the file from a folder and return a list of parameters, representing different scenarios
+	 * Scan all the file from a folder and return a list of parameters, representing
+	 * different scenarios
 	 * 
-	 * @param fIn
-	 *            : folder where every scenarios parameters are stored
+	 * @param fIn : folder where every scenarios parameters are stored
 	 * @return list : list of Parameters object to run
 	 * @throws Exception
 	 */
