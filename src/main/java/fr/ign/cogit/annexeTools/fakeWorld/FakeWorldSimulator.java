@@ -86,23 +86,39 @@ public class FakeWorldSimulator {
 		lF.add(new File(paramFile + "/paramSet/DDense/parameterScenario.json"));
 		lF.add(new File(paramFile + "/paramSet/DDense/parameterTechnic.json"));
 
-		for (File buildingTypeFile : new File(paramFile, "/profileBuildingType/").listFiles()) {
+		List<File> lFTemp = new ArrayList<>();
+		
+		
+		File folderProfileBuildingType =  new File(paramFile, "/profileBuildingType/");
+		
+		for (File buildingTypeFile : folderProfileBuildingType.listFiles()) {
 			if (buildingTypeFile.getName().endsWith(".json")) {
-				try {
-					// if (!type.equals("smallBlockFlat")) {
-					// continue;
-					// }
-					SimpluParametersJSON p = new SimpluParametersJSON(lF);
-					AttribNames.setATT_CODE_PARC("CODE");
-					outputFolder = new File(outputFolder, buildingTypeFile.getName());
-					outputFolder.mkdirs();
-					SimPLUSimulator plu = new SimPLUSimulator(paramFile, rootFolderFile, p, outputFolder);
-					plu.run(BuildingType.valueOf(buildingTypeFile.getName().replace(".json", "").toUpperCase()), p);
-				} catch (Exception e) {
-					System.out.println(e);
-					System.out.println("get lost");
-				}
+				lFTemp.add(buildingTypeFile);
 			}
 		}
+		
+		lFTemp.parallelStream().forEach(x -> {
+			try {
+				launchSimulation(rootFolderFile, outputFolder, x, lF, paramFile );
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		});
+	}
+	
+	
+	private static void launchSimulation(File rootFolderFile, File outputFolder, File buildingTypeFile, List<File> lF , File paramFile) throws Exception {
+	
+			// if (!type.equals("smallBlockFlat")) {
+			// continue;
+			// }
+			SimpluParametersJSON p = new SimpluParametersJSON(lF);
+			AttribNames.setATT_CODE_PARC("CODE");
+			outputFolder = new File(outputFolder, buildingTypeFile.getName());
+			outputFolder.mkdirs();
+			SimPLUSimulator plu = new SimPLUSimulator(paramFile, rootFolderFile, p, outputFolder);
+			plu.run(BuildingType.valueOf(buildingTypeFile.getName().replace(".json", "").toUpperCase()), p);
+	
 	}
 }
