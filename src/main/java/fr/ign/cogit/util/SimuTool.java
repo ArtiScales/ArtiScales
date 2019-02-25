@@ -234,15 +234,17 @@ public class SimuTool {
 				if (nameParam.split(":")[0].equals(p.getString("scenarioPMSP3D"))) {
 					specialScenarZone.add(nameParam);
 				}
+				else {
+					continue;
+				}
 			}
 			listZones.add(nameParam);
 		}
-
 		// if theres a zone special for the scenario and a regular one, the regular one
 		// must be erased
 		if (!specialScenarZone.isEmpty()) {
 			for (String s : specialScenarZone) {
-				listZones.remove((s.split(":")[1]));
+				listZones.remove(s.split(":")[1]);
 			}
 		}
 		return listZones;

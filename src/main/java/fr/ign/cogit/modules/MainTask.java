@@ -124,13 +124,11 @@ public class MainTask {
 			String scenarName = listVariantes.get(0).getParentFile().getName();
 			for (File varianteFile : listVariantes) {
 				List<File> buildingSimulatedPerVariant = new ArrayList<File>();
-
 				for (File superPackFile : varianteFile.listFiles()) {
 					if (superPackFile.isDirectory()) {
 						for (File packFile : superPackFile.listFiles()) {
 							if (packFile.isDirectory()) {
 								SimpluParametersJSON p = SimuTool.getParamFile(listScenarioParameters, scenarName);
-
 								File fileOut = new File(rootFile,
 										"SimPLUDepot/" + scenarName + "/" + varianteFile.getName());
 								SimPLUSimulator simPluSim = new SimPLUSimulator(paramSet.getParentFile(), packFile, p,

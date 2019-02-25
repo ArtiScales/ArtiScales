@@ -653,12 +653,10 @@ public class ParcelFonction {
 					IFeatureCollection<IFeature> tmp = generateFlagSplitedParcels(feat, iMultiCurve, tmpFile, rootFile,
 							mupFile, maximalAreaSplitParcel, maximalWidthSplitParcel, lenDriveway);
 					cutedAll.addAll(tmp);
-
 				} else {
 					if ((boolean) feat.getAttribute("IsBuild")) {
 						AttributeManager.addAttribute(feat, "DoWeSimul", "false", "String");
 						AttributeManager.addAttribute(feat, "eval", "0.0", "String");
-
 					}
 					cutedAll.add(feat);
 				}
