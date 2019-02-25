@@ -159,7 +159,7 @@ public class ParcelFonction {
 	// // Vectors.exportSFC(generateSplitedParcels(waiting, tmpFile, p), new
 	// // File("/tmp/tmp2.shp"));
 	// SimpleFeatureCollection salut = parcelGenMotif("NC", featuresZones, tmpFile,
-	// new File(p.getString("rootFile")), new File(
+	// ), new File(
 	// "/home/mcolomb/informatique/ArtiScales/MupCityDepot/exScenar/variant0/exScenar-DataSys-CM20.0-S0.0-GP_915948.0_6677337.0--N6_Ba_ahpx_seed_42-evalAnal-20.0.shp"),
 	// 800.0, 7.0, 3.0, 2);
 	//
@@ -179,7 +179,7 @@ public class ParcelFonction {
 	// // Vectors.exportSFC(generateSplitedParcels(waiting, tmpFile, p), new
 	// // File("/tmp/tmp2.shp"));
 	// SimpleFeatureCollection salut = parcelGenZone("AU", featuresZones, tmpFile,
-	// new File(p.getString("rootFile")), 800.0, 7.0, 3.0, 2);
+	// ), 800.0, 7.0, 3.0, 2);
 	//
 	// Vectors.exportSFC(salut, new File("/tmp/parcelDensification.shp"));
 	// shpDSZone.dispose();
@@ -188,7 +188,7 @@ public class ParcelFonction {
 	// //////// try the generateFlagSplitedParcels method
 	// /////////////////////////
 	//
-	// File geoFile = new File(p.getString("rootFile"), "dataGeo");
+	// File geoFile = new File(, "dataGeo");
 	// IFeatureCollection<IFeature> featColl =
 	// ShapefileReader.read("/tmp/tmp1.shp");
 	//
@@ -350,7 +350,7 @@ public class ParcelFonction {
 				// type that is the most represented
 				BuildingType type = RepartitionBuildingType.getBiggestRepartition(pLoc);
 				SimpluParametersJSON pBuildingType = new SimpluParametersJSON((SimpluParametersJSON) p);
-				pBuildingType.add(RepartitionBuildingType.getParam(profileBuildingType, type));
+				pBuildingType.add(RepartitionBuildingType.getParamBuildingType(profileBuildingType, type));
 
 				// cleaning that name
 				stringParam = SimuTool.cleanSectorName(stringParam);
@@ -380,7 +380,7 @@ public class ParcelFonction {
 				// type that is the most represented
 				BuildingType type = RepartitionBuildingType.getBiggestRepartition(pTemp);
 				SimpluParametersJSON pAdded = new SimpluParametersJSON((SimpluParametersJSON) p);
-				pAdded.add(RepartitionBuildingType.getParam(profileBuildingType, type));
+				pAdded.add(RepartitionBuildingType.getParamBuildingType(profileBuildingType, type));
 
 				// cleaning that name
 				stringParam = SimuTool.cleanSectorName(stringParam);
@@ -727,7 +727,7 @@ public class ParcelFonction {
 				// type that is the most represented
 				BuildingType type = RepartitionBuildingType.getBiggestRepartition(pLoc);
 				SimpluParametersJSON pBuildingType = new SimpluParametersJSON(p);
-				pBuildingType.add(RepartitionBuildingType.getParam(profileBuildingType, type));
+				pBuildingType.add(RepartitionBuildingType.getParamBuildingType(profileBuildingType, type));
 
 				stringParam = SimuTool.cleanSectorName(stringParam);
 
@@ -759,7 +759,7 @@ public class ParcelFonction {
 					// type that is the most represented
 					BuildingType type = RepartitionBuildingType.getBiggestRepartition(pTemp);
 					SimpluParametersJSON pAdded = new SimpluParametersJSON(p);
-					pAdded.add(RepartitionBuildingType.getParam(profileBuildingType, type));
+					pAdded.add(RepartitionBuildingType.getParamBuildingType(profileBuildingType, type));
 
 					stringParam = SimuTool.cleanSectorName(stringParam);
 
@@ -1165,7 +1165,7 @@ public class ParcelFonction {
 				// type that is the most represented
 				BuildingType type = RepartitionBuildingType.getBiggestRepartition(pLoc);
 				SimpluParametersJSON pBuildingType = new SimpluParametersJSON(p);
-				pBuildingType.add(RepartitionBuildingType.getParam(profileBuildingType, type));
+				pBuildingType.add(RepartitionBuildingType.getParamBuildingType(profileBuildingType, type));
 				stringParam = SimuTool.cleanSectorName(stringParam);
 				// two specifications
 				if (stringParam.split("-").length == 2 && splitZone.equals(stringParam.split("-")[1])) {
@@ -1195,7 +1195,7 @@ public class ParcelFonction {
 					// type that is the most represented
 					BuildingType type = RepartitionBuildingType.getBiggestRepartition(pTemp);
 					SimpluParametersJSON pAdded = new SimpluParametersJSON(p);
-					pAdded.add(RepartitionBuildingType.getParam(profileBuildingType, type));
+					pAdded.add(RepartitionBuildingType.getParamBuildingType(profileBuildingType, type));
 
 					stringParam = SimuTool.cleanSectorName(stringParam);
 

@@ -322,23 +322,23 @@ public class RepartitionBuildingType {
 
 	/**
 	 * return the json data related to the given building type 
-	 * @param ressourceFolder : Folder where the .xml files are stored
+	 * @param buildingTypeFolder : Folder where the .xml files are stored
 	 * @param type : given Building Type
 	 * @return
 	 * @throws Exception
 	 */
-	public static SimpluParametersJSON getParam(File ressourceFolder, BuildingType type) throws Exception {
+	public static SimpluParametersJSON getParamBuildingType(File buildingTypeFolder, BuildingType type) throws Exception {
 		switch (type) {
 		case DETACHEDHOUSE:
-			return new SimpluParametersJSON(new File(ressourceFolder, "detachedHouse.json"));
+			return new SimpluParametersJSON(new File(buildingTypeFolder, "detachedHouse.json"));
 		case SMALLHOUSE:
-			return new SimpluParametersJSON(new File(ressourceFolder, "smallHouse.json"));
+			return new SimpluParametersJSON(new File(buildingTypeFolder, "smallHouse.json"));
 		case MULTIFAMILYHOUSE:
-			return new SimpluParametersJSON(new File(ressourceFolder, "multifamilyHouse.json"));
+			return new SimpluParametersJSON(new File(buildingTypeFolder, "multifamilyHouse.json"));
 		case MIDBLOCKFLAT:
-			return new SimpluParametersJSON(new File(ressourceFolder, "midBlockFlat.json"));
+			return new SimpluParametersJSON(new File(buildingTypeFolder, "midBlockFlat.json"));
 		case SMALLBLOCKFLAT:
-			return new SimpluParametersJSON(new File(ressourceFolder, "smallBlockFlat.json"));
+			return new SimpluParametersJSON(new File(buildingTypeFolder, "smallBlockFlat.json"));
 		}
 		throw new Exception("no parameter file found");
 	}

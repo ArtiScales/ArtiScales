@@ -45,11 +45,11 @@ public class BuildingToHousingUnit extends Indicators {
 	final String SDWELLING = "petit logement collectif";
 	final String LDWELLING = "grand logement collectif";
 
-	public BuildingToHousingUnit(List<File> buildingList, File simuFile, SimpluParametersJSON par) {
-		super(par);
+	public BuildingToHousingUnit(List<File> buildingList, File rootFile, File simuFile, SimpluParametersJSON par) {
+		super(par, rootFile);
 		this.buildingList = buildingList;
 		this.simuFile = simuFile;
-		rootFile = new File(p.getString("rootFile"));
+
 		surfaceLogDefault = p.getInteger("housingUnitSize");
 		particularFirstLine = "numero_parcelle,surface_de_plancher," + "surface_au_sol," + "nombre_de_logements," + "type_du_logement,"
 				+ "zone_de_la_construction," + "moyenne_de_la_surface_plancher_par_logements," + "densite_batie";
@@ -66,29 +66,30 @@ public class BuildingToHousingUnit extends Indicators {
 	}
 
 	public static void main(String[] args) throws Exception {
-		File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/dense");
+		File root = new File("./ArtiScales/");
+		File paramFolder = new File(root, "paramFolder");
 		List<File> lF = new ArrayList<>();
-		lF.add(new File(rootParam, "parameterTechnic.json"));
-		lF.add(new File(rootParam, "parameterScenario.json"));
+		lF.add(new File(paramFolder, "/paramSet/DDense/parameterTechnic.json"));
+		lF.add(new File(paramFolder, "/paramSet/DDense/parameterScenario.json"));
 
 		SimpluParametersJSON p = new SimpluParametersJSON(lF);
 
-		File batisSimulatedFile = new File("/home/mcolomb/informatique/ArtiScalesDanemarie/SimPLUDepot/dense/variante0");
-		File simuFile = new File("/home/mcolomb/informatique/ArtiScalesDanemarie/indic/bTH/dense/variante0");
+		File batisSimulatedFile = new File(root, "/SimPLUDepot/dense/variante0");
+		File simuFile = new File(root, "/indic/bTH/dense/variante0");
 		simuFile.mkdirs();
-		List<File> listFile = new ArrayList<File>();
+		List<File> buildingList = new ArrayList<File>();
 		for (File f : batisSimulatedFile.listFiles()) {
 			if (f.getName().startsWith("out-parcel_") && f.getName().endsWith(".shp")) {
-				listFile.add(f);
+				buildingList.add(f);
 			}
 		}
-		BuildingToHousingUnit bhtU = new BuildingToHousingUnit(listFile, simuFile, p);
+		BuildingToHousingUnit bhtU = new BuildingToHousingUnit(buildingList, root, simuFile, p);
 		bhtU.distributionEstimate();
 		// bhtU.simpleCityEstimate();
 	}
 
-	public static void runParticularSimpleEstimation(List<File> filebati, File simuFile, SimpluParametersJSON p) throws IOException {
-		BuildingToHousingUnit bth = new BuildingToHousingUnit(filebati, simuFile, p);
+	public static void runParticularSimpleEstimation(List<File> filebati,File rootFile, File simuFile, SimpluParametersJSON p) throws IOException {
+		BuildingToHousingUnit bth = new BuildingToHousingUnit(filebati,rootFile, simuFile, p);
 		bth.runParticularSimpleEstimation();
 	}
 
@@ -242,7 +243,7 @@ public class BuildingToHousingUnit extends Indicators {
 					// for collective buildings
 					default:
 						collectiveHousing = true;
-						repartition = makeCollectiveHousingRepartition(build, type);
+						repartition = makeCollectiveHousingRepartition(build, type, paramFolder);
 						nbHU = repartition.get("carac").get("totHU");
 					}
 					numeroParcel = String.valueOf(build.getAttribute("CODE"));
@@ -329,10 +330,10 @@ public class BuildingToHousingUnit extends Indicators {
 	 * @throws Exception
 	 */
 	@SuppressWarnings("unchecked")
-	public HashMap<String, HashMap<String, Integer>> makeCollectiveHousingRepartition(SimpleFeature bati, BuildingType type) throws Exception {
+	public HashMap<String, HashMap<String, Integer>> makeCollectiveHousingRepartition(SimpleFeature bati, BuildingType type, File paramFolder)
+			throws Exception {
 
-	  SimpluParametersJSON pType = RepartitionBuildingType.getParam(new File(this.getClass().getClassLoader().getResource("profileBuildingType").getFile()),
-				type);
+		SimpluParametersJSON pType = RepartitionBuildingType.getParamBuildingType(new File(paramFolder, "profileBuildingType"), type);
 
 		int minLgt = pType.getInteger("minHousingUnit");
 

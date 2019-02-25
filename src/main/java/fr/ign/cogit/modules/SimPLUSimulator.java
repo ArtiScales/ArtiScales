@@ -119,9 +119,6 @@ public class SimPLUSimulator {
 		// List<File> lF = new ArrayList<>();
 		// // Line to change to select the right scenario
 		//
-		// String rootParam =
-		// SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenar0MKDom/").getPath();
-		//
 		// System.out.println(rootParam);
 		//
 		// lF.add(new File(rootParam + "parameterTechnic.xml"));
@@ -150,7 +147,6 @@ public class SimPLUSimulator {
 		// // parcels
 		//
 		// // RootFolder
-		// File rootFolder = new File(p.getString("rootFile"));
 		// // Selected parcels shapefile
 		// File selectedParcels = new File(p.getString("selectedParcelFile"));
 		//
@@ -297,7 +293,7 @@ public class SimPLUSimulator {
 			IFeatureCollection<IFeature> building = null;
 			SimpluParametersJSON pTemp = new SimpluParametersJSON((SimpluParametersJSON) par);
 
-			pTemp.add(RepartitionBuildingType.getParam(new File(paramFile, "profileBuildingType"), type));
+			pTemp.add(RepartitionBuildingType.getParamBuildingType(new File(paramFile, "profileBuildingType"), type));
 
 			System.out.println("nombre de boites autorisées : " + pTemp.getString("nbCuboid"));
 
@@ -449,7 +445,7 @@ public class SimPLUSimulator {
 				System.out.println("we try to put a " + type + " housing unit");
 				// we add the parameters for the building type want to simulate
 				SimpluParametersJSON pTemp = new SimpluParametersJSON(pUsed);
-				pTemp.add(RepartitionBuildingType.getParam(new File(paramFile, "profileBuildingType"), type));
+				pTemp.add(RepartitionBuildingType.getParamBuildingType(new File(paramFile, "profileBuildingType"), type));
 				System.out.println("new height back to reg val " + pTemp.getDouble("maxheight"));
 
 				building = runSimulation(env, i, pTemp, type, prescriptionUse);

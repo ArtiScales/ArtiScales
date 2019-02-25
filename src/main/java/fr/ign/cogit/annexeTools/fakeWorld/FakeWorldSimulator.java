@@ -32,8 +32,7 @@ public class FakeWorldSimulator {
 				List<File> lF = new ArrayList<>();
 				// Line to change to select the right scenario
 
-				String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenarFakeWorldMax/")
-						.getPath();
+				File rootParam = new File(rootFolderFile, "paramFolder");
 
 				lF.add(new File(rootParam, "parameterTechnic.xml"));
 				lF.add(new File(rootParam, "parameterScenario.xml"));
@@ -69,7 +68,7 @@ public class FakeWorldSimulator {
 				// Selected parcels shapefile
 
 				SimPLUSimulator simplu = new SimPLUSimulator(new File("./src/main/resources/"),
-						new File(p.getString("rootFile")), p, new File("/tmp/yop"));
+						rootFolderFile, p, new File("/tmp/yop"));
 
 				simplu.run();
 			}

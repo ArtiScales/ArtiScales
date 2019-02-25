@@ -150,9 +150,7 @@ public class SelectParcels {
 		////////////////
 		Vectors.exportSFC(parcelCollection, new File(tmpFile, "parcelBeforeSplit"));
 
-//		File ressource = new File(this.getClass().getClassLoader().getResource("").getFile());
-
-		// some very few cases are still crashing, so we get the parcels back when
+		// some very few cases are still crashing, so we get the parcels back when it does
 
 		if (!p.getString("splitDensification").equals("false") && !p.getString("splitDensification").equals("")) {
 			if (!p.getBoolean("Ubuilt")) {
