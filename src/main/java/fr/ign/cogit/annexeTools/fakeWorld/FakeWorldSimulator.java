@@ -18,7 +18,9 @@ public class FakeWorldSimulator {
 		// String absoluteRootFolder = "/home/ubuntu/boulot/these/fakeWorld/";
 
 		File rootFolderFile = new File(absoluteRootFolder);
-		testBuildingTypes(rootFolderFile, new File(absoluteRootFolder+"/out"));
+		File outFile = new File(absoluteRootFolder+"/out");
+		outFile.mkdirs();
+		testBuildingTypes(rootFolderFile,outFile  );
 	}
 
 	public static void tryRules(File rootFolderFile) throws Exception {
@@ -92,6 +94,7 @@ public class FakeWorldSimulator {
 		
 		for (File buildingTypeFile : folderProfileBuildingType.listFiles()) {
 			if (buildingTypeFile.getName().endsWith(".json")) {
+				if (buildingTypeFile.getName().startsWith("midBlockFlat"))
 				lFTemp.add(buildingTypeFile);
 			}
 		}
