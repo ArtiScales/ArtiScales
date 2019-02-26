@@ -4,13 +4,16 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.tuple.MutablePair;
 
 import fr.ign.cogit.GTFunctions.Rasters;
+import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.task.Initialize;
 import fr.ign.task.ProjectCreationDecompTask;
@@ -47,7 +50,7 @@ public class MupCitySimulation {
 	}
 
 	public static void main(String[] args) throws Exception {
-
+		convertTifToShp(new File("/home/mcolomb/informatique/ArtiScales/svg"));
 	}
 
 	public static File run(SimpluParametersJSON p, String[] variant, File variantFile, File rootFile, File geoFile) throws Exception {
@@ -116,4 +119,24 @@ public class MupCitySimulation {
 		}
 		throw new NullPointerException("nothing to return");
 	}
+
+	public static void convertTifToShp(File rootFile) throws Exception {
+		for (File scenarFile : (new File(rootFile, "MupCityDepot")).listFiles()) {
+			if (scenarFile.isDirectory()) {
+				System.out.println(scenarFile);
+				for (File variantFile : scenarFile.listFiles()) {
+					for (File simuFile : variantFile.listFiles()) {
+						String simuName = simuFile.getName();
+						if (simuName.endsWith(".tif")) {
+							double ech= Double.valueOf(simuName.split("evalAnal-")[1].replace(".0.tif", ""));
+							System.out.println(ech);
+							OutputTools.vectorizeMupOutput(Rasters.importRaster(simuFile),
+									new File(simuFile.getParentFile(), simuName.replace(".tif", ".shp")), ech);
+						}
+					}
+				}
+			}
+		}
+	}
+
 }

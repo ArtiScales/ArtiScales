@@ -176,7 +176,7 @@ public class SelectParcels {
 				System.out.println();
 				System.out.println("///// We start the splitTotRecomp process\\\\\\");
 				parcelCollection = ParcelFonction.parcelTotRecomp(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP, p, rootFile);
-				Vectors.exportSFC(parcelCollection, new File(tmpFile, "splitTotRecomp"));
+				Vectors.exportSFC(parcelCollection, new File(tmpFile, "afterSplitTotRecomp"));
 			} else {
 				System.err.println("splitParcel : complex section non implemented yet");
 			}
