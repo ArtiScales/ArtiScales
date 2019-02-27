@@ -1006,27 +1006,11 @@ public class ParcelFonction {
 						.scaledGeometryReductionIntersection(Arrays.asList((Geometry) zone.getDefaultGeometry(), unionParcel));
 
 				if (!intersectedGeom.isEmpty()) {
-					if (intersectedGeom instanceof MultiPolygon) {
-						for (int i = 0; i < intersectedGeom.getNumGeometries(); i++) {
-							sfBuilder.set(geometryOutputName, intersectedGeom.getGeometryN(i));
-							write.add(sfBuilder.buildFeature(null));
-						}
-					} else if (intersectedGeom instanceof GeometryCollection) {
-						for (int i = 0; i < intersectedGeom.getNumGeometries(); i++) {
-							Geometry g = intersectedGeom.getGeometryN(i);
-							if (g instanceof Polygon) {
-								sfBuilder.set("the_geom", g.buffer(1).buffer(-1));
-								write.add(sfBuilder.buildFeature(null));
-							}
-						}
-					} else {
-						sfBuilder.set(geometryOutputName, intersectedGeom);
-					}
+					write = Vectors.addSimpleGeometry(sfBuilder, write, geometryOutputName, intersectedGeom);
 				} else {
-					System.out.println("it's empty");
-					sfBuilder.set(geometryOutputName, zone.getDefaultGeometry());
+					System.out.println("this intersection is empty");
+				//	write = Vectors.addSimpleGeometry(sfBuilder, write, geometryOutputName, intersectedGeom);
 				}
-				write.add(sfBuilder.buildFeature(null));
 				numZone++;
 			}
 		} catch (Exception problem) {
