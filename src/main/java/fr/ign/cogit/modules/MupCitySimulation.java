@@ -4,16 +4,13 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.tuple.MutablePair;
 
 import fr.ign.cogit.GTFunctions.Rasters;
-import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.task.Initialize;
 import fr.ign.task.ProjectCreationDecompTask;
@@ -128,7 +125,7 @@ public class MupCitySimulation {
 					for (File simuFile : variantFile.listFiles()) {
 						String simuName = simuFile.getName();
 						if (simuName.endsWith(".tif")) {
-							double ech= Double.valueOf(simuName.split("evalAnal-")[1].replace(".0.tif", ""));
+							double ech = Double.valueOf(simuName.split("evalAnal-")[1].replace(".0.tif", ""));
 							System.out.println(ech);
 							OutputTools.vectorizeMupOutput(Rasters.importRaster(simuFile),
 									new File(simuFile.getParentFile(), simuName.replace(".tif", ".shp")), ech);

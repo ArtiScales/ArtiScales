@@ -18,7 +18,7 @@ public class MultipleRepartitionBuildingType extends RepartitionBuildingType {
 	public MultipleRepartitionBuildingType(SimpluParametersJSON p, File paramFolder, File zoningFile, File communeFile, File parcelFile)
 			throws NoSuchElementException, Exception {
 		super(p, paramFolder, zoningFile, communeFile, parcelFile);
-		p = addRepartitionToParameters(p, zoningFile, communeFile, parcelles.get(0), new File(paramFolder, "profileBuildingType"));
+		p = addRepartitionToParameters(p, zoningFile, communeFile, parcelles.get(0), new File(paramFolder, "locationBuildingType"));
 
 		// we put all of the parcels into different lists regarding to their zones
 		parcelsInZone = new HashMap<String, List<String>>();
