@@ -656,8 +656,10 @@ public class SimPLUSimulator {
 				// TODO fix that defaite
 				try {
 					cc = article71Case12(alignementsGeometries, pred, env, i, bPU, par);
-				} catch (TopologyException tp) {
+				} catch (Exception e ) {
 					System.out.println("cuboid from ART7112 failed");
+					System.out.println();
+					System.out.println(e);
 					OptimisedBuildingsCuboidFinalDirectRejection oCB = new OptimisedBuildingsCuboidFinalDirectRejection();
 					cc = oCB.process(bPU, par, env, i, pred);
 				}
