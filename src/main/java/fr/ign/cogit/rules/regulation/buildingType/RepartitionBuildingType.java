@@ -291,7 +291,6 @@ public class RepartitionBuildingType {
 			throws Exception {
 		String affect = FromGeom.affectZoneAndTypoToLocation(
 		    p.getString("useRepartition"), p.getString("scenarioPMSP3D"), parcel, zoningFile, communeFile, true);
-		System.out.println("affect = " + affect);
 		// we seek for if there's a special default repartition for the scenario
 //		System.out.println("profileBuildings = " + profileBuildings);
 		// if nothing is returned, we use the default parameter file
@@ -313,7 +312,6 @@ public class RepartitionBuildingType {
 		SimpluParametersJSON addParam = new SimpluParametersJSON(new File(locationBuildings + "/" + affect + ".json"));
 
 		System.out.println("we affect the " + affect + ".json" + " folder");
-    System.out.println("JSON Param = " + addParam);
 
 		p.add(addParam);
 		System.out.println("p = " + p);

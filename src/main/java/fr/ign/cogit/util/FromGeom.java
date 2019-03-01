@@ -33,6 +33,7 @@ import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.TransformException;
 
+import com.vividsolutions.jts.algorithm.CentralEndpointIntersector;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Polygon;
@@ -166,19 +167,19 @@ public class FromGeom {
 					continue;
 				}
 				s = scenarRepart[1];
-				isCode = scenarRepart[0];
+				isCode = scenarRepart[0] + ":";
 			}
 			// seek for the different special locations
 			// if both, it's a perfect match !!
 			if (s.split("-").length > 1) {
 				if (s.split("-")[0].toLowerCase().equals(typo.toLowerCase()) && s.split("-")[1].toLowerCase().equals(zone.toLowerCase())) {
-					result = isCode + ":" + s;
+					result = isCode + s;
 					break;
 				}
 			} else if (s.equals(zone)) {
-				mayOccur.add(isCode + ":" + s);
+				mayOccur.add(isCode + s);
 			} else if (s.equals(typo)) {
-				mayOccur.add(isCode + ":" + s);
+				mayOccur.add(isCode + s);
 			}
 		}
 		// if no perfect match found, we seek for a simple zone identifier
@@ -186,7 +187,7 @@ public class FromGeom {
 			// we prior typo infos than zone infos
 			if (priorTypoOrZone) {
 				for (String s : mayOccur) {
-					if (s.equals(typo)) {
+					if (s.contains(typo)) {
 						result = s;
 					}
 				}
@@ -194,7 +195,7 @@ public class FromGeom {
 			// we prior zone to typo
 			else if (!priorTypoOrZone) {
 				for (String s : mayOccur) {
-					if (s.equals(zone)) {
+					if (s.contains(zone)) {
 						result = s;
 					}
 				}

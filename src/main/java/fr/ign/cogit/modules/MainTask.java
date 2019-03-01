@@ -37,7 +37,7 @@ public class MainTask {
 
 		// List<Parameters> listScenarios = getParamFile("scenar0MKDom", new
 		// File("/home/mbrasebin/Documents/Code/ArtiScales/ArtiScales/src/main/resources/paramSet/"));
-		rootFile = new File("./ArtiScales/");
+		rootFile = new File("./ArtiScalesTest/");
 		paramFile = new File(rootFile, "paramFolder");
 		geoFile = new File(rootFile, "dataGeo");
 		regulFile = new File(rootFile, "dataRegulation");
