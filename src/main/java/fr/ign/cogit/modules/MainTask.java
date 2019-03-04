@@ -29,7 +29,7 @@ public class MainTask {
 
 		// convert from xml (that is more useful for commenting and changing values) to
 		// json (which is the common format for parameters exchanges)
-//		TransformXMLToJSON.convert(new File(MainTask.class.getClassLoader().getResource(".").getPath()));
+		// TransformXMLToJSON.convert(new File(MainTask.class.getClassLoader().getResource(".").getPath()));
 
 		// list of different scenarios to test "div"
 		// List<Parameters> listScenarios = getParamFile("DDense", new
@@ -37,11 +37,11 @@ public class MainTask {
 
 		// List<Parameters> listScenarios = getParamFile("scenar0MKDom", new
 		// File("/home/mbrasebin/Documents/Code/ArtiScales/ArtiScales/src/main/resources/paramSet/"));
-
 		rootFile = new File("./ArtiScalesTest/");
 		paramFile = new File(rootFile, "paramFolder");
 		geoFile = new File(rootFile, "dataGeo");
 		regulFile = new File(rootFile, "dataRegulation");
+		TransformXMLToJSON.convert(paramFile);
 
 		File paramSet = new File(paramFile, "paramSet");
 
@@ -104,8 +104,7 @@ public class MainTask {
 			List<File> variantParcelPackages = new ArrayList<File>();
 			for (File varianteSpatialConf : scenar) {
 
-				File fileOut = new File(rootFile,
-						"ParcelSelectionDepot/" + scenarName + "/" + varianteSpatialConf.getParentFile().getName());
+				File fileOut = new File(rootFile, "ParcelSelectionDepot/" + scenarName + "/" + varianteSpatialConf.getParentFile().getName());
 				fileOut.mkdirs();
 				SimpluParametersJSON p = SimuTool.getParamFile(listScenarioParameters, scenarName);
 
@@ -124,17 +123,13 @@ public class MainTask {
 			String scenarName = listVariantes.get(0).getParentFile().getName();
 			for (File varianteFile : listVariantes) {
 				List<File> buildingSimulatedPerVariant = new ArrayList<File>();
-
 				for (File superPackFile : varianteFile.listFiles()) {
 					if (superPackFile.isDirectory()) {
 						for (File packFile : superPackFile.listFiles()) {
 							if (packFile.isDirectory()) {
 								SimpluParametersJSON p = SimuTool.getParamFile(listScenarioParameters, scenarName);
-
-								File fileOut = new File(rootFile,
-										"SimPLUDepot/" + scenarName + "/" + varianteFile.getName());
-								SimPLUSimulator simPluSim = new SimPLUSimulator(paramSet.getParentFile(), packFile, p,
-										fileOut);
+								File fileOut = new File(rootFile, "SimPLUDepot/" + scenarName + "/" + varianteFile.getName());
+								SimPLUSimulator simPluSim = new SimPLUSimulator(paramSet.getParentFile(), packFile, p, fileOut);
 								List<File> listFilesSimul = simPluSim.run();
 								if (!(listFilesSimul == null)) {
 									buildingSimulatedPerVariant.addAll(listFilesSimul);
@@ -198,8 +193,8 @@ public class MainTask {
 	public static Hashtable<String, String[]> prepareVariant(SimpluParametersJSON p) {
 		Hashtable<String, String[]> variants = new Hashtable<String, String[]>();
 		try {
-			String[] originalScenar = { p.getString("emprise"), p.getString("cm"), p.getString("seuil"),
-					p.getString("data"), p.getString("nivCellUtilise"), p.getString("seed") };
+			String[] originalScenar = { p.getString("emprise"), p.getString("cm"), p.getString("seuil"), p.getString("data"),
+					p.getString("nivCellUtilise"), p.getString("seed") };
 			variants.put("original", originalScenar);
 			for (int i = 1; i <= 1000; i++) {
 				if (!p.getString("variante" + i).isEmpty()) {
@@ -217,10 +212,10 @@ public class MainTask {
 	/**
 	 * return technical parameters from the parameter file
 	 * 
-	 * @param line from the parameter file
-	 * @return tab with parameters sorted like that : \n 0 : emprise \n 1 : minimal
-	 *         size of cell \n 2 : threshold of building density \n 3 : dataset to
-	 *         use \n 4 : level of cell size to use \n 5 : seed \n
+	 * @param line
+	 *            from the parameter file
+	 * @return tab with parameters sorted like that : \n 0 : emprise \n 1 : minimal size of cell \n 2 : threshold of building density \n 3 : dataset to use \n 4 : level of cell
+	 *         size to use \n 5 : seed \n
 	 */
 	private static String[] unmarshalVariant(String line) {
 		String[] result = new String[6];
@@ -236,10 +231,10 @@ public class MainTask {
 	}
 
 	/**
-	 * Scan all the file from a folder and return a list of parameters, representing
-	 * different scenarios
+	 * Scan all the file from a folder and return a list of parameters, representing different scenarios
 	 * 
-	 * @param fIn : folder where every scenarios parameters are stored
+	 * @param fIn
+	 *            : folder where every scenarios parameters are stored
 	 * @return list : list of Parameters object to run
 	 * @throws Exception
 	 */

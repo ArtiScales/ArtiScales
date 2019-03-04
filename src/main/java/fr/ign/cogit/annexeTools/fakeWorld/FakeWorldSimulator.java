@@ -18,7 +18,9 @@ public class FakeWorldSimulator {
 		// String absoluteRootFolder = "/home/ubuntu/boulot/these/fakeWorld/";
 
 		File rootFolderFile = new File(absoluteRootFolder);
-		testBuildingTypes(rootFolderFile, new File(absoluteRootFolder+"/out"));
+		File outFile = new File(absoluteRootFolder+"/out");
+		outFile.mkdirs();
+		testBuildingTypes(rootFolderFile,outFile  );
 	}
 
 	public static void tryRules(File rootFolderFile) throws Exception {
@@ -32,8 +34,7 @@ public class FakeWorldSimulator {
 				List<File> lF = new ArrayList<>();
 				// Line to change to select the right scenario
 
-				String rootParam = SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenarFakeWorldMax/")
-						.getPath();
+				File rootParam = new File(rootFolderFile, "paramFolder");
 
 				lF.add(new File(rootParam, "parameterTechnic.xml"));
 				lF.add(new File(rootParam, "parameterScenario.xml"));
@@ -69,7 +70,7 @@ public class FakeWorldSimulator {
 				// Selected parcels shapefile
 
 				SimPLUSimulator simplu = new SimPLUSimulator(new File("./src/main/resources/"),
-						new File(p.getString("rootFile")), p, new File("/tmp/yop"));
+						rootFolderFile, p, new File("/tmp/yop"));
 
 				simplu.run();
 			}
@@ -93,6 +94,7 @@ public class FakeWorldSimulator {
 		
 		for (File buildingTypeFile : folderProfileBuildingType.listFiles()) {
 			if (buildingTypeFile.getName().endsWith(".json") && buildingTypeFile.getName().contains("midBlockFlat")) {
+
 				lFTemp.add(buildingTypeFile);
 			}
 		}
@@ -121,10 +123,4 @@ public class FakeWorldSimulator {
 			plu.run(BuildingType.valueOf(buildingTypeFile.getName().replace(".json", "").toUpperCase()), p);
 	
 	}
-
-	public static String[] iterateOnBuildingType() {
-		String[] result = { "detachedHouse", "midBlockFlat", "multifamilyHouse", "smallBlockFlat", "smallHouse" };
-		return result;
-	}
-
 }

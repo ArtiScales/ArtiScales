@@ -23,7 +23,7 @@ public class FakeWorldGenerator {
 
 	static FileWriter in;
 	// RNU rule (which is the basicalest basic)
-	static String RNURow = "0,42400,U,U0,0,0,0,0,99,44,99,99,0,3,3,2,3,99,7,21,1,99,99";
+	static String RNURow = "0,42400,U,U0,0,0,0,0,99,1,99,99,0,3,3,2,3,99,7,21,1,99,99";
 	static String neutralRow = "0,42400,U,U0,0,0,0,0,99,99,99,99,99,99,99,99,99,1,1,2,99,99,99";
 
 	// static String basicRow = "0,42400,U,U0,0,0,0,0,99,4,99,99,0,3,3,2,3,99,6,9,1m60_2,99,99" ;
@@ -34,8 +34,7 @@ public class FakeWorldGenerator {
 
 	public static void main(String[] args) throws IOException {
 		// Folder where to generate the fake data
-		String folderOut = "/home/yo/Documents/these/fakeWorld/";
-		(new File(folderOut)).mkdirs();
+		String folderOut = "./fakeWorld/";
 		generateTestForBuildingType(folderOut);
 		// generateTestForArticle5(folderOut + "art5/");
 		// generateTestForArticle6(folderOut + "art6/");
@@ -585,7 +584,7 @@ public class FakeWorldGenerator {
 
 		for (ArtiScalesRegulation regulation : regulationList) {
 			// We create a zone with the right name
-			FakeZone fZ = new FakeZone(count, regulation.getLibelle_de_dul(), 816962.333, 6488348.869);
+			FakeZone fZ = new FakeZone(count, regulation.getLibelle_de_dul(), 817195.2, 6488529.3);
 
 			// We export the regulation
 			in.write(regulation.toCSVLine() + "\n");

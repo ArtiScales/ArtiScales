@@ -15,11 +15,20 @@ import fr.ign.cogit.util.ParcelFonction;
 public class MultipleRepartitionBuildingType extends RepartitionBuildingType {
 	HashMap<String, List<String>> parcelsInZone;
 
-	public MultipleRepartitionBuildingType(SimpluParametersJSON p, File paramFile, File zoningFile, File communeFile, File parcelFile)
+	/**
+	 * 
+	 * @param p
+	 * @param paramFolder
+	 * @param zoningFile
+	 * @param communeFile
+	 * @param parcelFile
+	 * @throws NoSuchElementException
+	 * @throws Exception
+	 */
+	public MultipleRepartitionBuildingType(SimpluParametersJSON p, File paramFolder, File zoningFile, File communeFile, File parcelFile)
 			throws NoSuchElementException, Exception {
-		super(p, paramFile, zoningFile, communeFile, parcelFile);
-		p = addRepartitionToParameters(p, zoningFile, communeFile, parcelles.get(0),
-				new File(this.getClass().getClassLoader().getResource("locationBuildingType").getFile()));
+		super(p, paramFolder, zoningFile, communeFile, parcelFile);
+		p = addRepartitionToParameters(p, zoningFile, communeFile, parcelles.get(0), new File(paramFolder, "locationBuildingType"));
 
 		// we put all of the parcels into different lists regarding to their zones
 		parcelsInZone = new HashMap<String, List<String>>();

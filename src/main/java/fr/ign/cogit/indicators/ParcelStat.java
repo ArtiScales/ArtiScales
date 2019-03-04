@@ -26,12 +26,11 @@ public class ParcelStat extends Indicators {
 
 	String firstLine;
 
-	public ParcelStat(SimpluParametersJSON p, File parcelFile) throws IOException, NoSuchAuthorityCodeException, FactoryException {
-		super(p);
+	public ParcelStat(SimpluParametersJSON p,File rootFile, File parcelFile) throws IOException, NoSuchAuthorityCodeException, FactoryException {
+		super(p, rootFile);
 
 		this.parcelFile = parcelFile;
 
-		rootFile = new File(p.getString("rootFile"));
 		geoFile = new File(rootFile, "dataGeo");
 
 		firstLine = "INSEE,parcel_selected,parcel_selected_in_U,parcel_selected_in_AU,parcel_selected_in_NC,parcel_constructed,parcel_constructed_in_U,parcel_constructed_in_AU,parcel_constructed_in_NC,";
@@ -41,16 +40,18 @@ public class ParcelStat extends Indicators {
 	}
 
 	public static void main(String[] args) throws Exception {
-		File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/scenar0MCIgn");
+		File rootFile = new File("./ArtiScales/");
+			
+		File rootParam = new File(rootFile,"paramFolder");
 		List<File> lF = new ArrayList<>();
-		lF.add(new File(rootParam, "parameterTechnic.xml"));
-		lF.add(new File(rootParam, "parameterScenario.xml"));
+		lF.add(new File(rootParam, "paramSet/DDense/parameterTechnic.xml"));
+		lF.add(new File(rootParam, "paramSet/DDense/parameterScenario.xml"));
 
 		SimpluParametersJSON p = new SimpluParametersJSON(lF);
 
 		File parcelFile = new File("/home/mcolomb/informatique/ArtiScales/indic/parcelOut/teststp/variant0/parcelGenExport.shp");
 
-		ParcelStat parc = new ParcelStat(p, parcelFile);
+		ParcelStat parc = new ParcelStat(p,rootFile, parcelFile);
 		parc.run();
 
 	}

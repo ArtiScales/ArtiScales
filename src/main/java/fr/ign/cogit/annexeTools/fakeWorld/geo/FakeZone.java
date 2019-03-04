@@ -74,44 +74,50 @@ public class FakeZone {
 		// ptRoad0 <---- 300 ----> ptRoad1
 
 		// Parcels points
-		IDirectPosition dp0 = new DirectPosition(xOrigin, yOrigin, zDefault);
-		IDirectPosition dp1 = new DirectPosition(xOrigin + 200, yOrigin, zDefault);
-		IDirectPosition dp2 = new DirectPosition(xOrigin + 300, yOrigin, zDefault);
-		IDirectPosition dp3 = new DirectPosition(xOrigin, yOrigin + 200, zDefault);
-		IDirectPosition dp4 = new DirectPosition(xOrigin + 200, yOrigin + 200, zDefault);
-		IDirectPosition dp5 = new DirectPosition(xOrigin + 300, yOrigin + 200, zDefault);
-		IDirectPosition dp6 = new DirectPosition(xOrigin, yOrigin + 300, zDefault);
-		IDirectPosition dp7 = new DirectPosition(xOrigin + 200, yOrigin + 300, zDefault);
-		IDirectPosition dp8 = new DirectPosition(xOrigin + 300, yOrigin + 300, zDefault);
+//		IDirectPosition dp0 = new DirectPosition(xOrigin, yOrigin, zDefault);
+//		IDirectPosition dp1 = new DirectPosition(xOrigin + 200, yOrigin, zDefault);
+//		IDirectPosition dp2 = new DirectPosition(xOrigin + 300, yOrigin, zDefault);
+//		IDirectPosition dp3 = new DirectPosition(xOrigin, yOrigin + 200, zDefault);
+//		IDirectPosition dp4 = new DirectPosition(xOrigin + 200, yOrigin + 200, zDefault);
+//		IDirectPosition dp5 = new DirectPosition(xOrigin + 300, yOrigin + 200, zDefault);
+//		IDirectPosition dp6 = new DirectPosition(xOrigin, yOrigin + 300, zDefault);
+//		IDirectPosition dp7 = new DirectPosition(xOrigin + 200, yOrigin + 300, zDefault);
+//		IDirectPosition dp8 = new DirectPosition(xOrigin + 300, yOrigin + 300, zDefault);
 
+
+		// Parcels points
+		IDirectPosition dp0 = new DirectPosition(xOrigin, yOrigin, zDefault);
+		IDirectPosition dp1 = new DirectPosition(xOrigin + 70, yOrigin, zDefault);
+		IDirectPosition dp2 = new DirectPosition(xOrigin + 70, yOrigin+55, zDefault);
+		IDirectPosition dp3 = new DirectPosition(xOrigin, yOrigin + 55, zDefault);
+		
+		
 		// The parcel geometries and urba
-		IDirectPositionList dplFaceParcel0 = new DirectPositionList(dp0, dp1, dp4, dp3, dp0);
-		IDirectPositionList dplFaceParcel1 = new DirectPositionList(dp1, dp2, dp5, dp4, dp1);
-		IDirectPositionList dplFaceParcel2 = new DirectPositionList(dp3, dp4, dp7, dp6, dp3);
-		IDirectPositionList dplFaceParcel3 = new DirectPositionList(dp4, dp5, dp8, dp7, dp4);
+		IDirectPositionList dplFaceParcel0 = new DirectPositionList(dp0, dp1, dp2, dp3, dp0);
+//		IDirectPositionList dplFaceParcel0 = new DirectPositionList(dp0, dp1, dp4, dp3, dp0);
+//		IDirectPositionList dplFaceParcel1 = new DirectPositionList(dp1, dp2, dp5, dp4, dp1);
+//		IDirectPositionList dplFaceParcel2 = new DirectPositionList(dp3, dp4, dp7, dp6, dp3);
+//		IDirectPositionList dplFaceParcel3 = new DirectPositionList(dp4, dp5, dp8, dp7, dp4);
 
 		// Parcel features
 		IFeature parcel0 = new DefaultFeature(new GM_Polygon(new GM_LineString(dplFaceParcel0)));
-		IFeature parcel1 = new DefaultFeature(new GM_Polygon(new GM_LineString(dplFaceParcel1)));
-		IFeature parcel2 = new DefaultFeature(new GM_Polygon(new GM_LineString(dplFaceParcel2)));
-		IFeature parcel3 = new DefaultFeature(new GM_Polygon(new GM_LineString(dplFaceParcel3)));
+//		IFeature parcel1 = new DefaultFeature(new GM_Polygon(new GM_LineString(dplFaceParcel1)));
+//		IFeature parcel2 = new DefaultFeature(new GM_Polygon(new GM_LineString(dplFaceParcel2)));
+//		IFeature parcel3 = new DefaultFeature(new GM_Polygon(new GM_LineString(dplFaceParcel3)));
 
-		AttributeManager.addAttribute(parcel1, "CODE", shift + "000" + 1, "String");
-		AttributeManager.addAttribute(parcel2, "CODE", shift + "000" + 2, "String");
-		AttributeManager.addAttribute(parcel3, "CODE", shift + "000" + 3, "String");
-		AttributeManager.addAttribute(parcel0, "CODE", shift + "000" + 0, "String");
+//		AttributeManager.addAttribute(parcel1, "CODE", shift + "000" + 1, "String");
+//		AttributeManager.addAttribute(parcel2, "CODE", shift + "000" + 2, "String");
+//		AttributeManager.addAttribute(parcel3, "CODE", shift + "000" + 3, "String");
 		AttributeManager.addAttribute(parcel0, "CODE", shift + "000" + 0, "String");
 
-		AttributeManager.addAttribute(parcel1, "DoWeSimul", "true", "String");
-		AttributeManager.addAttribute(parcel2, "DoWeSimul", "true", "String");
-		AttributeManager.addAttribute(parcel3, "DoWeSimul", "true", "String");
-		AttributeManager.addAttribute(parcel0, "DoWeSimul", "true", "String");
+//		AttributeManager.addAttribute(parcel1, "DoWeSimul", "true", "String");
+//		AttributeManager.addAttribute(parcel2, "DoWeSimul", "true", "String");
+//		AttributeManager.addAttribute(parcel3, "DoWeSimul", "true", "String");
 		AttributeManager.addAttribute(parcel0, "DoWeSimul", "true", "String");
 
-		AttributeManager.addAttribute(parcel1, "INSEE", "42400", "String");
-		AttributeManager.addAttribute(parcel2, "INSEE", "42400", "String");
-		AttributeManager.addAttribute(parcel3, "INSEE", "42400", "String");
-		AttributeManager.addAttribute(parcel0, "INSEE", "42400", "String");
+//		AttributeManager.addAttribute(parcel1, "INSEE", "42400", "String");
+//		AttributeManager.addAttribute(parcel2, "INSEE", "42400", "String");
+//		AttributeManager.addAttribute(parcel3, "INSEE", "42400", "String");
 		AttributeManager.addAttribute(parcel0, "INSEE", "42400", "String");
 
 		// The building geometry (inside the lower left parcel)
@@ -159,9 +165,9 @@ public class FakeZone {
 		AttributeManager.addAttribute(road2, "NOM", "Route numéro" + shift + "000" + 2, "String");
 
 		this.parcels.add(parcel0);
-		this.parcels.add(parcel1);
-		this.parcels.add(parcel2);
-		this.parcels.add(parcel3);
+//		this.parcels.add(parcel1);
+//		this.parcels.add(parcel2);
+//		this.parcels.add(parcel3);
 
 		this.buildings.add(building);
 		this.buildings.add(building2);

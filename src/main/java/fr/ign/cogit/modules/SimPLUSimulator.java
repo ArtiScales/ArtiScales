@@ -119,9 +119,6 @@ public class SimPLUSimulator {
 		// List<File> lF = new ArrayList<>();
 		// // Line to change to select the right scenario
 		//
-		// String rootParam =
-		// SimPLUSimulator.class.getClassLoader().getResource("paramSet/scenar0MKDom/").getPath();
-		//
 		// System.out.println(rootParam);
 		//
 		// lF.add(new File(rootParam + "parameterTechnic.xml"));
@@ -150,7 +147,6 @@ public class SimPLUSimulator {
 		// // parcels
 		//
 		// // RootFolder
-		// File rootFolder = new File(p.getString("rootFile"));
 		// // Selected parcels shapefile
 		// File selectedParcels = new File(p.getString("selectedParcelFile"));
 		//
@@ -297,7 +293,7 @@ public class SimPLUSimulator {
 			IFeatureCollection<IFeature> building = null;
 			SimpluParametersJSON pTemp = new SimpluParametersJSON((SimpluParametersJSON) par);
 
-			pTemp.add(RepartitionBuildingType.getParam(new File(paramFile, "profileBuildingType"), type));
+			pTemp.add(RepartitionBuildingType.getParamBuildingType(new File(paramFile, "profileBuildingType"), type));
 
 			System.out.println("nombre de boites autorisées : " + pTemp.getString("nbCuboid"));
 
@@ -379,7 +375,6 @@ public class SimPLUSimulator {
 
 		// loading the type of housing to build
 		RepartitionBuildingType housingUnit = new RepartitionBuildingType(pUsed, paramFile, zoningFile, communitiesFile, parcelsFile);
-		boolean multipleRepartitionBuildingType = false;
 		if (sectors.size() > 1) {
 			System.out.println("multiple zones in the same parcel lot : there's gon be approximations");
 			System.out.println("zones are ");
@@ -388,7 +383,6 @@ public class SimPLUSimulator {
 			}
 			System.out.println();
 			housingUnit = new MultipleRepartitionBuildingType(pUsed, paramFile, zoningFile, communitiesFile, parcelsFile);
-			multipleRepartitionBuildingType = true;
 		} else {
 			System.out.println("it's all normal : one sector");
 		}
@@ -431,7 +425,7 @@ public class SimPLUSimulator {
 
 			// of which type should be the housing unit
 			BuildingType type;
-			if (multipleRepartitionBuildingType) {
+			if (housingUnit instanceof MultipleRepartitionBuildingType) {
 				type = ((MultipleRepartitionBuildingType) housingUnit).rangeInterest(eval, codeParcel, pUsed);
 			} else {
 				type = housingUnit.rangeInterest(eval);
@@ -449,7 +443,7 @@ public class SimPLUSimulator {
 				System.out.println("we try to put a " + type + " housing unit");
 				// we add the parameters for the building type want to simulate
 				SimpluParametersJSON pTemp = new SimpluParametersJSON(pUsed);
-				pTemp.add(RepartitionBuildingType.getParam(new File(paramFile, "profileBuildingType"), type));
+				pTemp.add(RepartitionBuildingType.getParamBuildingType(new File(paramFile, "profileBuildingType"), type));
 				System.out.println("new height back to reg val " + pTemp.getDouble("maxheight"));
 
 				building = runSimulation(env, i, pTemp, type, prescriptionUse);
@@ -660,8 +654,10 @@ public class SimPLUSimulator {
 				// TODO fix that defaite
 				try {
 					cc = article71Case12(alignementsGeometries, pred, env, i, bPU, par);
-				} catch (TopologyException tp) {
+				} catch (Exception e ) {
 					System.out.println("cuboid from ART7112 failed");
+					System.out.println();
+					System.out.println(e);
 					OptimisedBuildingsCuboidFinalDirectRejection oCB = new OptimisedBuildingsCuboidFinalDirectRejection();
 					cc = oCB.process(bPU, par, env, i, pred);
 				}

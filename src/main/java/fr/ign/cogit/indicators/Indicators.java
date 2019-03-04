@@ -11,14 +11,19 @@ import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 public abstract class Indicators {
   SimpluParametersJSON p;
 	File rootFile;
+	File paramFolder;
 	File simuFile;
+	
 	static boolean firstLineGen = true;
 	static boolean firstLineSimu = true;
 	static boolean particularExists = false;
 	ScenarAnalyse sA;
 
-	public Indicators(SimpluParametersJSON p) {
+	public Indicators(SimpluParametersJSON p, File rootFile) {
 		this.p = p;
+		this.rootFile = rootFile;
+		this.paramFolder = new File (rootFile, "paramFolder");
+		
 		// lazy way to get MUP-City's informations
 		String strictStr = "St";
 		String meanStr = "Moy";

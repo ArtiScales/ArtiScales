@@ -287,16 +287,15 @@ public class RepartitionBuildingType {
 	 * @return
 	 * @throws Exception
 	 */
-	public static SimpluParametersJSON addRepartitionToParameters(SimpluParametersJSON p, File zoningFile, File communeFile, IFeature parcel, File profileBuildings)
+	public static SimpluParametersJSON addRepartitionToParameters(SimpluParametersJSON p, File zoningFile, File communeFile, IFeature parcel, File locationBuildings)
 			throws Exception {
 		String affect = FromGeom.affectZoneAndTypoToLocation(
 		    p.getString("useRepartition"), p.getString("scenarioPMSP3D"), parcel, zoningFile, communeFile, true);
-		System.out.println("affect = " + affect);
 		// we seek for if there's a special default repartition for the scenario
 //		System.out.println("profileBuildings = " + profileBuildings);
 		// if nothing is returned, we use the default parameter file
 		if (affect.equals("")) {
-			for (File f : profileBuildings.listFiles()) {
+			for (File f : locationBuildings.listFiles()) {
 				String name = f.getName();
 				//first if there is a special default comportment for the scenario
 				if (name.startsWith(p.getString("scenarioPMSP3D")) && name.contains("default")) {
@@ -310,10 +309,9 @@ public class RepartitionBuildingType {
 			}
 		}
 
-		SimpluParametersJSON addParam = new SimpluParametersJSON(new File(profileBuildings + "/" + affect + ".json"));
+		SimpluParametersJSON addParam = new SimpluParametersJSON(new File(locationBuildings + "/" + affect + ".json"));
 
 		System.out.println("we affect the " + affect + ".json" + " folder");
-    System.out.println("JSON Param = " + addParam);
 
 		p.add(addParam);
 		System.out.println("p = " + p);
@@ -322,23 +320,23 @@ public class RepartitionBuildingType {
 
 	/**
 	 * return the json data related to the given building type 
-	 * @param ressourceFolder : Folder where the .xml files are stored
+	 * @param buildingTypeFolder : Folder where the .xml files are stored
 	 * @param type : given Building Type
 	 * @return
 	 * @throws Exception
 	 */
-	public static SimpluParametersJSON getParam(File ressourceFolder, BuildingType type) throws Exception {
+	public static SimpluParametersJSON getParamBuildingType(File buildingTypeFolder, BuildingType type) throws Exception {
 		switch (type) {
 		case DETACHEDHOUSE:
-			return new SimpluParametersJSON(new File(ressourceFolder, "detachedHouse.json"));
+			return new SimpluParametersJSON(new File(buildingTypeFolder, "detachedHouse.json"));
 		case SMALLHOUSE:
-			return new SimpluParametersJSON(new File(ressourceFolder, "smallHouse.json"));
+			return new SimpluParametersJSON(new File(buildingTypeFolder, "smallHouse.json"));
 		case MULTIFAMILYHOUSE:
-			return new SimpluParametersJSON(new File(ressourceFolder, "multifamilyHouse.json"));
+			return new SimpluParametersJSON(new File(buildingTypeFolder, "multifamilyHouse.json"));
 		case MIDBLOCKFLAT:
-			return new SimpluParametersJSON(new File(ressourceFolder, "midBlockFlat.json"));
+			return new SimpluParametersJSON(new File(buildingTypeFolder, "midBlockFlat.json"));
 		case SMALLBLOCKFLAT:
-			return new SimpluParametersJSON(new File(ressourceFolder, "smallBlockFlat.json"));
+			return new SimpluParametersJSON(new File(buildingTypeFolder, "smallBlockFlat.json"));
 		}
 		throw new Exception("no parameter file found");
 	}
