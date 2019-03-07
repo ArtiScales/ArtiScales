@@ -48,9 +48,9 @@ public class SelectParcels {
 	int nbParcels;
 	float moyEval;
 
-	public static void main(String[] args) throws Exception {
-		aggregateParcelsFromZips(new File("/home/mcolomb/informatique/ArtiScales"));
-	}
+//	public static void main(String[] args) throws Exception {
+//		aggregateParcelsFromZips(new File("/home/mcolomb/informatique/ArtiScales"));
+//	}
 
 	public SelectParcels(File rootfile, File outfile, File spatialconfiguration, SimpluParametersJSON par) throws Exception {
 		// objet contenant les paramètres
@@ -66,11 +66,10 @@ public class SelectParcels {
 
 		// where temporary stuff are stored
 		tmpFile = new File(rootFile, "tmp");
-		tmpFile.mkdir();
+		tmpFile.mkdirs();
 
 		// Liste des sorties de MupCity
 		spatialConfigurationMUP = spatialconfiguration;
-		System.out.println(spatialConfigurationMUP);
 		// Paramètre si l'on découpe les parcelles ou non
 		zoningFile = FromGeom.getZoning(new File(rootFile, "dataRegulation"));
 	}

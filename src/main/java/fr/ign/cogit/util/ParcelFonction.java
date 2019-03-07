@@ -171,13 +171,14 @@ public class ParcelFonction {
 		//////// try the parcelGenZone method
 		/////////////////////////
 
-		ShapefileDataStore shpDSZone = new ShapefileDataStore(
-				new File("/tmp/toTest.shp").toURI().toURL());
+		ShapefileDataStore shpDSZone = new ShapefileDataStore(new File("/tmp/toTest.shp").toURI().toURL());
 		SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
 
 		// Vectors.exportSFC(generateSplitedParcels(waiting, tmpFile, p), new
 		// File("/tmp/tmp2.shp"));
-		SimpleFeatureCollection salut = parcelTotRecomp("AU", featuresZones, new File("/tmp/"), new File("/home/mcolomb/informatique/ArtiScalesTest/"), new File("/home/mcolomb/informatique/ArtiScalesTest/MupCityDepot/DDense/variante0/DDense-yager-evalAnal.shp"), 4000, 12,5, 2, true);
+		SimpleFeatureCollection salut = parcelTotRecomp("AU", featuresZones, new File("/tmp/"),
+				new File("/home/mcolomb/informatique/ArtiScalesTest/"),
+				new File("/home/mcolomb/informatique/ArtiScalesTest/MupCityDepot/DDense/variante0/DDense-yager-evalAnal.shp"), 4000, 12, 5, 2, true);
 
 		Vectors.exportSFC(salut, new File("/tmp/parcelDensification.shp"));
 		shpDSZone.dispose();
@@ -751,9 +752,14 @@ public class ParcelFonction {
 						SimpleFeatureCollection typoed = getParcelByTypo(stringParam, parcelCollection, rootFile);
 						if (typoed.size() > 0) {
 							parcelToNotAdd = dontAddParcel(parcelToNotAdd, typoed);
-							System.out.println("we cut the parcels with " + type + " parameters");
+							System.out.println("we cut the parcels with " + type + " parameters ");
 							def = parcelTotRecomp(splitZone, typoed, tmpFile, mupOutput, pAdded, p.getBoolean("allZone"), rootFile);
-							break;
+							// THAT'S AN UGLY PATCH, BUT HAS TO TAKE CARE OF GEOM ERRORS TODO find somathing nices
+							if (typoed.size() > 2) {
+								break;
+							} else {
+								System.out.println("we try to cut em with other parameters");
+							}
 						}
 					} else {
 						if (splitZone.equals(stringParam)) {
@@ -1008,7 +1014,7 @@ public class ParcelFonction {
 					write = Vectors.addSimpleGeometry(sfBuilder, write, geometryOutputName, intersectedGeom);
 				} else {
 					System.out.println("this intersection is empty");
-					 write = Vectors.addSimpleGeometry(sfBuilder, write, geometryOutputName, intersectedGeom);
+					write = Vectors.addSimpleGeometry(sfBuilder, write, geometryOutputName, intersectedGeom);
 				}
 				numZone++;
 			}
@@ -2434,13 +2440,18 @@ public class ParcelFonction {
 		try {
 			while (itParcel.hasNext()) {
 				SimpleFeature parcelFeat = itParcel.next();
+				Geometry parcelGeom = (Geometry) parcelFeat.getDefaultGeometry();
+				// if tiny parcel, we don't care
+				if (parcelGeom.getArea() < 5.0) {
+					continue;
+				}
 				Filter filter = ff.like(ff.property("typo"), typo);
 				SimpleFeatureIterator itTypo = communitiesSFC.subCollection(filter).features();
 				try {
 					while (itTypo.hasNext()) {
 						SimpleFeature typoFeat = itTypo.next();
 						Geometry typoGeom = (Geometry) typoFeat.getDefaultGeometry();
-						Geometry parcelGeom = (Geometry) parcelFeat.getDefaultGeometry();
+
 						if (typoGeom.intersects(parcelGeom)) {
 							if (typoGeom.contains(parcelGeom)) {
 								result.add(parcelFeat);
@@ -2451,8 +2462,8 @@ public class ParcelFonction {
 							// else if (parcelGeom.intersection(typoGeom).getArea() > parcelGeom.getArea() /
 							// 2) {
 
-							else if (Vectors.scaledGeometryReductionIntersection(Arrays.asList(typoGeom, parcelGeom)).getArea() > parcelGeom.getArea()
-									/ 2) {
+							else if (Vectors.scaledGeometryReductionIntersection(Arrays.asList(typoGeom, parcelGeom))
+									.getArea() > (parcelGeom.getArea() / 2)) {
 								result.add(parcelFeat);
 								break;
 							} else {

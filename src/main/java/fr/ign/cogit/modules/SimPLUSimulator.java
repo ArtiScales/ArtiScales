@@ -14,8 +14,6 @@ import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeature;
 
-import com.vividsolutions.jts.geom.TopologyException;
-
 import fr.ign.cogit.annexeTools.SDPCalcPolygonizer;
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
@@ -156,35 +154,55 @@ public class SimPLUSimulator {
 		// // SimPLUSimulator.fillSelectedParcels(new File(rootFolder), geoFile,
 		// // pluFile, selectedParcels, 50, "25495", p);
 
-		String nameMainFolder = "ArtiScales";
-		File paramFolder = new File("./"+nameMainFolder +"/paramFolder");
+		
+		
+		
+		
+		
+//		String nameMainFolder = "ArtiScales";
+//		File paramFolder = new File("./"+nameMainFolder +"/paramFolder");
+//		List<File> lF = new ArrayList<>();
+//		lF.add(new File(paramFolder, "paramSet/DDense/parameterTechnic.json"));
+//		lF.add(new File(paramFolder, "paramSet/DDense/parameterScenario.json"));
+//
+//		SimpluParametersJSON p = new SimpluParametersJSON(lF);
+//		// AttribNames.setATT_CODE_PARC("CODE");
+//		// USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
+//
+//		File f = new File("./"+nameMainFolder+"/ParcelSelectionDepot/DDense/variante0/");
+//		File fOut = new File("."+nameMainFolder+"/ArtiScalesTest/SimPLUDepot/DDense/variante0/");
+//		List<File> listBatiSimu = new ArrayList<File>();
+//		for (File superPack : f.listFiles()) {
+//			if (superPack.isDirectory()) {
+//				for (File pack : superPack.listFiles()) {
+//					if (pack.isDirectory()) {
+//						System.out.println("start pack " + pack);
+//						SimPLUSimulator sim = new SimPLUSimulator(paramFolder, pack, p, fOut);
+//						List<File> simued = sim.run();
+//						if (simued != null) {
+//							listBatiSimu.addAll(simued);
+//						}
+//						System.out.println("done with pack " + pack.getName());
+//					}
+//				}
+//			}
+//		}
+//		FromGeom.mergeBatis(listBatiSimu);
+		
+		File rootFile = new File("/media/mcolomb/Data_2/root20190221/ParcelSelectionDepot/DDense/variante0/0/201");
+
+		File paramFolder = new File("/media/mcolomb/Data_2/root20190221/paramFolder");
+
 		List<File> lF = new ArrayList<>();
+
 		lF.add(new File(paramFolder, "paramSet/DDense/parameterTechnic.json"));
 		lF.add(new File(paramFolder, "paramSet/DDense/parameterScenario.json"));
 
 		SimpluParametersJSON p = new SimpluParametersJSON(lF);
-		// AttribNames.setATT_CODE_PARC("CODE");
-		// USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
+		
+		SimPLUSimulator sim = new SimPLUSimulator(paramFolder, rootFile, p, new File("media/mcolomb/Data_2/root20190221/out"));
+		sim.run();
 
-		File f = new File("./"+nameMainFolder+"/ParcelSelectionDepot/DDense/variante0/");
-		File fOut = new File("."+nameMainFolder+"/ArtiScalesTest/SimPLUDepot/DDense/variante0/");
-		List<File> listBatiSimu = new ArrayList<File>();
-		for (File superPack : f.listFiles()) {
-			if (superPack.isDirectory()) {
-				for (File pack : superPack.listFiles()) {
-					if (pack.isDirectory()) {
-						System.out.println("start pack " + pack);
-						SimPLUSimulator sim = new SimPLUSimulator(paramFolder, pack, p, fOut);
-						List<File> simued = sim.run();
-						if (simued != null) {
-							listBatiSimu.addAll(simued);
-						}
-						System.out.println("done with pack " + pack.getName());
-					}
-				}
-			}
-		}
-		FromGeom.mergeBatis(listBatiSimu);
 	}
 
 	/**
