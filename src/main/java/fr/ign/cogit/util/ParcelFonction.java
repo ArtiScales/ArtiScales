@@ -69,119 +69,118 @@ import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 
 public class ParcelFonction {
 
-	// public static void main(String[] args) throws Exception {
-	// ShapefileDataStore parcelSDS = new ShapefileDataStore(
-	// new
-	// File("/home/mcolomb/informatique/ArtiScalesLikeTBLunch/ParcelSelectionFile/DDense/variante0/parcelGenExport.shp").toURI()
-	// .toURL());
-	// int tot = parcelSDS.getFeatureSource().getFeatures().size();
-	// DefaultFeatureCollection result = new DefaultFeatureCollection();
-	// SimpleFeatureIterator parcelIt =
-	// parcelSDS.getFeatureSource().getFeatures().features();
-	// // initialize the
-	// result.add(parcelIt.next());
-	// int count = 0;
-	// try {
-	// while (parcelIt.hasNext()) {
-	// SimpleFeature feat = parcelIt.next();
-	// SimpleFeatureIterator resIt = (Vectors.snapDatas(result.collection(),
-	// ((Geometry) feat.getDefaultGeometry()).buffer(10))).features();
-	// boolean add = true;
-	// try {
-	// while (resIt.hasNext()) {
-	// SimpleFeature featRes = resIt.next();
-	// if (featRes.getAttribute("CODE").equals(feat.getAttribute("CODE"))) {
-	// add = false;
-	// break;
-	// }
-	// }
-	// } catch (Exception problem) {
-	// problem.printStackTrace();
-	// } finally {
-	// resIt.close();
-	// }
-	// if (add) {
-	// result.add(feat);
-	// }
-	// System.out.println(count++ + " on " + tot);
-	// }
-	// } catch (Exception problem) {
-	// problem.printStackTrace();
-	// } finally {
-	// parcelIt.close();
-	// }
-	// parcelSDS.dispose();
-	// Vectors.exportSFC(result,
-	// new
-	// File("/home/mcolomb/informatique/ArtiScalesLikeTBLunch/ParcelSelectionFile/DDense/variante0/parcelGenExportNoDouble.shp"));
-	// }
-	// File rootParam = new
-	// File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/exScenar");
-	// List<File> lF = new ArrayList<>();
-	// lF.add(new File(rootParam, "parameterTechnic.xml"));
-	// lF.add(new File(rootParam, "parameterScenario.xml"));
-	//
-	// Parameters p = Parameters.unmarshall(lF);
-	//
-	// File tmpFile = new File("/tmp/");
-	//
-	// /////////////////////////
-	// //////// try the parcelDensification method
-	// /////////////////////////
-	//
-	// ShapefileDataStore shpDSZone = new ShapefileDataStore(
-	// new
-	// File("/home/mcolomb/informatique/ArtiScales/ParcelSelectionFile/exScenar/variant0/parcelGenExport.shp").toURI().toURL());
-	// SimpleFeatureCollection featuresZones =
-	// shpDSZone.getFeatureSource().getFeatures();
-	//
-	// // Vectors.exportSFC(generateSplitedParcels(waiting, tmpFile, p), new
-	// // File("/tmp/tmp2.shp"));
-	// SimpleFeatureCollection salut = parcelDensification("U", featuresZones,
-	// tmpFile, new File("/home/mcolomb/informatique/ArtiScales"), new File(
-	// "/home/mcolomb/informatique/ArtiScales/MupCityDepot/exScenar/variant0/exScenar-DataSys-CM20.0-S0.0-GP_915948.0_6677337.0--N6_Ba_ahpx_seed_42-evalAnal-20.0.shp"),
-	// 800.0, 15.0, 5.0);
-	//
-	// Vectors.exportSFC(salut, new File("/tmp/parcelDensification.shp"));
-	// shpDSZone.dispose();
-	//
-	// // /////////////////////////
-	// // //////// try the parcelGenMotif method
-	// /////////////////////////
-	//
-	// ShapefileDataStore shpDSZone = new ShapefileDataStore(
-	// new
-	// File("/home/mcolomb/informatique/ArtiScales/ParcelSelectionFile/exScenar/variant0/parcelGenExport.shp").toURI().toURL());
-	// SimpleFeatureCollection featuresZones =
-	// shpDSZone.getFeatureSource().getFeatures();
-	//
-	// // Vectors.exportSFC(generateSplitedParcels(waiting, tmpFile, p), new
-	// // File("/tmp/tmp2.shp"));
-	// SimpleFeatureCollection salut = parcelGenMotif("NC", featuresZones, tmpFile,
-	// ), new File(
-	// "/home/mcolomb/informatique/ArtiScales/MupCityDepot/exScenar/variant0/exScenar-DataSys-CM20.0-S0.0-GP_915948.0_6677337.0--N6_Ba_ahpx_seed_42-evalAnal-20.0.shp"),
-	// 800.0, 7.0, 3.0, 2);
-	//
-	// Vectors.exportSFC(salut, new File("/tmp/parcelDensification.shp"));
-	// shpDSZone.dispose();
+	public static void main(String[] args) throws Exception {
 
-	// /////////////////////////
-	// //////// try the parcelGenZone method
-	// /////////////////////////
-	//
-	// ShapefileDataStore shpDSZone = new ShapefileDataStore(
-	// new
-	// File("/home/mcolomb/informatique/ArtiScales/ParcelSelectionFile/exScenar/variant0/parcelGenExport.shp").toURI().toURL());
-	// SimpleFeatureCollection featuresZones =
-	// shpDSZone.getFeatureSource().getFeatures();
-	//
-	// // Vectors.exportSFC(generateSplitedParcels(waiting, tmpFile, p), new
-	// // File("/tmp/tmp2.shp"));
-	// SimpleFeatureCollection salut = parcelGenZone("AU", featuresZones, tmpFile,
-	// ), 800.0, 7.0, 3.0, 2);
-	//
-	// Vectors.exportSFC(salut, new File("/tmp/parcelDensification.shp"));
-	// shpDSZone.dispose();
+		// ShapefileDataStore parcelSDS = new ShapefileDataStore(
+		// new
+		// File("/home/mcolomb/informatique/ArtiScalesLikeTBLunch/ParcelSelectionFile/DDense/variante0/parcelGenExport.shp").toURI()
+		// .toURL());
+		// int tot = parcelSDS.getFeatureSource().getFeatures().size();
+		// DefaultFeatureCollection result = new DefaultFeatureCollection();
+		// SimpleFeatureIterator parcelIt =
+		// parcelSDS.getFeatureSource().getFeatures().features();
+		// // initialize the
+		// result.add(parcelIt.next());
+		// int count = 0;
+		// try {
+		// while (parcelIt.hasNext()) {
+		// SimpleFeature feat = parcelIt.next();
+		// SimpleFeatureIterator resIt = (Vectors.snapDatas(result.collection(),
+		// ((Geometry) feat.getDefaultGeometry()).buffer(10))).features();
+		// boolean add = true;
+		// try {
+		// while (resIt.hasNext()) {
+		// SimpleFeature featRes = resIt.next();
+		// if (featRes.getAttribute("CODE").equals(feat.getAttribute("CODE"))) {
+		// add = false;
+		// break;
+		// }
+		// }
+		// } catch (Exception problem) {
+		// problem.printStackTrace();
+		// } finally {
+		// resIt.close();
+		// }
+		// if (add) {
+		// result.add(feat);
+		// }
+		// System.out.println(count++ + " on " + tot);
+		// }
+		// } catch (Exception problem) {
+		// problem.printStackTrace();
+		// } finally {
+		// parcelIt.close();
+		// }
+		// parcelSDS.dispose();
+		// Vectors.exportSFC(result,
+		// new
+		// File("/home/mcolomb/informatique/ArtiScalesLikeTBLunch/ParcelSelectionFile/DDense/variante0/parcelGenExportNoDouble.shp"));
+		// }
+		// File rootParam = new
+		// File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/exScenar");
+		// List<File> lF = new ArrayList<>();
+		// lF.add(new File(rootParam, "parameterTechnic.xml"));
+		// lF.add(new File(rootParam, "parameterScenario.xml"));
+		//
+		// Parameters p = Parameters.unmarshall(lF);
+		//
+		// File tmpFile = new File("/tmp/");
+		//
+		// /////////////////////////
+		// //////// try the parcelDensification method
+		// /////////////////////////
+		//
+		// ShapefileDataStore shpDSZone = new ShapefileDataStore(
+		// new
+		// File("/home/mcolomb/informatique/ArtiScales/ParcelSelectionFile/exScenar/variant0/parcelGenExport.shp").toURI().toURL());
+		// SimpleFeatureCollection featuresZones =
+		// shpDSZone.getFeatureSource().getFeatures();
+		//
+		// // Vectors.exportSFC(generateSplitedParcels(waiting, tmpFile, p), new
+		// // File("/tmp/tmp2.shp"));
+		// SimpleFeatureCollection salut = parcelDensification("U", featuresZones,
+		// tmpFile, new File("/home/mcolomb/informatique/ArtiScales"), new File(
+		// "/home/mcolomb/informatique/ArtiScales/MupCityDepot/exScenar/variant0/exScenar-DataSys-CM20.0-S0.0-GP_915948.0_6677337.0--N6_Ba_ahpx_seed_42-evalAnal-20.0.shp"),
+		// 800.0, 15.0, 5.0);
+		//
+		// Vectors.exportSFC(salut, new File("/tmp/parcelDensification.shp"));
+		// shpDSZone.dispose();
+		//
+		// // /////////////////////////
+		// // //////// try the parcelGenMotif method
+		// /////////////////////////
+		//
+		// ShapefileDataStore shpDSZone = new ShapefileDataStore(
+		// new
+		// File("/home/mcolomb/informatique/ArtiScales/ParcelSelectionFile/exScenar/variant0/parcelGenExport.shp").toURI().toURL());
+		// SimpleFeatureCollection featuresZones =
+		// shpDSZone.getFeatureSource().getFeatures();
+		//
+		// // Vectors.exportSFC(generateSplitedParcels(waiting, tmpFile, p), new
+		// // File("/tmp/tmp2.shp"));
+		// SimpleFeatureCollection salut = parcelGenMotif("NC", featuresZones, tmpFile,
+		// ), new File(
+		// "/home/mcolomb/informatique/ArtiScales/MupCityDepot/exScenar/variant0/exScenar-DataSys-CM20.0-S0.0-GP_915948.0_6677337.0--N6_Ba_ahpx_seed_42-evalAnal-20.0.shp"),
+		// 800.0, 7.0, 3.0, 2);
+		//
+		// Vectors.exportSFC(salut, new File("/tmp/parcelDensification.shp"));
+		// shpDSZone.dispose();
+
+		/////////////////////////
+		//////// try the parcelGenZone method
+		/////////////////////////
+
+		ShapefileDataStore shpDSZone = new ShapefileDataStore(
+				new File("/tmp/toTest.shp").toURI().toURL());
+		SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
+
+		// Vectors.exportSFC(generateSplitedParcels(waiting, tmpFile, p), new
+		// File("/tmp/tmp2.shp"));
+		SimpleFeatureCollection salut = parcelTotRecomp("AU", featuresZones, new File("/tmp/"), new File("/home/mcolomb/informatique/ArtiScalesTest/"), new File("/home/mcolomb/informatique/ArtiScalesTest/MupCityDepot/DDense/variante0/DDense-yager-evalAnal.shp"), 4000, 12,5, 2, true);
+
+		Vectors.exportSFC(salut, new File("/tmp/parcelDensification.shp"));
+		shpDSZone.dispose();
+	}
 
 	// /////////////////////////
 	// //////// try the generateFlagSplitedParcels method
@@ -1008,7 +1007,7 @@ public class ParcelFonction {
 					write = Vectors.addSimpleGeometry(sfBuilder, write, geometryOutputName, intersectedGeom);
 				} else {
 					System.out.println("this intersection is empty");
-				//	write = Vectors.addSimpleGeometry(sfBuilder, write, geometryOutputName, intersectedGeom);
+					 write = Vectors.addSimpleGeometry(sfBuilder, write, geometryOutputName, intersectedGeom);
 				}
 				numZone++;
 			}
@@ -1771,7 +1770,6 @@ public class ParcelFonction {
 			if (decompositionLevelWithRoad < 0) {
 				decompositionLevelWithRoad = 0;
 			}
-
 			OBBBlockDecomposition obb = new OBBBlockDecomposition(pol, maximalArea, maximalWidth, roadEpsilon, extBlock, roadWidth, forceRoadAccess,
 					decompositionLevelWithRoad);
 

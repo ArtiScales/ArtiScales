@@ -373,7 +373,6 @@ public class SimPLUSimulator {
 
 		// loading the type of housing to build
 		RepartitionBuildingType housingUnit = new RepartitionBuildingType(pUsed, paramFile, zoningFile, communitiesFile, parcelsFile);
-		boolean multipleRepartitionBuildingType = false;
 		if (sectors.size() > 1) {
 			System.out.println("multiple zones in the same parcel lot : there's gon be approximations");
 			System.out.println("zones are ");
@@ -382,7 +381,6 @@ public class SimPLUSimulator {
 			}
 			System.out.println();
 			housingUnit = new MultipleRepartitionBuildingType(pUsed, paramFile, zoningFile, communitiesFile, parcelsFile);
-			multipleRepartitionBuildingType = true;
 		} else {
 			System.out.println("it's all normal : one sector");
 		}
@@ -425,7 +423,7 @@ public class SimPLUSimulator {
 
 			// of which type should be the housing unit
 			BuildingType type;
-			if (multipleRepartitionBuildingType) {
+			if (housingUnit instanceof MultipleRepartitionBuildingType) {
 				type = ((MultipleRepartitionBuildingType) housingUnit).rangeInterest(eval, codeParcel, pUsed);
 			} else {
 				type = housingUnit.rangeInterest(eval);
