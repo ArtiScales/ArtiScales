@@ -37,7 +37,7 @@ public class MainTask {
 
 		// List<Parameters> listScenarios = getParamFile("scenar0MKDom", new
 		// File("/home/mbrasebin/Documents/Code/ArtiScales/ArtiScales/src/main/resources/paramSet/"));
-		rootFile = new File("./ArtiScalesTestBis/");
+		rootFile = new File("./ArtiScalesTest/");
 		paramFile = new File(rootFile, "paramFolder");
 		geoFile = new File(rootFile, "dataGeo");
 		regulFile = new File(rootFile, "dataRegulation");
@@ -107,6 +107,7 @@ public class MainTask {
 
 				File fileOut = new File(rootFile, "ParcelSelectionDepot/" + scenarName + "/" + varianteSpatialConf.getParentFile().getName());
 				fileOut.mkdirs();
+				System.out.println(scenarName);
 				SimpluParametersJSON p = SimuTool.getParamFile(listScenarioParameters, scenarName);
 
 				SelectParcels selecPar = new SelectParcels(rootFile, fileOut, varianteSpatialConf, p);
