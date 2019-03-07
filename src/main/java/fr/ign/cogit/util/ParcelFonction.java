@@ -916,6 +916,9 @@ public class ParcelFonction {
 	public static SimpleFeatureCollection setRecompositionProcesssus(String splitZone, SimpleFeatureCollection parcelCollection, File tmpFile,
 			File mupOutput, File rootFile, SimpluParametersJSON p, String typeOfRecomp, boolean dontTouchUZones) throws Exception {
 
+		
+		boolean goOn =false;
+		
 		splitZone = normalizeNameBigZone(splitZone);
 
 		List<String> parcelToNotAdd = new ArrayList<String>();
@@ -961,12 +964,13 @@ public class ParcelFonction {
 							break;
 						} else {
 							System.out.println("too small collec, we try to cut em with other parameters");
+							goOn = true ;
 						}
 					}
 				}
 			}
 		}
-		if (result.isEmpty()) {
+		if (result.isEmpty() || goOn) {
 			SimpleFeatureCollection def = new DefaultFeatureCollection();
 			// only one specification
 			for (String stringParam : listZonesOneSector) {
