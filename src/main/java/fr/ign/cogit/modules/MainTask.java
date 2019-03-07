@@ -70,9 +70,10 @@ public class MainTask {
 				for (String[] variant : prepareVariant(p).values()) {
 					File variantFile = new File(scenarFile, "variant" + i);
 					i++;
-					MupCitySimulation mupSimu = new MupCitySimulation(p, variant, variantFile, rootFile, geoFile);
-					File mupOutShp = mupSimu.run();
-					listVariant.add(mupOutShp);
+					//FIXME
+//					MupCitySimulation mupSimu = new MupCitySimulation(p, variant, variantFile, rootFile, geoFile);
+//					File mupOutShp = mupSimu.run();
+//					listVariant.add(mupOutShp);
 				}
 				mupCityOutput.add(listVariant);
 			}

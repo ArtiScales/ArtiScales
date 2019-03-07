@@ -66,7 +66,8 @@ public class MupCitySimulation {
 	public File run() throws Exception {
 		File outputTiff = mupCityTask(p, variant, variantFile, geoFile);
 		double sizeCell = Double.valueOf(variant[1]) * Double.valueOf(variant[4]);
-		OutputTools.vectorizeMupOutput(Rasters.importRaster(outputTiff), new File(variantFile, outputTiff.getName().replace(".tif", "")), sizeCell);
+		//FIXME
+//		OutputTools.vectorizeMupOutput(Rasters.importRaster(outputTiff), new File(variantFile, outputTiff.getName().replace(".tif", "")), sizeCell);
 		return variantFile;
 	}
 
@@ -127,8 +128,9 @@ public class MupCitySimulation {
 						if (simuName.endsWith(".tif")) {
 							double ech = Double.valueOf(simuName.split("evalAnal-")[1].replace(".0.tif", ""));
 							System.out.println(ech);
-							OutputTools.vectorizeMupOutput(Rasters.importRaster(simuFile),
-									new File(simuFile.getParentFile(), simuName.replace(".tif", ".shp")), ech);
+					    //FIXME
+//							OutputTools.vectorizeMupOutput(Rasters.importRaster(simuFile),
+//									new File(simuFile.getParentFile(), simuName.replace(".tif", ".shp")), ech);
 						}
 					}
 				}

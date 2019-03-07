@@ -1,11 +1,26 @@
 package fr.ign.cogit.createGeom;
 
-import com.vividsolutions.jts.algorithm.CGAlgorithms;
-import com.vividsolutions.jts.geom.*;
-import com.vividsolutions.jts.util.Assert;
 
-import java.util.*;
-import com.vividsolutions.jts.util.UniqueCoordinateArrayFilter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Stack;
+import java.util.TreeSet;
+
+import org.locationtech.jts.algorithm.Orientation;
+import org.locationtech.jts.algorithm.PointLocation;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.CoordinateArrays;
+import org.locationtech.jts.geom.CoordinateList;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryCollection;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.LinearRing;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.util.Assert;
+import org.locationtech.jts.util.UniqueCoordinateArrayFilter;
 
 /**
  * Computes the convex hull of a {@link Geometry}. The convex hull is the smallest convex Geometry that contains all the points in the input Geometry.
@@ -122,7 +137,7 @@ public class PreciseConvexHull {
 		 * the interior polygon are forced to be in the reduced set.
 		 */
 		for (int i = 0; i < inputPts.length; i++) {
-			if (!CGAlgorithms.isPointInRing(inputPts[i], polyPts)) {
+			if (!PointLocation.isInRing(inputPts[i], polyPts)) {
 				reducedSet.add(inputPts[i]);
 			}
 		}
@@ -189,7 +204,7 @@ public class PreciseConvexHull {
 		for (int i = 1; i < c.length; i++) {
 			p = (Coordinate) ps.pop();
 			// check for empty stack to guard against robustness problems
-			while (!ps.empty() && CGAlgorithms.computeOrientation((Coordinate) ps.peek(), p, c[i]) > 0) {
+			while (!ps.empty() && Orientation.index((Coordinate) ps.peek(), p, c[i]) > 0) {
 				p = (Coordinate) ps.pop();
 			}
 			p = (Coordinate) ps.push(p);
@@ -203,7 +218,7 @@ public class PreciseConvexHull {
 	 * @return whether the three coordinates are collinear and c2 lies between c1 and c3 inclusive
 	 */
 	private boolean isBetween(Coordinate c1, Coordinate c2, Coordinate c3) {
-		if (CGAlgorithms.computeOrientation(c1, c2, c3) != 0) {
+		if (Orientation.index(c1, c2, c3) != 0) {
 			return false;
 		}
 		if (c1.x != c3.x) {
@@ -383,11 +398,11 @@ public class PreciseConvexHull {
 			 * result = 1; } if (result != 0) return result; //
 			 */
 
-			int orient = CGAlgorithms.computeOrientation(o, p, q);
+			int orient = Orientation.index(o, p, q);
 
-			if (orient == CGAlgorithms.COUNTERCLOCKWISE)
+			if (orient == Orientation.COUNTERCLOCKWISE)
 				return 1;
-			if (orient == CGAlgorithms.CLOCKWISE)
+			if (orient == Orientation.CLOCKWISE)
 				return -1;
 
 			// points are collinear - check distance

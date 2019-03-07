@@ -310,7 +310,7 @@ public class RepartitionBuildingType {
 			}
 		}
 
-		SimpluParametersJSON addParam = new SimpluParametersJSON(new File(locationBuildings + "/" + affect + ".json"));
+		SimpluParametersJSON addParam = new SimpluParametersJSON(new File(locationBuildings, affect + ".json"));
 
 		System.out.println("we affect the " + affect + ".json" + " folder");
     System.out.println("JSON Param = " + addParam);
