@@ -153,21 +153,21 @@ public class SelectParcels {
 
 		// some very few cases are still crashing, so we get the parcels back when it does
 
-//		if (!p.getString("splitDensification").equals("false") && !p.getString("splitDensification").equals("")) {
-//			if (!p.getBoolean("Ubuilt")) {
-//				System.out.println("Scenar error. We cannot densify if the U build parcels haven't been selected");
-//			} else {
-//				String splitZone = p.getString("splitDensification");
-//				if (!splitZone.contains("-")) {
-//					System.out.println();
-//					System.out.println("///// We start the densification process\\\\\\");
-//					parcelCollection = ParcelFonction.parcelDensification(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP, rootFile, p);
-//					Vectors.exportSFC(parcelCollection, new File(tmpFile, "afterDensification"));
-//				} else {
-//					System.err.println("splitParcel : complex section non implemented yet");
-//				}
-//			}
-//		}
+		if (!p.getString("splitDensification").equals("false") && !p.getString("splitDensification").equals("")) {
+			if (!p.getBoolean("Ubuilt")) {
+				System.out.println("Scenar error. We cannot densify if the U build parcels haven't been selected");
+			} else {
+				String splitZone = p.getString("splitDensification");
+				if (!splitZone.contains("-")) {
+					System.out.println();
+					System.out.println("///// We start the densification process\\\\\\");
+					parcelCollection = ParcelFonction.parcelDensification(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP, rootFile, p);
+					Vectors.exportSFC(parcelCollection, new File(tmpFile, "afterDensification"));
+				} else {
+					System.err.println("splitParcel : complex section non implemented yet");
+				}
+			}
+		}
 
 		if (!p.getString("splitTotRecomp").equals("false") && !p.getString("splitTotRecomp").equals("")) {
 			String splitZone = p.getString("splitTotRecomp");
