@@ -57,42 +57,17 @@ public class SimPLUSimulator {
 
 	// parcels containing all of them and the code if we make a simulation on them
 	// or not
-	File parcelsFile;
 
 	// one single parcel to study
 	SimpleFeature singleFeat;
-	boolean isSingleFeat = false;
-
-	// File rootFile;
 
 	// Parameters from technical parameters and scenario parameters files
 	SimpluParametersJSON p;
-	// backup when p has been overwritted
-	// Parameters pSaved;
 
-	File paramFile;
-	File folderOut;
+	File parcelsFile, paramFile, folderOut, buildFile, roadFile, communitiesFile, simuFile, codeFile, zoningFile, predicateFile, filePrescPonct,
+			filePrescLin, filePrescSurf;
 
-	// Building file
-	File buildFile;
-	// Road file
-	File roadFile;
-	// Communities file
-	File communitiesFile;
-
-	// Predicate File (a csv with a key to make a join with zoning file between id
-	// and libelle)
-	File predicateFile;
-	// PLU Zoning file
-	File zoningFile;
-	File codeFile;
-	File simuFile;
 	int compteurOutput = 0;
-
-	// Prescription files
-	File filePrescPonct;
-	File filePrescLin;
-	File filePrescSurf;
 
 	public static List<String> ID_PARCELLE_TO_SIMULATE = new ArrayList<>();
 
@@ -154,54 +129,49 @@ public class SimPLUSimulator {
 		// // SimPLUSimulator.fillSelectedParcels(new File(rootFolder), geoFile,
 		// // pluFile, selectedParcels, 50, "25495", p);
 
-		
-		
-		
-		
-		
-//		String nameMainFolder = "ArtiScales";
-//		File paramFolder = new File("./"+nameMainFolder +"/paramFolder");
-//		List<File> lF = new ArrayList<>();
-//		lF.add(new File(paramFolder, "paramSet/DDense/parameterTechnic.json"));
-//		lF.add(new File(paramFolder, "paramSet/DDense/parameterScenario.json"));
-//
-//		SimpluParametersJSON p = new SimpluParametersJSON(lF);
-//		// AttribNames.setATT_CODE_PARC("CODE");
-//		// USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
-//
-//		File f = new File("./"+nameMainFolder+"/ParcelSelectionDepot/DDense/variante0/");
-//		File fOut = new File("."+nameMainFolder+"/ArtiScalesTest/SimPLUDepot/DDense/variante0/");
-//		List<File> listBatiSimu = new ArrayList<File>();
-//		for (File superPack : f.listFiles()) {
-//			if (superPack.isDirectory()) {
-//				for (File pack : superPack.listFiles()) {
-//					if (pack.isDirectory()) {
-//						System.out.println("start pack " + pack);
-//						SimPLUSimulator sim = new SimPLUSimulator(paramFolder, pack, p, fOut);
-//						List<File> simued = sim.run();
-//						if (simued != null) {
-//							listBatiSimu.addAll(simued);
-//						}
-//						System.out.println("done with pack " + pack.getName());
-//					}
-//				}
-//			}
-//		}
-//		FromGeom.mergeBatis(listBatiSimu);
-		
-		File rootFile = new File("/media/mcolomb/Data_2/root20190221/ParcelSelectionDepot/DDense/variante0/0/201");
-
-		File paramFolder = new File("/media/mcolomb/Data_2/root20190221/paramFolder");
-
+		String nameMainFolder = "ArtiScalesTest";
+		File paramFolder = new File("./" + nameMainFolder + "/paramFolder");
 		List<File> lF = new ArrayList<>();
-
 		lF.add(new File(paramFolder, "paramSet/DDense/parameterTechnic.json"));
 		lF.add(new File(paramFolder, "paramSet/DDense/parameterScenario.json"));
 
 		SimpluParametersJSON p = new SimpluParametersJSON(lF);
-		
-		SimPLUSimulator sim = new SimPLUSimulator(paramFolder, rootFile, p, new File("media/mcolomb/Data_2/root20190221/out"));
-		sim.run();
+		// AttribNames.setATT_CODE_PARC("CODE");
+		// USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
+
+		File f = new File("./" + nameMainFolder + "/ParcelSelectionDepot/DDense/variante0/");
+		File fOut = new File("." + nameMainFolder + "/ArtiScalesTest/SimPLUDepot/DDense/variante0/");
+		List<File> listBatiSimu = new ArrayList<File>();
+		for (File superPack : f.listFiles()) {
+			if (superPack.isDirectory()) {
+				for (File pack : superPack.listFiles()) {
+					if (pack.isDirectory()) {
+						System.out.println("start pack " + pack);
+						SimPLUSimulator sim = new SimPLUSimulator(paramFolder, pack, p, fOut);
+						List<File> simued = sim.run();
+						if (simued != null) {
+							listBatiSimu.addAll(simued);
+						}
+						System.out.println("done with pack " + pack.getName());
+					}
+				}
+			}
+		}
+		FromGeom.mergeBatis(listBatiSimu);
+
+		// File rootFile = new File("/media/mcolomb/Data_2/root20190221/ParcelSelectionDepot/DDense/variante0/0/201");
+		//
+		// File paramFolder = new File("/media/mcolomb/Data_2/root20190221/paramFolder");
+		//
+		// List<File> lF = new ArrayList<>();
+		//
+		// lF.add(new File(paramFolder, "paramSet/DDense/parameterTechnic.json"));
+		// lF.add(new File(paramFolder, "paramSet/DDense/parameterScenario.json"));
+		//
+		// SimpluParametersJSON p = new SimpluParametersJSON(lF);
+		//
+		// SimPLUSimulator sim = new SimPLUSimulator(paramFolder, rootFile, p, new File("media/mcolomb/Data_2/root20190221/out"));
+		// sim.run();
 
 	}
 
@@ -385,8 +355,8 @@ public class SimPLUSimulator {
 				sectors.add(tmp);
 			}
 		}
-		
-		//of no sectors, we use the default file
+
+		// of no sectors, we use the default file
 		if (sectors.isEmpty()) {
 			sectors.add("default.json");
 		}
@@ -460,19 +430,16 @@ public class SimPLUSimulator {
 			while (seekType) {
 				System.out.println("we try to put a " + type + " housing unit");
 				// we add the parameters for the building type want to simulate
-				SimpluParametersJSON pTemp = new SimpluParametersJSON(pUsed);
-				pTemp.add(RepartitionBuildingType.getParamBuildingType(new File(paramFile, "profileBuildingType"), type));
-				System.out.println("new height back to reg val " + pTemp.getDouble("maxheight"));
-
-				building = runSimulation(env, i, pTemp, type, prescriptionUse);
-
+				SimpluParametersJSON pWithBuildingType = new SimpluParametersJSON(pUsed);
+				pWithBuildingType.add(RepartitionBuildingType.getParamBuildingType(new File(paramFile, "profileBuildingType"), type));
+				building = runSimulation(env, i, pWithBuildingType, type, prescriptionUse);
 				// if it's null, we skip to another parcel
 				if (building == null) {
 					continue bpu;
 				}
-
-				// if it's empty, or the size of floor is inferior to the minimum we set, we downsize to see if a smaller type fits
-				if (building.isEmpty() || (double) building.get(0).getAttribute("SDPShon") < pTemp.getDouble("areaMin")) {
+				// if the size of floor is inferior to the minimum we set, we downsize to see if a smaller type fits
+				if ((double) building.get(0).getAttribute("SDPShon") < pWithBuildingType.getDouble("areaMin")) {
+					System.out.println("SDP is too small ( "+ (double) building.get(0).getAttribute("SDPShon") +" for a min of "+ pWithBuildingType.getDouble("areaMin")+")");
 					adjustDown = true;
 					BuildingType typeTemp = housingUnit.down(type);
 					// if it's not the same type, we'll continue to seek
@@ -672,7 +639,7 @@ public class SimPLUSimulator {
 				// TODO fix that defaite
 				try {
 					cc = article71Case12(alignementsGeometries, pred, env, i, bPU, par);
-				} catch (Exception e ) {
+				} catch (Exception e) {
 					System.out.println("cuboid from ART7112 failed");
 					System.out.println();
 					System.out.println(e);

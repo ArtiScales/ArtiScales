@@ -94,10 +94,10 @@ public class ZoneRulesAssociation {
 
 				// we do the same for the AU lands (mostly for the 2AUs)
 				if (tryToAssociateAnyway.get("2AU")) {
-					System.out.println("We seek another regulation for AU zones");
 					// if there's a rule made for un-urbanzed land, we take that (2 would means its a prediction and rules are not edicted yet)
-					if (finalLibelle.contains("AU") && finalLibelle.contains("2") && !finalLibelle.contains("x") && !finalLibelle.contains("y")
-							&& !finalLibelle.contains("z")) {
+					if (finalLibelle.contains("AU") && finalLibelle.contains("2") && !finalLibelle.toLowerCase().contains("x") && !finalLibelle.toLowerCase().contains("y")
+							&& !finalLibelle.toLowerCase().contains("z")) {
+						System.out.println("We seek another regulation for AU zones");
 						for (String code : regles.keySet()) {
 							String rule = code.split("-")[0].toUpperCase();
 							// if no AU zones taken, we set a non dense zone (basically Ub zone)
@@ -117,7 +117,7 @@ public class ZoneRulesAssociation {
 				}
 			}
 			if (zone.getZoneRegulation() == null) {
-				System.out.println("Default regulation does not exist");
+				System.out.println("No regulation (either it does not exist or the area doesn't accept residential constructions)");
 				zone.setZoneRegulation(regles.get("out-0"));
 			}
 		}
