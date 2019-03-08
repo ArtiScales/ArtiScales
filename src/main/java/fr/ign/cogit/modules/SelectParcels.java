@@ -38,7 +38,7 @@ import fr.ign.cogit.util.SimuTool;
 
 public class SelectParcels {
 
-	File rootFile, tmpFile, geoFile, regulFile, parcelFile, zoningFile, outFile, spatialConfigurationMUP;
+	File rootFile, geoFile, regulFile, parcelFile, zoningFile, outFile, spatialConfigurationMUP;
 
 	String action;
 	SimpluParametersJSON p;
@@ -63,10 +63,6 @@ public class SelectParcels {
 		regulFile = new File(rootFile, "dataRegulation");
 		outFile = outfile;
 
-		// where temporary stuff are stored
-		tmpFile = new File(rootFile, "tmp");
-		tmpFile.mkdirs();
-
 		// Liste des sorties de MupCity
 		spatialConfigurationMUP = spatialconfiguration;
 		// Paramètre si l'on découpe les parcelles ou non
@@ -78,7 +74,7 @@ public class SelectParcels {
 		File parcGen = new File(outFile, "parcelGenExport.shp");
 
 		// if we simul on one city (debug) or the whole area
-		List<String> listZip = SimuTool.getIntrestingCommunities(p, geoFile, regulFile, tmpFile, outFile);
+		List<String> listZip = SimuTool.getIntrestingCommunities(p, geoFile, regulFile, outFile);
 
 		// we loop on every cities
 		for (String zip : listZip) {
@@ -89,6 +85,8 @@ public class SelectParcels {
 		////// Packing the parcels for SimPLU3D distribution
 		////////////////
 		// optimized packages
+		File tmpFile = new File(outFile, "tmpFile");
+		tmpFile.mkdirs();
 		if (p.getString("package").equals("ilot")) {
 			separateToDifferentOptimizedPack(parcGen, outFile, tmpFile, regulFile, geoFile);
 		}
@@ -102,6 +100,9 @@ public class SelectParcels {
 	}
 
 	public void selectAndDecompParcels(String zip, Boolean mergeParcels, File mergeFile) throws Exception {
+
+		File tmpFile = new File(mergeFile.getParentFile(), "tmpFile");
+		tmpFile.mkdirs();
 
 		List<String> listeAction = selectionType(p);
 
@@ -225,8 +226,7 @@ public class SelectParcels {
 	 * Know which selection method to use determined by the param file
 	 * 
 	 * @return a list with all the different selections
-	 * 
-	 * @return
+	 *
 	 */
 	private static List<String> selectionType(SimpluParameters p) {
 		List<String> routine = new ArrayList<String>();

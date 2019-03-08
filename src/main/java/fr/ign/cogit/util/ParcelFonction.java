@@ -65,7 +65,6 @@ import fr.ign.cogit.geoxygene.util.conversion.ShapefileReader;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileWriter;
 import fr.ign.cogit.rules.regulation.buildingType.BuildingType;
 import fr.ign.cogit.rules.regulation.buildingType.RepartitionBuildingType;
-import fr.ign.cogit.simplu3d.util.SimpluParameters;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 
 public class ParcelFonction {
@@ -713,6 +712,22 @@ public class ParcelFonction {
 			System.out.println("parcelGenZone : no " + splitZone + " zones");
 			return parcels;
 		}
+		// if the zone is a leftover (this could be done as a stream. When I'll have time I'll get used to it
+		SimpleFeatureIterator itGoOD = gOOdAU.features();
+		double totAireGoOD = 0.0;
+		try {
+			while (itGoOD.hasNext()) {
+				totAireGoOD = +((Geometry) itGoOD.next().getDefaultGeometry()).getArea();
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			itGoOD.close();
+		}
+		if (totAireGoOD < 15) {
+			System.out.println("Tot zone is too small to be taken into consideration -- return null");
+			return parcels;
+		}
 
 		// parts of parcel outside the zone must not be cut by the algorithm and keep
 		// their attributes
@@ -915,9 +930,8 @@ public class ParcelFonction {
 	public static SimpleFeatureCollection setRecompositionProcesssus(String splitZone, SimpleFeatureCollection parcelCollection, File tmpFile,
 			File mupOutput, File rootFile, SimpluParametersJSON p, String typeOfRecomp, boolean dontTouchUZones) throws Exception {
 
-		
-		boolean goOn =false;
-		
+		boolean goOn = false;
+
 		splitZone = normalizeNameBigZone(splitZone);
 
 		List<String> parcelToNotAdd = new ArrayList<String>();
@@ -963,7 +977,7 @@ public class ParcelFonction {
 							break;
 						} else {
 							System.out.println("too small collec, we try to cut em with other parameters");
-							goOn = true ;
+							goOn = true;
 						}
 					}
 				}

@@ -67,8 +67,7 @@ public class SimuTool {
 	 * @return
 	 * @throws Exception
 	 */
-	public static List<String> getIntrestingCommunities(SimpluParameters p, File geoFile, File regulFile, File tmpFile,
-			File variantFile) throws Exception {
+	public static List<String> getIntrestingCommunities(SimpluParameters p, File geoFile, File regulFile, File variantFile) throws Exception {
 		List<String> result = new ArrayList<String>();
 		if (p.getString("singleCity").equals("true")) {
 			String zips = p.getString("zip");
