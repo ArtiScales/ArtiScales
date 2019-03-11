@@ -88,8 +88,8 @@ public class BuildingToHousingUnit extends Indicators {
 		// bhtU.simpleCityEstimate();
 	}
 
-	public static void runParticularSimpleEstimation(List<File> filebati,File rootFile, File simuFile, SimpluParametersJSON p) throws IOException {
-		BuildingToHousingUnit bth = new BuildingToHousingUnit(filebati,rootFile, simuFile, p);
+	public static void runParticularSimpleEstimation(List<File> filebati, File rootFile, File simuFile, SimpluParametersJSON p) throws IOException {
+		BuildingToHousingUnit bth = new BuildingToHousingUnit(filebati, rootFile, simuFile, p);
 		bth.runParticularSimpleEstimation();
 	}
 
@@ -225,20 +225,17 @@ public class BuildingToHousingUnit extends Indicators {
 				SimpleFeatureIterator buildingCollectionIt = shpDSBuilding.getFeatureSource().getFeatures().features();
 				try {
 					SimpleFeature build = buildingCollectionIt.next();
-
 					BuildingType type = BuildingType.valueOf((String) build.getAttribute("BUILDTYPE"));
 					boolean collectiveHousing = false;
-					double surfaceLgt = 0;
+					double surfaceLgt = (double) build.getAttribute("SDPShon");
 					HashMap<String, HashMap<String, Integer>> repartition;
 					// for a single house, there's only a single housing unit
 					switch (type) {
 					case DETACHEDHOUSE:
 					case SMALLHOUSE:
 						nbHU = 1;
-						surfaceLgt = (double) build.getAttribute("SDPShon");
 						surfaceLogements = surfaceLgt / nbHU;
 						System.out.println("le batiment" + type + " de la parcelle " + numeroParcel + " fait " + surfaceLgt + " mcarré ");
-
 						break;
 					// for collective buildings
 					default:

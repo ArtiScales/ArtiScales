@@ -683,7 +683,10 @@ public class SimPLUSimulator {
 		}
 
 		List<Cuboid> cubes = cc.getGraph().vertexSet().stream().map(x -> x.getValue()).collect(Collectors.toList());
-		surfacePlancherTotal = surfGen.process(cubes);
+		surfacePlancherTotal = surfGen.process(cubes)*0.8;
+		if (RepartitionBuildingType.hasCommonParts(type)) {
+			surfacePlancherTotal = surfacePlancherTotal*0.9;			
+		}
 		surfaceAuSol = surfGen.processSurface(cubes);
 
 		// Getting cuboid into list (we have to redo it because the cuboids are
@@ -741,7 +744,7 @@ public class SimPLUSimulator {
 			AttributeManager.addAttribute(feat, "Hauteur", v.getValue().height, "Double");
 			AttributeManager.addAttribute(feat, "Rotation", v.getValue().orientation, "Double");
 			AttributeManager.addAttribute(feat, "SurfaceBox", feat.getGeom().area(), "Double");
-			AttributeManager.addAttribute(feat, "SDPShon", surfacePlancherTotal * 0.8, "Double");
+			AttributeManager.addAttribute(feat, "SDPShon", surfacePlancherTotal , "Double");
 			AttributeManager.addAttribute(feat, "SurfacePar", areaParcels, "Double");
 			AttributeManager.addAttribute(feat, "SurfaceSol", surfaceAuSol, "Double");
 			AttributeManager.addAttribute(feat, "CODE", bPU.getCadastralParcels().get(0).getCode(), "String");
