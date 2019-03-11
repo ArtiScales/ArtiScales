@@ -19,6 +19,8 @@ public class RepartitionBuildingType {
 
 	HashMap<BuildingType, Double> repartition;
 	HashMap<BuildingType, String> distribution;
+
+	List<BuildingType> forgottenBT = new ArrayList<>();
 	IFeatureCollection<IFeature> parcelles;
 	double pDetachedHouse, pSmallHouse, pMultifamilyHouse, pSmallBlockFlat, pMidBlockFlat;
 	DescriptiveStatistics dsc;
@@ -58,6 +60,7 @@ public class RepartitionBuildingType {
 		pDetachedHouse = p.getDouble("detachedHouse");
 
 		if (pDetachedHouse == -1) {
+			forgottenBT.add(BuildingType.DETACHEDHOUSE);
 			pDetachedHouse = 0;
 		}
 		double max = pDetachedHouse;
@@ -65,6 +68,7 @@ public class RepartitionBuildingType {
 
 		pSmallHouse = p.getDouble("smallHouse");
 		if (pSmallHouse == -1) {
+			forgottenBT.add(BuildingType.SMALLHOUSE);
 			pSmallHouse = 0;
 		}
 		if (pSmallHouse > max) {
@@ -74,6 +78,7 @@ public class RepartitionBuildingType {
 
 		pMultifamilyHouse = p.getDouble("multifamilyHouse");
 		if (pMultifamilyHouse == -1) {
+			forgottenBT.add(BuildingType.MULTIFAMILYHOUSE);
 			pMultifamilyHouse = 0;
 		}
 		if (pMultifamilyHouse > max) {
@@ -83,6 +88,7 @@ public class RepartitionBuildingType {
 
 		pSmallBlockFlat = p.getDouble("smallBlockFlat");
 		if (pSmallBlockFlat == -1) {
+			forgottenBT.add(BuildingType.SMALLBLOCKFLAT);
 			pSmallBlockFlat = 0;
 		}
 		if (pSmallBlockFlat > max) {
@@ -92,6 +98,7 @@ public class RepartitionBuildingType {
 
 		pMidBlockFlat = p.getDouble("midBlockFlat");
 		if (pMidBlockFlat == -1) {
+			forgottenBT.add(BuildingType.MIDBLOCKFLAT);
 			pMidBlockFlat = 0;
 		}
 		if (pMidBlockFlat > max) {
@@ -111,7 +118,7 @@ public class RepartitionBuildingType {
 		}
 
 		this.repartition = rep;
-    System.out.println("repartition = " + repartition);
+		System.out.println("repartition = " + repartition);
 
 		// this.parcelles = parcelles;
 
@@ -205,7 +212,7 @@ public class RepartitionBuildingType {
 	}
 
 	@SuppressWarnings("unused")
-  private HashMap<BuildingType, String> adjustDistribution(double evalParcel, BuildingType takenBuildingType, boolean upOrDown) throws Exception {
+	private HashMap<BuildingType, String> adjustDistribution(double evalParcel, BuildingType takenBuildingType, boolean upOrDown) throws Exception {
 		return adjustDistribution(evalParcel, takenBuildingType, rangeInterest(evalParcel), upOrDown);
 	}
 
@@ -287,23 +294,23 @@ public class RepartitionBuildingType {
 	 * @return
 	 * @throws Exception
 	 */
-	public static SimpluParametersJSON addRepartitionToParameters(SimpluParametersJSON p, File zoningFile, File communeFile, IFeature parcel, File locationBuildings)
-			throws Exception {
-		String affect = FromGeom.affectZoneAndTypoToLocation(
-		    p.getString("useRepartition"), p.getString("scenarioPMSP3D"), parcel, zoningFile, communeFile, true);
+	public static SimpluParametersJSON addRepartitionToParameters(SimpluParametersJSON p, File zoningFile, File communeFile, IFeature parcel,
+			File locationBuildings) throws Exception {
+		String affect = FromGeom.affectZoneAndTypoToLocation(p.getString("useRepartition"), p.getString("scenarioPMSP3D"), parcel, zoningFile,
+				communeFile, true);
 		// we seek for if there's a special default repartition for the scenario
-//		System.out.println("profileBuildings = " + profileBuildings);
+		// System.out.println("profileBuildings = " + profileBuildings);
 		// if nothing is returned, we use the default parameter file
 		if (affect.equals("")) {
 			for (File f : locationBuildings.listFiles()) {
 				String name = f.getName();
-				//first if there is a special default comportment for the scenario
+				// first if there is a special default comportment for the scenario
 				if (name.startsWith(p.getString("scenarioPMSP3D")) && name.contains("default")) {
 					affect = f.getName().replace(".json", "");
 					break;
 				}
-				//else the default default
-				else  {
+				// else the default default
+				else {
 					affect = "default";
 				}
 			}
@@ -319,9 +326,12 @@ public class RepartitionBuildingType {
 	}
 
 	/**
-	 * return the json data related to the given building type 
-	 * @param buildingTypeFolder : Folder where the .xml files are stored
-	 * @param type : given Building Type
+	 * return the json data related to the given building type
+	 * 
+	 * @param buildingTypeFolder
+	 *            : Folder where the .xml files are stored
+	 * @param type
+	 *            : given Building Type
 	 * @return
 	 * @throws Exception
 	 */
@@ -347,18 +357,23 @@ public class RepartitionBuildingType {
 		switch (fType) {
 		case DETACHEDHOUSE:
 			result = BuildingType.SMALLHOUSE;
+			break;
 		case SMALLHOUSE:
 			result = BuildingType.MULTIFAMILYHOUSE;
+			break;
 		case MULTIFAMILYHOUSE:
 			result = BuildingType.SMALLBLOCKFLAT;
+			break;
 		case SMALLBLOCKFLAT:
 			result = BuildingType.MIDBLOCKFLAT;
+			break;
 		default:
 			System.out.println("ain't got nothing bigger");
 			result = BuildingType.MIDBLOCKFLAT;
 		}
 		// if the type is not in the prediction, we don't return it
-		if (repartition.get(result) == -1) {
+		if (forgottenBT.contains(result)) {
+			System.out.println(result + " : that's a forbidden type");
 			return fType;
 		}
 		return result;
@@ -370,40 +385,44 @@ public class RepartitionBuildingType {
 		switch (fType) {
 		case SMALLHOUSE:
 			result = BuildingType.DETACHEDHOUSE;
+			break;
 		case MULTIFAMILYHOUSE:
 			result = BuildingType.SMALLHOUSE;
+			break;
 		case SMALLBLOCKFLAT:
 			result = BuildingType.MULTIFAMILYHOUSE;
+			break;
 		case MIDBLOCKFLAT:
 			result = BuildingType.SMALLBLOCKFLAT;
+			break;
 		default:
 			System.out.println("ain't got nothing smaller");
-			result = BuildingType.SMALLHOUSE;
+			result = BuildingType.DETACHEDHOUSE;
 		}
-
+		System.out.println("is forbidden type ? " + repartition.get(result));
 		// if the type is not in the prediction, we don't return it
-		if (repartition.get(result) == -1) {
+		if (forgottenBT.contains(result)) {
 			System.out.println(result + " : that's a forbidden type");
 			return fType;
 		}
 		return result;
 	}
 
-//	public static void main(String[] args) throws Exception {
-//		File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/etalIntenseRegul");
-//		List<File> lF = new ArrayList<>();
-//		lF.add(new File(rootParam, "parameterTechnic.xml"));
-//		lF.add(new File(rootParam, "parameterScenario.xml"));
-//
-//		SimpluParametersJSON p = new SimpluParametersJSON(lF);
-//
-//		RepartitionBuildingType u = new RepartitionBuildingType(p, new File(""), new File(""), new File(""),
-//				new File("/home/mcolomb/informatique/ArtiScales2/ParcelSelectionFile/intenseRegulatedSpread/variant0/parcelGenExport.shp"));
-//		System.out.println(u.rangeInterest(0.52));
-//		System.out.println(u.distribution);
-//		System.out.println(u.adjustDistribution(0.35285416, BuildingType.MULTIFAMILYHOUSE, false));
-//
-//	}
+	// public static void main(String[] args) throws Exception {
+	// File rootParam = new File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/etalIntenseRegul");
+	// List<File> lF = new ArrayList<>();
+	// lF.add(new File(rootParam, "parameterTechnic.xml"));
+	// lF.add(new File(rootParam, "parameterScenario.xml"));
+	//
+	// SimpluParametersJSON p = new SimpluParametersJSON(lF);
+	//
+	// RepartitionBuildingType u = new RepartitionBuildingType(p, new File(""), new File(""), new File(""),
+	// new File("/home/mcolomb/informatique/ArtiScales2/ParcelSelectionFile/intenseRegulatedSpread/variant0/parcelGenExport.shp"));
+	// System.out.println(u.rangeInterest(0.52));
+	// System.out.println(u.distribution);
+	// System.out.println(u.adjustDistribution(0.35285416, BuildingType.MULTIFAMILYHOUSE, false));
+	//
+	// }
 
 	/**
 	 * says if the building possess an attic
@@ -436,11 +455,11 @@ public class RepartitionBuildingType {
 			max = p.getInteger("detachedHouse");
 			result = BuildingType.DETACHEDHOUSE;
 		}
-		if (p.getInteger("smallHouse") > max ) {
+		if (p.getInteger("smallHouse") > max) {
 			max = p.getInteger("smallHouse");
 			result = BuildingType.SMALLHOUSE;
 		}
-		if (p.getInteger("multifamilyHouse") > max ) {
+		if (p.getInteger("multifamilyHouse") > max) {
 			max = p.getInteger("multifamilyHouse");
 			result = BuildingType.MULTIFAMILYHOUSE;
 		}
@@ -448,7 +467,7 @@ public class RepartitionBuildingType {
 			max = p.getInteger("smallBlockFlat");
 			result = BuildingType.SMALLBLOCKFLAT;
 		}
-		if (p.getInteger("midBlockFlat") > max ) {
+		if (p.getInteger("midBlockFlat") > max) {
 			max = p.getInteger("midBlockFlat");
 			result = BuildingType.MIDBLOCKFLAT;
 		}
