@@ -76,17 +76,18 @@ public class SelectParcels {
 		// if we simul on one city (debug) or the whole area
 		List<String> listZip = SimuTool.getIntrestingCommunities(p, geoFile, regulFile, outFile);
 
+    File tmpFile = new File(outFile, "tmpFile");
+    tmpFile.mkdirs();
+
 		// we loop on every cities
 		for (String zip : listZip) {
-			selectAndDecompParcels(zip, true, parcGen);
+			selectAndDecompParcels(zip, true, parcGen, tmpFile);
 		}
 
 		////////////////
 		////// Packing the parcels for SimPLU3D distribution
 		////////////////
 		// optimized packages
-		File tmpFile = new File(outFile, "tmpFile");
-		tmpFile.mkdirs();
 		if (p.getString("package").equals("ilot")) {
 			separateToDifferentOptimizedPack(parcGen, outFile, tmpFile, regulFile, geoFile);
 		}
@@ -99,16 +100,14 @@ public class SelectParcels {
 		return outFile;
 	}
 
-	public void selectAndDecompParcels(String zip, Boolean mergeParcels, File mergeFile) throws Exception {
-
-		File tmpFile = new File(mergeFile.getParentFile(), "tmpFile");
+	public void selectAndDecompParcels(String zip, Boolean mergeParcels, File mergeFile, File tmpFile) throws Exception {
 		tmpFile.mkdirs();
 
 		List<String> listeAction = selectionType(p);
 
 		// if (zip.equals("25056")) {continue;}
 		System.out.println();
-		System.out.println("for the " + zip + " city");
+		System.out.println("for the " + zip + " city and configuration " + spatialConfigurationMUP);
 		System.out.println();
 		parcelFile = ParcelFonction.getParcels(geoFile, regulFile, tmpFile, zip, p.getBoolean("preCutParcels"));
 
@@ -341,7 +340,7 @@ public class SelectParcels {
 		DefaultFeatureCollection result = new DefaultFeatureCollection();
 
 		ShapefileDataStore shpDSCells = new ShapefileDataStore(spatialConfigurationMUP.toURI().toURL());
-		SimpleFeatureCollection cellsSFS = shpDSCells.getFeatureSource().getFeatures();
+		SimpleFeatureCollection cellsSFS = DataUtilities.collection(shpDSCells.getFeatureSource().getFeatures());
 
 		try {
 			while (parcelIt.hasNext()) {
@@ -373,7 +372,7 @@ public class SelectParcels {
 		DefaultFeatureCollection result = new DefaultFeatureCollection();
 
 		ShapefileDataStore shpDSCells = new ShapefileDataStore(spatialConfigurationMUP.toURI().toURL());
-		SimpleFeatureCollection cellsSFS = shpDSCells.getFeatureSource().getFeatures();
+		SimpleFeatureCollection cellsSFS = DataUtilities.collection(shpDSCells.getFeatureSource().getFeatures());
 
 		try {
 			while (parcelIt.hasNext()) {
@@ -411,7 +410,7 @@ public class SelectParcels {
 		DefaultFeatureCollection result = new DefaultFeatureCollection();
 
 		ShapefileDataStore shpDSCells = new ShapefileDataStore(spatialConfigurationMUP.toURI().toURL());
-		SimpleFeatureCollection cellsSFS = shpDSCells.getFeatureSource().getFeatures();
+		SimpleFeatureCollection cellsSFS = DataUtilities.collection(shpDSCells.getFeatureSource().getFeatures());
 
 		try {
 			while (parcelIt.hasNext()) {
@@ -448,7 +447,7 @@ public class SelectParcels {
 		DefaultFeatureCollection result = new DefaultFeatureCollection();
 
 		ShapefileDataStore shpDSCells = new ShapefileDataStore(spatialConfigurationMUP.toURI().toURL());
-		SimpleFeatureCollection cellsSFS = shpDSCells.getFeatureSource().getFeatures();
+		SimpleFeatureCollection cellsSFS = DataUtilities.collection(shpDSCells.getFeatureSource().getFeatures());
 
 		try {
 			while (parcelIt.hasNext()) {
@@ -487,7 +486,7 @@ public class SelectParcels {
 		DefaultFeatureCollection result = new DefaultFeatureCollection();
 
 		ShapefileDataStore shpDSCells = new ShapefileDataStore(spatialConfigurationMUP.toURI().toURL());
-		SimpleFeatureCollection cellsSFS = shpDSCells.getFeatureSource().getFeatures();
+		SimpleFeatureCollection cellsSFS = DataUtilities.collection(shpDSCells.getFeatureSource().getFeatures());
 
 		try {
 			while (parcelIt.hasNext()) {
@@ -560,7 +559,7 @@ public class SelectParcels {
 	public static void separateToDifferentCitiesPack(File parcelCollection, File fileOut, File regulFile, File geoFile) throws Exception {
 
 		ShapefileDataStore sdsParc = new ShapefileDataStore(parcelCollection.toURI().toURL());
-		SimpleFeatureCollection parcelCollec = sdsParc.getFeatureSource().getFeatures();
+		SimpleFeatureCollection parcelCollec = DataUtilities.collection(sdsParc.getFeatureSource().getFeatures());
 		SimpleFeatureIterator parcel = parcelCollec.features();
 
 		List<String> cities = new ArrayList<>();
@@ -611,7 +610,7 @@ public class SelectParcels {
 				Vectors.exportSFC(parcelCollec.subCollection(filterCity), parcelFile);
 
 				ShapefileDataStore parcelPackSDS = new ShapefileDataStore(parcelFile.toURI().toURL());
-				SimpleFeatureCollection parcelPackCollec = parcelPackSDS.getFeatureSource().getFeatures();
+				SimpleFeatureCollection parcelPackCollec = DataUtilities.collection(parcelPackSDS.getFeatureSource().getFeatures());
 
 				File fBBox = new File(pack, "bbox.shp");
 

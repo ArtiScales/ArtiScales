@@ -13,6 +13,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 
+import org.geotools.data.DataUtilities;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
@@ -626,8 +627,11 @@ public class FromGeom {
 	public static List<String> parcelInBigZone(SimpleFeature parcelIn, File zoningFile) throws Exception {
 		List<String> result = new LinkedList<String>();
 		ShapefileDataStore shpDSZone = new ShapefileDataStore(zoningFile.toURI().toURL());
-		SimpleFeatureCollection shpDSZoneReduced = Vectors.snapDatas(shpDSZone.getFeatureSource().getFeatures(),
-				(Geometry) parcelIn.getDefaultGeometry());
+		SimpleFeatureCollection shpDSZoneReduced = Vectors.snapDatas(DataUtilities.collection(shpDSZone.getFeatureSource().getFeatures()), (Geometry) parcelIn.getDefaultGeometry());
+		if (shpDSZoneReduced.isEmpty()) {
+		  System.out.println("parcelInBigZone = " + zoningFile);
+		  System.out.println("ParcelIn = " + parcelIn.getDefaultGeometry());
+		}
 		SimpleFeatureIterator featuresZones = shpDSZoneReduced.features();
 		// if there's two zones, we need to sort them by making collection. zis iz évy
 		// calculation, but it could worth it

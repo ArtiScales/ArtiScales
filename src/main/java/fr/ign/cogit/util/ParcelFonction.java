@@ -624,7 +624,7 @@ public class ParcelFonction {
 		DefaultFeatureCollection savedParcels = new DefaultFeatureCollection();
 		// import of the zoning file
 		ShapefileDataStore shpDSZone = new ShapefileDataStore(FromGeom.getZoning(new File(rootFile, "dataRegulation")).toURI().toURL());
-		SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
+		SimpleFeatureCollection featuresZones = DataUtilities.collection(shpDSZone.getFeatureSource().getFeatures());
 
 		Geometry unionParcel = Vectors.unionSFC(parcels);
 		String geometryParcelPropertyName = schema.getGeometryDescriptor().getLocalName();
@@ -1763,7 +1763,7 @@ public class ParcelFonction {
 			throws ParseException, NoSuchAuthorityCodeException, FactoryException, IOException {
 
 		ShapefileDataStore cellsSDS = new ShapefileDataStore(outMup.toURI().toURL());
-		SimpleFeatureCollection cellsCollection = cellsSDS.getFeatureSource().getFeatures();
+		SimpleFeatureCollection cellsCollection = DataUtilities.collection(cellsSDS.getFeatureSource().getFeatures());
 		Double result = getEvalInParcel(parcel, cellsCollection);
 		cellsSDS.dispose();
 		return result;
@@ -1775,16 +1775,22 @@ public class ParcelFonction {
 		String geometryCellPropertyName = mupSFC.getSchema().getGeometryDescriptor().getLocalName();
 
 		Filter inter = ff.intersects(ff.property(geometryCellPropertyName), ff.literal(parcel.getDefaultGeometry()));
-		SimpleFeatureCollection onlyCells = mupSFC.subCollection(inter);
-		Double bestEval = 0.0;
-
+		SimpleFeatureCollection onlyCells = DataUtilities.collection(mupSFC.subCollection(inter));
+		double bestEval = 0.0;
 		// put the best cell evaluation into the parcel
 		if (onlyCells.size() > 0) {
 			SimpleFeatureIterator onlyCellIt = onlyCells.features();
 			try {
 				while (onlyCellIt.hasNext()) {
 					SimpleFeature multiCell = onlyCellIt.next();
-					bestEval = Math.max(bestEval, (Double) multiCell.getAttribute("eval"));
+					if (multiCell != null) {
+					  Double eval = (Double) multiCell.getAttribute("eval");
+					  if (eval != null) {
+					    bestEval = Math.max(bestEval, eval.doubleValue());
+					  } else {
+					    System.out.println("Null eval for " + multiCell);
+					  }
+					}
 				}
 			} catch (Exception problem) {
 				problem.printStackTrace();
@@ -2204,7 +2210,7 @@ public class ParcelFonction {
 
 	private static SimpleFeatureCollection getParcelByBigZone(String zone, SimpleFeatureCollection parcelles, File rootFile) throws IOException {
 		ShapefileDataStore zonesSDS = new ShapefileDataStore(FromGeom.getZoning(new File(rootFile, "dataRegulation")).toURI().toURL());
-		SimpleFeatureCollection zonesSFCBig = zonesSDS.getFeatureSource().getFeatures();
+		SimpleFeatureCollection zonesSFCBig = DataUtilities.collection(zonesSDS.getFeatureSource().getFeatures());
 		SimpleFeatureCollection zonesSFC = Vectors.cropSFC(zonesSFCBig, parcelles);
 		List<String> listZones = new ArrayList<>();
 		switch (zone) {
