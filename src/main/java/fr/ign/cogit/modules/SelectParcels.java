@@ -48,9 +48,9 @@ public class SelectParcels {
 	int nbParcels;
 	float moyEval;
 
-	// public static void main(String[] args) throws Exception {
-	// aggregateParcelsFromZips(new File("/home/mcolomb/informatique/ArtiScales"));
-	// }
+	public static void main(String[] args) throws Exception {
+		aggregateParcelsFromZips(new File("/home/ubuntu/boulot/these/result0313/"));
+	}
 
 	public SelectParcels(File rootfile, File outfile, File spatialconfiguration, SimpluParametersJSON par) throws Exception {
 		// objet contenant les paramètres
@@ -717,10 +717,20 @@ public class SelectParcels {
 			if (scenarFile.isDirectory()) {
 				System.out.println(scenarFile);
 				for (File variantFile : scenarFile.listFiles()) {
+					System.out.println(variantFile);
 					List<File> zips = new ArrayList<File>();
-					for (File zip : (new File(variantFile, "zips")).listFiles()) {
-						zips.add(new File(zip, "parcelOut-" + zip.getName() + ".shp"));
+					for (File zip : variantFile.listFiles()) {
+						if (zip.isDirectory() && !zip.getName().equals("tmpFile")) {
+							// if (zip.getName().equals("25410") || zip.getName().equals("25576") || zip.getName().equals("25395")
+							// || zip.getName().equals("25084") || zip.getName().equals("25036") || zip.getName().equals("25258")
+							// || zip.getName().equals("25056HV") || zip.getName().equals("25371") || zip.getName().equals("25594")
+							// || zip.getName().equals("25058") || zip.getName().equals("25594") || zip.getName().equals("25111")) {
+							// continue;
+							// }
+							zips.add(new File(zip, "parcelOut-" + zip.getName() + ".shp"));
+						}
 					}
+					System.out.println(new File(variantFile, "parcelGenExport.shp"));
 					Vectors.mergeVectFiles(zips, new File(variantFile, "parcelGenExport.shp"));
 				}
 			}

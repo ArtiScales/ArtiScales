@@ -2190,6 +2190,27 @@ public class ParcelFonction {
 		return Vectors.exportSFC(newParcel.collection(), new File(tmpFile, "parcelProcessed.shp"));
 	}
 
+	public static List<String> getCodeParcels(SimpleFeatureCollection parcels) {
+		List<String> result = new ArrayList<String>();
+		SimpleFeatureIterator parcelIt = parcels.features();
+		try {
+			while (parcelIt.hasNext()) {
+				SimpleFeature feat = parcelIt.next();
+				String code = ((String) feat.getAttribute("CODE"));
+				if (code != null && !code.isEmpty()) {
+					result.add(code);
+				} else {
+					result.add(makeParcelCode(feat));
+				}
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			parcelIt.close();
+		}
+		return result;
+	}
+
 	public static IFeatureCollection<IFeature> getParcelByCode(IFeatureCollection<IFeature> parcelles, List<String> parcelsWanted)
 			throws IOException {
 		IFeatureCollection<IFeature> result = new FT_FeatureCollection<>();

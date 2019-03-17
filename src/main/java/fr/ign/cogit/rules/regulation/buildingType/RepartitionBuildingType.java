@@ -442,6 +442,15 @@ public class RepartitionBuildingType {
 		return hasAttic(BuildingType.valueOf(type.toUpperCase()));
 	}
 
+	
+	public static boolean hasCommonParts(BuildingType type) {
+		if (type == BuildingType.SMALLHOUSE || type == BuildingType.DETACHEDHOUSE|| type == BuildingType.MULTIFAMILYHOUSE) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+	
 	/**
 	 * return the buildingType with the most ignore the -1 values which means that is a forbidden type
 	 * 
