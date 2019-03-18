@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.geotools.data.DataUtilities;
 import org.geotools.data.shapefile.ShapefileDataStore;
@@ -25,6 +26,9 @@ import com.vividsolutions.jts.geom.Polygon;
 
 import au.com.bytecode.opencsv.CSVReader;
 import fr.ign.cogit.GTFunctions.Vectors;
+import fr.ign.cogit.map.MapRenderer;
+import fr.ign.cogit.map.theseMC.SurfParcelFailedMap;
+import fr.ign.cogit.map.theseMC.SurfParcelSimulatedMap;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.cogit.util.FromGeom;
 import fr.ign.cogit.util.ParcelFonction;
@@ -39,9 +43,10 @@ public class ParcelStat extends Indicators {
 
 	public ParcelStat(SimpluParametersJSON p, File rootFile, String scenarName, String variantName) throws Exception {
 		super(p, rootFile, scenarName, variantName);
-
 		super.indicFile = new File(rootFile, "indic/parcelStat/" + scenarName + "/" + variantName);
 		super.indicFile.mkdirs();
+		super.mapDepotFile = new File(indicFile, "mapDepot");
+		super.mapDepotFile.mkdir();
 		parcelOGFile = FromGeom.getParcels(new File(rootFile, "dataGeo"));
 		firstLine = "INSEE,nb_parcel_simulated,nb_parcel_simu_failed,surf_parcel_ignored,surf_parcel_simulated,surf_parcel_simulFailed,surface_SDP_parcelle,surface_emprise_parcelle";
 
@@ -68,25 +73,37 @@ public class ParcelStat extends Indicators {
 		HashMap<String, SimpleFeatureCollection> commParcel = divideSFCIntoPart(parcelStatSHP, "INSEE");
 
 		for (String city : commParcel.keySet()) {
-			System.out.println("ville t " + city);
+			System.out.println("ville " + city);
 			parc.caclulateStatParcel(commParcel.get(city));
 			parc.caclulateStatBatiParcel(commParcel.get(city));
 			parc.writeLine(city, "ParcelStat");
 			parc.toString();
 			parc.setCountToZero();
 		}
-		parc.joinMap();
+		File commStatFile = parc.joinStatToCommunities();
+		
+		List<MapRenderer> allOfTheMaps = new ArrayList<MapRenderer>();
+		MapRenderer surfParcelSimulatedMap = new SurfParcelSimulatedMap(1000, 1000, new File(rootFile,"mapStyle"), commStatFile, parc.mapDepotFile);
+		allOfTheMaps.add(surfParcelSimulatedMap);
+		MapRenderer surfParcelFailedMap = new SurfParcelFailedMap(1000, 1000, new File(rootFile,"mapStyle"), commStatFile, parc.mapDepotFile);
+		allOfTheMaps.add(surfParcelFailedMap);
+		
+		for (MapRenderer map : allOfTheMaps) {
+			map.renderCityInfo();
+			map.generateSVG();
+		}
+		
 	}
 
-	public void joinMap() throws NoSuchAuthorityCodeException, IOException, FactoryException {
+	public File joinStatToCommunities() throws NoSuchAuthorityCodeException, IOException, FactoryException {
 		ShapefileDataStore communitiesSDS = new ShapefileDataStore((new File(rootFile, "/dataGeo/old/communities.shp")).toURI().toURL());
 		SimpleFeatureCollection communitiesOG = communitiesSDS.getFeatureSource().getFeatures();
-		joinStatToCommunities(communitiesOG, new File(indicFile, "ParcelStat.csv"), new File(indicFile, "commStat.shp"));
+		File result = joinStatToSFC(communitiesOG, new File(indicFile, "ParcelStat.csv"), new File(indicFile, "commStat.shp"));
 		communitiesSDS.dispose();
-
+		return result;
 	}
 
-	public File joinStatToCommunities(SimpleFeatureCollection collec, File statFile, File outFile)
+	public File joinStatToSFC(SimpleFeatureCollection collec, File statFile, File outFile)
 			throws IOException, NoSuchAuthorityCodeException, FactoryException {
 		DefaultFeatureCollection result = new DefaultFeatureCollection();
 		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
@@ -103,7 +120,6 @@ public class ParcelStat extends Indicators {
 		sfTypeBuilder.add("aSDP", Double.class);
 		sfTypeBuilder.add("aEmprise", Double.class);
 		SimpleFeatureBuilder builder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
-
 		SimpleFeatureIterator it = collec.features();
 
 		try {

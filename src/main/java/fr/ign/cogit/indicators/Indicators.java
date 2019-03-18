@@ -17,7 +17,7 @@ import fr.ign.cogit.util.FromGeom;
 
 public abstract class Indicators {
 	SimpluParametersJSON p;
-	File rootFile, paramFolder, parcelDepotGenFile, simPLUDepotGenFile, indicFile;
+	File rootFile, paramFolder, parcelDepotGenFile, simPLUDepotGenFile, indicFile, mapDepotFile;
 	String scenarName, variantName, echelle;
 
 	static boolean firstLineGen = true;
