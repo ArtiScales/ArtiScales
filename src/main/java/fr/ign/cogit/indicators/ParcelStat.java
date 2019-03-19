@@ -70,7 +70,7 @@ public class ParcelStat extends Indicators {
 		parc.toString();
 		parc.setCountToZero();
 
-		HashMap<String, SimpleFeatureCollection> commParcel = divideSFCIntoPart(parcelStatSHP, "INSEE");
+		HashMap<String, SimpleFeatureCollection> commParcel = Vectors.divideSFCIntoPart(parcelStatSHP, "INSEE");
 
 		for (String city : commParcel.keySet()) {
 			System.out.println("ville " + city);
@@ -83,9 +83,9 @@ public class ParcelStat extends Indicators {
 		File commStatFile = parc.joinStatToCommunities();
 		
 		List<MapRenderer> allOfTheMaps = new ArrayList<MapRenderer>();
-		MapRenderer surfParcelSimulatedMap = new SurfParcelSimulatedMap(1000, 1000, new File(rootFile,"mapStyle"), commStatFile, parc.mapDepotFile);
+		MapRenderer surfParcelSimulatedMap = new SurfParcelSimulatedMap(1000, 1000, new File(parc.rootFile,"mapStyle"), commStatFile, parc.mapDepotFile);
 		allOfTheMaps.add(surfParcelSimulatedMap);
-		MapRenderer surfParcelFailedMap = new SurfParcelFailedMap(1000, 1000, new File(rootFile,"mapStyle"), commStatFile, parc.mapDepotFile);
+		MapRenderer surfParcelFailedMap = new SurfParcelFailedMap(1000, 1000, new File(parc.rootFile,"mapStyle"), commStatFile, parc.mapDepotFile);
 		allOfTheMaps.add(surfParcelFailedMap);
 		
 		for (MapRenderer map : allOfTheMaps) {

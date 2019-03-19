@@ -159,31 +159,4 @@ public abstract class Indicators {
 		writer.append("\n");
 		writer.close();
 	}
-
-	public static HashMap<String, SimpleFeatureCollection> divideSFCIntoPart(SimpleFeatureCollection sFCToDivide, String attribute) {
-		HashMap<String, SimpleFeatureCollection> result = new HashMap<String, SimpleFeatureCollection>();
-
-		SimpleFeatureIterator it = sFCToDivide.features();
-		try {
-			while (it.hasNext()) {
-				SimpleFeature ft = it.next();
-				String key = (String) ft.getAttribute(attribute);
-				DefaultFeatureCollection temp = new DefaultFeatureCollection();
-				if (result.containsKey(key)) {
-					temp.addAll(result.remove(key));
-					temp.add(ft);
-					result.put(key, temp.collection());
-				} else {
-					temp.add(ft);
-					result.put(key, temp.collection());
-				}
-			}
-		} catch (Exception problem) {
-			problem.printStackTrace();
-		} finally {
-			it.close();
-		}
-
-		return result;
-	}
 }

@@ -326,20 +326,23 @@ public class MapRenderer {
 
 	public File generateSVG() throws IOException {
 
+		File svgOutFile = new File(outFolder, mapName + ".svg");
 		BufferedReader br = new BufferedReader(new FileReader(svgFile));
-		BufferedWriter bw = new BufferedWriter(new FileWriter(new File(outFolder, mapName + ".svg")));
+		BufferedWriter bw = new BufferedWriter(new FileWriter(svgOutFile));
 		StringBuffer sb = new StringBuffer();
-
 		for (Object line : br.lines().toArray()) {
-			// System.out.println(line);
 			if (((String) line).contains("sodipodi:absref=")) {
 				String newLine = "sodipodi:absref=\"" + outFolder.getAbsolutePath() + "/" + mapName + "-map.png\"";
 				if (((String) line).contains("legend")) {
 					newLine = "sodipodi:absref=\"" + rootMapStyle.getAbsolutePath() + "/" + mapName + "-legend.png\"";
 				}
-				System.out.println("remplaced " + line + " with " + newLine);
 				sb.append(newLine + "\n");
-			} else {
+			} else if(((String) line).contains("inkscape:export-filename")) {
+				String newLine = "inkscape:export-filename=\"" + "./" + mapName + ".png\"";
+				sb.append(newLine+"\n");
+			}
+			
+			else {
 				sb.append(line + "\n");
 			}
 		}
@@ -347,19 +350,11 @@ public class MapRenderer {
 		bw.write(sb.toString(), 0, sb.length());
 		bw.close();
 
-		// BufferedImage png = new BufferedImage(this.imageBounds.width, this.imageBounds.height, BufferedImage.TYPE_INT_ARGB);
-		// GTRenderer renderer = new StreamingRenderer();
-		// renderer.setJava2DHints(new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON));
-		// Map<Object, Object> rendererParams = new HashMap<Object, Object>();
-		// rendererParams.put("optimizedDataLoadingEnabled", new Boolean(true));
-		// renderer.setRendererHints(rendererParams);
-		// renderer.setMapContent(map);
-		// Graphics2D gr = image.createGraphics();
-		// renderer.paint(gr, this.imageBounds, parcelLayer.getBounds());
-		// map.dispose();
-		// saveImage(image, folderOut);
+//		BufferedImage input_image = ImageIO.read(svgFile); // read svginto input_image object
+//		File outputfile = new File(outFolder, mapName + ".png");
+//		ImageIO.write(input_image, "PNG", outputfile);
 
-		return null;
+		return svgFile;
 	}
 
 	// public static void main(String[] args) throws MalformedURLException, IOException, NoSuchAuthorityCodeException, FactoryException {
