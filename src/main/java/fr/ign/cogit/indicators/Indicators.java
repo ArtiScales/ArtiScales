@@ -3,12 +3,6 @@ package fr.ign.cogit.indicators;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashMap;
-
-import org.geotools.data.simple.SimpleFeatureCollection;
-import org.geotools.data.simple.SimpleFeatureIterator;
-import org.geotools.feature.DefaultFeatureCollection;
-import org.opengis.feature.simple.SimpleFeature;
 
 import fr.ign.analyse.obj.ProjetAnalyse;
 import fr.ign.analyse.obj.ScenarAnalyse;
@@ -17,8 +11,8 @@ import fr.ign.cogit.util.FromGeom;
 
 public abstract class Indicators {
 	SimpluParametersJSON p;
-	File rootFile, paramFolder, parcelDepotGenFile, simPLUDepotGenFile, indicFile, mapDepotFile;
-	String scenarName, variantName, echelle;
+	protected File rootFile, paramFolder, parcelDepotGenFile, simPLUDepotGenFile, indicFile, mapDepotFile;
+	protected String scenarName, variantName, echelle;
 
 	static boolean firstLineGen = true;
 	static boolean firstLineSimu = true;
@@ -33,7 +27,7 @@ public abstract class Indicators {
 		this.paramFolder = new File(rootFile, "paramFolder");
 		this.parcelDepotGenFile = new File(rootFile, "ParcelSelectionDepot/" + scenarName + "/" + variantName + "/parcelGenExport.shp");
 		this.simPLUDepotGenFile = new File(rootFile, "SimPLUDepot/" + scenarName + "/" + variantName + "/TotBatSimuFill.shp");
-		if (!simPLUDepotGenFile.exists()) {
+		if (!simPLUDepotGenFile.exists() && !scenarname.equals("") && !variantname.equals("")) {
 			FromGeom.mergeBatis(simPLUDepotGenFile);
 		}
 

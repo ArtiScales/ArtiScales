@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.geotools.data.DataUtilities;
 import org.geotools.data.shapefile.ShapefileDataStore;
@@ -45,8 +44,10 @@ public class ParcelStat extends Indicators {
 		super(p, rootFile, scenarName, variantName);
 		super.indicFile = new File(rootFile, "indic/parcelStat/" + scenarName + "/" + variantName);
 		super.indicFile.mkdirs();
-		super.mapDepotFile = new File(indicFile, "mapDepot");
-		super.mapDepotFile.mkdir();
+		if (!variantName.equals("")) {
+			super.mapDepotFile = new File(indicFile, "mapDepot");
+			super.mapDepotFile.mkdir();
+		}
 		parcelOGFile = FromGeom.getParcels(new File(rootFile, "dataGeo"));
 		firstLine = "INSEE,nb_parcel_simulated,nb_parcel_simu_failed,surf_parcel_ignored,surf_parcel_simulated,surf_parcel_simulFailed,surface_SDP_parcelle,surface_emprise_parcelle";
 
@@ -81,18 +82,19 @@ public class ParcelStat extends Indicators {
 			parc.setCountToZero();
 		}
 		File commStatFile = parc.joinStatToCommunities();
-		
+
 		List<MapRenderer> allOfTheMaps = new ArrayList<MapRenderer>();
-		MapRenderer surfParcelSimulatedMap = new SurfParcelSimulatedMap(1000, 1000, new File(parc.rootFile,"mapStyle"), commStatFile, parc.mapDepotFile);
+		MapRenderer surfParcelSimulatedMap = new SurfParcelSimulatedMap(1000, 1000, new File(parc.rootFile, "mapStyle"), commStatFile,
+				parc.mapDepotFile);
 		allOfTheMaps.add(surfParcelSimulatedMap);
-		MapRenderer surfParcelFailedMap = new SurfParcelFailedMap(1000, 1000, new File(parc.rootFile,"mapStyle"), commStatFile, parc.mapDepotFile);
+		MapRenderer surfParcelFailedMap = new SurfParcelFailedMap(1000, 1000, new File(parc.rootFile, "mapStyle"), commStatFile, parc.mapDepotFile);
 		allOfTheMaps.add(surfParcelFailedMap);
-		
+
 		for (MapRenderer map : allOfTheMaps) {
 			map.renderCityInfo();
 			map.generateSVG();
 		}
-		
+
 	}
 
 	public File joinStatToCommunities() throws NoSuchAuthorityCodeException, IOException, FactoryException {
