@@ -50,7 +50,6 @@ public class ParcelStat extends Indicators {
 		}
 		parcelOGFile = FromGeom.getParcels(new File(rootFile, "dataGeo"));
 		firstLine = "INSEE,nb_parcel_simulated,nb_parcel_simu_failed,surf_parcel_ignored,surf_parcel_simulated,surf_parcel_simulFailed,surface_SDP_parcelle,surface_emprise_parcelle";
-
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -94,7 +93,6 @@ public class ParcelStat extends Indicators {
 			map.renderCityInfo();
 			map.generateSVG();
 		}
-
 	}
 
 	public File joinStatToCommunities() throws NoSuchAuthorityCodeException, IOException, FactoryException {
@@ -157,7 +155,6 @@ public class ParcelStat extends Indicators {
 						break;
 					}
 				}
-
 				for (String[] l : stat.readAll()) {
 					if (l[inseeP].equals(insee)) {
 						builder.set("the_geom", ftBati.getDefaultGeometry());

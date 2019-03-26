@@ -163,7 +163,7 @@ public class SelectParcels {
 					System.out.println();
 					System.out.println("///// We start the densification process\\\\\\");
 					parcelCollection = ParcelFonction.setRecompositionProcesssus(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP,
-							rootFile, p, "densification", true);
+							FromGeom.getCommunities(geoFile), rootFile, p, "densification", true);
 					Vectors.exportSFC(parcelCollection, new File(tmpFile, "afterDensification"));
 				} else {
 					System.err.println("splitParcel : complex section non implemented yet");
@@ -176,8 +176,8 @@ public class SelectParcels {
 			if (!splitZone.contains("-")) {
 				System.out.println();
 				System.out.println("///// We start the splitTotRecomp process\\\\\\");
-				parcelCollection = ParcelFonction.setRecompositionProcesssus(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP, rootFile,
-						p, "totRecomp", true);
+				parcelCollection = ParcelFonction.setRecompositionProcesssus(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP,
+						FromGeom.getCommunities(geoFile), rootFile, p, "totRecomp", true);
 				Vectors.exportSFC(parcelCollection, new File(tmpFile, "afterSplitTotRecomp"));
 			} else {
 				System.err.println("splitParcel : complex section non implemented yet");
@@ -188,8 +188,8 @@ public class SelectParcels {
 			if (!splitZone.contains("-")) {
 				System.out.println();
 				System.out.println("///// We start the splitPartRecomp process\\\\\\");
-				parcelCollection = ParcelFonction.setRecompositionProcesssus(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP, rootFile,
-						p, "partRecomp", true);
+				parcelCollection = ParcelFonction.setRecompositionProcesssus(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP,
+						FromGeom.getCommunities(geoFile), rootFile, p, "partRecomp", true);
 				Vectors.exportSFC(parcelCollection, new File(tmpFile, "aftersplitPartRecomp"));
 			} else {
 				System.err.println("splitParcel : complex section non implemented yet");
@@ -199,8 +199,11 @@ public class SelectParcels {
 		// if there's been a bug and a parcel is missing
 		ShapefileDataStore shpDSparcel2 = new ShapefileDataStore(FromGeom.getParcels(geoFile).toURI().toURL());
 		SimpleFeatureCollection parcelOriginal = shpDSparcel2.getFeatureSource().getFeatures();
-		parcelCollection = ParcelFonction.completeParcelMissingWithOriginal(parcelCollection, parcelOriginal);
+		ShapefileDataStore shpDSzoning = new ShapefileDataStore(FromGeom.getZoning(regulFile).toURI().toURL());
+		SimpleFeatureCollection zon = shpDSzoning.getFeatureSource().getFeatures();
+		parcelCollection = ParcelFonction.completeParcelMissingWithOriginal(parcelCollection, parcelOriginal, zon);
 		shpDSparcel2.dispose();
+		shpDSzoning.dispose();
 
 		// if used in the normal case, we append the newly generated file onto parcelGenExport
 		if (mergeParcels) {

@@ -463,18 +463,30 @@ public class FromGeom {
 	 * @return
 	 */
 	public static String getInseeFromParcel(SimpleFeatureCollection cities, SimpleFeature parcel) {
+		return getInseeFromParcel(cities, (Geometry) parcel.getDefaultGeometry());
+	}
+
+	/**
+	 * get the insee number from a Simplefeature (that is most of the time, a parcel)
+	 * 
+	 * @param cities
+	 * @param parcel
+	 * @return
+	 */
+	public static String getInseeFromParcel(SimpleFeatureCollection cities, Geometry geom) {
+
 		SimpleFeature City = null;
 		SimpleFeatureIterator citIt = cities.features();
 		String cityInsee = "00000";
 		try {
 			while (citIt.hasNext()) {
 				SimpleFeature cit = citIt.next();
-				if (((Geometry) cit.getDefaultGeometry()).contains((Geometry) parcel.getDefaultGeometry())) {
+				if (((Geometry) cit.getDefaultGeometry()).contains(geom)) {
 					City = cit;
 					break;
 				}
 				// if the parcel is in between two cities, we randomly add the first met
-				else if (((Geometry) cit.getDefaultGeometry()).intersects((Geometry) parcel.getDefaultGeometry())) {
+				else if (((Geometry) cit.getDefaultGeometry()).intersects(geom)) {
 					City = cit;
 					break;
 				}
@@ -939,7 +951,14 @@ public class FromGeom {
 	public static SimpleFeatureBuilder setSFBParcelWithFeat(SimpleFeature feat, SimpleFeatureType schema, String geometryOutputName) {
 		SimpleFeatureBuilder finalParcelBuilder = new SimpleFeatureBuilder(schema);
 		finalParcelBuilder.set(geometryOutputName, (Geometry) feat.getDefaultGeometry());
-		finalParcelBuilder.set("CODE", feat.getAttribute("CODE"));
+		String code = "";
+		try {
+		code = (String) feat.getAttribute("CODE");
+		}
+		catch (IllegalArgumentException e) {
+			code = ParcelFonction.makeParcelCode(feat);
+		}
+		finalParcelBuilder.set("CODE",code);
 		finalParcelBuilder.set("CODE_DEP", feat.getAttribute("CODE_DEP"));
 		finalParcelBuilder.set("CODE_COM", feat.getAttribute("CODE_COM"));
 		finalParcelBuilder.set("COM_ABS", feat.getAttribute("COM_ABS"));

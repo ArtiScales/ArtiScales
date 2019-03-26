@@ -5,11 +5,14 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
+import org.geolatte.geom.Simple;
 import org.geotools.data.DataUtilities;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
@@ -21,6 +24,7 @@ import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
+import org.math.plot.utils.Array;
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
@@ -70,8 +74,11 @@ import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 
 public class ParcelFonction {
 
-	// public static void main(String[] args) throws Exception {
-	//
+	public static void main(String[] args) throws Exception {
+
+		completeAUMissingWithRecuted();
+
+	}
 	// ShapefileDataStore parcelSDS = new ShapefileDataStore(
 	// new
 	// File("/home/mcolomb/informatique/ArtiScalesLikeTBLunch/ParcelSelectionFile/DDense/variante0/parcelGenExport.shp").toURI()
@@ -272,20 +279,17 @@ public class ParcelFonction {
 				} else {
 					result.put(insee, lG);
 				}
-
 			}
 		} catch (Exception problem) {
 			problem.printStackTrace();
 		} finally {
 			it.close();
 		}
-
 		for (String insee : result.keySet()) {
 			Geometry geom = Vectors.unionGeom(result.get(insee));
 			SimpleFeatureIterator itCom = featuresCommunes.features();
 			// ft.set("the_geom", geom.buffer(20).buffer(-20));
 			ft.set("the_geom", geom);
-
 			try {
 				while (itCom.hasNext()) {
 					SimpleFeature featAdd = itCom.next();
@@ -306,6 +310,7 @@ public class ParcelFonction {
 				itCom.close();
 			}
 		}
+
 		shpDSParcels.dispose();
 		shpDSCommunes.dispose();
 		return Vectors.exportSFC(dfC.collection(), outFile);
@@ -385,38 +390,288 @@ public class ParcelFonction {
 	// return result;
 	// }
 
-	public static SimpleFeatureCollection completeParcelMissingWithOriginal(SimpleFeatureCollection parcelToComplete,
-			SimpleFeatureCollection originalParcel) throws NoSuchAuthorityCodeException, FactoryException, IOException {
+	public static void fixParcels() throws Exception {
+		File rootFile = new File("");
+		File tmpFile = new File(rootFile, "tmp/");
+		tmpFile.mkdir();
+
+		ShapefileDataStore citySDS = new ShapefileDataStore(new File(rootFile, "dataGeo/communities.shp").toURI().toURL());
+		SimpleFeatureCollection city = citySDS.getFeatureSource().getFeatures();
+
+		ShapefileDataStore zoningSDS = new ShapefileDataStore(new File(rootFile, "dataRegulation/zoning.shp").toURI().toURL());
+		SimpleFeatureCollection zoning = zoningSDS.getFeatureSource().getFeatures();
+
+		for (File scenarFolder : (new File(rootFile, "ParcelSelectionDepot")).listFiles()) {
+			String scenar = scenarFolder.getName();
+
+			List<File> lF = new ArrayList<>();
+			lF.add(new File(rootFile, "paramFolder/paramSet/" + scenar + "/parameterTechnic.json"));
+			lF.add(new File(rootFile, "paramFolder/paramSet/" + scenar + "/parameterScenario.json"));
+			SimpluParametersJSON p = new SimpluParametersJSON(lF);
+
+			for (File variantFolder : scenarFolder.listFiles()) {
+				String variant = variantFolder.getName();
+				File mupOutput = new File("");
+				File mupFolderOutput = new File(rootFile, "MupCityDepot/" + scenar + "/" + variant + "/");
+				for (File fM : mupFolderOutput.listFiles()) {
+					if (fM.getName().endsWith(".shp")) {
+						mupOutput = fM;
+					}
+				}
+				ShapefileDataStore parcelToCompleteSDS = new ShapefileDataStore(new File(variantFolder, "parcelGenExport.shp").toURI().toURL());
+				SimpleFeatureCollection parcelToComplete = parcelToCompleteSDS.getFeatureSource().getFeatures();
+				completeAUMissingWithRecuted(zoning, city, parcelToComplete, rootFile, tmpFile, mupOutput, p);
+			}
+		}
+
+		citySDS.dispose();
+
+	}
+
+	/**
+	 * script to redo the full zone cut where it has been omited
+	 * 
+	 * @throws Exception
+	 */
+	public static void completeAUMissingWithRecuted(SimpleFeatureCollection zoning, SimpleFeatureCollection city,
+			SimpleFeatureCollection parcelToComplete, File mupOutput, File rootFile, File tmpFile, SimpluParametersJSON p) throws Exception {
+
+		List<Geometry> lG = new ArrayList<Geometry>();
+		SimpleFeatureIterator zoneIt = zoning.features();
+		try {
+			while (zoneIt.hasNext()) {
+				SimpleFeature zone = zoneIt.next();
+				if (zone.getAttribute("TYPEZONE").equals("AU")) {
+					List<Geometry> geomsZone = new ArrayList<Geometry>();
+					Geometry geomZone = (Geometry) zone.getDefaultGeometry();
+					if (geomZone instanceof MultiPolygon) {
+						for (int i = 0; i < ((MultiPolygon) geomZone).getNumGeometries(); i++) {
+							geomsZone.add(((MultiPolygon) geomZone).getGeometryN(i));
+						}
+					} else {
+						geomsZone.add(geomZone);
+					}
+					for (Geometry g : geomsZone) {
+						double totSurf = 0;
+						SimpleFeatureIterator parcIt = Vectors.snapDatas(parcelToComplete, g.buffer(15)).features();
+						try {
+							while (parcIt.hasNext()) {
+								SimpleFeature parc = parcIt.next();
+								Geometry geomParcel = (Geometry) parc.getDefaultGeometry();
+								if (g.buffer(1).contains(geomParcel)) {
+									totSurf = totSurf + geomParcel.getArea();
+								}
+							}
+						} catch (Exception problem) {
+							problem.printStackTrace();
+						} finally {
+							parcIt.close();
+						}
+						if (totSurf < 0.6 * g.getArea()) {
+							lG.add(g);
+						}
+					}
+				}
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			zoneIt.close();
+		}
+
+		DefaultFeatureCollection toSplit = new DefaultFeatureCollection();
+
+		SimpleFeatureTypeBuilder sfTypeBuilderSimple = new SimpleFeatureTypeBuilder();
+		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
+
+		sfTypeBuilderSimple.setName("basicSFB");
+		sfTypeBuilderSimple.setCRS(sourceCRS);
+		sfTypeBuilderSimple.add("the_geom", Polygon.class);
+		sfTypeBuilderSimple.add("INSEE", String.class);
+		sfTypeBuilderSimple.setDefaultGeometry("the_geom");
+
+		SimpleFeatureBuilder builder = new SimpleFeatureBuilder(sfTypeBuilderSimple.buildFeatureType());
+
+		for (Geometry g : lG) {
+			builder.set("the_geom", g);
+			builder.set("INSEE", FromGeom.getInseeFromParcel(city, g));
+			toSplit.add(builder.buildFeature(null));
+		}
+//		HashMap<String, SimpleFeatureCollection> lInsee = Vectors.divideSFCIntoPart(toSplit, "INSEE");
+//		for (String in : lInsee.keySet()) {
+//			SimpleFeatureCollection splited = parcelTotRecomp(parcelToComplete, lInsee.get(in), tmpFile, rootFile, mupOutput, in,
+//					p.getDouble("areaParcel"), p.getDouble("widParcel"), p.getDouble("lenRoad"), p.getInteger("decompositionLevelWithoutRoad"), true);
+//			Vectors.exportSFC(splited, new File(rootFile, "weDidSplit.shp"));
+//		}
+	}
+
+	/**
+	 * script to redo the full zone cut where it has been omited
+	 * 
+	 * @throws Exception
+	 */
+	public static void completeAUMissingWithRecuted() throws Exception {
+
+		File rootFile = new File("/home/ubuntu/boulot/these/result0313/entrainementAlgoReperage/");
+
+		ShapefileDataStore parcelToCompleteSDS = new ShapefileDataStore(new File(rootFile, "parcelGenExport.shp").toURI().toURL());
+		SimpleFeatureCollection parcelToComplete = parcelToCompleteSDS.getFeatureSource().getFeatures();
+		ShapefileDataStore parcelOGSDS = new ShapefileDataStore(new File(rootFile, "parcel.shp").toURI().toURL());
+		SimpleFeatureCollection parcelOG = parcelOGSDS.getFeatureSource().getFeatures();
+		ShapefileDataStore citySDS = new ShapefileDataStore(new File(rootFile, "communities.shp").toURI().toURL());
+		SimpleFeatureCollection city = citySDS.getFeatureSource().getFeatures();
+		ShapefileDataStore zoningSDS = new ShapefileDataStore(new File(rootFile, "zoning.shp").toURI().toURL());
+		SimpleFeatureCollection zoning = zoningSDS.getFeatureSource().getFeatures();
+		File mup = new File(rootFile, "DDense--N7_Ba_Yag_ahpS_seed_42-evalAnal-20.0.shp");
+		File fCity = new File(rootFile, "communities.shp");
+
+		
+		List<Geometry> lG = new ArrayList<Geometry>();
+		SimpleFeatureIterator zoneIt = zoning.features();
+		try {
+			while (zoneIt.hasNext()) {
+				SimpleFeature zone = zoneIt.next();
+				if (zone.getAttribute("TYPEZONE").equals("AU")) {
+					List<Geometry> geomsZone = new ArrayList<Geometry>();
+					Geometry geomZone = (Geometry) zone.getDefaultGeometry();
+					if (geomZone instanceof MultiPolygon) {
+						for (int i = 0; i < ((MultiPolygon) geomZone).getNumGeometries(); i++) {
+							geomsZone.add(((MultiPolygon) geomZone).getGeometryN(i));
+						}
+					} else {
+						geomsZone.add(geomZone);
+					}
+					for (Geometry g : geomsZone) {
+						double totSurf = 0;
+						SimpleFeatureIterator parcIt = Vectors.snapDatas(parcelToComplete, g.buffer(15)).features();
+						try {
+							while (parcIt.hasNext()) {
+								SimpleFeature parc = parcIt.next();
+								Geometry geomParcel = (Geometry) parc.getDefaultGeometry();
+								if (g.buffer(1).contains(geomParcel)) {
+									totSurf = totSurf + geomParcel.getArea();
+								}
+							}
+						} catch (Exception problem) {
+							problem.printStackTrace();
+						} finally {
+							parcIt.close();
+						}
+						if (totSurf < 0.6 * g.getArea()) {
+							lG.add(g);
+						}
+					}
+				}
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			zoneIt.close();
+		}
+
+		DefaultFeatureCollection toSplit = new DefaultFeatureCollection();
+
+		SimpleFeatureTypeBuilder sfTypeBuilderSimple = new SimpleFeatureTypeBuilder();
+		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
+
+		sfTypeBuilderSimple.setName("basicSFB");
+		sfTypeBuilderSimple.setCRS(sourceCRS);
+		sfTypeBuilderSimple.add("the_geom", Polygon.class);
+		sfTypeBuilderSimple.add("INSEE", String.class);
+		sfTypeBuilderSimple.setDefaultGeometry("the_geom");
+
+		SimpleFeatureBuilder builder = new SimpleFeatureBuilder(sfTypeBuilderSimple.buildFeatureType());
+
+		for (Geometry g : lG) {
+			builder.set("the_geom", g);
+			builder.set("INSEE", FromGeom.getInseeFromParcel(city, g));
+			toSplit.add(builder.buildFeature(null));
+		}
+		Vectors.exportSFC(toSplit, new File(rootFile, "doWeCutThat.shp"));
+
+		 DefaultFeatureCollection parcelToCompleteCleaned = new DefaultFeatureCollection();
+		 Geometry uAu = Vectors.unionSFC(toSplit).buffer(1);
+		 SimpleFeatureIterator parcelCleanIt = parcelToComplete.features();
+		 try {
+		 while (parcelCleanIt.hasNext()) {
+		 SimpleFeature parc = parcelCleanIt.next();
+		 if (!uAu.contains((Geometry) parc.getDefaultGeometry())) {
+		 parcelToCompleteCleaned.add(parc);
+		 }
+		 }
+		 } catch (Exception problem) {
+		 problem.printStackTrace();
+		 } finally {
+		 parcelCleanIt.close();
+		 }
+
+		// originalParcelSDS.dispose();
+			File tmpFile = new File(rootFile, "tmp");
+			tmpFile.mkdir();
+//			SimpleFeatureCollection splited = parcelTotRecomp(parcelOG, parcelToCompleteCleaned, tmpFile, rootFile, mup,fCity, 1000, 15, 5, 2, true);
+//			Vectors.exportSFC(splited, new File(rootFile, "weDidSplit.shp"));
+
+		HashMap<String, SimpleFeatureCollection> lInsee = Vectors.divideSFCIntoPart(toSplit, "INSEE");
+		for (String in : lInsee.keySet()) {
+			SimpleFeatureCollection splited = parcelTotRecomp(parcelOG, lInsee.get(in), tmpFile, rootFile, mup,fCity, 1000, 15, 5, 2, true);
+			Vectors.exportSFC(splited, new File(rootFile, "weDidSplit" + in + ".shp"));
+		}
+		parcelToCompleteSDS.dispose();
+		zoningSDS.dispose();
+	}
+
+	public static SimpleFeatureCollection completeParcelMissingWithOriginal(SimpleFeatureCollection parcelExported,
+			SimpleFeatureCollection originalParcel, SimpleFeatureCollection zoning)
+			throws NoSuchAuthorityCodeException, FactoryException, IOException {
 		DefaultFeatureCollection result = new DefaultFeatureCollection();
-		result.addAll(parcelToComplete);
+		result.addAll(parcelExported);
+
+		DefaultFeatureCollection failed = new DefaultFeatureCollection();
+
 		// List<String> codeParcelAdded = new ArrayList<String>();
 
 		// SimpleFeatureType schema =
 		// parcelToComplete.features().next().getFeatureType();
 
 		// result.addAll(parcelCuted);
+		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
 
-		SimpleFeatureIterator parcelToCompletetIt = parcelToComplete.features();
+		SimpleFeatureIterator parcelOriginalIt = parcelExported.features();
 		try {
-			while (parcelToCompletetIt.hasNext()) {
-				SimpleFeature featToComplete = parcelToCompletetIt.next();
-				Geometry geomToComplete = (Geometry) featToComplete.getDefaultGeometry();
-				Geometry geomsOrigin = Vectors.unionSFC(Vectors.snapDatas(originalParcel, geomToComplete));
-				if (!geomsOrigin.buffer(1).contains(geomToComplete)) {
-					System.out.println("this parcel has disapeard : " + geomToComplete);
-					// SimpleFeatureBuilder fit = FromGeom.setSFBParcelWithFeat(featToComplete,
-					// schema);
-					// result.add(fit.buildFeature(null));
-					// SimpleFeatureBuilder builder =
-					// FromGeom.setSFBOriginalParcelWithFeat(featToComplete, schema);
-					// result.add(builder.buildFeature(null));
-					// codeParcelAdded.add(ParcelFonction.makeParcelCode(featToComplete));
+			while (parcelOriginalIt.hasNext()) {
+				SimpleFeature featOG = parcelOriginalIt.next();
+				Filter filterEmprise = ff.intersects(ff.property(zoning.getSchema().getGeometryDescriptor().getName()), ff.literal(featOG));
+				SimpleFeatureCollection z = zoning.subCollection(filterEmprise);
+				SimpleFeature zo;
+				if (z.features().hasNext()) {
+					zo = z.features().next();
+				} else {
+					break;
+				}
+				Geometry geomOG = (Geometry) featOG.getDefaultGeometry();
+				Geometry geomsExported = Vectors.unionSFC(Vectors.snapDatas(parcelExported, geomOG));
+				if (zo.getAttribute("TYPEZONE").equals("U") || zo.getAttribute("TYPEZONE").equals("ZC")) {
+					if (!geomOG.buffer(1).contains(geomOG)) {
+						failed.add(featOG);
+						// System.out.println("this parcel has disapeard : " + geomToComplete);
+						// SimpleFeatureBuilder fit = FromGeom.setSFBParcelWithFeat(featToComplete,
+						// schema);
+						// result.add(fit.buildFeature(null));
+						// SimpleFeatureBuilder builder =
+						// FromGeom.setSFBOriginalParcelWithFeat(featToComplete, schema);
+						// result.add(builder.buildFeature(null));
+						// codeParcelAdded.add(ParcelFonction.makeParcelCode(featToComplete));
+					}
+				} else if (zo.getAttribute("TYPEZONE").equals("AU")) {
+					if (!geomsExported.buffer(150).contains(geomOG)) {
+						failed.add(featOG);
+					}
 				}
 			}
 		} catch (Exception problem) {
 			problem.printStackTrace();
 		} finally {
-			parcelToCompletetIt.close();
+			parcelOriginalIt.close();
 		}
 
 		// SimpleFeatureIterator parcelOriginal = originalParcel.features();
@@ -443,8 +698,8 @@ public class ParcelFonction {
 		// } finally {
 		// parcelOriginal.close();
 		// }
-
-		return result;
+		System.out.println("paez " + failed.size());
+		return null;
 	}
 
 	public static SimpleFeatureCollection completeParcelMissing(SimpleFeatureCollection parcelTot, SimpleFeatureCollection parcelCuted,
@@ -589,10 +844,10 @@ public class ParcelFonction {
 	 * @return
 	 * @throws Exception
 	 */
-	public static SimpleFeatureCollection parcelTotRecomp(String splitZone, SimpleFeatureCollection parcels, File tmpFile, File mupOutput,
+	public static SimpleFeatureCollection parcelTotRecomp(String splitZone, SimpleFeatureCollection parcels, File tmpFile, File mupOutput, File cityFile,
 			SimpluParametersJSON p, boolean allOrCell, File rootFile) throws Exception {
 
-		return parcelTotRecomp(splitZone, parcels, tmpFile, rootFile, mupOutput, p.getDouble("areaParcel"), p.getDouble("widParcel"),
+		return parcelTotRecomp(splitZone, parcels, tmpFile, rootFile, mupOutput,cityFile, p.getDouble("areaParcel"), p.getDouble("widParcel"),
 				p.getDouble("lenRoad"), p.getInteger("decompositionLevelWithoutRoad"), allOrCell);
 	}
 
@@ -615,25 +870,23 @@ public class ParcelFonction {
 	 * @throws Exception
 	 */
 	public static SimpleFeatureCollection parcelTotRecomp(String splitZone, SimpleFeatureCollection parcels, File tmpFile, File rootFile,
-			File mupOutput, double maximalArea, double maximalWidth, double lenRoad, int decompositionLevelWithoutRoad, boolean allOrCell)
+			File mupOutput,File cityFile, double maximalArea, double maximalWidth, double lenRoad, int decompositionLevelWithoutRoad, boolean allOrCell)
 			throws Exception {
 
 		// parcel schema for all
 		SimpleFeatureType schema = parcels.getSchema();
 
-		// parcels to save for after
-		DefaultFeatureCollection savedParcels = new DefaultFeatureCollection();
 		// import of the zoning file
 		ShapefileDataStore shpDSZone = new ShapefileDataStore(FromGeom.getZoning(new File(rootFile, "dataRegulation")).toURI().toURL());
 		SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
 
-		Geometry unionParcel = Vectors.unionSFC(parcels);
-		String geometryParcelPropertyName = schema.getGeometryDescriptor().getLocalName();
-
 		// get the AU zones from the zoning file
+
+		String geometryParcelPropertyName = schema.getGeometryDescriptor().getLocalName();
+		Geometry unionParcel = Vectors.unionSFC(parcels);
+
 		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
 		Filter filterTypeZone = ff.like(ff.property("TYPEZONE"), splitZone);
-
 		Filter filterEmprise = ff.intersects(ff.property(geometryParcelPropertyName), ff.literal(unionParcel));
 		SimpleFeatureCollection zoneAU = featuresZones.subCollection(filterTypeZone).subCollection(filterEmprise);
 
@@ -643,13 +896,29 @@ public class ParcelFonction {
 			return parcels;
 		}
 
-		// get the insee number
-		SimpleFeatureIterator pInsee = parcels.features();
-		String insee = (String) pInsee.next().getAttribute("INSEE");
-		pInsee.close();
+		SimpleFeatureCollection result = parcelTotRecomp(parcels, zoneAU, tmpFile, rootFile, mupOutput, cityFile, maximalArea, maximalWidth, lenRoad,
+				decompositionLevelWithoutRoad, allOrCell);
+
+		shpDSZone.dispose();
+		return result;
+	}
+
+	public static SimpleFeatureCollection parcelTotRecomp(SimpleFeatureCollection parcels, SimpleFeatureCollection zone, File tmpFile, File rootFile,
+			File mupOutput,File cityFile, double maximalArea, double maximalWidth, double lenRoad, int decompositionLevelWithoutRoad,
+			boolean allOrCell) throws Exception {
+
+		// parcel schema for all
+		SimpleFeatureType schema = parcels.getSchema();
+
+		ShapefileDataStore citySDS = new ShapefileDataStore(cityFile.toURI().toURL());
+		SimpleFeatureCollection city = citySDS.getFeatureSource().getFeatures();
+		
+		// parcels to save for after
+		DefaultFeatureCollection savedParcels = new DefaultFeatureCollection();
+		Geometry unionParcel = Vectors.unionSFC(parcels);
 
 		// all the AU zones
-		Geometry geomAU = Vectors.unionSFC(zoneAU);
+		Geometry geomAU = Vectors.unionSFC(zone);
 		DefaultFeatureCollection parcelsInAU = new DefaultFeatureCollection();
 		SimpleFeatureIterator parcIt = parcels.features();
 
@@ -671,10 +940,9 @@ public class ParcelFonction {
 		}
 
 		// delete the existing roads from the AU zones
-		SimpleFeatureBuilder simpleSFB = new SimpleFeatureBuilder(zoneAU.getSchema());
-
+		SimpleFeatureBuilder simpleSFB = new SimpleFeatureBuilder(zone.getSchema());
 		DefaultFeatureCollection goOdAu = new DefaultFeatureCollection();
-		SimpleFeatureIterator zoneAUIt = zoneAU.features();
+		SimpleFeatureIterator zoneAUIt = zone.features();
 		try {
 			while (zoneAUIt.hasNext()) {
 				SimpleFeature feat = zoneAUIt.next();
@@ -684,21 +952,21 @@ public class ParcelFonction {
 					if (intersection instanceof MultiPolygon) {
 						for (int i = 0; i < intersection.getNumGeometries(); i++) {
 							simpleSFB.set("the_geom", GeometryPrecisionReducer.reduce(intersection.getGeometryN(i), new PrecisionModel(100)));
-							simpleSFB.set("INSEE", insee);
+							simpleSFB.set("INSEE", FromGeom.getInseeFromParcel(city, intersection.getGeometryN(i)));
 							goOdAu.add(simpleSFB.buildFeature(null));
 						}
 					} else if (intersection instanceof GeometryCollection) {
 						for (int i = 0; i < intersection.getNumGeometries(); i++) {
 							Geometry g = intersection.getGeometryN(i);
 							if (g instanceof Polygon) {
-								simpleSFB.set("the_geom", g.buffer(1).buffer(-1));
-								simpleSFB.set("INSEE", insee);
+								simpleSFB.set("the_geom", g);
+								simpleSFB.set("INSEE",  FromGeom.getInseeFromParcel(city, intersection.getGeometryN(i)));
 								goOdAu.add(simpleSFB.buildFeature(null));
 							}
 						}
 					} else {
-						simpleSFB.set("the_geom", intersection.buffer(1).buffer(-1));
-						simpleSFB.set("INSEE", insee);
+						simpleSFB.set("the_geom", intersection);
+						simpleSFB.set("INSEE", FromGeom.getInseeFromParcel(city,intersection));
 						goOdAu.add(simpleSFB.buildFeature(null));
 					}
 				}
@@ -709,8 +977,9 @@ public class ParcelFonction {
 			zoneAUIt.close();
 		}
 		SimpleFeatureCollection gOOdAU = goOdAu.collection();
+		Vectors.exportSFC(gOOdAU, new File(tmpFile, "gOOdAU.shp"));
 		if (gOOdAU.isEmpty()) {
-			System.out.println("parcelGenZone : no " + splitZone + " zones");
+			System.out.println("parcelGenZone : now out of zones");
 			return parcels;
 		}
 		// if the zone is a leftover (this could be done as a stream. When I'll have time I'll get used to it
@@ -744,7 +1013,7 @@ public class ParcelFonction {
 
 		geoms: for (Geometry poly : polygons) {
 			// if the polygons are not included on the AU zone
-			if (!geomAU.buffer(0.01).contains(poly)) {
+			if (!geomAU.buffer(0.1).contains(poly)) {
 				sfBuilder.set("the_geom", poly);
 				SimpleFeatureIterator parcelIt = parcelsInAU.features();
 				boolean isCode = false;
@@ -796,9 +1065,9 @@ public class ParcelFonction {
 		// mark and add the AU zones to the collection
 		try {
 			while (it.hasNext()) {
-				SimpleFeature zone = it.next();
+				SimpleFeature zoneMarked = it.next();
 				// get the insee number for that zone
-				// String insee = (String) zone.getAttribute("INSEE");
+				 String insee = FromGeom.getInseeFromParcel(city, zoneMarked);
 				sfBuilder.set("CODE", insee + "000" + "New" + numZone + "Section");
 				sfBuilder.set("CODE_DEP", insee.substring(0, 2));
 				sfBuilder.set("CODE_COM", insee.substring(2, 5));
@@ -817,7 +1086,7 @@ public class ParcelFonction {
 				// avoid multi geom bugs
 
 				Geometry intersectedGeom = Vectors
-						.scaledGeometryReductionIntersection(Arrays.asList((Geometry) zone.getDefaultGeometry(), unionParcel));
+						.scaledGeometryReductionIntersection(Arrays.asList((Geometry) zoneMarked.getDefaultGeometry(), unionParcel));
 
 				if (!intersectedGeom.isEmpty()) {
 					write = Vectors.addSimpleGeometry(sfBuilder, write, geometryOutputName, intersectedGeom);
@@ -833,7 +1102,6 @@ public class ParcelFonction {
 			it.close();
 		}
 
-		shpDSZone.dispose();
 		SimpleFeatureCollection toSplit = Vectors.delTinyParcels(write.collection(), 5.0);
 		double roadEpsilon = 00;
 		double noise = 0;
@@ -892,6 +1160,8 @@ public class ParcelFonction {
 			finalIt.close();
 		}
 		mupSDS.dispose();
+		citySDS.dispose();
+		
 		SimpleFeatureCollection result = Vectors.delTinyParcels(savedParcels.collection(), 5.0);
 
 		Vectors.exportSFC(result, new File(tmpFile, "parcelFinal.shp"));
@@ -929,7 +1199,7 @@ public class ParcelFonction {
 	 * @throws Exception
 	 */
 	public static SimpleFeatureCollection setRecompositionProcesssus(String splitZone, SimpleFeatureCollection parcelCollection, File tmpFile,
-			File mupOutput, File rootFile, SimpluParametersJSON p, String typeOfRecomp, boolean dontTouchUZones) throws Exception {
+			File mupOutput, File cityFile, File rootFile, SimpluParametersJSON p, String typeOfRecomp, boolean dontTouchUZones) throws Exception {
 
 		boolean goOn = false;
 
@@ -972,7 +1242,7 @@ public class ParcelFonction {
 						parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
 						System.out.println("we cut the parcels with " + type + " parameters");
 						result = addAllParcels(result,
-								runParcelRecomp(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType, dontTouchUZones, rootFile, typeOfRecomp));
+								runParcelRecomp(splitZone, bigZoned, tmpFile, mupOutput,cityFile, pBuildingType, dontTouchUZones, rootFile, typeOfRecomp));
 						// THAT'S AN UGLY PATCH, BUT HAS TO TAKE CARE OF GEOM ERRORS TODO find somathing nices
 						if (bigZoned.size() > 2) {
 							break;
@@ -1007,7 +1277,7 @@ public class ParcelFonction {
 						if (typoed.size() > 0) {
 							parcelToNotAdd = dontAddParcel(parcelToNotAdd, typoed);
 							System.out.println("we cut the parcels with " + type + " parameters");
-							def = runParcelRecomp(splitZone, typoed, tmpFile, mupOutput, pBuildingType, dontTouchUZones, rootFile, typeOfRecomp);
+							def = runParcelRecomp(splitZone, typoed, tmpFile, mupOutput,cityFile, pBuildingType, dontTouchUZones, rootFile, typeOfRecomp);
 							if (typoed.size() > 2) {
 								break;
 							} else {
@@ -1020,7 +1290,7 @@ public class ParcelFonction {
 							if (bigZoned.size() > 0) {
 								parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
 								System.out.println("we cut the parcels with " + type + " parameters");
-								def = runParcelRecomp(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType, dontTouchUZones, rootFile,
+								def = runParcelRecomp(splitZone, bigZoned, tmpFile, mupOutput,cityFile, pBuildingType, dontTouchUZones, rootFile,
 										typeOfRecomp);
 							}
 						}
@@ -1033,7 +1303,7 @@ public class ParcelFonction {
 		return realResult;
 	}
 
-	public static SimpleFeatureCollection runParcelRecomp(String splitZone, SimpleFeatureCollection bigZoned, File tmpFile, File mupOutput,
+	public static SimpleFeatureCollection runParcelRecomp(String splitZone, SimpleFeatureCollection bigZoned, File tmpFile, File mupOutput, File cityFile,
 			SimpluParametersJSON pBuildingType, boolean dontTouchUZones, File rootFile, String typeOfRecomp) throws Exception {
 		switch (typeOfRecomp) {
 		case "densification":
@@ -1041,7 +1311,7 @@ public class ParcelFonction {
 		case "partRecomp":
 			return parcelPartRecomp(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType, dontTouchUZones, rootFile);
 		case "totRecomp":
-			return parcelTotRecomp(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType, pBuildingType.getBoolean("allZone"), rootFile);
+			return parcelTotRecomp(splitZone, bigZoned, tmpFile, mupOutput,cityFile, pBuildingType, pBuildingType.getBoolean("allZone"), rootFile);
 		}
 		throw new FileNotFoundException("I didn't get the Recomp order");
 
