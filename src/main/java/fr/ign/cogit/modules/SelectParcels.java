@@ -49,7 +49,7 @@ public class SelectParcels {
 	float moyEval;
 
 	public static void main(String[] args) throws Exception {
-		aggregateParcelsFromZips(new File("/home/ubuntu/boulot/these/result0313/"));
+		aggregateParcelsFromZips(new File("./WorkSession0327"));
 	}
 
 	public SelectParcels(File rootfile, File outfile, File spatialconfiguration, SimpluParametersJSON par) throws Exception {
@@ -875,30 +875,5 @@ public class SelectParcels {
 			}
 		}
 		predicate.close();
-	}
-
-	/**
-	 * create empty shapefile (better than non existent shapefile)
-	 * 
-	 * @param f
-	 * @throws IOException
-	 * @throws FactoryException
-	 * @throws NoSuchAuthorityCodeException
-	 */
-
-	public static void createPackOfEmptyShp(File f) throws IOException, NoSuchAuthorityCodeException, FactoryException {
-
-		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
-		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
-		sfTypeBuilder.setName("testType");
-		sfTypeBuilder.setCRS(sourceCRS);
-		sfTypeBuilder.add("the_geom", MultiPolygon.class);
-		sfTypeBuilder.setDefaultGeometry("the_geom");
-
-		SimpleFeatureCollection vide = (new DefaultFeatureCollection()).collection();
-		String[] stuffs = { "building.shp", "road.shp", "zoning.shp", "prescPonct.shp", "prescLin.shp", "prescSurf.shp" };
-		for (String object : stuffs) {
-			Vectors.exportSFC(vide, new File(f, object));
-		}
 	}
 }
