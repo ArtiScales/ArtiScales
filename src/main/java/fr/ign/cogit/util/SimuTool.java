@@ -19,6 +19,7 @@ import org.geotools.data.simple.SimpleFeatureIterator;
 import org.opengis.feature.simple.SimpleFeature;
 
 import au.com.bytecode.opencsv.CSVReader;
+import au.com.bytecode.opencsv.CSVWriter;
 import fr.ign.cogit.simplu3d.util.SimpluParameters;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 
@@ -34,12 +35,159 @@ public class SimuTool {
 	}
 
 	/**
+	 * get the objective of housing density for a particular city in its "DEPCOM" attribute
+	 * 
+	 * TODO get too much time for a simple op. extract the attribute table and play from there
+	 *
+	 * @param geoFile
+	 * @param zipCode
+	 * @return
+	 * @throws IOException
+	 */
+	public static int getDensityGoal(File geoFile, String zipCode) throws IOException {
+		File objFile = new File(geoFile, "communities.csv");
+		if (!objFile.exists()) {
+			extractCSVFromSHP(FromGeom.getCommunities(geoFile), geoFile);
+		}
+
+		int result = 0;
+		// ShapefileDataStore sds = new ShapefileDataStore(FromGeom.getCommunities(geoFile).toURI().toURL());
+		// SimpleFeatureIterator it = sds.getFeatureSource().getFeatures().features();
+		// try {
+		// while (it.hasNext()) {
+		// SimpleFeature feat = it.next();
+		// if (feat.getAttribute("DEPCOM").equals(zipCode)) {
+		// result = (int) feat.getAttribute("objDens");
+		// break;
+		// }
+		// }
+		// } catch (Exception problem) {
+		// problem.printStackTrace();
+		// } finally {
+		// it.close();
+		// }
+		// sds.dispose();
+		int objP = 0, inseeP = 0;
+		CSVReader csv = new CSVReader(new FileReader(objFile));
+		String[] firstLine = csv.readNext();
+		for (int i = 0; i < firstLine.length; i++) {
+			if (firstLine[i].equals("objDens")) {
+				objP = i;
+			}
+			if (firstLine[i].equals("DEPCOM")) {
+				inseeP = i;
+			}
+		}
+		for (String[] line : csv.readAll()) {
+			if (line[inseeP].equals(zipCode)) {
+				result = Integer.valueOf(line[objP]);
+			}
+		}
+
+		csv.close();
+		return result;
+	}
+	//
+	// public static void main(String[] args) throws IOException {
+	// extractCSVFromSHP(new File("/home/ubuntu/boulot/these/result0308/dataGeo/communities.shp"), new File("/tmp/"));
+	// }
+
+	public static File extractCSVFromSHP(File shapeFile, File outFolder) throws IOException {
+
+		ShapefileDataStore sds = new ShapefileDataStore(shapeFile.toURI().toURL());
+		SimpleFeatureCollection coll = sds.getFeatureSource().getFeatures();
+		SimpleFeatureIterator it = coll.features();
+		CSVWriter csv = new CSVWriter(new FileWriter(new File(outFolder, shapeFile.getName().replace(".shp", "") + ".csv")), ',', '\0');
+		int count = coll.getSchema().getAttributeCount() - 1;
+		String[] firstLine = new String[count];
+		for (int i = 1; i <= count; i++) {
+			firstLine[i - 1] = coll.getSchema().getAttributeDescriptors().get(i).getName().toString();
+		}
+		csv.writeNext(firstLine);
+		try {
+			while (it.hasNext()) {
+				SimpleFeature feat = it.next();
+				String[] temp = new String[feat.getAttributeCount() - 1];
+				for (int i = 1; i < feat.getAttributeCount(); i++) {
+					String val = String.valueOf(feat.getAttribute(i));
+					if (val.toLowerCase().equals("") || val.toLowerCase().equals("null") || val.toLowerCase().equals("nan")) {
+						val = "0";
+					}
+					temp[i - 1] = val;
+				}
+				csv.writeNext(temp);
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			it.close();
+		}
+		csv.close();
+		sds.dispose();
+		return outFolder;
+	}
+
+	/**
+	 * get the objective of housing unit creation for a particular city in its "DEPCOM" attribute
+	 * 
+	 * TODO get too much time for a simple op. extract the attribute table and play from there
+	 * 
+	 * @param geoFile
+	 * @param zipCode
+	 * @return
+	 * @throws IOException
+	 */
+	public static int getHousingUnitsGoal(File geoFile, String zipCode) throws IOException {
+
+		File objFile = new File(geoFile, "communities.csv");
+		if (!objFile.exists()) {
+			extractCSVFromSHP(FromGeom.getCommunities(geoFile), geoFile);
+		}
+
+		int result = 0;
+		// ShapefileDataStore sds = new ShapefileDataStore(FromGeom.getCommunities(geoFile).toURI().toURL());
+		// SimpleFeatureIterator it = sds.getFeatureSource().getFeatures().features();
+		// try {
+		// while (it.hasNext()) {
+		// SimpleFeature feat = it.next();
+		// if (feat.getAttribute("DEPCOM").equals(zipCode)) {
+		// result = (int) feat.getAttribute("objDens");
+		// break;
+		// }
+		// }
+		// } catch (Exception problem) {
+		// problem.printStackTrace();
+		// } finally {
+		// it.close();
+		// }
+		// sds.dispose();
+		int objP = 0, inseeP = 0;
+		CSVReader csv = new CSVReader(new FileReader(objFile));
+		String[] firstLine = csv.readNext();
+		for (int i = 0; i < firstLine.length; i++) {
+			if (firstLine[i].equals("objLgt")) {
+				objP = i;
+			}
+			if (firstLine[i].equals("DEPCOM")) {
+				inseeP = i;
+			}
+		}
+		for (String[] line : csv.readAll()) {
+			if (line[inseeP].equals(zipCode)) {
+				result = Integer.valueOf(line[objP]);
+			}
+		}
+
+		csv.close();
+		return result;
+	}
+
+	/**
 	 * remove scenario specification and .json attribute from a sector file contained in the ressource.
 	 * 
 	 * @param stringParam
 	 * @return
 	 */
-
 	public static String cleanSectorName(String stringParam) {
 		// delete name of specials parameters
 		if (stringParam.split(":").length == 2) {

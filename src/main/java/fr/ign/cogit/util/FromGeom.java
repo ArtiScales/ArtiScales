@@ -22,12 +22,8 @@ import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.filter.text.cql2.CQLException;
-import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.CRS;
 import org.geotools.util.factory.GeoTools;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.CoordinateSequence;
-import org.locationtech.jts.geom.CoordinateSequenceFilter;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Polygon;
@@ -51,7 +47,10 @@ import fr.ign.cogit.geoxygene.util.conversion.GeOxygeneGeoToolsTypes;
 
 public class FromGeom {
 
-	// public static void main(String[] args) throws Exception {
+	public static void main(String[] args) throws Exception {
+		mergeBatis(new File("/home/ubuntu/workspace/ArtiScales/result0308/SimPLUDepot/DDense/variante0/"));
+
+	}
 	// File rootParam = new
 	// File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/exScenar");
 	// List<File> lF = new ArrayList<>();
@@ -265,7 +264,7 @@ public class FromGeom {
 	}
 
 	/**
-	 * Merge all the shapefile of a folder (made for simPLU buildings) into one shapefile
+	 * Merge all the shapefile of a folder (made for simPLU buildings) into one shapefile with a recursive method.
 	 * 
 	 * @param file2MergeIn
 	 *            : folder containing the shapefiles
@@ -273,13 +272,24 @@ public class FromGeom {
 	 * @throws Exception
 	 */
 	public static File mergeBatis(File file2MergeIn) throws Exception {
-		List<File> listBatiFile = new ArrayList<File>();
-		for (File f : file2MergeIn.listFiles()) {
-			if (f.getName().endsWith(".shp") && f.getName().startsWith("out")) {
-				listBatiFile.add(f);
+		System.out.println(file2MergeIn);
+		List<File> listBatiFile = addBati(file2MergeIn);
+		File outFile = new File(file2MergeIn, "TotBatSimuFill.shp");
+		return Vectors.mergeVectFiles(listBatiFile, outFile);
+	}
+
+	public static List<File> addBati(File motherF) {
+		ArrayList<File> tmpRes = new ArrayList<File>();
+		for (File f : motherF.listFiles()) {
+			if (f.isDirectory()) {
+				tmpRes.addAll(addBati(f));
+			} else {
+				if (f.getName().endsWith(".shp") && f.getName().startsWith("out")) {
+					tmpRes.add(f);
+				}
 			}
 		}
-		return mergeBatis(listBatiFile);
+		return tmpRes;
 	}
 
 	public static boolean isBuilt(SimpleFeature parcel, SimpleFeatureCollection batiSFC) {
@@ -365,27 +375,6 @@ public class FromGeom {
 
 		return result;
 
-	}
-
-	public static int getHousingUnitsGoals(File geoFile, String zipCode) throws IOException {
-
-		ShapefileDataStore sds = new ShapefileDataStore(getCommunities(geoFile).toURI().toURL());
-		SimpleFeatureIterator it = sds.getFeatureSource().getFeatures().features();
-
-		try {
-			while (it.hasNext()) {
-				SimpleFeature feat = it.next();
-				if (feat.getAttribute("DEPCOM").equals(zipCode)) {
-					return (int) feat.getAttribute("obj_2035");
-				}
-			}
-		} catch (Exception problem) {
-			problem.printStackTrace();
-		} finally {
-			it.close();
-		}
-
-		throw new FileNotFoundException("Housing units objectives not found");
 	}
 
 	public static File getZoning(File regulFile) throws FileNotFoundException {
@@ -728,15 +717,34 @@ public class FromGeom {
 		return result;
 	}
 
+	/**
+	 * return all the insee numbers from a parcel shapeFile
+	 * 
+	 * @param parcelFile
+	 * @return
+	 * @throws IOException
+	 */
 	public static List<String> getInsee(File parcelFile) throws IOException {
+		return getInsee(parcelFile, "INSEE");
+	}
+
+	/**
+	 * return all the insee numbers from a shapeFile
+	 * 
+	 * @param shpFile
+	 * @return
+	 * @throws IOException
+	 */
+	public static List<String> getInsee(File shpFile, String field) throws IOException {
+
 		List<String> result = new ArrayList<String>();
-		ShapefileDataStore parcelSDS = new ShapefileDataStore(parcelFile.toURI().toURL());
+		ShapefileDataStore parcelSDS = new ShapefileDataStore(shpFile.toURI().toURL());
 		SimpleFeatureIterator parcelFeaturesIt = parcelSDS.getFeatureSource().getFeatures().features();
 		try {
 			while (parcelFeaturesIt.hasNext()) {
 				SimpleFeature feat = parcelFeaturesIt.next();
-				if (!result.contains(feat.getAttribute("INSEE"))) {
-					result.add((String) feat.getAttribute("INSEE"));
+				if (!result.contains(feat.getAttribute(field))) {
+					result.add((String) feat.getAttribute(field));
 				}
 			}
 		} catch (Exception problem) {
