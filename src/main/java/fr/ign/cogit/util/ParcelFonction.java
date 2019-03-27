@@ -307,7 +307,7 @@ public class ParcelFonction {
 		}
 		shpDSParcels.dispose();
 		shpDSCommunes.dispose();
-		return Vectors.exportSFC(dfC.collection(), outFile);
+		return Vectors.exportSFC(DataUtilities.collection(dfC), outFile);
 
 	}
 
@@ -402,7 +402,7 @@ public class ParcelFonction {
 				Geometry geomToComplete = (Geometry) featToComplete.getDefaultGeometry();
 				Geometry geomsOrigin = Vectors.unionSFC(Vectors.snapDatas(originalParcel, geomToComplete));
 				if (!geomsOrigin.buffer(1).contains(geomToComplete)) {
-					System.out.println("this parcel has disapeard : " + geomToComplete);
+					System.out.println("completeParcelMissingWithOriginal: this parcel has disapeard : " + geomToComplete);
 					// SimpleFeatureBuilder fit = FromGeom.setSFBParcelWithFeat(featToComplete,
 					// schema);
 					// result.add(fit.buildFeature(null));
@@ -449,7 +449,7 @@ public class ParcelFonction {
 	public static SimpleFeatureCollection completeParcelMissing(SimpleFeatureCollection parcelTot, SimpleFeatureCollection parcelCuted,
 			List<String> parcelToNotAdd) throws NoSuchAuthorityCodeException, FactoryException, IOException {
 		DefaultFeatureCollection result = new DefaultFeatureCollection();
-		SimpleFeatureType schema = parcelTot.features().next().getFeatureType();
+		SimpleFeatureType schema = parcelTot.getSchema();
 		// result.addAll(parcelCuted);
 		SimpleFeatureIterator parcelCutedIt = parcelCuted.features();
 		try {
@@ -485,7 +485,7 @@ public class ParcelFonction {
 		} finally {
 			totIt.close();
 		}
-		return result.collection();
+		return DataUtilities.collection(result);
 	}
 
 	/**
@@ -707,7 +707,7 @@ public class ParcelFonction {
 		} finally {
 			zoneAUIt.close();
 		}
-		SimpleFeatureCollection gOOdAU = goOdAu.collection();
+		SimpleFeatureCollection gOOdAU = DataUtilities.collection(goOdAu);
 		if (gOOdAU.isEmpty()) {
 			System.out.println("parcelGenZone : no " + splitZone + " zones");
 			return parcels;
@@ -717,7 +717,7 @@ public class ParcelFonction {
 		double totAireGoOD = 0.0;
 		try {
 			while (itGoOD.hasNext()) {
-				totAireGoOD = +((Geometry) itGoOD.next().getDefaultGeometry()).getArea();
+				totAireGoOD += ((Geometry) itGoOD.next().getDefaultGeometry()).getArea();//FIXME check that
 			}
 		} catch (Exception problem) {
 			problem.printStackTrace();
@@ -833,7 +833,7 @@ public class ParcelFonction {
 		}
 
 		shpDSZone.dispose();
-		SimpleFeatureCollection toSplit = Vectors.delTinyParcels(write.collection(), 5.0);
+		SimpleFeatureCollection toSplit = Vectors.delTinyParcels(DataUtilities.collection(write), 5.0);
 		double roadEpsilon = 00;
 		double noise = 0;
 		// Sometimes it bugs (like on Sector NV in Besançon)
@@ -842,7 +842,7 @@ public class ParcelFonction {
 
 		// mup output
 		ShapefileDataStore mupSDS = new ShapefileDataStore(mupOutput.toURI().toURL());
-		SimpleFeatureCollection mupSFC = mupSDS.getFeatureSource().getFeatures();
+		SimpleFeatureCollection mupSFC = DataUtilities.collection(mupSDS.getFeatureSource().getFeatures());
 
 		// Finally, put them all features in a same collec
 		SimpleFeatureIterator finalIt = splitedAUParcels.features();
@@ -891,7 +891,7 @@ public class ParcelFonction {
 			finalIt.close();
 		}
 		mupSDS.dispose();
-		SimpleFeatureCollection result = Vectors.delTinyParcels(savedParcels.collection(), 5.0);
+		SimpleFeatureCollection result = Vectors.delTinyParcels(DataUtilities.collection(savedParcels), 5.0);
 
 		Vectors.exportSFC(result, new File(tmpFile, "parcelFinal.shp"));
 
@@ -1028,7 +1028,7 @@ public class ParcelFonction {
 			}
 			result = addAllParcels(result, def);
 		}
-		SimpleFeatureCollection realResult = completeParcelMissing(parcelCollection, result.collection(), parcelToNotAdd);
+		SimpleFeatureCollection realResult = completeParcelMissing(parcelCollection, DataUtilities.collection(result), parcelToNotAdd);
 		return realResult;
 	}
 
@@ -1114,7 +1114,7 @@ public class ParcelFonction {
 			parcelIt.close();
 		}
 
-		Vectors.exportSFC(parcelToMerge.collection(), new File(tmpFile, "step1.shp"));
+		Vectors.exportSFC(DataUtilities.collection(parcelToMerge), new File(tmpFile, "step1.shp"));
 		System.out.println("done step 1");
 
 		////////////////
@@ -1144,9 +1144,9 @@ public class ParcelFonction {
 			mergedParcels.add(sfBuilder.buildFeature(null));
 		}
 
-		SimpleFeatureCollection forSection = mergedParcels.collection();
+		SimpleFeatureCollection forSection = DataUtilities.collection(mergedParcels);
 
-		Vectors.exportSFC(mergedParcels.collection(), new File(tmpFile, "step2.shp"));
+		Vectors.exportSFC(forSection, new File(tmpFile, "step2.shp"));
 		System.out.println("done step 2");
 
 		////////////////
@@ -1178,7 +1178,7 @@ public class ParcelFonction {
 		} finally {
 			bigParcelIt.close();
 		}
-		Vectors.exportSFC(cutParcels.collection(), new File(tmpFile, "step3.shp"));
+		Vectors.exportSFC(DataUtilities.collection(cutParcels), new File(tmpFile, "step3.shp"));
 		System.out.println("done step 3");
 
 		////////////////
@@ -1575,7 +1575,7 @@ public class ParcelFonction {
 			File tmpFile, boolean addArg) throws Exception {
 		DefaultFeatureCollection in = new DefaultFeatureCollection();
 		in.add(toSplit);
-		return splitParcels(in.collection(), maximalArea, maximalWidth, roadEpsilon, noise, extBlock, roadWidth, forceRoadAccess,
+		return splitParcels(DataUtilities.collection(in), maximalArea, maximalWidth, roadEpsilon, noise, extBlock, roadWidth, forceRoadAccess,
 				decompositionLevelWithoutRoad, tmpFile, addArg);
 
 	}
@@ -2050,7 +2050,7 @@ public class ParcelFonction {
 					df.addAll(parcels.subCollection(filterDep).subCollection(filterCom));
 				}
 			}
-			parcels = df.collection();
+			parcels = DataUtilities.collection(df);
 		}
 
 		// if we cut all the parcel regarding to the zoning code
@@ -2124,7 +2124,7 @@ public class ParcelFonction {
 					parcelIt.close();
 				}
 			}
-			parcels = write.collection();
+			parcels = DataUtilities.collection(write);
 		}
 		// under the carpet
 		ReferencedEnvelope carpet = parcels.getBounds();
@@ -2192,7 +2192,7 @@ public class ParcelFonction {
 		parcelSDS.dispose();
 		shpDSBati.dispose();
 
-		return Vectors.exportSFC(newParcel.collection(), new File(tmpFile, "parcelProcessed.shp"));
+		return Vectors.exportSFC(DataUtilities.collection(newParcel), new File(tmpFile, "parcelProcessed.shp"));
 	}
 
 	public static IFeatureCollection<IFeature> getParcelByCode(IFeatureCollection<IFeature> parcelles, List<String> parcelsWanted)
@@ -2282,7 +2282,7 @@ public class ParcelFonction {
 			it.close();
 		}
 		zonesSDS.dispose();
-		return result.collection();
+		return DataUtilities.collection(result);
 	}
 
 	public static SimpleFeatureCollection getParcelByTypo(String typo, SimpleFeatureCollection parcelles, File rootFile) throws IOException {
@@ -2340,7 +2340,7 @@ public class ParcelFonction {
 			itParcel.close();
 		}
 		communitiesSDS.dispose();
-		return result.collection();
+		return DataUtilities.collection(result);
 	}
 
 	/**

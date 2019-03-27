@@ -24,8 +24,7 @@ import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 
 public class SimuTool {
 
-	public static SimpluParametersJSON getParamFile(List<SimpluParametersJSON> lP, String scenar)
-			throws FileNotFoundException {
+	public static SimpluParametersJSON getParamFile(List<SimpluParametersJSON> lP, String scenar) throws FileNotFoundException {
 		for (SimpluParametersJSON p : lP) {
 			if (p.getString("name").equals(scenar)) {
 				return p;
@@ -35,8 +34,7 @@ public class SimuTool {
 	}
 
 	/**
-	 * remove scenario specification and .json attribute from a sector file
-	 * contained in the ressource.
+	 * remove scenario specification and .json attribute from a sector file contained in the ressource.
 	 * 
 	 * @param stringParam
 	 * @return
@@ -57,8 +55,7 @@ public class SimuTool {
 	}
 
 	/**
-	 * get one or multiple communities parcels from infos contained in a parameter
-	 * file
+	 * get one or multiple communities parcels from infos contained in a parameter file
 	 * 
 	 * @param p
 	 * @param geoFile
@@ -110,8 +107,7 @@ public class SimuTool {
 				try {
 					while (it.hasNext()) {
 						SimpleFeature feat = it.next();
-						if ((((String) feat.getAttribute("CODE_DEP")) + ((String) feat.getAttribute("CODE_COM")))
-								.equals(zipIntoSector)) {
+						if ((((String) feat.getAttribute("CODE_DEP")) + ((String) feat.getAttribute("CODE_COM"))).equals(zipIntoSector)) {
 							if (!diffSection.contains(feat.getAttribute("SECTION"))) {
 								diffSection.add((String) feat.getAttribute("SECTION"));
 							}
@@ -205,8 +201,8 @@ public class SimuTool {
 		try {
 			while (it.hasNext() && !answer) {
 				SimpleFeature feat = it.next();
-				if (feat.getAttribute("INSEE") != null && feat.getAttribute("INSEE").equals(insee)
-						&& feat.getAttribute("TYPEPLAN") != null && feat.getAttribute("TYPEPLAN").equals("RNU")) {
+				if (feat.getAttribute("INSEE") != null && feat.getAttribute("INSEE").equals(insee) && feat.getAttribute("TYPEPLAN") != null
+						&& feat.getAttribute("TYPEPLAN").equals("RNU")) {
 					answer = true;
 				}
 			}
@@ -232,8 +228,7 @@ public class SimuTool {
 			if (nameParam.split(":").length > 1) {
 				if (nameParam.split(":")[0].equals(p.getString("scenarioPMSP3D"))) {
 					specialScenarZone.add(nameParam);
-				}
-				else {
+				} else {
 					continue;
 				}
 			}
@@ -258,8 +253,7 @@ public class SimuTool {
 		return newFile;
 	}
 
-	public static Hashtable<String, List<String[]>> getCitiesFromparticularHousingUnit(File housingUnit)
-			throws IOException {
+	public static Hashtable<String, List<String[]>> getCitiesFromparticularHousingUnit(File housingUnit) throws IOException {
 		Hashtable<String, List<String[]>> result = new Hashtable<String, List<String[]>>();
 
 		CSVReader csv = new CSVReader(new FileReader(housingUnit));
@@ -314,14 +308,17 @@ public class SimuTool {
 
 	public static List<List<List<File>>> generateResultConfigSimPLU(File rootFile) {
 		List<List<List<File>>> buildingSimulatedPerSimu = new ArrayList<List<List<File>>>();
-
 		for (File scenarFile : new File(rootFile, "SimPLUDepot").listFiles()) {
 			List<List<File>> buildingSimulatedPerScenar = new ArrayList<List<File>>();
-			for (File variantFile : scenarFile.listFiles()) {
+			for (File variantFolder : scenarFile.listFiles()) {
 				List<File> buildingSimulatedPerVar = new ArrayList<File>();
-				for (File fileFile : variantFile.listFiles()) {
-					if (fileFile.getName().endsWith(".shp") && fileFile.getName().startsWith("out-")) {
-						buildingSimulatedPerVar.add(fileFile);
+				for (File superPackFolder : variantFolder.listFiles()) {
+					for (File packFolder : superPackFolder.listFiles()) {
+						for (File file : packFolder.listFiles()) {
+							if (file.getName().endsWith(".shp") && file.getName().startsWith("out-")) {
+								buildingSimulatedPerVar.add(file);
+							}
+						}
 					}
 				}
 				buildingSimulatedPerScenar.add(buildingSimulatedPerVar);
@@ -334,12 +331,12 @@ public class SimuTool {
 	public static List<List<File>> generateResultParcels(File rootFile) {
 		List<List<File>> buildingSimulatedPerSimu = new ArrayList<List<File>>();
 
-		for (File scenarFile : new File(rootFile, "ParcelSelectionFile").listFiles()) {
+		for (File scenarFolder : new File(rootFile, "ParcelSelectionDepot").listFiles()) {
 			List<File> parcelGenPerScenar = new ArrayList<File>();
-			for (File variantFile : scenarFile.listFiles()) {
-				for (File fileFile : variantFile.listFiles()) {
-					if (fileFile.getName().endsWith(".shp") && fileFile.getName().startsWith("parcel")) {
-						parcelGenPerScenar.add(fileFile);
+			for (File variantFolder : scenarFolder.listFiles()) {
+				for (File file : variantFolder.listFiles()) {
+					if (file.getName().equals("parcelGenExport.shp")) {
+						parcelGenPerScenar.add(file);
 					}
 				}
 			}

@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import fr.ign.analyse.obj.ProjetAnalyse;
 import fr.ign.analyse.obj.ScenarAnalyse;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 

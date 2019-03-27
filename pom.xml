@@ -58,7 +58,8 @@
 					</includes>
 					<excludes>
 					    <exclude>**/MupCitySimulation.java</exclude>
-					    <exclude>**/indicators/*.java</exclude>
+ 					    <exclude>**/indicators/*.java</exclude>
+					    <exclude>**/MainTask.java</exclude>
 					</excludes>
 				</configuration>
 			</plugin>
