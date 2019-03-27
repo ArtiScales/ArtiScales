@@ -713,7 +713,7 @@ public class SelectParcels {
 	}
 
 	public static void aggregateParcelsFromZips(File rootFile) throws Exception {
-		for (File scenarFile : (new File(rootFile, "ParcelSelectionDepot")).listFiles()) {
+		for (File scenarFile : (new File(rootFile, "ParcelSelectionDepot2")).listFiles()) {
 			if (scenarFile.isDirectory()) {
 				System.out.println(scenarFile);
 				for (File variantFile : scenarFile.listFiles()) {
@@ -721,12 +721,6 @@ public class SelectParcels {
 					List<File> zips = new ArrayList<File>();
 					for (File zip : variantFile.listFiles()) {
 						if (zip.isDirectory() && !zip.getName().equals("tmpFile")) {
-							// if (zip.getName().equals("25410") || zip.getName().equals("25576") || zip.getName().equals("25395")
-							// || zip.getName().equals("25084") || zip.getName().equals("25036") || zip.getName().equals("25258")
-							// || zip.getName().equals("25056HV") || zip.getName().equals("25371") || zip.getName().equals("25594")
-							// || zip.getName().equals("25058") || zip.getName().equals("25594") || zip.getName().equals("25111")) {
-							// continue;
-							// }
 							zips.add(new File(zip, "parcelOut-" + zip.getName() + ".shp"));
 						}
 					}

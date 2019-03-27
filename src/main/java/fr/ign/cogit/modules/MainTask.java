@@ -42,7 +42,7 @@ public class MainTask {
 
 		// List<Parameters> listScenarios = getParamFile("scenar0MKDom", new
 		// File("/home/mbrasebin/Documents/Code/ArtiScales/ArtiScales/src/main/resources/paramSet/"));
-		rootFile = new File("./ArtiScales/");
+		rootFile = new File("./WorkSession0327/");
 		paramFile = new File(rootFile, "paramFolder");
 		geoFile = new File(rootFile, "dataGeo");
 		regulFile = new File(rootFile, "dataRegulation");
@@ -50,7 +50,7 @@ public class MainTask {
 
 		File paramSet = new File(paramFile, "paramSet");
 
-		List<SimpluParametersJSON> listScenarioParameters = getParamFile("DDense", paramSet);
+		List<SimpluParametersJSON> listScenarioParameters = getParamFile("CPeuDense", paramSet);
 		System.out.println(listScenarioParameters);
 		// kind verification
 		if (!rootFile.exists() || !geoFile.exists() || !regulFile.exists()) {

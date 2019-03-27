@@ -1,4 +1,3 @@
-
 package fr.ign.cogit.util;
 
 import java.io.File;
@@ -615,7 +614,7 @@ public class ParcelFonction {
 	 * @throws Exception
 	 */
 	public static SimpleFeatureCollection parcelTotRecomp(String splitZone, SimpleFeatureCollection parcels, File tmpFile, File rootFile,
-			File mupOutput, double maximalArea, double maximalWidth, double lenRoad, int decompositionLevelWithoutRoad, boolean allOrCelggl)
+			File mupOutput, double maximalArea, double maximalWidth, double lenRoad, int decompositionLevelWithoutRoad, boolean allOrCell)
 			throws Exception {
 
 		// parcel schema for all
@@ -1794,6 +1793,17 @@ public class ParcelFonction {
 			}
 		}
 
+		// si jamais le nom est déjà généré
+
+		// sort collection with evaluation
+		// PropertyName pN = ff.property("eval");
+		// SortByImpl sbt = new SortByImpl(pN,
+		// org.opengis.filter.sort.SortOrder.DESCENDING);
+		// SimpleFeatureCollection collectOut = new
+		// SortedSimpleFeatureCollection(newParcel, new SortBy[] { sbt });
+		//
+		// moyenneEval(collectOut);
+
 		return bestEval;
 	}
 
@@ -1861,6 +1871,7 @@ public class ParcelFonction {
 			cellsCollectionIt.close();
 		}
 		return false;
+
 	}
 
 	/**
@@ -2393,88 +2404,4 @@ public class ParcelFonction {
 		rule.close();
 		return true;
 	}
-
-	public static void detectFailedParcels(SimpleFeatureCollection ogParcels, SimpleFeatureCollection parcelToComplete) throws Exception {
-
-		SimpleFeatureIterator ogParcelsIt = ogParcels.features();
-
-		List<String> codeFailedParcels = new ArrayList<String>();
-		try {
-			while (ogParcelsIt.hasNext()) {
-				SimpleFeature zone = ogParcelsIt.next();
-				List<Geometry> geomsOgParcels = new ArrayList<Geometry>();
-				Geometry geomOgParcels = (Geometry) zone.getDefaultGeometry();
-				if (geomOgParcels instanceof MultiPolygon) {
-					for (int i = 0; i < ((MultiPolygon) geomOgParcels).getNumGeometries(); i++) {
-						geomsOgParcels.add(((MultiPolygon) geomOgParcels).getGeometryN(i));
-					}
-				} else {
-					geomsOgParcels.add(geomOgParcels);
-				}
-				for (Geometry g : geomsOgParcels) {
-					double totSurf = 0;
-					SimpleFeatureIterator parcIt = Vectors.snapDatas(parcelToComplete, g.buffer(15)).features();
-					try {
-						while (parcIt.hasNext()) {
-							SimpleFeature parc = parcIt.next();
-							Geometry geomParcel = (Geometry) parc.getDefaultGeometry();
-							if (g.buffer(1).contains(geomParcel)) {
-								totSurf = totSurf + geomParcel.getArea();
-							}
-						}
-					} catch (Exception problem) {
-						problem.printStackTrace();
-					} finally {
-						parcIt.close();
-					}
-					if (totSurf < 0.6 * g.getArea()) {
-						codeFailedParcels.add(makeParcelCode(zone));
-					}
-				}
-			}
-		} catch (Exception problem) {
-			problem.printStackTrace();
-		} finally {
-			ogParcelsIt.close();
-		}
-	}
-
-	public static void fixParcels() throws Exception {
-		File rootFile = new File("./WorkSession0327/");
-		File tmpFile = new File(rootFile, "tmp/");
-		tmpFile.mkdir();
-
-		ShapefileDataStore citySDS = new ShapefileDataStore(new File(rootFile, "dataGeo/parcel.shp").toURI().toURL());
-		SimpleFeatureCollection city = citySDS.getFeatureSource().getFeatures();
-
-		ShapefileDataStore zoningSDS = new ShapefileDataStore(new File(rootFile, "dataRegulation/zoning.shp").toURI().toURL());
-		SimpleFeatureCollection zoning = zoningSDS.getFeatureSource().getFeatures();
-
-		for (File scenarFolder : (new File(rootFile, "ParcelSelectionDepot")).listFiles()) {
-			String scenar = scenarFolder.getName();
-
-			List<File> lF = new ArrayList<>();
-			lF.add(new File(rootFile, "paramFolder/paramSet/" + scenar + "/parameterTechnic.json"));
-			lF.add(new File(rootFile, "paramFolder/paramSet/" + scenar + "/parameterScenario.json"));
-			SimpluParametersJSON p = new SimpluParametersJSON(lF);
-
-			for (File variantFolder : scenarFolder.listFiles()) {
-				String variant = variantFolder.getName();
-				File mupOutput = new File("");
-				File mupFolderOutput = new File(rootFile, "MupCityDepot/" + scenar + "/" + variant + "/");
-				for (File fM : mupFolderOutput.listFiles()) {
-					if (fM.getName().endsWith(".shp")) {
-						mupOutput = fM;
-					}
-				}
-				ShapefileDataStore parcelToCompleteSDS = new ShapefileDataStore(new File(variantFolder, "parcelGenExport.shp").toURI().toURL());
-				SimpleFeatureCollection parcelToComplete = parcelToCompleteSDS.getFeatureSource().getFeatures();
-				detectFailedParcels(zoning, city, parcelToComplete, rootFile, tmpFile, mupOutput, p);
-			}
-		}
-
-		citySDS.dispose();
-
-	}
-
 }
