@@ -60,6 +60,7 @@ import fr.ign.cogit.geoxygene.sig3d.calculation.parcelDecomposition.OBBBlockDeco
 import fr.ign.cogit.geoxygene.spatial.coordgeom.DirectPosition;
 import fr.ign.cogit.geoxygene.spatial.geomaggr.GM_MultiCurve;
 import fr.ign.cogit.geoxygene.util.attribute.AttributeManager;
+import fr.ign.cogit.geoxygene.util.conversion.AdapterFactory;
 import fr.ign.cogit.geoxygene.util.conversion.GeOxygeneGeoToolsTypes;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileReader;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileWriter;
@@ -556,6 +557,10 @@ public class ParcelFonction {
 			else {
 				cutedAll.add(feat);
 			}
+		}
+		// Forcing 2D geometries before saving to shapefile
+		for (IFeature feat : cutedAll) {
+      feat.setGeom(AdapterFactory.to2DGM_Object(feat.getGeom()));
 		}
 
 		File fileTmp = new File(tmpFile, "tmpFlagSplit.shp");

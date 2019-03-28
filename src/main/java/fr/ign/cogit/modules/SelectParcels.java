@@ -62,7 +62,7 @@ public class SelectParcels {
     lF.add(paramFile1);
     lF.add(paramFile2);
 	  SimpluParametersJSON p = new SimpluParametersJSON(lF);
-	  String zip = "25490";
+	  String zip = "25195";
 	  new SelectParcels(rootFolder, outputFolder, varianteSpatialConf, p).selectAndDecompParcels(zip, false, null, tmpFile);
 	}
 
