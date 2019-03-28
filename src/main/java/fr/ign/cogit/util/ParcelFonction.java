@@ -1368,22 +1368,22 @@ public class ParcelFonction {
 			decomp = ShapefileReader.read(superTemp.getAbsolutePath());
 		}
 
-		for (IFeature newFeat : decomp) {
+		for (IFeature newParcel : decomp) {
 			// impeach irregularities
-			newFeat.setGeom(newFeat.getGeom().buffer(0.5).buffer(-0.5));
+			newParcel.setGeom(newParcel.getGeom().buffer(0.5).buffer(-0.5));
 
 			String newCodeDep = (String) ifeat.getAttribute("CODE_DEP");
 			String newCodeCom = (String) ifeat.getAttribute("CODE_COM");
 			String newSection = (String) ifeat.getAttribute("SECTION") + "div";
 			String newNumero = String.valueOf(numParcelle++);
 			String newCode = newCodeDep + newCodeCom + "000" + newSection + newNumero;
-			AttributeManager.addAttribute(newFeat, "CODE", newCode, "String");
-			AttributeManager.addAttribute(newFeat, "CODE_DEP", newCodeDep, "String");
-			AttributeManager.addAttribute(newFeat, "CODE_COM", newCodeCom, "String");
-			AttributeManager.addAttribute(newFeat, "COM_ABS", "000", "String");
-			AttributeManager.addAttribute(newFeat, "SECTION", newSection, "String");
-			AttributeManager.addAttribute(newFeat, "NUMERO", newNumero, "String");
-			AttributeManager.addAttribute(newFeat, "INSEE", newCodeDep + newCodeCom, "String");
+			AttributeManager.addAttribute(newParcel, "CODE", newCode, "String");
+			AttributeManager.addAttribute(newParcel, "CODE_DEP", newCodeDep, "String");
+			AttributeManager.addAttribute(newParcel, "CODE_COM", newCodeCom, "String");
+			AttributeManager.addAttribute(newParcel, "COM_ABS", "000", "String");
+			AttributeManager.addAttribute(newParcel, "SECTION", newSection, "String");
+			AttributeManager.addAttribute(newParcel, "NUMERO", newNumero, "String");
+			AttributeManager.addAttribute(newParcel, "INSEE", newCodeDep + newCodeCom, "String");
 
 			double eval = 0.0;
 			boolean bati = false;
@@ -1395,7 +1395,7 @@ public class ParcelFonction {
 			// we put a small buffer because a lot of houses are just biting neighborhood
 			// parcels
 			for (IFeature batiIFeat : batiCollec) {
-				if (newFeat.getGeom().buffer(-1.5).intersects(batiIFeat.getGeom())) {
+				if (newParcel.getGeom().buffer(-1.5).intersects(batiIFeat.getGeom())) {
 					bati = true;
 				}
 			}
@@ -1409,16 +1409,17 @@ public class ParcelFonction {
 						simul = true;
 					}
 					// doesn't has to be connected to the road to be urbanized
-					else if (isArt3AllowsIsolatedParcel(newFeat, rootFile)) {
-
+					else if (isArt3AllowsIsolatedParcel(newParcel, rootFile)) {
 						simul = true;
 					}
 				} else {
-					simul = true;
+					if (ParcelFonction.isParcelInCell(newParcel, outMupFile)) {
+						simul = true;
+					}
 				}
 			}
 
-			List<String> zones = FromGeom.parcelInBigZone(newFeat, FromGeom.getZoning(new File(rootFile, "dataRegulation")));
+			List<String> zones = FromGeom.parcelInBigZone(newParcel, FromGeom.getZoning(new File(rootFile, "dataRegulation")));
 
 			if (zones.contains("U")) {
 				u = true;
@@ -1431,17 +1432,17 @@ public class ParcelFonction {
 			}
 
 			if (simul) {
-				eval = getEvalInParcel(newFeat, outMupFile);
+				eval = getEvalInParcel(newParcel, outMupFile);
 			}
 
-			AttributeManager.addAttribute(newFeat, "eval", eval, "String");
-			AttributeManager.addAttribute(newFeat, "DoWeSimul", simul, "String");
-			AttributeManager.addAttribute(newFeat, "IsBuild", bati, "String");
-			AttributeManager.addAttribute(newFeat, "U", u, "String");
-			AttributeManager.addAttribute(newFeat, "AU", au, "String");
-			AttributeManager.addAttribute(newFeat, "NC", nc, "String");
+			AttributeManager.addAttribute(newParcel, "eval", eval, "String");
+			AttributeManager.addAttribute(newParcel, "DoWeSimul", simul, "String");
+			AttributeManager.addAttribute(newParcel, "IsBuild", bati, "String");
+			AttributeManager.addAttribute(newParcel, "U", u, "String");
+			AttributeManager.addAttribute(newParcel, "AU", au, "String");
+			AttributeManager.addAttribute(newParcel, "NC", nc, "String");
 
-			ifeatCollOut.add(newFeat);
+			ifeatCollOut.add(newParcel);
 		}
 		return decomp;
 
@@ -1860,6 +1861,13 @@ public class ParcelFonction {
 		}
 		return bestEval;
 	}
+	
+	public static boolean isParcelInCell(IFeature parcelIn, File cellsCollection) throws NoSuchAuthorityCodeException, FactoryException, Exception {
+		ShapefileDataStore shpDSCells = new ShapefileDataStore(cellsCollection.toURI().toURL());
+		SimpleFeatureCollection cellsSFS = DataUtilities.collection(shpDSCells.getFeatureSource().getFeatures());
+		shpDSCells.dispose();
+		return isParcelInCell(GeOxygeneGeoToolsTypes.convert2SimpleFeature(parcelIn, CRS.decode("EPSG:2154"),true),cellsSFS);
+	}
 
 	public static boolean isParcelInCell(SimpleFeature parcelIn, SimpleFeatureCollection cellsCollection) throws Exception {
 
@@ -1882,7 +1890,6 @@ public class ParcelFonction {
 			cellsCollectionIt.close();
 		}
 		return false;
-
 	}
 
 	/**

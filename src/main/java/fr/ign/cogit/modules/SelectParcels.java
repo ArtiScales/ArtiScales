@@ -209,11 +209,11 @@ public class SelectParcels {
 			}
 		}
 
-		// if there's been a bug and a parcel is missing
-		ShapefileDataStore shpDSparcel2 = new ShapefileDataStore(FromGeom.getParcels(geoFile).toURI().toURL());
-		SimpleFeatureCollection parcelOriginal = shpDSparcel2.getFeatureSource().getFeatures();
-		parcelCollection = ParcelFonction.completeParcelMissingWithOriginal(parcelCollection, parcelOriginal);
-		shpDSparcel2.dispose();
+	//	// if there's been a bug and a parcel is missing
+	//	ShapefileDataStore shpDSparcel2 = new ShapefileDataStore(FromGeom.getParcels(geoFile).toURI().toURL());
+	//	SimpleFeatureCollection parcelOriginal = shpDSparcel2.getFeatureSource().getFeatures();
+	//	parcelCollection = ParcelFonction.completeParcelMissingWithOriginal(parcelCollection, parcelOriginal);
+	//	shpDSparcel2.dispose();
 
 		// if used in the normal case, we append the newly generated file onto parcelGenExport
 		if (mergeParcels) {
