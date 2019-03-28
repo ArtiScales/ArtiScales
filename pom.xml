@@ -59,6 +59,7 @@
 					<excludes>
 					    <exclude>**/MupCitySimulation.java</exclude>
  					    <exclude>**/indicators/*.java</exclude>
+ 					    <exclude>**/compVariant/*.java</exclude>
 					    <exclude>**/MainTask.java</exclude>
 					</excludes>
 				</configuration>

@@ -8,6 +8,8 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.geotools.data.DataUtilities;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
@@ -48,7 +50,20 @@ public class SelectParcels {
 	float moyEval;
 
 	public static void main(String[] args) throws Exception {
-		aggregateParcelsFromZips(new File("/home/ubuntu/boulot/these/result0313/"));
+	  Logger.getRootLogger().setLevel(Level.OFF);
+//		aggregateParcelsFromZips(new File("/home/ubuntu/boulot/these/result0313/"));
+	  File rootFolder = new File("data");
+	  File outputFolder = new File("ParcelManager");
+    File tmpFile = new File("tmp");
+	  File varianteSpatialConf = new File("MupCityRepository/CPeuDense/base/CPeuDense--N6_St_Moy_ahpE_seed_42-evalAnal-20.0.shp");
+	  File paramFile1 = new File("paramSet/CPeuDense/parameterScenario.json");
+	  File paramFile2 = new File("paramSet/CPeuDense/parameterTechnic.json");
+	  List<File> lF = new ArrayList<File>();
+    lF.add(paramFile1);
+    lF.add(paramFile2);
+	  SimpluParametersJSON p = new SimpluParametersJSON(lF);
+	  String zip = "25490";
+	  new SelectParcels(rootFolder, outputFolder, varianteSpatialConf, p).selectAndDecompParcels(zip, false, null, tmpFile);
 	}
 
 	public SelectParcels(File rootfile, File outfile, File spatialconfiguration, SimpluParametersJSON par) throws Exception {

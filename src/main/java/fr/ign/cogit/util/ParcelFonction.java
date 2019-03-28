@@ -1357,7 +1357,7 @@ public class ParcelFonction {
 			System.out.println("normal decomp instead of flagg decomp allowed");
 			File superTemp = Vectors
 					.exportSFC(
-							splitParcels(GeOxygeneGeoToolsTypes.convert2SimpleFeature(ifeat, CRS.decode("EPSG:2154")), maximalAreaSplitParcel,
+							splitParcels(GeOxygeneGeoToolsTypes.convert2SimpleFeature(ifeat, CRS.decode("EPSG:2154"),true), maximalAreaSplitParcel,
 									maximalWidthSplitParcel, 0, 0, iMultiCurve, 0, false, 5, tmpFile, false),
 							new File(tmpFile, "normalCutedParcel.shp"));
 			decomp = ShapefileReader.read(superTemp.getAbsolutePath());
@@ -1747,7 +1747,7 @@ public class ParcelFonction {
 			return 0.0;
 		}
 
-		return getEvalInParcel(GeOxygeneGeoToolsTypes.convert2SimpleFeature(parcel, CRS.decode("EPSG:2154")), outMup);
+		return getEvalInParcel(GeOxygeneGeoToolsTypes.convert2SimpleFeature(parcel, CRS.decode("EPSG:2154"),true), outMup);
 	}
 
 	/**

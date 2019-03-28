@@ -606,7 +606,7 @@ public class FromGeom {
 	}
 
 	public static List<String> parcelInBigZone(IFeature parcelIn, File zoningFile) throws Exception {
-		return parcelInBigZone(GeOxygeneGeoToolsTypes.convert2SimpleFeature(parcelIn, CRS.decode("EPSG:2154")), zoningFile);
+		return parcelInBigZone(GeOxygeneGeoToolsTypes.convert2SimpleFeature(parcelIn, CRS.decode("EPSG:2154"),true), zoningFile);
 	}
 
 	/**
