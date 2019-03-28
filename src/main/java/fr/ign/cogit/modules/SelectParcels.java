@@ -55,7 +55,7 @@ public class SelectParcels {
 	  File rootFolder = new File("data");
 	  File outputFolder = new File("ParcelManager");
     File tmpFile = new File("tmp");
-	  File varianteSpatialConf = new File("MupCityRepository/CPeuDense/base/CPeuDense--N6_St_Moy_ahpE_seed_42-evalAnal-20.0.shp");
+	  File varianteSpatialConf = new File("MupCityRepository/CPeuDense/variantSizeCell18/CPeuDense--N6_St_Moy_ahpE_seed_42-evalAnal-18.0.shp");
 	  File paramFile1 = new File("paramSet/CPeuDense/parameterScenario.json");
 	  File paramFile2 = new File("paramSet/CPeuDense/parameterTechnic.json");
 	  List<File> lF = new ArrayList<File>();
