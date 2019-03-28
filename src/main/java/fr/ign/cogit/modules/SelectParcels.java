@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.log4j.Level;
@@ -51,16 +52,13 @@ public class SelectParcels {
 
 	public static void main(String[] args) throws Exception {
 	  Logger.getRootLogger().setLevel(Level.OFF);
-//		aggregateParcelsFromZips(new File("/home/ubuntu/boulot/these/result0313/"));
 	  File rootFolder = new File("data");
 	  File outputFolder = new File("ParcelManager");
     File tmpFile = new File("tmp");
 	  File varianteSpatialConf = new File("MupCityRepository/CPeuDense/variantSizeCell18/CPeuDense--N6_St_Moy_ahpE_seed_42-evalAnal-18.0.shp");
 	  File paramFile1 = new File("paramSet/CPeuDense/parameterScenario.json");
 	  File paramFile2 = new File("paramSet/CPeuDense/parameterTechnic.json");
-	  List<File> lF = new ArrayList<File>();
-    lF.add(paramFile1);
-    lF.add(paramFile2);
+	  List<File> lF = new ArrayList<File>(Arrays.asList(paramFile1, paramFile2));
 	  SimpluParametersJSON p = new SimpluParametersJSON(lF);
 	  String zip = "25195";
 	  new SelectParcels(rootFolder, outputFolder, varianteSpatialConf, p).selectAndDecompParcels(zip, false, null, tmpFile);
