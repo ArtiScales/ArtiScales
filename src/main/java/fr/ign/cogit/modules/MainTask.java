@@ -42,7 +42,7 @@ public class MainTask {
 
 		// List<Parameters> listScenarios = getParamFile("scenar0MKDom", new
 		// File("/home/mbrasebin/Documents/Code/ArtiScales/ArtiScales/src/main/resources/paramSet/"));
-		rootFile = new File("./result0308/");
+		rootFile = new File("./WorkSession0327/");
 		paramFile = new File(rootFile, "paramFolder");
 		geoFile = new File(rootFile, "dataGeo");
 		regulFile = new File(rootFile, "dataRegulation");
@@ -50,13 +50,14 @@ public class MainTask {
 
 		File paramSet = new File(paramFile, "paramSet");
 
-		List<SimpluParametersJSON> listScenarioParameters = getParamFile("DDense", paramSet);
+		List<SimpluParametersJSON> listScenarioParameters = getParamFile("CPeuDense", paramSet);
 		System.out.println(listScenarioParameters);
 		// kind verification
 		if (!rootFile.exists() || !geoFile.exists() || !regulFile.exists()) {
 			System.out.println("please check the file setting in the parameter file");
 			System.exit(99);
 		}
+
 
 		 ////////////////
 		 // MUP-City part
@@ -155,7 +156,7 @@ public class MainTask {
 		////////////////
 
 		// Building to housingUnit indicator
-		List<List<List<File>>> buildingSimulatedPerSimu = new ArrayList<List<List<File>>>();
+		// List<List<List<File>>> buildingSimulatedPerSimu = new ArrayList<List<List<File>>>();
 
 		// we get the hierarchy of files if the previous steps hasnt been processed
 		if (buildingSimulatedPerSimu.isEmpty()) {

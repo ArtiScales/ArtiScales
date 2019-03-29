@@ -1,4 +1,3 @@
-
 package fr.ign.cogit.util;
 
 import java.io.File;
