@@ -49,7 +49,26 @@ public class SelectParcels {
 	float moyEval;
 
 	public static void main(String[] args) throws Exception {
-		aggregateParcelsFromZips(new File("/home/ubuntu/boulot/these/result0313/"));
+//		aggregateParcelsFromZips(new File("/home/ubuntu/boulot/these/result2903/"));
+		File rootFile = new File("/home/ubuntu/boulot/these/result2903/");
+		File regul = new File(rootFile, "dataRegulation");
+		File geo = new File(rootFile, "dataGeo");
+		File tmp = new File(rootFile, "tmp");
+		tmp.mkdir();
+		for (File scenarFile : (new File(rootFile, "ParcelSelectionDepot")).listFiles()) {
+			if (scenarFile.isDirectory()) {
+				String scenar = scenarFile.getName();
+				System.out.println(scenarFile);
+				for (File variantFile : scenarFile.listFiles()) {
+					String variant = variantFile.getName();
+					System.out.println(variantFile);
+					File parcel = new File(variantFile, "parcelGenExport.shp");
+					File outFolder = new File(rootFile, "SimPLUDepot/" + scenar + "/"+variant);
+					outFolder.mkdirs();
+					separateToDifferentOptimizedPack(parcel, outFolder, tmp, regul, geo);
+				}
+			}
+		}
 	}
 
 	public SelectParcels(File rootfile, File outfile, File spatialconfiguration, SimpluParametersJSON par) throws Exception {

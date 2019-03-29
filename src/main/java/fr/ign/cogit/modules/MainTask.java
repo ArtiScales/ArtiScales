@@ -58,68 +58,68 @@ public class MainTask {
 			System.exit(99);
 		}
 
-		// ////////////////
-		// // MUP-City part
-		// ////////////////
-		//
-		// List<List<File>> mupCityOutput = new ArrayList<List<File>>();
-		//
-		// // if we want to simulate MUPCity part or we directly using outputs
-		// if (listScenarioParameters.get(0).getBoolean("createMUPSimu")) {
-		// File mupCityDepot = new File(rootFile, "MupCityDepot");
-		// for (SimpluParametersJSON p : listScenarioParameters) {
-		// List<File> listVariant = new ArrayList<File>();
-		// String name = p.getString("name");
-		// File scenarFile = new File(mupCityDepot, name);
-		// int i = 0;
-		// for (String[] variant : prepareVariant(p).values()) {
-		// File variantFile = new File(scenarFile, "variant" + i);
-		// i++;
-		// MupCitySimulation mupSimu = new MupCitySimulation(p, variant, variantFile, rootFile, geoFile);
-		// File mupOutShp = mupSimu.run();
-		// listVariant.add(mupOutShp);
-		// }
-		// mupCityOutput.add(listVariant);
-		// }
-		// }
-		// // if MUP-City simulations has already been calculated
-		// else {
-		// for (File f : (new File(rootFile, "MupCityDepot")).listFiles()) {
-		// if (f.isDirectory()) {
-		// List<File> variante = new ArrayList<File>();
-		// for (File varitante : f.listFiles()) {
-		// for (File var : varitante.listFiles()) {
-		// if (var.getName().contains("evalAnal") && var.getName().endsWith(".shp")) {
-		// variante.add(var);
-		// System.out.println("MUP-City's output in the machine : " + var);
-		// }
-		// }
-		// }
-		// mupCityOutput.add(variante);
-		// }
-		// }
-		// }
-		// ////////////////
-		// // Selection and parcel management part
-		// ////////////////
-		// // File parcelPackages = parcelManagerSelectionAndPack();
-		// List<List<File>> parcelPackagesOutput = new ArrayList<List<File>>();
-		// for (List<File> scenar : mupCityOutput) {
-		// String scenarName = scenar.get(0).getName().split("-")[0];
-		// List<File> variantParcelPackages = new ArrayList<File>();
-		// for (File varianteSpatialConf : scenar) {
-		//
-		// File fileOut = new File(rootFile, "ParcelSelectionDepot/" + scenarName + "/" + varianteSpatialConf.getParentFile().getName());
-		// fileOut.mkdirs();
-		// System.out.println(scenarName);
-		// SimpluParametersJSON p = SimuTool.getParamFile(listScenarioParameters, scenarName);
-		//
-		// SelectParcels selecPar = new SelectParcels(rootFile, fileOut, varianteSpatialConf, p);
-		// File parcelPackage = selecPar.run();
-		// variantParcelPackages.add(parcelPackage);
-		// }
-		// parcelPackagesOutput.add(variantParcelPackages);
-		// }
+		 ////////////////
+		 // MUP-City part
+		 ////////////////
+		
+		 List<List<File>> mupCityOutput = new ArrayList<List<File>>();
+		
+		 // if we want to simulate MUPCity part or we directly using outputs
+		 if (listScenarioParameters.get(0).getBoolean("createMUPSimu")) {
+		 File mupCityDepot = new File(rootFile, "MupCityDepot");
+		 for (SimpluParametersJSON p : listScenarioParameters) {
+		 List<File> listVariant = new ArrayList<File>();
+		 String name = p.getString("name");
+		 File scenarFile = new File(mupCityDepot, name);
+		 int i = 0;
+		 for (String[] variant : prepareVariant(p).values()) {
+		 File variantFile = new File(scenarFile, "variant" + i);
+		 i++;
+		 MupCitySimulation mupSimu = new MupCitySimulation(p, variant, variantFile, rootFile, geoFile);
+		 File mupOutShp = mupSimu.run();
+		 listVariant.add(mupOutShp);
+		 }
+		 mupCityOutput.add(listVariant);
+		 }
+		 }
+		 // if MUP-City simulations has already been calculated
+		 else {
+		 for (File f : (new File(rootFile, "MupCityDepot")).listFiles()) {
+		 if (f.isDirectory()) {
+		 List<File> variante = new ArrayList<File>();
+		 for (File varitante : f.listFiles()) {
+		 for (File var : varitante.listFiles()) {
+		 if (var.getName().contains("evalAnal") && var.getName().endsWith(".shp")) {
+		 variante.add(var);
+		 System.out.println("MUP-City's output in the machine : " + var);
+		 }
+		 }
+		 }
+		 mupCityOutput.add(variante);
+		 }
+		 }
+		 }
+		 ////////////////
+		 // Selection and parcel management part
+		 ////////////////
+		 // File parcelPackages = parcelManagerSelectionAndPack();
+		 List<List<File>> parcelPackagesOutput = new ArrayList<List<File>>();
+		 for (List<File> scenar : mupCityOutput) {
+		 String scenarName = scenar.get(0).getName().split("-")[0];
+		 List<File> variantParcelPackages = new ArrayList<File>();
+		 for (File varianteSpatialConf : scenar) {
+		
+		 File fileOut = new File(rootFile, "ParcelSelectionDepot/" + scenarName + "/" + varianteSpatialConf.getParentFile().getName());
+		 fileOut.mkdirs();
+		 System.out.println(scenarName);
+		 SimpluParametersJSON p = SimuTool.getParamFile(listScenarioParameters, scenarName);
+		
+		 SelectParcels selecPar = new SelectParcels(rootFile, fileOut, varianteSpatialConf, p);
+		 File parcelPackage = selecPar.run();
+		 variantParcelPackages.add(parcelPackage);
+		 }
+		 parcelPackagesOutput.add(variantParcelPackages);
+		 }
 		// // ////////////////
 		// // // SimPLU3D part
 		// // ////////////////

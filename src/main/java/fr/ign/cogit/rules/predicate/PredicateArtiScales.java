@@ -49,7 +49,6 @@ public class PredicateArtiScales<O extends AbstractSimpleBuilding, C extends Abs
 
 		double maxH = this.getMaxHeight();
 		double minH = this.getMinHeight();
-
 		if (minH > maxH) {
 			System.out.println(
 					"problem : the maximal height(" + maxH + " )is inf to the minimal one " + minH + " (certainly because of the reglementation)");
