@@ -156,7 +156,7 @@ public class MainTask {
 		////////////////
 
 		// Building to housingUnit indicator
-		// List<List<List<File>>> buildingSimulatedPerSimu = new ArrayList<List<List<File>>>();
+		List<List<List<File>>> buildingSimulatedPerSimu = new ArrayList<List<List<File>>>();
 
 		// we get the hierarchy of files if the previous steps hasnt been processed
 		if (buildingSimulatedPerSimu.isEmpty()) {
