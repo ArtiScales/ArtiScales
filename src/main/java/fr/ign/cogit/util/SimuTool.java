@@ -19,13 +19,13 @@ import org.geotools.data.simple.SimpleFeatureIterator;
 import org.opengis.feature.simple.SimpleFeature;
 
 import au.com.bytecode.opencsv.CSVReader;
+import au.com.bytecode.opencsv.CSVWriter;
 import fr.ign.cogit.simplu3d.util.SimpluParameters;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 
 public class SimuTool {
 
-	public static SimpluParametersJSON getParamFile(List<SimpluParametersJSON> lP, String scenar)
-			throws FileNotFoundException {
+	public static SimpluParametersJSON getParamFile(List<SimpluParametersJSON> lP, String scenar) throws FileNotFoundException {
 		for (SimpluParametersJSON p : lP) {
 			if (p.getString("name").equals(scenar)) {
 				return p;
@@ -35,13 +35,159 @@ public class SimuTool {
 	}
 
 	/**
-	 * remove scenario specification and .json attribute from a sector file
-	 * contained in the ressource.
+	 * get the objective of housing density for a particular city in its "DEPCOM" attribute
+	 * 
+	 * TODO get too much time for a simple op. extract the attribute table and play from there
+	 *
+	 * @param geoFile
+	 * @param zipCode
+	 * @return
+	 * @throws IOException
+	 */
+	public static int getDensityGoal(File geoFile, String zipCode) throws IOException {
+		File objFile = new File(geoFile, "communities.csv");
+		if (!objFile.exists()) {
+			extractCSVFromSHP(FromGeom.getCommunities(geoFile), geoFile);
+		}
+
+		int result = 0;
+		// ShapefileDataStore sds = new ShapefileDataStore(FromGeom.getCommunities(geoFile).toURI().toURL());
+		// SimpleFeatureIterator it = sds.getFeatureSource().getFeatures().features();
+		// try {
+		// while (it.hasNext()) {
+		// SimpleFeature feat = it.next();
+		// if (feat.getAttribute("DEPCOM").equals(zipCode)) {
+		// result = (int) feat.getAttribute("objDens");
+		// break;
+		// }
+		// }
+		// } catch (Exception problem) {
+		// problem.printStackTrace();
+		// } finally {
+		// it.close();
+		// }
+		// sds.dispose();
+		int objP = 0, inseeP = 0;
+		CSVReader csv = new CSVReader(new FileReader(objFile));
+		String[] firstLine = csv.readNext();
+		for (int i = 0; i < firstLine.length; i++) {
+			if (firstLine[i].equals("objDens")) {
+				objP = i;
+			}
+			if (firstLine[i].equals("DEPCOM")) {
+				inseeP = i;
+			}
+		}
+		for (String[] line : csv.readAll()) {
+			if (line[inseeP].equals(zipCode)) {
+				result = Integer.valueOf(line[objP]);
+			}
+		}
+
+		csv.close();
+		return result;
+	}
+	//
+	// public static void main(String[] args) throws IOException {
+	// extractCSVFromSHP(new File("/home/ubuntu/boulot/these/result0308/dataGeo/communities.shp"), new File("/tmp/"));
+	// }
+
+	public static File extractCSVFromSHP(File shapeFile, File outFolder) throws IOException {
+
+		ShapefileDataStore sds = new ShapefileDataStore(shapeFile.toURI().toURL());
+		SimpleFeatureCollection coll = sds.getFeatureSource().getFeatures();
+		SimpleFeatureIterator it = coll.features();
+		CSVWriter csv = new CSVWriter(new FileWriter(new File(outFolder, shapeFile.getName().replace(".shp", "") + ".csv")), ',', '\0');
+		int count = coll.getSchema().getAttributeCount() - 1;
+		String[] firstLine = new String[count];
+		for (int i = 1; i <= count; i++) {
+			firstLine[i - 1] = coll.getSchema().getAttributeDescriptors().get(i).getName().toString();
+		}
+		csv.writeNext(firstLine);
+		try {
+			while (it.hasNext()) {
+				SimpleFeature feat = it.next();
+				String[] temp = new String[feat.getAttributeCount() - 1];
+				for (int i = 1; i < feat.getAttributeCount(); i++) {
+					String val = String.valueOf(feat.getAttribute(i));
+					if (val.toLowerCase().equals("") || val.toLowerCase().equals("null") || val.toLowerCase().equals("nan")) {
+						val = "0";
+					}
+					temp[i - 1] = val;
+				}
+				csv.writeNext(temp);
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			it.close();
+		}
+		csv.close();
+		sds.dispose();
+		return outFolder;
+	}
+
+	/**
+	 * get the objective of housing unit creation for a particular city in its "DEPCOM" attribute
+	 * 
+	 * TODO get too much time for a simple op. extract the attribute table and play from there
+	 * 
+	 * @param geoFile
+	 * @param zipCode
+	 * @return
+	 * @throws IOException
+	 */
+	public static int getHousingUnitsGoal(File geoFile, String zipCode) throws IOException {
+
+		File objFile = new File(geoFile, "communities.csv");
+		if (!objFile.exists()) {
+			extractCSVFromSHP(FromGeom.getCommunities(geoFile), geoFile);
+		}
+
+		int result = 0;
+		// ShapefileDataStore sds = new ShapefileDataStore(FromGeom.getCommunities(geoFile).toURI().toURL());
+		// SimpleFeatureIterator it = sds.getFeatureSource().getFeatures().features();
+		// try {
+		// while (it.hasNext()) {
+		// SimpleFeature feat = it.next();
+		// if (feat.getAttribute("DEPCOM").equals(zipCode)) {
+		// result = (int) feat.getAttribute("objDens");
+		// break;
+		// }
+		// }
+		// } catch (Exception problem) {
+		// problem.printStackTrace();
+		// } finally {
+		// it.close();
+		// }
+		// sds.dispose();
+		int objP = 0, inseeP = 0;
+		CSVReader csv = new CSVReader(new FileReader(objFile));
+		String[] firstLine = csv.readNext();
+		for (int i = 0; i < firstLine.length; i++) {
+			if (firstLine[i].equals("objLgt")) {
+				objP = i;
+			}
+			if (firstLine[i].equals("DEPCOM")) {
+				inseeP = i;
+			}
+		}
+		for (String[] line : csv.readAll()) {
+			if (line[inseeP].equals(zipCode)) {
+				result = Integer.valueOf(line[objP]);
+			}
+		}
+
+		csv.close();
+		return result;
+	}
+
+	/**
+	 * remove scenario specification and .json attribute from a sector file contained in the ressource.
 	 * 
 	 * @param stringParam
 	 * @return
 	 */
-
 	public static String cleanSectorName(String stringParam) {
 		// delete name of specials parameters
 		if (stringParam.split(":").length == 2) {
@@ -57,8 +203,7 @@ public class SimuTool {
 	}
 
 	/**
-	 * get one or multiple communities parcels from infos contained in a parameter
-	 * file
+	 * get one or multiple communities parcels from infos contained in a parameter file
 	 * 
 	 * @param p
 	 * @param geoFile
@@ -67,8 +212,7 @@ public class SimuTool {
 	 * @return
 	 * @throws Exception
 	 */
-	public static List<String> getIntrestingCommunities(SimpluParameters p, File geoFile, File regulFile, File tmpFile,
-			File variantFile) throws Exception {
+	public static List<String> getIntrestingCommunities(SimpluParameters p, File geoFile, File regulFile, File variantFile) throws Exception {
 		List<String> result = new ArrayList<String>();
 		if (p.getString("singleCity").equals("true")) {
 			String zips = p.getString("zip");
@@ -111,8 +255,7 @@ public class SimuTool {
 				try {
 					while (it.hasNext()) {
 						SimpleFeature feat = it.next();
-						if ((((String) feat.getAttribute("CODE_DEP")) + ((String) feat.getAttribute("CODE_COM")))
-								.equals(zipIntoSector)) {
+						if ((((String) feat.getAttribute("CODE_DEP")) + ((String) feat.getAttribute("CODE_COM"))).equals(zipIntoSector)) {
 							if (!diffSection.contains(feat.getAttribute("SECTION"))) {
 								diffSection.add((String) feat.getAttribute("SECTION"));
 							}
@@ -206,8 +349,8 @@ public class SimuTool {
 		try {
 			while (it.hasNext() && !answer) {
 				SimpleFeature feat = it.next();
-				if (feat.getAttribute("INSEE") != null && feat.getAttribute("INSEE").equals(insee)
-						&& feat.getAttribute("TYPEPLAN") != null && feat.getAttribute("TYPEPLAN").equals("RNU")) {
+				if (feat.getAttribute("INSEE") != null && feat.getAttribute("INSEE").equals(insee) && feat.getAttribute("TYPEPLAN") != null
+						&& feat.getAttribute("TYPEPLAN").equals("RNU")) {
 					answer = true;
 				}
 			}
@@ -233,8 +376,7 @@ public class SimuTool {
 			if (nameParam.split(":").length > 1) {
 				if (nameParam.split(":")[0].equals(p.getString("scenarioPMSP3D"))) {
 					specialScenarZone.add(nameParam);
-				}
-				else {
+				} else {
 					continue;
 				}
 			}
@@ -259,8 +401,7 @@ public class SimuTool {
 		return newFile;
 	}
 
-	public static Hashtable<String, List<String[]>> getCitiesFromparticularHousingUnit(File housingUnit)
-			throws IOException {
+	public static Hashtable<String, List<String[]>> getCitiesFromparticularHousingUnit(File housingUnit) throws IOException {
 		Hashtable<String, List<String[]>> result = new Hashtable<String, List<String[]>>();
 
 		CSVReader csv = new CSVReader(new FileReader(housingUnit));
@@ -315,14 +456,17 @@ public class SimuTool {
 
 	public static List<List<List<File>>> generateResultConfigSimPLU(File rootFile) {
 		List<List<List<File>>> buildingSimulatedPerSimu = new ArrayList<List<List<File>>>();
-
 		for (File scenarFile : new File(rootFile, "SimPLUDepot").listFiles()) {
 			List<List<File>> buildingSimulatedPerScenar = new ArrayList<List<File>>();
-			for (File variantFile : scenarFile.listFiles()) {
+			for (File variantFolder : scenarFile.listFiles()) {
 				List<File> buildingSimulatedPerVar = new ArrayList<File>();
-				for (File fileFile : variantFile.listFiles()) {
-					if (fileFile.getName().endsWith(".shp") && fileFile.getName().startsWith("out-")) {
-						buildingSimulatedPerVar.add(fileFile);
+				for (File superPackFolder : variantFolder.listFiles()) {
+					for (File packFolder : superPackFolder.listFiles()) {
+						for (File file : packFolder.listFiles()) {
+							if (file.getName().endsWith(".shp") && file.getName().startsWith("out-")) {
+								buildingSimulatedPerVar.add(file);
+							}
+						}
 					}
 				}
 				buildingSimulatedPerScenar.add(buildingSimulatedPerVar);
@@ -335,12 +479,12 @@ public class SimuTool {
 	public static List<List<File>> generateResultParcels(File rootFile) {
 		List<List<File>> buildingSimulatedPerSimu = new ArrayList<List<File>>();
 
-		for (File scenarFile : new File(rootFile, "ParcelSelectionFile").listFiles()) {
+		for (File scenarFolder : new File(rootFile, "ParcelSelectionDepot").listFiles()) {
 			List<File> parcelGenPerScenar = new ArrayList<File>();
-			for (File variantFile : scenarFile.listFiles()) {
-				for (File fileFile : variantFile.listFiles()) {
-					if (fileFile.getName().endsWith(".shp") && fileFile.getName().startsWith("parcel")) {
-						parcelGenPerScenar.add(fileFile);
+			for (File variantFolder : scenarFolder.listFiles()) {
+				for (File file : variantFolder.listFiles()) {
+					if (file.getName().equals("parcelGenExport.shp")) {
+						parcelGenPerScenar.add(file);
 					}
 				}
 			}

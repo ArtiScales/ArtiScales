@@ -7,23 +7,30 @@ import java.io.IOException;
 import fr.ign.analyse.obj.ProjetAnalyse;
 import fr.ign.analyse.obj.ScenarAnalyse;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
+import fr.ign.cogit.util.FromGeom;
 
 public abstract class Indicators {
-  SimpluParametersJSON p;
-	File rootFile;
-	File paramFolder;
-	File simuFile;
-	
+	SimpluParametersJSON p;
+	protected File rootFile, paramFolder, parcelDepotGenFile, simPLUDepotGenFile, indicFile, mapDepotFile;
+	protected String scenarName, variantName, echelle;
+
 	static boolean firstLineGen = true;
 	static boolean firstLineSimu = true;
 	static boolean particularExists = false;
 	ScenarAnalyse sA;
 
-	public Indicators(SimpluParametersJSON p, File rootFile) {
+	public Indicators(SimpluParametersJSON p, File rootfile, String scenarname, String variantname) throws Exception {
 		this.p = p;
-		this.rootFile = rootFile;
-		this.paramFolder = new File (rootFile, "paramFolder");
-		
+		this.rootFile = rootfile;
+		this.scenarName = scenarname;
+		this.variantName = variantname;
+		this.paramFolder = new File(rootFile, "paramFolder");
+		this.parcelDepotGenFile = new File(rootFile, "ParcelSelectionDepot/" + scenarName + "/" + variantName + "/parcelGenExport.shp");
+		this.simPLUDepotGenFile = new File(rootFile, "SimPLUDepot/" + scenarName + "/" + variantName + "/TotBatSimuFill.shp");
+		if (!simPLUDepotGenFile.exists() && !scenarname.equals("") && !variantname.equals("")) {
+			FromGeom.mergeBatis(simPLUDepotGenFile);
+		}
+
 		// lazy way to get MUP-City's informations
 		String strictStr = "St";
 		String meanStr = "Moy";
@@ -42,7 +49,11 @@ public abstract class Indicators {
 	 * 
 	 */
 	public String getnameScenar() {
-		return p.getString("name");
+		return scenarName;
+	}
+
+	public String getnameVariant() {
+		return variantName;
 	}
 
 	/**
@@ -64,15 +75,14 @@ public abstract class Indicators {
 	}
 
 	/**
-	 * getters of the simulation's selections stuff TODO a faire
+	 * getters of the simulation's selections stuff
 	 * 
 	 * @param fileRef
 	 *            a building file to get the general informations of
 	 * @return the name of the selection's methods
 	 */
-	public String getSelection() {
-
-		return simuFile.getName();
+	public String getIndicFolderName() {
+		return indicFile.getName();
 	}
 
 	/**
@@ -92,7 +102,7 @@ public abstract class Indicators {
 	 * @return
 	 */
 	protected String getFirstlineCsv() {
-		return ("nameScenar, paramètres techniques MUP-City,paramètre Scenaristique MUP-City,");
+		return ("nameScenar, nameVariant,");
 	}
 
 	/**
@@ -108,18 +118,18 @@ public abstract class Indicators {
 	 *            : the first line (can be empty)
 	 * @throws IOException
 	 */
-	public void toGenCSV(File f, String indicName, String firstline, String line) throws IOException {
-		File fileName = new File(f, "results" + indicName + ".csv");
+	public void toGenCSV(String indicName, String firstline, String line) throws IOException {
+		File fileName = new File(indicFile, indicName + ".csv");
 		FileWriter writer = new FileWriter(fileName, true);
-		// si l'on a pas encore insrit la premiere ligne
+		// si l'on a pas encore inscrit la premiere ligne
 		if (firstLineGen) {
-			writer.append(firstline);
+			writer.append(getFirstlineCsv() + firstline);
 			writer.append("\n");
 			firstLineGen = false;
 		}
 
 		// on cole les infos du scénario à la première ligne
-		line = getnameScenar() + "," + getMupTech() + "," + getMupScenario() + "," + line;
+		line = getnameScenar() + "," + getnameVariant() + "," + line;
 		writer.append(line);
 		writer.append("\n");
 		writer.close();

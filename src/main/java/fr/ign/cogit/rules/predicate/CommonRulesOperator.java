@@ -440,7 +440,6 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		//////// Checking the height of the cuboid
 		double minPar = p.getDouble("minheight");
 		double maxPar = p.getDouble("maxheight");
-
 		double minRule = 0.0;
 		double maxRule = 0.0;
 

@@ -8,6 +8,7 @@ import fr.ign.cogit.modules.SimPLUSimulator;
 import fr.ign.cogit.rules.regulation.buildingType.BuildingType;
 import fr.ign.cogit.simplu3d.io.feature.AttribNames;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
+import fr.ign.cogit.util.TransformXMLToJSON;
 
 public class FakeWorldSimulator {
 
@@ -15,12 +16,12 @@ public class FakeWorldSimulator {
 
 		// Parent folder with all subfolder
 		String absoluteRootFolder = "./fakeWorld/";
-		// String absoluteRootFolder = "/home/ubuntu/boulot/these/fakeWorld/";
+		// String absoluteRootFolder = "/tmp/Artiscales_fakeworld/Artiscales"; 1, il doit y avo
 
 		File rootFolderFile = new File(absoluteRootFolder);
-		File outFile = new File(absoluteRootFolder+"/out");
+		File outFile = new File(absoluteRootFolder + "/out");
 		outFile.mkdirs();
-		testBuildingTypes(rootFolderFile,outFile  );
+		testBuildingTypes(rootFolderFile, outFile);
 	}
 
 	public static void tryRules(File rootFolderFile) throws Exception {
@@ -63,14 +64,13 @@ public class FakeWorldSimulator {
 					p.set("intersection", false);
 				}
 
-				// String simulOut = pathSubFolder + "/out/";
+				// String simulOut = pathSubFolder + "/out/";pbirth
 				// (new File(simulOut)).mkdirs();
 				// p.set("simu", simulOut);
 				// SimPLUSimulator.ID_PARCELLE_TO_SIMULATE.add("30000");
 				// Selected parcels shapefile
 
-				SimPLUSimulator simplu = new SimPLUSimulator(new File("./src/main/resources/"),
-						rootFolderFile, p, new File("/tmp/yop"));
+				SimPLUSimulator simplu = new SimPLUSimulator(new File("./src/main/resources/"), rootFolderFile, p, new File("/tmp/yop"));
 
 				simplu.run();
 			}
@@ -84,43 +84,44 @@ public class FakeWorldSimulator {
 		// Line to change to select the right scenario
 
 		File paramFile = new File(rootFolderFile, "/paramFolder");
+		 TransformXMLToJSON.convert(paramFile);
 		lF.add(new File(paramFile + "/paramSet/DDense/parameterScenario.json"));
 		lF.add(new File(paramFile + "/paramSet/DDense/parameterTechnic.json"));
 
 		List<File> lFTemp = new ArrayList<>();
-		
-		
-		File folderProfileBuildingType =  new File(paramFile, "/profileBuildingType/");
-		
+
+		File folderProfileBuildingType = new File(paramFile, "/profileBuildingType/");
+
 		for (File buildingTypeFile : folderProfileBuildingType.listFiles()) {
+
 			if (buildingTypeFile.getName().endsWith(".json") && buildingTypeFile.getName().contains("midBlockFlat")) {
 
 				lFTemp.add(buildingTypeFile);
 			}
 		}
-		
+
 		lFTemp.parallelStream().forEach(x -> {
 			try {
-				launchSimulation(rootFolderFile, outputFolder, x, lF, paramFile );
+				launchSimulation(rootFolderFile, outputFolder, x, lF, paramFile);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		});
 	}
-	
-	
-	private static void launchSimulation(File rootFolderFile, File outputFolder, File buildingTypeFile, List<File> lF , File paramFile) throws Exception {
-	
-			// if (!type.equals("smallBlockFlat")) {
-			// continue;
-			// }
-			SimpluParametersJSON p = new SimpluParametersJSON(lF);
-			AttribNames.setATT_CODE_PARC("CODE");
-			outputFolder = new File(outputFolder, buildingTypeFile.getName());
-			outputFolder.mkdirs();
-			SimPLUSimulator plu = new SimPLUSimulator(paramFile, rootFolderFile, p, outputFolder);
-			plu.run(BuildingType.valueOf(buildingTypeFile.getName().replace(".json", "").toUpperCase()), p);
-	
+
+	private static void launchSimulation(File rootFolderFile, File outputFolder, File buildingTypeFile, List<File> lF, File paramFile)
+			throws Exception {
+
+		// if (!type.equals("smallBlockFlat")) {
+		// continue;
+		// }
+		SimpluParametersJSON p = new SimpluParametersJSON(lF);
+		AttribNames.setATT_CODE_PARC("CODE");
+		outputFolder = new File(outputFolder, buildingTypeFile.getName());
+		outputFolder.mkdirs();
+		SimPLUSimulator plu = new SimPLUSimulator(paramFile, rootFolderFile, p, outputFolder);
+		plu.run(BuildingType.valueOf(buildingTypeFile.getName().replace(".json", "").toUpperCase()), p);
+
 	}
 }

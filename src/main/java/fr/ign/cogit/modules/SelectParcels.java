@@ -39,7 +39,7 @@ import fr.ign.cogit.util.SimuTool;
 
 public class SelectParcels {
 
-	File rootFile, tmpFile, geoFile, regulFile, parcelFile, zoningFile, outFile, spatialConfigurationMUP;
+	File rootFile, geoFile, regulFile, parcelFile, zoningFile, outFile, spatialConfigurationMUP;
 
 	String action;
 	SimpluParametersJSON p;
@@ -49,7 +49,27 @@ public class SelectParcels {
 	float moyEval;
 
 	public static void main(String[] args) throws Exception {
-		aggregateParcelsFromZips(new File("/home/mcolomb/informatique/ArtiScales"));
+//		aggregateParcelsFromZips(new File("/home/ubuntu/boulot/these/result2903/"));
+		File rootFile = new File("/home/ubuntu/boulot/these/result2903/");
+		File regul = new File(rootFile, "dataRegulation");
+		File geo = new File(rootFile, "dataGeo");
+		File tmp = new File(rootFile, "tmp");
+		tmp.mkdir();
+		for (File scenarFile : (new File(rootFile, "ParcelSelectionDepot")).listFiles()) {
+			if (scenarFile.isDirectory()) {
+				String scenar = scenarFile.getName();
+				System.out.println(scenarFile);
+				for (File variantFile : scenarFile.listFiles()) {
+					String variant = variantFile.getName();
+					System.out.println(variantFile);
+					File parcel = new File(variantFile, "parcelGenExport.shp");
+					File outFolder = new File(rootFile, "SimPLUDepot/" + scenar + "/"+variant);
+					outFolder.mkdirs();
+					separateToDifferentOptimizedPack(parcel, outFolder, tmp, regul, geo);
+				}
+			}
+		}
+
 	}
 
 	public SelectParcels(File rootfile, File outfile, File spatialconfiguration, SimpluParametersJSON par) throws Exception {
@@ -64,13 +84,8 @@ public class SelectParcels {
 		regulFile = new File(rootFile, "dataRegulation");
 		outFile = outfile;
 
-		// where temporary stuff are stored
-		tmpFile = new File(rootFile, "tmp");
-		tmpFile.mkdir();
-
 		// Liste des sorties de MupCity
 		spatialConfigurationMUP = spatialconfiguration;
-		System.out.println(spatialConfigurationMUP);
 		// Paramètre si l'on découpe les parcelles ou non
 		zoningFile = FromGeom.getZoning(new File(rootFile, "dataRegulation"));
 	}
@@ -80,7 +95,7 @@ public class SelectParcels {
 		File parcGen = new File(outFile, "parcelGenExport.shp");
 
 		// if we simul on one city (debug) or the whole area
-		List<String> listZip = SimuTool.getIntrestingCommunities(p, geoFile, regulFile, tmpFile, outFile);
+		List<String> listZip = SimuTool.getIntrestingCommunities(p, geoFile, regulFile, outFile);
 
 		// we loop on every cities
 		for (String zip : listZip) {
@@ -91,6 +106,8 @@ public class SelectParcels {
 		////// Packing the parcels for SimPLU3D distribution
 		////////////////
 		// optimized packages
+		File tmpFile = new File(outFile, "tmpFile");
+		tmpFile.mkdirs();
 		if (p.getString("package").equals("ilot")) {
 			separateToDifferentOptimizedPack(parcGen, outFile, tmpFile, regulFile, geoFile);
 		}
@@ -104,6 +121,9 @@ public class SelectParcels {
 	}
 
 	public void selectAndDecompParcels(String zip, Boolean mergeParcels, File mergeFile) throws Exception {
+
+		File tmpFile = new File(mergeFile.getParentFile(), "tmpFile");
+		tmpFile.mkdirs();
 
 		List<String> listeAction = selectionType(p);
 
@@ -154,28 +174,30 @@ public class SelectParcels {
 
 		// some very few cases are still crashing, so we get the parcels back when it does
 
-//		if (!p.getString("splitDensification").equals("false") && !p.getString("splitDensification").equals("")) {
-//			if (!p.getBoolean("Ubuilt")) {
-//				System.out.println("Scenar error. We cannot densify if the U build parcels haven't been selected");
-//			} else {
-//				String splitZone = p.getString("splitDensification");
-//				if (!splitZone.contains("-")) {
-//					System.out.println();
-//					System.out.println("///// We start the densification process\\\\\\");
-//					parcelCollection = ParcelFonction.parcelDensification(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP, rootFile, p);
-//					Vectors.exportSFC(parcelCollection, new File(tmpFile, "afterDensification"));
-//				} else {
-//					System.err.println("splitParcel : complex section non implemented yet");
-//				}
-//			}
-//		}
+		if (!p.getString("splitDensification").equals("false") && !p.getString("splitDensification").equals("")) {
+			if (!p.getBoolean("Ubuilt")) {
+				System.out.println("Scenar error. We cannot densify if the U build parcels haven't been selected");
+			} else {
+				String splitZone = p.getString("splitDensification");
+				if (!splitZone.contains("-")) {
+					System.out.println();
+					System.out.println("///// We start the densification process\\\\\\");
+					parcelCollection = ParcelFonction.setRecompositionProcesssus(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP,
+							rootFile, p, "densification", true);
+					Vectors.exportSFC(parcelCollection, new File(tmpFile, "afterDensification"));
+				} else {
+					System.err.println("splitParcel : complex section non implemented yet");
+				}
+			}
+		}
 
 		if (!p.getString("splitTotRecomp").equals("false") && !p.getString("splitTotRecomp").equals("")) {
 			String splitZone = p.getString("splitTotRecomp");
 			if (!splitZone.contains("-")) {
 				System.out.println();
 				System.out.println("///// We start the splitTotRecomp process\\\\\\");
-				parcelCollection = ParcelFonction.parcelTotRecomp(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP, p, rootFile);
+				parcelCollection = ParcelFonction.setRecompositionProcesssus(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP, rootFile,
+						p, "totRecomp", true);
 				Vectors.exportSFC(parcelCollection, new File(tmpFile, "afterSplitTotRecomp"));
 			} else {
 				System.err.println("splitParcel : complex section non implemented yet");
@@ -186,7 +208,8 @@ public class SelectParcels {
 			if (!splitZone.contains("-")) {
 				System.out.println();
 				System.out.println("///// We start the splitPartRecomp process\\\\\\");
-				parcelCollection = ParcelFonction.parcelPartRecomp(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP, p, rootFile, true);
+				parcelCollection = ParcelFonction.setRecompositionProcesssus(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP, rootFile,
+						p, "partRecomp", true);
 				Vectors.exportSFC(parcelCollection, new File(tmpFile, "aftersplitPartRecomp"));
 			} else {
 				System.err.println("splitParcel : complex section non implemented yet");
@@ -224,8 +247,7 @@ public class SelectParcels {
 	 * Know which selection method to use determined by the param file
 	 * 
 	 * @return a list with all the different selections
-	 * 
-	 * @return
+	 *
 	 */
 	private static List<String> selectionType(SimpluParameters p) {
 		List<String> routine = new ArrayList<String>();
@@ -711,14 +733,18 @@ public class SelectParcels {
 	}
 
 	public static void aggregateParcelsFromZips(File rootFile) throws Exception {
-		for (File scenarFile : (new File(rootFile, "ParcelSelectionDepot")).listFiles()) {
+		for (File scenarFile : (new File(rootFile, "ParcelSelectionDepot2")).listFiles()) {
 			if (scenarFile.isDirectory()) {
 				System.out.println(scenarFile);
 				for (File variantFile : scenarFile.listFiles()) {
+					System.out.println(variantFile);
 					List<File> zips = new ArrayList<File>();
-					for (File zip : (new File(variantFile, "zips")).listFiles()) {
-						zips.add(new File(zip, "parcelOut-" + zip.getName() + ".shp"));
+					for (File zip : variantFile.listFiles()) {
+						if (zip.isDirectory() && !zip.getName().equals("tmpFile")) {
+							zips.add(new File(zip, "parcelOut-" + zip.getName() + ".shp"));
+						}
 					}
+					System.out.println(new File(variantFile, "parcelGenExport.shp"));
 					Vectors.mergeVectFiles(zips, new File(variantFile, "parcelGenExport.shp"));
 				}
 			}
@@ -863,30 +889,5 @@ public class SelectParcels {
 			}
 		}
 		predicate.close();
-	}
-
-	/**
-	 * create empty shapefile (better than non existent shapefile)
-	 * 
-	 * @param f
-	 * @throws IOException
-	 * @throws FactoryException
-	 * @throws NoSuchAuthorityCodeException
-	 */
-
-	public static void createPackOfEmptyShp(File f) throws IOException, NoSuchAuthorityCodeException, FactoryException {
-
-		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
-		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
-		sfTypeBuilder.setName("testType");
-		sfTypeBuilder.setCRS(sourceCRS);
-		sfTypeBuilder.add("the_geom", MultiPolygon.class);
-		sfTypeBuilder.setDefaultGeometry("the_geom");
-
-		SimpleFeatureCollection vide = (new DefaultFeatureCollection()).collection();
-		String[] stuffs = { "building.shp", "road.shp", "zoning.shp", "prescPonct.shp", "prescLin.shp", "prescSurf.shp" };
-		for (String object : stuffs) {
-			Vectors.exportSFC(vide, new File(f, object));
-		}
 	}
 }
