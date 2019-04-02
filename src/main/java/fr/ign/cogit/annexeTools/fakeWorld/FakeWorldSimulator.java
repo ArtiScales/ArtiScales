@@ -93,9 +93,10 @@ public class FakeWorldSimulator {
 		File folderProfileBuildingType = new File(paramFile, "/profileBuildingType/");
 
 		for (File buildingTypeFile : folderProfileBuildingType.listFiles()) {
-			if (buildingTypeFile.getName().endsWith(".json")) {
-				if (buildingTypeFile.getName().startsWith("midBlockFlat"))
-					lFTemp.add(buildingTypeFile);
+
+			if (buildingTypeFile.getName().endsWith(".json") && buildingTypeFile.getName().contains("midBlockFlat")) {
+
+				lFTemp.add(buildingTypeFile);
 			}
 		}
 
