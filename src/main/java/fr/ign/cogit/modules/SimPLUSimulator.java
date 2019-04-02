@@ -139,34 +139,34 @@ public class SimPLUSimulator {
 		SimpluParametersJSON p = new SimpluParametersJSON(lF);
 		// AttribNames.setATT_CODE_PARC("CODE");
 		// USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
-File pack = new File("./" + nameMainFolder + "/testSimPLU3");
-File fOut = new File(pack, "result");
+		File pack = new File("./" + nameMainFolder + "/testSimPLU4");
+		File fOut = new File(pack, "result");
 
 		System.out.println("start pack " + pack);
 		SimPLUSimulator sim = new SimPLUSimulator(paramFolder, pack, p, fOut);
 		List<File> simued = sim.run();
 
 		System.out.println("done with pack " + pack.getName());
-		
-//		File f = new File("./" + nameMainFolder + "/ParcelSelectionDepot/DDense/variante0/");
-//		File fOut = new File("." + nameMainFolder + "/ArtiScalesTest/SimPLUDepot/DDense/variante0/");
-//		List<File> listBatiSimu = new ArrayList<File>();
-//		for (File superPack : f.listFiles()) {
-//			if (superPack.isDirectory()) {
-//				for (File pack : superPack.listFiles()) {
-//					if (pack.isDirectory()) {
-//						System.out.println("start pack " + pack);
-//						SimPLUSimulator sim = new SimPLUSimulator(paramFolder, pack, p, fOut);
-//						List<File> simued = sim.run();
-//						if (simued != null) {
-//							listBatiSimu.addAll(simued);
-//						}
-//						System.out.println("done with pack " + pack.getName());
-//					}
-//				}
-//			}
-//		}
-//		FromGeom.mergeBatis(listBatiSimu);
+
+		// File f = new File("./" + nameMainFolder + "/ParcelSelectionDepot/DDense/variante0/");
+		// File fOut = new File("." + nameMainFolder + "/ArtiScalesTest/SimPLUDepot/DDense/variante0/");
+		// List<File> listBatiSimu = new ArrayList<File>();
+		// for (File superPack : f.listFiles()) {
+		// if (superPack.isDirectory()) {
+		// for (File pack : superPack.listFiles()) {
+		// if (pack.isDirectory()) {
+		// System.out.println("start pack " + pack);
+		// SimPLUSimulator sim = new SimPLUSimulator(paramFolder, pack, p, fOut);
+		// List<File> simued = sim.run();
+		// if (simued != null) {
+		// listBatiSimu.addAll(simued);
+		// }
+		// System.out.println("done with pack " + pack.getName());
+		// }
+		// }
+		// }
+		// }
+		// FromGeom.mergeBatis(listBatiSimu);
 
 		// File rootFile = new File("/media/mcolomb/Data_2/root20190221/ParcelSelectionDepot/DDense/variante0/0/201");
 		//
@@ -223,7 +223,6 @@ File fOut = new File(pack, "result");
 		this.roadFile = new File(geoSnap, "route.shp");
 		this.communitiesFile = new File(geoSnap, "communities.shp");
 		this.predicateFile = new File(packFile, "snapPredicate.csv");
-
 		this.filePrescPonct = new File(geoSnap, "prescription_ponct.shp");
 		this.filePrescLin = new File(geoSnap, "prescription_lin.shp");
 		this.filePrescSurf = new File(geoSnap, "prescription_surf.shp");
@@ -448,7 +447,12 @@ File fOut = new File(pack, "result");
 				}
 				// if the size of floor is inferior to the minimum we set, we downsize to see if a smaller type fits
 				if ((double) building.get(0).getAttribute("SDPShon") < pWithBuildingType.getDouble("areaMin")) {
-					System.out.println("SDP is too small ( "+ (double) building.get(0).getAttribute("SDPShon") +" for a min of "+ pWithBuildingType.getDouble("areaMin")+")");
+					System.out.println("SDP is too small ( " + (double) building.get(0).getAttribute("SDPShon") + " for a min of "
+							+ pWithBuildingType.getDouble("areaMin") + ")");
+//					File output = new File(folderOut, "temp-parcel_" + codeParcel + "-" + type + ".shp");
+//					System.out.println("Output in : " + output);
+//					ShapefileWriter.write(building, output.toString(), CRS.decode("EPSG:2154"));
+
 					adjustDown = true;
 					BuildingType typeTemp = housingUnit.down(type);
 					// if it's not the same type, we'll continue to seek
@@ -553,7 +557,7 @@ File fOut = new File(pack, "result");
 	}
 
 	/**
-	 * for a given parcel, seek if the parcel general file has said that it could be simulated
+	 * for a given parcel, get its interest to be urbanized
 	 * 
 	 * @param codeParcel
 	 * @return
@@ -692,9 +696,9 @@ File fOut = new File(pack, "result");
 		}
 
 		List<Cuboid> cubes = cc.getGraph().vertexSet().stream().map(x -> x.getValue()).collect(Collectors.toList());
-		surfacePlancherTotal = surfGen.process(cubes)*0.8;
+		surfacePlancherTotal = surfGen.process(cubes) * 0.8;
 		if (RepartitionBuildingType.hasCommonParts(type)) {
-			surfacePlancherTotal = surfacePlancherTotal*0.9;			
+			surfacePlancherTotal = surfacePlancherTotal * 0.9;
 		}
 		surfaceAuSol = surfGen.processSurface(cubes);
 
@@ -753,7 +757,7 @@ File fOut = new File(pack, "result");
 			AttributeManager.addAttribute(feat, "Hauteur", v.getValue().height, "Double");
 			AttributeManager.addAttribute(feat, "Rotation", v.getValue().orientation, "Double");
 			AttributeManager.addAttribute(feat, "SurfaceBox", feat.getGeom().area(), "Double");
-			AttributeManager.addAttribute(feat, "SDPShon", surfacePlancherTotal , "Double");
+			AttributeManager.addAttribute(feat, "SDPShon", surfacePlancherTotal, "Double");
 			AttributeManager.addAttribute(feat, "SurfacePar", areaParcels, "Double");
 			AttributeManager.addAttribute(feat, "SurfaceSol", surfaceAuSol, "Double");
 			AttributeManager.addAttribute(feat, "CODE", bPU.getCadastralParcels().get(0).getCode(), "String");
@@ -807,6 +811,7 @@ File fOut = new File(pack, "result");
 		// art-0071 implentation (begin)
 		// LEFT SIDE IS TESTED
 		IGeometry[] leftAlignement = alignementsGeometries.getLeftSide();
+		System.out.println("lenght of left side : " + leftAlignement[0]);
 
 		if (leftAlignement != null && (leftAlignement.length > 0)) {
 			for (IGeometry geom : leftAlignement) {
@@ -823,6 +828,7 @@ File fOut = new File(pack, "result");
 
 		IGeometry[] rightAlignement = alignementsGeometries.getRightSide();
 		GraphConfiguration<Cuboid> cc2 = null;
+		System.out.println("lenght of right side : " + leftAlignement[0]);
 		if (rightAlignement != null && (rightAlignement.length > 0)) {
 
 			iMSSamplinSurface = new GM_MultiSurface<>();

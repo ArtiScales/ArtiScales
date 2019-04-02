@@ -19,7 +19,6 @@ import fr.ign.cogit.modules.SelectParcels;
 public class Test {
 
 	public static void main(String[] args) throws Exception {
-
 		digForBesac(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/DDense/variantMvGrid1"));
 	}
 

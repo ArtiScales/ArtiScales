@@ -58,18 +58,23 @@ public class SelectParcels {
 		for (File scenarFile : (new File(rootFile, "ParcelSelectionDepot")).listFiles()) {
 			if (scenarFile.isDirectory()) {
 				String scenar = scenarFile.getName();
-				System.out.println(scenarFile);
+				if (!scenar.equals("DPeuDense")) {
+					continue;
+				}
+							System.out.println(scenarFile);
 				for (File variantFile : scenarFile.listFiles()) {
 					String variant = variantFile.getName();
 					System.out.println(variantFile);
 					File parcel = new File(variantFile, "parcelGenExport.shp");
 					File outFolder = new File(rootFile, "SimPLUDepot/" + scenar + "/"+variant);
+					if (outFolder.exists()) {
+						continue;
+					}
 					outFolder.mkdirs();
 					separateToDifferentOptimizedPack(parcel, outFolder, tmp, regul, geo);
 				}
 			}
 		}
-
 	}
 
 	public SelectParcels(File rootfile, File outfile, File spatialconfiguration, SimpluParametersJSON par) throws Exception {
