@@ -168,6 +168,10 @@
             <name>ThéMA libs Repository</name>
             <url>http://sourcesup.renater.fr/nexus/content/repositories/mupcity-releases/</url>
         </repository>
+        <repository>
+        	<id>geosolutions</id>
+        	<url>http://maven.geo-solutions.it/</url>
+        </repository>
 	</repositories>
     <developers>
         <developer>

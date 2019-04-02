@@ -1,7 +1,9 @@
 package fr.ign.cogit.modules;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.WriteAbortedException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -12,6 +14,7 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.referencing.CRS;
+import org.hibernate.result.Output;
 import org.opengis.feature.simple.SimpleFeature;
 
 import fr.ign.cogit.annexeTools.SDPCalcPolygonizer;
@@ -329,6 +332,8 @@ public class SimPLUSimulator {
 		// information and simulated annealing configuration
 		// SimuTool.setEnvEnglishName();
 
+	  FileWriter importantInfo = new FileWriter(new File(folderOut,"importantInfo")); 
+	  
 		if (!zoningFile.exists()) {
 			System.out.println("Zoning File not found: " + zoningFile);
 			System.out.println("&&&&&&&&&&&&&& Aucun bâtiment n'a été simulé &&&&&&&&&&&&&&");
@@ -395,7 +400,7 @@ public class SimPLUSimulator {
 			pUsed = new SimpluParametersJSON(p);
 			CadastralParcel CadParc = env.getBpU().get(i).getCadastralParcels().get(0);
 			String codeParcel = CadParc.getCode();
-
+			importantInfo.write(codeParcel + "\n");
 			// if this parcel contains no attributes, it means that it has been put here
 			// just to express its boundaries
 			if (codeParcel == null) {
@@ -404,7 +409,8 @@ public class SimPLUSimulator {
 			// if parcel has been marked as non simulable, return null
 			if (!isParcelSimulable(codeParcel)) {
 				CadParc.setHasToBeSimulated(false);
-				System.out.println(codeParcel + " : je l'ai stopé net coz pas selec");
+				System.out.println(codeParcel + " not selected : simulation stoped");
+				importantInfo.write(codeParcel + "pas sélectionnée \n \n");
 				continue;
 			}
 			System.out.println("Parcel code : " + codeParcel + "(pack " + simuFile.getName() + ")");
@@ -429,10 +435,12 @@ public class SimPLUSimulator {
 			// until we found the right type
 			while (seekType) {
 				System.out.println("we try to put a " + type + " housing unit");
+                importantInfo.write("simulation d'un "+type+" \n");
+
 				// we add the parameters for the building type want to simulate
 				SimpluParametersJSON pWithBuildingType = new SimpluParametersJSON(pUsed);
 				pWithBuildingType.add(RepartitionBuildingType.getParamBuildingType(new File(paramFile, "profileBuildingType"), type));
-				building = runSimulation(env, i, pWithBuildingType, type, prescriptionUse);
+				building = runSimulation(env, i, pWithBuildingType, type, prescriptionUse, importantInfo);
 				// if it's null, we skip to another parcel
 				if (building == null) {
 					continue bpu;
@@ -440,6 +448,8 @@ public class SimPLUSimulator {
 				// if the size of floor is inferior to the minimum we set, we downsize to see if a smaller type fits
 				if ((double) building.get(0).getAttribute("SDPShon") < pWithBuildingType.getDouble("areaMin")) {
 					System.out.println("SDP is too small ( "+ (double) building.get(0).getAttribute("SDPShon") +" for a min of "+ pWithBuildingType.getDouble("areaMin")+")");
+	                importantInfo.write("SDP is too small ( "+ (double) building.get(0).getAttribute("SDPShon") +" for a min of "+ pWithBuildingType.getDouble("areaMin")+") \n");
+
 					adjustDown = true;
 					BuildingType typeTemp = housingUnit.down(type);
 					// if it's not the same type, we'll continue to seek
@@ -450,6 +460,7 @@ public class SimPLUSimulator {
 					// if it's blocked, we'll go for this type
 					else {
 						System.out.println("anyway, we'll go for this " + type + " type");
+						importantInfo.write("anyway, we'll go for this " + type + " type \n");
 						seekType = false;
 					}
 				} else {
@@ -484,7 +495,7 @@ public class SimPLUSimulator {
 			System.out.println("&&&&&&&&&&&&&& Aucun bâtiment n'a été simulé &&&&&&&&&&&&&&");
 			return null;
 		}
-
+		importantInfo.close();
 		return listBatiSimu;
 	}
 
@@ -573,6 +584,15 @@ public class SimPLUSimulator {
 		return result;
 	}
 
+	public IFeatureCollection<IFeature> runSimulation(Environnement env, int i, SimpluParametersJSON par, BuildingType type,
+			IFeatureCollection<Prescription> prescriptionUse) throws Exception {
+
+		FileWriter fw = new FileWriter(new File(folderOut, "important"));
+		IFeatureCollection<IFeature> result = runSimulation(env, i, par, type, prescriptionUse, fw);
+		fw.close();
+		return result;
+	}
+	
 	/**
 	 * Simulation for the ie bPU
 	 * 
@@ -586,7 +606,7 @@ public class SimPLUSimulator {
 	 * @throws Exception
 	 */
 	public IFeatureCollection<IFeature> runSimulation(Environnement env, int i, SimpluParametersJSON par, BuildingType type,
-			IFeatureCollection<Prescription> prescriptionUse) throws Exception {
+			IFeatureCollection<Prescription> prescriptionUse, FileWriter writer) throws Exception {
 
 		BasicPropertyUnit bPU = env.getBpU().get(i);
 
@@ -600,7 +620,7 @@ public class SimPLUSimulator {
 
 		CommonPredicateArtiScales<Cuboid, GraphConfiguration<Cuboid>, BirthDeathModification<Cuboid>> pred = null;
 
-		// According to the case, different predicates may be used
+		// According to the case, different predicates may be used 
 		// Do we consider 1 regualtion by parcel or one by subParcel ?
 		if (!USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL || bPU.getCadastralParcels().get(0).getSubParcels().size() < 2) {
 			// In this mode there is only one regulation for the entire BPU
@@ -617,6 +637,7 @@ public class SimPLUSimulator {
 
 		if (!pred.isCanBeSimulated()) {
 			System.out.println("Parcel is not simulable according to the predicate");
+			writer.write("no simu possible for many reasons \n");
 			return null;
 		}
 		// if (!pred.isOutsized()) {
@@ -639,7 +660,9 @@ public class SimPLUSimulator {
 				// TODO fix that defaite
 				try {
 					cc = article71Case12(alignementsGeometries, pred, env, i, bPU, par);
+					writer.write("ART7112 used \n");
 				} catch (Exception e) {
+					writer.write("ART7112 not used \n");
 					System.out.println("cuboid from ART7112 failed");
 					System.out.println();
 					System.out.println(e);
@@ -674,6 +697,9 @@ public class SimPLUSimulator {
 			}
 		}
 		System.out.println(pred.getDenial());
+		writer.write("denial reasons : "+ pred.getDenial() + " \n \n");
+//		writer.write("stoped because of  : "+ "" + " \n \n ");
+
 		// the -0.1 is set to avoid uncounting storeys when its very close to make one storey (which is very frequent)
 		double surfacePlancherTotal = 0.0;
 		double surfaceAuSol = 0.0;
