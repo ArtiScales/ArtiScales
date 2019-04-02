@@ -18,35 +18,36 @@ import fr.ign.cogit.modules.SelectParcels;
 public class Test {
 
 	public static void main(String[] args) throws Exception {
-		ShapefileDataStore communitiesSDS = new ShapefileDataStore((new File("/home/ubuntu/boulot/these/ArtiScales/ArtiScales/ParcelSelectionDepot/DDense/variante0/parcelGenExport.shp")).toURI().toURL());
-		SimpleFeatureCollection communitiesOG = communitiesSDS.getFeatureSource().getFeatures();
-
-		SimpleFeatureIterator it = communitiesOG.features();
-List<String> l = new ArrayList<String>();
-
-		while (it.hasNext()) {
-			SimpleFeature f =it.next();
-			String code = (String) f.getAttribute("INSEE");
-			if (code.equals("25056")) {
-				code = code + f.getAttribute("SECTION");
-			}
-			if (!l.contains(code)) {
-				l.add(code);
-			}
-		}
-		it.close();
-		communitiesSDS.dispose();
-		System.out.println(l.size());
-		
-//		CSVWriter writer = new CSVWriter(new FileWriter("/home/ubuntu/workspace/ArtiScales/missing.csv"));
-//		for (String[] l : reader.readAll()) {
-//			if (l[0].startsWith("magic number wrong : /home/ubuntu/boulot/these/result0313/ParcelSelectionDepot/")) {
-//				String[] s = l[0].replace("magic number wrong : /home/ubuntu/boulot/these/result0313/ParcelSelectionDepot/", "").split("/");
-//				writer.writeNext(s);
+//		ShapefileDataStore communitiesSDS = new ShapefileDataStore((new File("/home/ubuntu/boulot/these/ArtiScales/ArtiScales/ParcelSelectionDepot/DDense/variante0/parcelGenExport.shp")).toURI().toURL());
+//		SimpleFeatureCollection communitiesOG = communitiesSDS.getFeatureSource().getFeatures();
+//
+//		SimpleFeatureIterator it = communitiesOG.features();
+//List<String> l = new ArrayList<String>();
+//
+//		while (it.hasNext()) {
+//			SimpleFeature f =it.next();
+//			String code = (String) f.getAttribute("INSEE");
+//			if (code.equals("25056")) {
+//				code = code + f.getAttribute("SECTION");
+//			}
+//			if (!l.contains(code)) {
+//				l.add(code);
 //			}
 //		}
-//		reader.close();
-//		writer.close();
+//		it.close();
+//		communitiesSDS.dispose();
+//		System.out.println(l.size());
+		
+		CSVWriter writer = new CSVWriter(new FileWriter("/media/mcolomb/Data_2/WorkSession0327/magicNumber.csv"));
+		CSVReader reader = new CSVReader(new FileReader("/media/mcolomb/Data_2/WorkSession0327/magicNumber"));
+		for (String[] l : reader.readAll()) {
+			if (l[0].startsWith("magic number wrong : ./WorkSession0327/ParcelSelectionDepot2/")) {
+				String[] s = l[0].replace("magic number wrong : ./WorkSession0327/ParcelSelectionDepot2/", "").split("/");
+				writer.writeNext(s);
+			}
+		}
+		reader.close();
+		writer.close();
 
 		
 		

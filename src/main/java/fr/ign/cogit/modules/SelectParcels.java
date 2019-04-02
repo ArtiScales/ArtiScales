@@ -17,16 +17,10 @@ import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.DefaultFeatureCollection;
-import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
-import org.geotools.referencing.CRS;
 import org.geotools.util.factory.GeoTools;
-import org.locationtech.jts.geom.MultiPolygon;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory2;
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.NoSuchAuthorityCodeException;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
@@ -724,7 +718,7 @@ public class SelectParcels {
 	}
 
 	public static void aggregateParcelsFromZips(File rootFile) throws Exception {
-		for (File scenarFile : (new File(rootFile, "ParcelSelectionDepot")).listFiles()) {
+		for (File scenarFile : (new File(rootFile, "ParcelSelectionDepot2")).listFiles()) {
 			if (scenarFile.isDirectory()) {
 				System.out.println(scenarFile);
 				for (File variantFile : scenarFile.listFiles()) {
@@ -732,12 +726,6 @@ public class SelectParcels {
 					List<File> zips = new ArrayList<File>();
 					for (File zip : variantFile.listFiles()) {
 						if (zip.isDirectory() && !zip.getName().equals("tmpFile")) {
-							// if (zip.getName().equals("25410") || zip.getName().equals("25576") || zip.getName().equals("25395")
-							// || zip.getName().equals("25084") || zip.getName().equals("25036") || zip.getName().equals("25258")
-							// || zip.getName().equals("25056HV") || zip.getName().equals("25371") || zip.getName().equals("25594")
-							// || zip.getName().equals("25058") || zip.getName().equals("25594") || zip.getName().equals("25111")) {
-							// continue;
-							// }
 							zips.add(new File(zip, "parcelOut-" + zip.getName() + ".shp"));
 						}
 					}
@@ -886,30 +874,5 @@ public class SelectParcels {
 			}
 		}
 		predicate.close();
-	}
-
-	/**
-	 * create empty shapefile (better than non existent shapefile)
-	 * 
-	 * @param f
-	 * @throws IOException
-	 * @throws FactoryException
-	 * @throws NoSuchAuthorityCodeException
-	 */
-
-	public static void createPackOfEmptyShp(File f) throws IOException, NoSuchAuthorityCodeException, FactoryException {
-
-		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
-		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
-		sfTypeBuilder.setName("testType");
-		sfTypeBuilder.setCRS(sourceCRS);
-		sfTypeBuilder.add("the_geom", MultiPolygon.class);
-		sfTypeBuilder.setDefaultGeometry("the_geom");
-
-		SimpleFeatureCollection vide = (new DefaultFeatureCollection()).collection();
-		String[] stuffs = { "building.shp", "road.shp", "zoning.shp", "prescPonct.shp", "prescLin.shp", "prescSurf.shp" };
-		for (String object : stuffs) {
-			Vectors.exportSFC(vide, new File(f, object));
-		}
 	}
 }
