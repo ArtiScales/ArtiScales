@@ -1,6 +1,7 @@
 package fr.ign.cogit.modules;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -342,10 +343,11 @@ public class SimPLUSimulator {
 			System.out.println("&&&&&&&&&&&&&& Aucun bâtiment n'a été simulé &&&&&&&&&&&&&&");
 			return null;
 		}
+
 		Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile, parcelsFile, roadFile, buildFile, filePrescPonct, filePrescLin,
 				filePrescSurf, null);
 		SimpluParametersJSON pUsed = new SimpluParametersJSON(p);
-
+		FileWriter importantInfo = new FileWriter(new File(folderOut, "importantInfo"), true);
 		///////////
 		// asses repartition to pacels
 		///////////
@@ -403,7 +405,7 @@ public class SimPLUSimulator {
 			pUsed = new SimpluParametersJSON(p);
 			CadastralParcel CadParc = env.getBpU().get(i).getCadastralParcels().get(0);
 			String codeParcel = CadParc.getCode();
-
+			importantInfo.append(codeParcel + "\n");
 			// if this parcel contains no attributes, it means that it has been put here
 			// just to express its boundaries
 			if (codeParcel == null) {
@@ -412,7 +414,9 @@ public class SimPLUSimulator {
 			// if parcel has been marked as non simulable, return null
 			if (!isParcelSimulable(codeParcel)) {
 				CadParc.setHasToBeSimulated(false);
-				System.out.println(codeParcel + " : je l'ai stopé net coz pas selec");
+				System.out.println(codeParcel + " : je l'ai stopé net coz pas selected");
+				System.out.println(codeParcel + " not selected : simulation stoped");
+				importantInfo.append(codeParcel + "pas sélectionnée \n \n");
 				continue;
 			}
 			System.out.println("Parcel code : " + codeParcel + "(pack " + simuFile.getName() + ")");
@@ -436,11 +440,12 @@ public class SimPLUSimulator {
 			IFeatureCollection<IFeature> building = null;
 			// until we found the right type
 			while (seekType) {
-				System.out.println("we try to put a " + type + " housing unit");
+				System.out.println("we try to put aaa " + type + " housing unit");
+				importantInfo.append("simulation d'un " + type + " \n");
 				// we add the parameters for the building type want to simulate
 				SimpluParametersJSON pWithBuildingType = new SimpluParametersJSON(pUsed);
 				pWithBuildingType.add(RepartitionBuildingType.getParamBuildingType(new File(paramFile, "profileBuildingType"), type));
-				building = runSimulation(env, i, pWithBuildingType, type, prescriptionUse);
+				building = runSimulation(env, i, pWithBuildingType, type, prescriptionUse, importantInfo);
 				// if it's null, we skip to another parcel
 				if (building == null) {
 					continue bpu;
@@ -449,9 +454,10 @@ public class SimPLUSimulator {
 				if ((double) building.get(0).getAttribute("SDPShon") < pWithBuildingType.getDouble("areaMin")) {
 					System.out.println("SDP is too small ( " + (double) building.get(0).getAttribute("SDPShon") + " for a min of "
 							+ pWithBuildingType.getDouble("areaMin") + ")");
-//					File output = new File(folderOut, "temp-parcel_" + codeParcel + "-" + type + ".shp");
-//					System.out.println("Output in : " + output);
-//					ShapefileWriter.write(building, output.toString(), CRS.decode("EPSG:2154"));
+ 	                importantInfo.append("SDP is too small ( "+ (double) building.get(0).getAttribute("SDPShon") +" for a min of "+ pWithBuildingType.getDouble("areaMin")+") \n");
+					// File output = new File(folderOut, "temp-parcel_" + codeParcel + "-" + type + ".shp");
+					// System.out.println("Output in : " + output);
+					// ShapefileWriter.write(building, output.toString(), CRS.decode("EPSG:2154"));
 
 					adjustDown = true;
 					BuildingType typeTemp = housingUnit.down(type);
@@ -463,6 +469,7 @@ public class SimPLUSimulator {
 					// if it's blocked, we'll go for this type
 					else {
 						System.out.println("anyway, we'll go for this " + type + " type");
+ 						importantInfo.append("anyway, we'll go for this " + type + " type \n");
 						seekType = false;
 					}
 				} else {
@@ -497,7 +504,7 @@ public class SimPLUSimulator {
 			System.out.println("&&&&&&&&&&&&&& Aucun bâtiment n'a été simulé &&&&&&&&&&&&&&");
 			return null;
 		}
-
+ 		importantInfo.close();
 		return listBatiSimu;
 	}
 
@@ -586,6 +593,16 @@ public class SimPLUSimulator {
 		return result;
 	}
 
+	
+	public IFeatureCollection<IFeature> runSimulation(Environnement env, int i, SimpluParametersJSON par, BuildingType type,
+			IFeatureCollection<Prescription> prescriptionUse) throws Exception {
+
+		FileWriter fw = new FileWriter(new File(folderOut, "important"),true);
+		IFeatureCollection<IFeature> result = runSimulation(env, i, par, type, prescriptionUse, fw);
+		fw.close();
+		return result;
+	}
+	
 	/**
 	 * Simulation for the ie bPU
 	 * 
@@ -599,7 +616,7 @@ public class SimPLUSimulator {
 	 * @throws Exception
 	 */
 	public IFeatureCollection<IFeature> runSimulation(Environnement env, int i, SimpluParametersJSON par, BuildingType type,
-			IFeatureCollection<Prescription> prescriptionUse) throws Exception {
+			IFeatureCollection<Prescription> prescriptionUse, FileWriter writer) throws Exception {
 
 		BasicPropertyUnit bPU = env.getBpU().get(i);
 
@@ -630,6 +647,7 @@ public class SimPLUSimulator {
 
 		if (!pred.isCanBeSimulated()) {
 			System.out.println("Parcel is not simulable according to the predicate");
+ 			writer.append("no simu possible for many reasons \n");
 			return null;
 		}
 		// if (!pred.isOutsized()) {
@@ -652,8 +670,10 @@ public class SimPLUSimulator {
 				// TODO fix that defaite
 				try {
 					cc = article71Case12(alignementsGeometries, pred, env, i, bPU, par);
+ 					writer.append("ART7112 used \n");
 				} catch (Exception e) {
 					System.out.println("cuboid from ART7112 failed");
+ 					writer.append("ART7112 not used \n");
 					System.out.println();
 					System.out.println(e);
 					OptimisedBuildingsCuboidFinalDirectRejection oCB = new OptimisedBuildingsCuboidFinalDirectRejection();
@@ -687,6 +707,8 @@ public class SimPLUSimulator {
 			}
 		}
 		System.out.println(pred.getDenial());
+		writer.append("denial reasons : "+ pred.getDenial() + " \n \n");
+//		writer.write("stoped because of  : "+ "" + " \n \n ");
 		// the -0.1 is set to avoid uncounting storeys when its very close to make one storey (which is very frequent)
 		double surfacePlancherTotal = 0.0;
 		double surfaceAuSol = 0.0;
