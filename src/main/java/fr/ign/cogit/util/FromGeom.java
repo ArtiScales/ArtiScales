@@ -272,7 +272,6 @@ public class FromGeom {
 	 * @throws Exception
 	 */
 	public static File mergeBatis(File file2MergeIn) throws Exception {
-		System.out.println(file2MergeIn);
 		List<File> listBatiFile = addBati(file2MergeIn);
 		File outFile = new File(file2MergeIn, "TotBatSimuFill.shp");
 		return Vectors.mergeVectFiles(listBatiFile, outFile);

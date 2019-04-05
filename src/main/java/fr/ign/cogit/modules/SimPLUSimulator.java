@@ -135,12 +135,12 @@ public class SimPLUSimulator {
 		File paramFolder = new File("./" + nameMainFolder + "/paramFolder");
 		TransformXMLToJSON.convert(paramFolder);
 		List<File> lF = new ArrayList<>();
-		lF.add(new File(paramFolder, "paramSet/DDense/parameterTechnic.json"));
-		lF.add(new File(paramFolder, "paramSet/DDense/parameterScenario.json"));
+		lF.add(new File(paramFolder, "paramSet/CPeuDense/parameterTechnic.json"));
+		lF.add(new File(paramFolder, "paramSet/CPeuDense/parameterScenario.json"));
 		SimpluParametersJSON p = new SimpluParametersJSON(lF);
 		// AttribNames.setATT_CODE_PARC("CODE");
 		// USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
-		File pack = new File("./" + nameMainFolder + "/testSimPLU4");
+		File pack = new File("./" + nameMainFolder + "/testSimPLU1893");
 		File fOut = new File(pack, "result");
 
 		System.out.println("start pack " + pack);
@@ -217,6 +217,7 @@ public class SimPLUSimulator {
 		this.paramFile = paramFile;
 		this.simuFile = packFile;
 		this.folderOut = fileOut;
+		folderOut.mkdirs();
 		this.parcelsFile = new File(packFile, "parcelle.shp");
 		File geoSnap = new File(packFile, "geoSnap");
 		this.zoningFile = new File(geoSnap, "zone_urba.shp");
@@ -301,8 +302,6 @@ public class SimPLUSimulator {
 				continue bpu;
 			}
 
-			// saving the output
-			folderOut.mkdirs();
 
 			File output = new File(folderOut, "out-parcel_" + codeParcel + ".shp");
 			System.out.println("Output in : " + output);
@@ -483,8 +482,6 @@ public class SimPLUSimulator {
 					}
 				}
 			}
-			// saving the output
-			folderOut.mkdirs();
 
 			File output = new File(folderOut, "out-parcel_" + codeParcel + ".shp");
 			System.out.println("Output in : " + output);

@@ -19,39 +19,64 @@ import fr.ign.cogit.modules.SelectParcels;
 public class Test {
 
 	public static void main(String[] args) throws Exception {
-		digForBesac(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/DDense/variantMvGrid1"));
+		digForBesac(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/DDense/base/"));
 	}
 
-	public static void digForBesac(File fIn) throws IOException {
+	public static void digForACity(File fIn, String thisCity) throws IOException {
 		for (File f : fIn.listFiles()) {
 			if (f.isDirectory()) {
-				digForBesac(f);
+				digForACity(f, thisCity);
 			}
-			if (f.getName().equals("communities.shp")) {
+			if (f.getName().equals("parcelle.shp")) {
 				ShapefileDataStore communitiesSDS = new ShapefileDataStore(f.toURI().toURL());
 				SimpleFeatureCollection communitiesOG = communitiesSDS.getFeatureSource().getFeatures();
 				SimpleFeatureIterator it = communitiesOG.features();
 
 				while (it.hasNext()) {
 					SimpleFeature feat = it.next();
-					String code = (String) feat.getAttribute("typo");
-					if (code.equals("centre")) {
-						File parcelF = new File(f.getParentFile().getParentFile(), "parcelle.shp");
-						ShapefileDataStore parcelSDS = new ShapefileDataStore(parcelF.toURI().toURL());
-						SimpleFeatureCollection parcelOG = parcelSDS.getFeatureSource().getFeatures();
-						SimpleFeatureIterator itParcel = parcelOG.features();
-						int nb = 0;
-						while (itParcel.hasNext()) {
-							SimpleFeature featP = itParcel.next();
-							String auth = (String) featP.getAttribute("DoWeSimul");
-							if (auth.equals("true")) {
-								nb++;
-							}
-						}
-						itParcel.close();
-						if (nb > 10) {
+					String insee = (String) feat.getAttribute("INSEE");
+					if (insee != null && insee.equals(thisCity)) {
+System.out.println(f);
+break;
+					}
+				}
+				it.close();
+				communitiesSDS.dispose();
+			}
+		}
+	}
+	public static void digForBesac(File fIn) throws IOException {
+		for (File f : fIn.listFiles()) {
+			if (f.isDirectory()) {
+				digForBesac(f);
+			}
+			if (f.getName().equals("zone_urba.shp")) {
+				ShapefileDataStore communitiesSDS = new ShapefileDataStore(f.toURI().toURL());
+				SimpleFeatureCollection communitiesOG = communitiesSDS.getFeatureSource().getFeatures();
+				SimpleFeatureIterator it = communitiesOG.features();
+
+				while (it.hasNext()) {
+					SimpleFeature feat = it.next();
+					String code = (String) feat.getAttribute("INSEE");
+					String libelle= (String) feat.getAttribute("LIBELLE");
+
+					if (code.equals("25056") && libelle.equals("1AU-D")) {
+//						File parcelF = new File(f.getParentFile().getParentFile(), "parcelle.shp");
+//						ShapefileDataStore parcelSDS = new ShapefileDataStore(parcelF.toURI().toURL());
+//						SimpleFeatureCollection parcelOG = parcelSDS.getFeatureSource().getFeatures();
+//						SimpleFeatureIterator itParcel = parcelOG.features();
+//						int nb = 0;
+//						while (itParcel.hasNext()) {
+//							SimpleFeature featP = itParcel.next();
+//							String auth = (String) featP.getAttribute("DoWeSimul");
+//							if (auth.equals("true")) {
+//								nb++;
+//							}
+//						}
+//						itParcel.close();
+//						if (nb > 10) {
 							System.out.println(f);
-						}
+//						}
 					}
 				}
 				it.close();
