@@ -62,7 +62,7 @@ public class BuildingToHousingUnit extends Indicators {
 		housingUnitFirstLine = "code_parcel," + "SDP," + "emprise," + "nb_housingUnit," + "type_HU," + "zone," + "typo_HU," + "averageSDPPerHU,"
 				+ "buildDensity";
 
-		genStatFirstLine = "code," + "SDPTot," + "initial_densite" + "average_densite," + "standardDev_densite," + "objectifSCOT_densite,"
+		genStatFirstLine = "code," + "SDPTot," + "initial_densite," + "average_densite," + "standardDev_densite," + "objectifSCOT_densite,"
 				+ "diff_objectifSCOT_densite," + "average_SDP_per_HU," + "standardDev_SDP_per_HU," + "nb_building," + "nb_housingUnit,"
 				+ "objectifPLH_housingUnit," + "diff_objectifPLH_housingUnit," + "nbHU_detachedHouse," + "nbHU_smallHouse," + "nbHU_multiFamilyHouse,"
 				+ "nbHU_smallBlockFlat," + "nbHU_midBlockFlat," + "nbHU_U," + "nbHU_AU," + "nbHU_NC," + "nbHU_centre," + "nbHU_banlieue,"
@@ -80,22 +80,23 @@ public class BuildingToHousingUnit extends Indicators {
 	// }
 
 	public static void main(String[] args) throws Exception {
-		File root = new File("./result0308/");
+		File root = new File("./result2903/");
 		File paramFolder = new File(root, "paramFolder");
+		String scenario = "CPeuDense";
+		String variant = "base";
 		List<File> lF = new ArrayList<>();
-		lF.add(new File(paramFolder, "/paramSet/DDense/parameterTechnic.json"));
-		lF.add(new File(paramFolder, "/paramSet/DDense/parameterScenario.json"));
+		lF.add(new File(paramFolder, "/paramSet/"+scenario+"/parameterTechnic.json"));
+		lF.add(new File(paramFolder, "/paramSet/"+scenario+"/parameterScenario.json"));
 
 		SimpluParametersJSON p = new SimpluParametersJSON(lF);
 
-		String scenario = "DDense";
-		String variant = "variante0";
 
 		BuildingToHousingUnit bhtU = new BuildingToHousingUnit(root, p, scenario, variant);
 		// bhtU.distributionEstimate();
 		// for every cities
 
 		List<String> listInsee = FromGeom.getInsee(new File(bhtU.rootFile, "/dataGeo/old/communities.shp"), "DEPCOM");
+		bhtU.distributionEstimate();
 		bhtU.makeGenStat();
 		bhtU.setCountToZero();
 		for (String city : listInsee) {
@@ -155,6 +156,8 @@ public class BuildingToHousingUnit extends Indicators {
 		}
 		String[] attr = { "CODE_DEP", "CODE_COM" };
 		parcelSFC = Vectors.getSFCPart(parcelSFC,code,  attr);
+		System.out.println();
+		System.out.println("city "+ code);
 		buildingSFC = Vectors.snapDatas(buildingSFC, Vectors.unionSFC(parcelSFC));
 System.out.println("this is yo sizes "+ parcelSFC.size()+" azd "+buildingSFC.size());
 		return existingBuildingDensity(buildingSFC, parcelSFC);

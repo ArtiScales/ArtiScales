@@ -37,6 +37,6 @@ public class TransformXMLToJSON {
   }
 
   public static void main(String[] args) throws Exception {
-    convert(new File("/home/mcolomb/workspace/ArtiScales/ArtiScalesTest/paramFolder/"));
+    convert(new File("/home/ubuntu/workspace/ArtiScales/fakeWorld/paramFolder/"));
   }
 }

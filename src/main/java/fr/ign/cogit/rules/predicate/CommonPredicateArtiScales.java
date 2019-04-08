@@ -20,6 +20,8 @@ import fr.ign.cogit.geoxygene.spatial.geomaggr.GM_MultiCurve;
 import fr.ign.cogit.geoxygene.util.conversion.AdapterFactory;
 import fr.ign.cogit.rules.regulation.Alignements;
 import fr.ign.cogit.rules.regulation.ArtiScalesRegulation;
+import fr.ign.cogit.rules.regulation.buildingType.BuildingType;
+import fr.ign.cogit.rules.regulation.buildingType.RepartitionBuildingType;
 import fr.ign.cogit.simplu3d.analysis.ForbiddenZoneGenerator;
 import fr.ign.cogit.simplu3d.model.AbstractBuilding;
 import fr.ign.cogit.simplu3d.model.BasicPropertyUnit;
@@ -373,12 +375,10 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 			List<ArtiScalesRegulation> lRegles = this.getRegulationToApply(cuboid);
 
 			for (ArtiScalesRegulation regle : lRegles) {
-
 				// Distance to the front of the parcel
 				// Rule-art-0072 && art-0071
 				// TODO missing the case where we verify if a building is stick on the other side of the parcel to this cuboid
-				if (!(regle.getArt_71() == 99)) {
-
+				if (regle.getArt_71() != 99) {
 					switch (regle.getArt_71()) {
 					// cannot be aligned
 					case 3:
@@ -590,7 +590,8 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 		List<List<O>> groupList = groupCreator.createGroup(lAllCuboids, 0.1);
 
-		if (!cRO.numberMaxOfBuilding(groupList, 1)) {
+		//number of building. Doesn't apply for collective buildings
+		if (!RepartitionBuildingType.hasCommonParts(BuildingType.valueOf(p.getString("nameBuildingType").toUpperCase())) && !cRO.numberMaxOfBuilding(groupList, 1)) {
 			denial = SimuTool.increm(denial, "buildingNb");
 			return false;
 		}

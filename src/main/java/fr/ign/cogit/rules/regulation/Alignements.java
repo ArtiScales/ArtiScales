@@ -68,7 +68,6 @@ public class Alignements {
 
 	public IGeometry[] getLeftSide() {
 		return getSide(ParcelBoundarySide.LEFT);
-
 	}
 
 	public AlignementType getType() {

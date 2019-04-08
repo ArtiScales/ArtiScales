@@ -8,6 +8,7 @@ import fr.ign.cogit.modules.SimPLUSimulator;
 import fr.ign.cogit.rules.regulation.buildingType.BuildingType;
 import fr.ign.cogit.simplu3d.io.feature.AttribNames;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
+import fr.ign.cogit.util.TransformXMLToJSON;
 
 public class FakeWorldSimulator {
 
@@ -63,7 +64,7 @@ public class FakeWorldSimulator {
 					p.set("intersection", false);
 				}
 
-				// String simulOut = pathSubFolder + "/out/";
+				// String simulOut = pathSubFolder + "/out/";pbirth
 				// (new File(simulOut)).mkdirs();
 				// p.set("simu", simulOut);
 				// SimPLUSimulator.ID_PARCELLE_TO_SIMULATE.add("30000");
@@ -83,6 +84,7 @@ public class FakeWorldSimulator {
 		// Line to change to select the right scenario
 
 		File paramFile = new File(rootFolderFile, "/paramFolder");
+		 TransformXMLToJSON.convert(paramFile);
 		lF.add(new File(paramFile + "/paramSet/DDense/parameterScenario.json"));
 		lF.add(new File(paramFile + "/paramSet/DDense/parameterTechnic.json"));
 
@@ -91,9 +93,10 @@ public class FakeWorldSimulator {
 		File folderProfileBuildingType = new File(paramFile, "/profileBuildingType/");
 
 		for (File buildingTypeFile : folderProfileBuildingType.listFiles()) {
-			if (buildingTypeFile.getName().endsWith(".json")) {
-				if (buildingTypeFile.getName().startsWith("midBlockFlat"))
-					lFTemp.add(buildingTypeFile);
+
+			if (buildingTypeFile.getName().endsWith(".json") && buildingTypeFile.getName().contains("midBlockFlat")) {
+
+				lFTemp.add(buildingTypeFile);
 			}
 		}
 

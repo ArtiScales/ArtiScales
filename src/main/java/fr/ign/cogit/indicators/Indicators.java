@@ -27,7 +27,7 @@ public abstract class Indicators {
 		this.parcelDepotGenFile = new File(rootFile, "ParcelSelectionDepot/" + scenarName + "/" + variantName + "/parcelGenExport.shp");
 		this.simPLUDepotGenFile = new File(rootFile, "SimPLUDepot/" + scenarName + "/" + variantName + "/TotBatSimuFill.shp");
 		if (!simPLUDepotGenFile.exists() && !scenarname.equals("") && !variantname.equals("")) {
-			FromGeom.mergeBatis(simPLUDepotGenFile);
+			FromGeom.mergeBatis(simPLUDepotGenFile.getParentFile());
 		}
 
 		// lazy way to get MUP-City's informations

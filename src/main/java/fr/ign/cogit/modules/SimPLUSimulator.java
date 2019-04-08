@@ -3,7 +3,6 @@ package fr.ign.cogit.modules;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.WriteAbortedException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -14,7 +13,6 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.referencing.CRS;
-import org.hibernate.result.Output;
 import org.opengis.feature.simple.SimpleFeature;
 
 import fr.ign.cogit.annexeTools.SDPCalcPolygonizer;
@@ -52,6 +50,7 @@ import fr.ign.cogit.simplu3d.rjmcmc.cuboid.optimizer.cuboid.OptimisedBuildingsCu
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.optimizer.paralellcuboid.ParallelCuboidOptimizer;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.cogit.util.FromGeom;
+import fr.ign.cogit.util.TransformXMLToJSON;
 import fr.ign.mpp.configuration.BirthDeathModification;
 import fr.ign.mpp.configuration.GraphConfiguration;
 import fr.ign.mpp.configuration.GraphVertex;
@@ -132,35 +131,43 @@ public class SimPLUSimulator {
 		// // SimPLUSimulator.fillSelectedParcels(new File(rootFolder), geoFile,
 		// // pluFile, selectedParcels, 50, "25495", p);
 
-		String nameMainFolder = "ArtiScalesTest";
+		String nameMainFolder = "result2903";
 		File paramFolder = new File("./" + nameMainFolder + "/paramFolder");
+		TransformXMLToJSON.convert(paramFolder);
 		List<File> lF = new ArrayList<>();
-		lF.add(new File(paramFolder, "paramSet/DDense/parameterTechnic.json"));
-		lF.add(new File(paramFolder, "paramSet/DDense/parameterScenario.json"));
-
+		lF.add(new File(paramFolder, "paramSet/CPeuDense/parameterTechnic.json"));
+		lF.add(new File(paramFolder, "paramSet/CPeuDense/parameterScenario.json"));
 		SimpluParametersJSON p = new SimpluParametersJSON(lF);
 		// AttribNames.setATT_CODE_PARC("CODE");
 		// USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
+		File pack = new File("./" + nameMainFolder + "/testSimPLU1893");
+		File fOut = new File(pack, "result");
 
-		File f = new File("./" + nameMainFolder + "/ParcelSelectionDepot/DDense/variante0/");
-		File fOut = new File("." + nameMainFolder + "/ArtiScalesTest/SimPLUDepot/DDense/variante0/");
-		List<File> listBatiSimu = new ArrayList<File>();
-		for (File superPack : f.listFiles()) {
-			if (superPack.isDirectory()) {
-				for (File pack : superPack.listFiles()) {
-					if (pack.isDirectory()) {
-						System.out.println("start pack " + pack);
-						SimPLUSimulator sim = new SimPLUSimulator(paramFolder, pack, p, fOut);
-						List<File> simued = sim.run();
-						if (simued != null) {
-							listBatiSimu.addAll(simued);
-						}
-						System.out.println("done with pack " + pack.getName());
-					}
-				}
-			}
-		}
-		FromGeom.mergeBatis(listBatiSimu);
+		System.out.println("start pack " + pack);
+		SimPLUSimulator sim = new SimPLUSimulator(paramFolder, pack, p, fOut);
+		List<File> simued = sim.run();
+
+		System.out.println("done with pack " + pack.getName());
+
+		// File f = new File("./" + nameMainFolder + "/ParcelSelectionDepot/DDense/variante0/");
+		// File fOut = new File("." + nameMainFolder + "/ArtiScalesTest/SimPLUDepot/DDense/variante0/");
+		// List<File> listBatiSimu = new ArrayList<File>();
+		// for (File superPack : f.listFiles()) {
+		// if (superPack.isDirectory()) {
+		// for (File pack : superPack.listFiles()) {
+		// if (pack.isDirectory()) {
+		// System.out.println("start pack " + pack);
+		// SimPLUSimulator sim = new SimPLUSimulator(paramFolder, pack, p, fOut);
+		// List<File> simued = sim.run();
+		// if (simued != null) {
+		// listBatiSimu.addAll(simued);
+		// }
+		// System.out.println("done with pack " + pack.getName());
+		// }
+		// }
+		// }
+		// }
+		// FromGeom.mergeBatis(listBatiSimu);
 
 		// File rootFile = new File("/media/mcolomb/Data_2/root20190221/ParcelSelectionDepot/DDense/variante0/0/201");
 		//
@@ -210,6 +217,7 @@ public class SimPLUSimulator {
 		this.paramFile = paramFile;
 		this.simuFile = packFile;
 		this.folderOut = fileOut;
+		folderOut.mkdirs();
 		this.parcelsFile = new File(packFile, "parcelle.shp");
 		File geoSnap = new File(packFile, "geoSnap");
 		this.zoningFile = new File(geoSnap, "zone_urba.shp");
@@ -217,7 +225,6 @@ public class SimPLUSimulator {
 		this.roadFile = new File(geoSnap, "route.shp");
 		this.communitiesFile = new File(geoSnap, "communities.shp");
 		this.predicateFile = new File(packFile, "snapPredicate.csv");
-
 		this.filePrescPonct = new File(geoSnap, "prescription_ponct.shp");
 		this.filePrescLin = new File(geoSnap, "prescription_lin.shp");
 		this.filePrescSurf = new File(geoSnap, "prescription_surf.shp");
@@ -295,8 +302,6 @@ public class SimPLUSimulator {
 				continue bpu;
 			}
 
-			// saving the output
-			folderOut.mkdirs();
 
 			File output = new File(folderOut, "out-parcel_" + codeParcel + ".shp");
 			System.out.println("Output in : " + output);
@@ -331,18 +336,18 @@ public class SimPLUSimulator {
 		// Loading of configuration file that contains sampling space
 		// information and simulated annealing configuration
 		// SimuTool.setEnvEnglishName();
-
-	  FileWriter importantInfo = new FileWriter(new File(folderOut,"importantInfo")); 
 	  
 		if (!zoningFile.exists()) {
 			System.out.println("Zoning File not found: " + zoningFile);
 			System.out.println("&&&&&&&&&&&&&& Aucun bâtiment n'a été simulé &&&&&&&&&&&&&&");
 			return null;
 		}
+
+    FileWriter importantInfo = new FileWriter(new File(folderOut,"importantInfo"), true); 
 		Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile, parcelsFile, roadFile, buildFile, filePrescPonct, filePrescLin,
 				filePrescSurf, null);
 		SimpluParametersJSON pUsed = new SimpluParametersJSON(p);
-
+//		FileWriter importantInfo = new FileWriter(new File(folderOut, "importantInfo"), true);
 		///////////
 		// asses repartition to pacels
 		///////////
@@ -388,6 +393,7 @@ public class SimPLUSimulator {
 
 		if (!association) {
 			System.out.println("Association between rules and UrbanZone failed");
+			importantInfo.close();
 			return null;
 		}
 
@@ -400,7 +406,7 @@ public class SimPLUSimulator {
 			pUsed = new SimpluParametersJSON(p);
 			CadastralParcel CadParc = env.getBpU().get(i).getCadastralParcels().get(0);
 			String codeParcel = CadParc.getCode();
-			importantInfo.write(codeParcel + "\n");
+			importantInfo.append(codeParcel + "\n");
 			// if this parcel contains no attributes, it means that it has been put here
 			// just to express its boundaries
 			if (codeParcel == null) {
@@ -409,8 +415,9 @@ public class SimPLUSimulator {
 			// if parcel has been marked as non simulable, return null
 			if (!isParcelSimulable(codeParcel)) {
 				CadParc.setHasToBeSimulated(false);
+				System.out.println(codeParcel + " : je l'ai stopé net coz pas selected");
 				System.out.println(codeParcel + " not selected : simulation stoped");
-				importantInfo.write(codeParcel + "pas sélectionnée \n \n");
+				importantInfo.append(codeParcel + "pas sélectionnée \n \n");
 				continue;
 			}
 			System.out.println("Parcel code : " + codeParcel + "(pack " + simuFile.getName() + ")");
@@ -434,9 +441,8 @@ public class SimPLUSimulator {
 			IFeatureCollection<IFeature> building = null;
 			// until we found the right type
 			while (seekType) {
-				System.out.println("we try to put a " + type + " housing unit");
-                importantInfo.write("simulation d'un "+type+" \n");
-
+				System.out.println("we try to put aaa " + type + " housing unit");
+				importantInfo.append("simulation d'un " + type + " \n");
 				// we add the parameters for the building type want to simulate
 				SimpluParametersJSON pWithBuildingType = new SimpluParametersJSON(pUsed);
 				pWithBuildingType.add(RepartitionBuildingType.getParamBuildingType(new File(paramFile, "profileBuildingType"), type));
@@ -447,8 +453,12 @@ public class SimPLUSimulator {
 				}
 				// if the size of floor is inferior to the minimum we set, we downsize to see if a smaller type fits
 				if ((double) building.get(0).getAttribute("SDPShon") < pWithBuildingType.getDouble("areaMin")) {
-					System.out.println("SDP is too small ( "+ (double) building.get(0).getAttribute("SDPShon") +" for a min of "+ pWithBuildingType.getDouble("areaMin")+")");
-	                importantInfo.write("SDP is too small ( "+ (double) building.get(0).getAttribute("SDPShon") +" for a min of "+ pWithBuildingType.getDouble("areaMin")+") \n");
+					System.out.println("SDP is too small ( " + (double) building.get(0).getAttribute("SDPShon") + " for a min of "
+							+ pWithBuildingType.getDouble("areaMin") + ")");
+ 	                importantInfo.append("SDP is too small ( "+ (double) building.get(0).getAttribute("SDPShon") +" for a min of "+ pWithBuildingType.getDouble("areaMin")+") \n");
+					// File output = new File(folderOut, "temp-parcel_" + codeParcel + "-" + type + ".shp");
+					// System.out.println("Output in : " + output);
+					// ShapefileWriter.write(building, output.toString(), CRS.decode("EPSG:2154"));
 
 					adjustDown = true;
 					BuildingType typeTemp = housingUnit.down(type);
@@ -460,7 +470,7 @@ public class SimPLUSimulator {
 					// if it's blocked, we'll go for this type
 					else {
 						System.out.println("anyway, we'll go for this " + type + " type");
-						importantInfo.write("anyway, we'll go for this " + type + " type \n");
+ 						importantInfo.append("anyway, we'll go for this " + type + " type \n");
 						seekType = false;
 					}
 				} else {
@@ -474,8 +484,6 @@ public class SimPLUSimulator {
 					}
 				}
 			}
-			// saving the output
-			folderOut.mkdirs();
 
 			File output = new File(folderOut, "out-parcel_" + codeParcel + ".shp");
 			System.out.println("Output in : " + output);
@@ -495,7 +503,7 @@ public class SimPLUSimulator {
 			System.out.println("&&&&&&&&&&&&&& Aucun bâtiment n'a été simulé &&&&&&&&&&&&&&");
 			return null;
 		}
-		importantInfo.close();
+ 		importantInfo.close();
 		return listBatiSimu;
 	}
 
@@ -555,7 +563,7 @@ public class SimPLUSimulator {
 	}
 
 	/**
-	 * for a given parcel, seek if the parcel general file has said that it could be simulated
+	 * for a given parcel, get its interest to be urbanized
 	 * 
 	 * @param codeParcel
 	 * @return
@@ -583,11 +591,10 @@ public class SimPLUSimulator {
 		sds.dispose();
 		return result;
 	}
-
+	
 	public IFeatureCollection<IFeature> runSimulation(Environnement env, int i, SimpluParametersJSON par, BuildingType type,
 			IFeatureCollection<Prescription> prescriptionUse) throws Exception {
-
-		FileWriter fw = new FileWriter(new File(folderOut, "important"));
+		FileWriter fw = new FileWriter(new File(folderOut, "important"),true);
 		IFeatureCollection<IFeature> result = runSimulation(env, i, par, type, prescriptionUse, fw);
 		fw.close();
 		return result;
@@ -637,7 +644,7 @@ public class SimPLUSimulator {
 
 		if (!pred.isCanBeSimulated()) {
 			System.out.println("Parcel is not simulable according to the predicate");
-			writer.write("no simu possible for many reasons \n");
+ 			writer.append("no simu possible for many reasons \n");
 			return null;
 		}
 		// if (!pred.isOutsized()) {
@@ -660,10 +667,11 @@ public class SimPLUSimulator {
 				// TODO fix that defaite
 				try {
 					cc = article71Case12(alignementsGeometries, pred, env, i, bPU, par);
-					writer.write("ART7112 used \n");
+ 					writer.append("ART7112 used \n");
 				} catch (Exception e) {
 					writer.write("ART7112 not used \n");
 					System.out.println("cuboid from ART7112 failed");
+ 					writer.append("ART7112 not used \n");
 					System.out.println();
 					System.out.println(e);
 					OptimisedBuildingsCuboidFinalDirectRejection oCB = new OptimisedBuildingsCuboidFinalDirectRejection();
@@ -697,9 +705,8 @@ public class SimPLUSimulator {
 			}
 		}
 		System.out.println(pred.getDenial());
-		writer.write("denial reasons : "+ pred.getDenial() + " \n \n");
+		writer.append("denial reasons : "+ pred.getDenial() + " \n \n");
 //		writer.write("stoped because of  : "+ "" + " \n \n ");
-
 		// the -0.1 is set to avoid uncounting storeys when its very close to make one storey (which is very frequent)
 		double surfacePlancherTotal = 0.0;
 		double surfaceAuSol = 0.0;
@@ -709,9 +716,9 @@ public class SimPLUSimulator {
 		}
 
 		List<Cuboid> cubes = cc.getGraph().vertexSet().stream().map(x -> x.getValue()).collect(Collectors.toList());
-		surfacePlancherTotal = surfGen.process(cubes)*0.8;
+		surfacePlancherTotal = surfGen.process(cubes) * 0.8;
 		if (RepartitionBuildingType.hasCommonParts(type)) {
-			surfacePlancherTotal = surfacePlancherTotal*0.9;			
+			surfacePlancherTotal = surfacePlancherTotal * 0.9;
 		}
 		surfaceAuSol = surfGen.processSurface(cubes);
 
@@ -770,7 +777,7 @@ public class SimPLUSimulator {
 			AttributeManager.addAttribute(feat, "Hauteur", v.getValue().height, "Double");
 			AttributeManager.addAttribute(feat, "Rotation", v.getValue().orientation, "Double");
 			AttributeManager.addAttribute(feat, "SurfaceBox", feat.getGeom().area(), "Double");
-			AttributeManager.addAttribute(feat, "SDPShon", surfacePlancherTotal , "Double");
+			AttributeManager.addAttribute(feat, "SDPShon", surfacePlancherTotal, "Double");
 			AttributeManager.addAttribute(feat, "SurfacePar", areaParcels, "Double");
 			AttributeManager.addAttribute(feat, "SurfaceSol", surfaceAuSol, "Double");
 			AttributeManager.addAttribute(feat, "CODE", bPU.getCadastralParcels().get(0).getCode(), "String");
@@ -824,6 +831,7 @@ public class SimPLUSimulator {
 		// art-0071 implentation (begin)
 		// LEFT SIDE IS TESTED
 		IGeometry[] leftAlignement = alignementsGeometries.getLeftSide();
+		System.out.println("lenght of left side : " + leftAlignement[0]);
 
 		if (leftAlignement != null && (leftAlignement.length > 0)) {
 			for (IGeometry geom : leftAlignement) {
@@ -840,6 +848,7 @@ public class SimPLUSimulator {
 
 		IGeometry[] rightAlignement = alignementsGeometries.getRightSide();
 		GraphConfiguration<Cuboid> cc2 = null;
+		System.out.println("lenght of right side : " + leftAlignement[0]);
 		if (rightAlignement != null && (rightAlignement.length > 0)) {
 
 			iMSSamplinSurface = new GM_MultiSurface<>();

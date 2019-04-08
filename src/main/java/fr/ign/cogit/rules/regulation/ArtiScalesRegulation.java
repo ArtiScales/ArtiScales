@@ -248,7 +248,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	@Override
 	public String toString() {
 		return "ArtiScalesRegulation [libelle_zone=" + libelle_zone + ", insee=" + insee + ", libelle_de_base=" + libelle_de_base
-				+ ", libelle_de_dul=" + libelle_de_dul + ", bonus_densite=" + fonction + ", oap=" + oap + ", zonage_coherent=" + ", art_3=" + art_3
+				+ ", libelle_de_dul=" + libelle_de_dul + ", fonction=" + fonction + ", oap=" + oap + ", art_3=" + art_3
 				+ ", art_4=" + art_4 + ", art_5=" + art_5 + ", art_6_defaut=" + art_6_defaut + ", art_6_type=" + art_6_type + ", art_6_optionel="
 				+ art_6_optionel + ", art_71=" + art_71 + ", art_72=" + art_72 + ", art_73=" + art_73 + ", art_74=" + art_74 + ", art_8=" + art_8
 				+ ", art_9=" + art_9 + ", art_10_top=" + art_10_top + ", art_10=" + art_10_1 + ", " + "art_12=" + art_12 + ", art_13=" + art_13
