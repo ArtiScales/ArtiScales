@@ -18,8 +18,11 @@ import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.opengis.feature.simple.SimpleFeature;
 
+import com.vividsolutions.jts.geom.Geometry;
+
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
+import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.simplu3d.util.SimpluParameters;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 
@@ -498,5 +501,141 @@ public class SimuTool {
 		in.put(subject, initValue + 1);
 		return in;
 	}
+	public static void replaceZoning(File fIn, File zoningFolder) throws Exception {
+		ShapefileDataStore zoningSDS = new ShapefileDataStore(zoningFolder.toURI().toURL());
+		SimpleFeatureCollection zoningOG = zoningSDS.getFeatureSource().getFeatures();
+		for (File f : fIn.listFiles()) {
+			if (f.getName().equals("geoSnap")) {
+				ShapefileDataStore parcelSDS = new ShapefileDataStore(new File(f.getParentFile(), "parcelle.shp").toURI().toURL());
+				SimpleFeatureCollection parcelOG = parcelSDS.getFeatureSource().getFeatures();
+				Geometry union = Vectors.unionSFC(parcelOG);
+				Vectors.exportSFC(Vectors.snapDatas(zoningOG, union), new File(f, "zone_urba.shp"));
+				parcelSDS.dispose();
+			} else if (f.isDirectory()) {
+				replaceZoning(f, zoningFolder);
+			}
+		}
+		zoningSDS.dispose();
+	}
 
+	public static void getSimuInfo(File fIn, String code) throws IOException {
+		for (File f : fIn.listFiles()) {
+
+			if (f.isDirectory()) {
+				getSimuInfo(f, code);
+			}
+			if (f.getName().endsWith(code + ".shp")) {
+				CSVReader read = new CSVReader(new FileReader(new File(f.getParentFile(), "importantInfo")), ';');
+				boolean display = false;
+				for (String[] l : read.readAll()) {
+					if (l[0].equals(code)) {
+						display = true;
+						System.out.println("for the parcel "+l[0]);
+					} else if (display) {
+						if (l[0].startsWith("25")) {
+							display = false;
+						}
+						if (display) {
+							System.out.println(l[0]);
+						}
+					}
+				}
+				read.close();
+			}
+		}
+	}
+
+	public static void digForACode(File fIn, String nameSHP, String code) throws IOException {
+		for (File f : fIn.listFiles()) {
+
+			if (f.isDirectory()) {
+				digForACode(f, nameSHP, code);
+			}
+			if (f.getName().startsWith(nameSHP) && f.getName().endsWith(".shp")) {
+				ShapefileDataStore communitiesSDS = new ShapefileDataStore(f.toURI().toURL());
+				SimpleFeatureCollection communitiesOG = communitiesSDS.getFeatureSource().getFeatures();
+				SimpleFeatureIterator it = communitiesOG.features();
+				while (it.hasNext()) {
+					SimpleFeature feat = it.next();
+					String insee = (String) feat.getAttribute("CODE");
+					if (insee != null && insee.equals(code)) {
+						System.out.println(f);
+						break;
+					}
+				}
+				it.close();
+				communitiesSDS.dispose();
+			}
+		}
+	}
+
+	public static void digForACity(File fIn, String thisCity) throws IOException {
+		for (File f : fIn.listFiles()) {
+			if (f.isDirectory()) {
+				digForACity(f, thisCity);
+			}
+			if (f.getName().equals("parcelle.shp")) {
+				ShapefileDataStore communitiesSDS = new ShapefileDataStore(f.toURI().toURL());
+				SimpleFeatureCollection communitiesOG = communitiesSDS.getFeatureSource().getFeatures();
+				SimpleFeatureIterator it = communitiesOG.features();
+				int toto = 0;
+				while (it.hasNext()) {
+					SimpleFeature feat = it.next();
+					String insee = (String) feat.getAttribute("INSEE");
+					if (insee != null && insee.equals(thisCity)) {
+						if (feat.getAttribute("DoWeSimul").equals("true")) {
+							toto++;
+						}
+
+					}
+				}
+				it.close();
+				communitiesSDS.dispose();
+				if (toto > 3) {
+					System.out.println(f);
+
+				}
+			}
+		}
+	}
+
+	public static void digForBesac(File fIn) throws IOException {
+		for (File f : fIn.listFiles()) {
+			if (f.isDirectory()) {
+				digForBesac(f);
+			}
+			if (f.getName().equals("zone_urba.shp")) {
+				ShapefileDataStore communitiesSDS = new ShapefileDataStore(f.toURI().toURL());
+				SimpleFeatureCollection communitiesOG = communitiesSDS.getFeatureSource().getFeatures();
+				SimpleFeatureIterator it = communitiesOG.features();
+
+				while (it.hasNext()) {
+					SimpleFeature feat = it.next();
+					String code = (String) feat.getAttribute("INSEE");
+					String libelle = (String) feat.getAttribute("LIBELLE");
+
+					if (code.equals("25056") && libelle.equals("1AU-D")) {
+						// File parcelF = new File(f.getParentFile().getParentFile(), "parcelle.shp");
+						// ShapefileDataStore parcelSDS = new ShapefileDataStore(parcelF.toURI().toURL());
+						// SimpleFeatureCollection parcelOG = parcelSDS.getFeatureSource().getFeatures();
+						// SimpleFeatureIterator itParcel = parcelOG.features();
+						// int nb = 0;
+						// while (itParcel.hasNext()) {
+						// SimpleFeature featP = itParcel.next();
+						// String auth = (String) featP.getAttribute("DoWeSimul");
+						// if (auth.equals("true")) {
+						// nb++;
+						// }
+						// }
+						// itParcel.close();
+						// if (nb > 10) {
+						System.out.println(f);
+						// }
+					}
+				}
+				it.close();
+				communitiesSDS.dispose();
+			}
+		}
+	}
 }

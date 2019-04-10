@@ -2222,6 +2222,27 @@ public class ParcelFonction {
 		}
 		return result;
 	}
+	
+	
+	public static SimpleFeatureCollection getParcelByZip(SimpleFeatureCollection parcelIn , String val) throws IOException {
+		SimpleFeatureIterator it = parcelIn.features();
+		DefaultFeatureCollection result = new DefaultFeatureCollection();
+		try {
+			while (it.hasNext()) {
+				SimpleFeature feat = it.next();
+				String insee = ((String)feat.getAttribute("CODE_DEP")).concat(((String)feat.getAttribute("CODE_COM")));
+				if (insee.equals(val)) {
+					result.add(feat);
+				}
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			it.close();
+		}
+		return result.collection();
+	}
+	
 
 	private static SimpleFeatureCollection getParcelByBigZone(String zone, SimpleFeatureCollection parcelles, File rootFile) throws IOException {
 		ShapefileDataStore zonesSDS = new ShapefileDataStore(FromGeom.getZoning(new File(rootFile, "dataRegulation")).toURI().toURL());

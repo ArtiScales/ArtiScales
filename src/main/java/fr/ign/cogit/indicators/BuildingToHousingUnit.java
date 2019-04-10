@@ -2,6 +2,7 @@ package fr.ign.cogit.indicators;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -27,6 +28,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Polygon;
 
 import au.com.bytecode.opencsv.CSVReader;
+import au.com.bytecode.opencsv.CSVWriter;
 import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.map.MapRenderer;
 import fr.ign.cogit.map.theseMC.DiffObjDensMap;
@@ -43,6 +45,7 @@ import fr.ign.cogit.rules.regulation.buildingType.BuildingType;
 import fr.ign.cogit.rules.regulation.buildingType.RepartitionBuildingType;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.cogit.util.FromGeom;
+import fr.ign.cogit.util.ParcelFonction;
 import fr.ign.cogit.util.SimuTool;
 
 public class BuildingToHousingUnit extends Indicators {
@@ -52,11 +55,15 @@ public class BuildingToHousingUnit extends Indicators {
 			nbBanlieue, nbPeriUrbain, nbRural, objHU, diffHU;
 	double sDPtot, empriseTot, averageSDPHU, standDevSDPHU, averageDensite, standDevDensite, objDens, diffDens;
 	String housingUnitFirstLine, genFirstLine, genStatFirstLine, numeroParcel;
+	File initDensities;
 
 	public BuildingToHousingUnit(File rootFile, SimpluParametersJSON par, String scenarName, String variantName) throws Exception {
 		super(par, rootFile, scenarName, variantName);
 
-		super.indicFile = new File(rootFile, "/indic/bTH/" + scenarName + "/" + variantName + "/");
+		File indicMainFile = new File(rootFile, "/indic/bTH/");
+		initDensities = new File(indicMainFile, "initialDensities.csv");
+
+		super.indicFile = new File(indicMainFile + "/" + scenarName + "/" + variantName + "/");
 		indicFile.mkdirs();
 
 		housingUnitFirstLine = "code_parcel," + "SDP," + "emprise," + "nb_housingUnit," + "type_HU," + "zone," + "typo_HU," + "averageSDPPerHU,"
@@ -80,16 +87,15 @@ public class BuildingToHousingUnit extends Indicators {
 	// }
 
 	public static void main(String[] args) throws Exception {
-		File root = new File("./result2903/");
-		File paramFolder = new File(root, "paramFolder");
-		String scenario = "CPeuDense";
+		File root = new File("./result2903");
+		File rootParam = new File(root, "paramFolder");
+		String scenario = "CDense";
 		String variant = "base";
 		List<File> lF = new ArrayList<>();
-		lF.add(new File(paramFolder, "/paramSet/"+scenario+"/parameterTechnic.json"));
-		lF.add(new File(paramFolder, "/paramSet/"+scenario+"/parameterScenario.json"));
+		lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterTechnic.json"));
+		lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterScenario.json"));
 
 		SimpluParametersJSON p = new SimpluParametersJSON(lF);
-
 
 		BuildingToHousingUnit bhtU = new BuildingToHousingUnit(root, p, scenario, variant);
 		// bhtU.distributionEstimate();
@@ -138,32 +144,46 @@ public class BuildingToHousingUnit extends Indicators {
 		}
 	}
 
-	public static double existingBuildingDensity(File buildingFile, File parcelsFile, String code) throws Exception {
-		ShapefileDataStore buildingSDS = new ShapefileDataStore(buildingFile.toURI().toURL());
-		SimpleFeatureCollection buildingSFC = DataUtilities.collection(buildingSDS.getFeatureSource().getFeatures());
+	public static double existingBuildingDensity(File buildingFile, File parcelsFile, File initialDensities, String code) throws Exception {
+		// if this value has already been calculated (for all of them scenarios and vairants - it could tho depends on the scenario parameters for the housing unit estimation
+		if (initialDensities.exists()) {
+			CSVReader csv = new CSVReader(new FileReader(initialDensities));
+			for (String[] line : csv.readAll()) {
+				if (line[0].equals(code)) {
+					csv.close();
+					return Double.valueOf(line[1]);
+				}
+			}
+			csv.close();
+		}
+
 		ShapefileDataStore parcelSDS = new ShapefileDataStore(parcelsFile.toURI().toURL());
-		SimpleFeatureCollection parcelSFC = DataUtilities.collection(parcelSDS.getFeatureSource().getFeatures());
+		SimpleFeatureCollection parcelSFC = DataUtilities.collection(ParcelFonction.getParcelByZip(parcelSDS.getFeatureSource().getFeatures(), code));
+
+		ShapefileDataStore buildingSDS = new ShapefileDataStore(buildingFile.toURI().toURL());
+		SimpleFeatureCollection buildingSFC = DataUtilities
+				.collection(Vectors.snapDatas(buildingSDS.getFeatureSource().getFeatures(), Vectors.unionSFC(parcelSFC)));
+
 		buildingSDS.dispose();
 		parcelSDS.dispose();
-		return existingBuildingDensity(buildingSFC, parcelSFC, code);
+		return existingBuildingDensity(buildingSFC, parcelSFC, initialDensities, code);
+
 	}
 
-	public static double existingBuildingDensity(SimpleFeatureCollection buildingSFC, SimpleFeatureCollection parcelSFC, String code)
-			throws Exception {
+	public static double existingBuildingDensity(SimpleFeatureCollection buildingSFC, SimpleFeatureCollection parcelSFC, File initialDensities,
+			String code) throws Exception {
 		if (code.equals("ALLLL")) {
 			System.out.println("not concerned");
 			return 0;
 		}
 		String[] attr = { "CODE_DEP", "CODE_COM" };
-		parcelSFC = Vectors.getSFCPart(parcelSFC,code,  attr);
-		System.out.println();
-		System.out.println("city "+ code);
+		parcelSFC = Vectors.getSFCPart(parcelSFC, code, attr);
 		buildingSFC = Vectors.snapDatas(buildingSFC, Vectors.unionSFC(parcelSFC));
-System.out.println("this is yo sizes "+ parcelSFC.size()+" azd "+buildingSFC.size());
-		return existingBuildingDensity(buildingSFC, parcelSFC);
+		return existingBuildingDensity(buildingSFC, parcelSFC, code, initialDensities);
 	}
 
-	public static double existingBuildingDensity(SimpleFeatureCollection buildingSFC, SimpleFeatureCollection parcelsSFC) throws IOException {
+	public static double existingBuildingDensity(SimpleFeatureCollection buildingSFC, SimpleFeatureCollection parcelsSFC, String code,
+			File initialDensities) throws IOException {
 		double surfTot = 0;
 		SimpleFeatureIterator itParcel = parcelsSFC.features();
 		try {
@@ -197,8 +217,14 @@ System.out.println("this is yo sizes "+ parcelSFC.size()+" azd "+buildingSFC.siz
 		surfTot = surfTot / 10000;
 
 		int nbLgt = simpleEstimate(buildingSFC, 110.0, 3.5);
-		System.out.println("nbLgt is " + nbLgt + " and aera is " + surfTot);
-		System.out.println("so density is : " + nbLgt / surfTot);
+		double dens = nbLgt / surfTot;
+		System.out.println("nbLgt is " + nbLgt + " and aera is " + surfTot + " so density is : " + dens);
+
+		CSVWriter csv = new CSVWriter(new FileWriter(initialDensities,true));
+		String[] line = { code, String.valueOf(dens) };
+		csv.writeNext(line);
+		csv.close();
+
 		return nbLgt / surfTot;
 	}
 
@@ -236,8 +262,9 @@ System.out.println("this is yo sizes "+ parcelSFC.size()+" azd "+buildingSFC.siz
 	}
 
 	public void makeGenStat(String code) throws Exception {
-
-		double iniDensite = existingBuildingDensity(new File(rootFile, "dataGeo/building.shp"), new File(rootFile, "dataGeo/parcel.shp"), code);
+		System.out.println();
+		System.out.println("city " + code);
+		double iniDensite = existingBuildingDensity(new File(rootFile, "dataGeo/building.shp"), new File(rootFile, "dataGeo/parcel.shp"), initDensities,code);
 		String insee = code.substring(0, 5);
 		setCountToZero();
 		CSVReader stat = new CSVReader(new FileReader(new File(indicFile, "housingUnits.csv")), ',', '\0');
