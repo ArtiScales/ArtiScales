@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import org.geotools.data.DataUtilities;
@@ -52,15 +51,18 @@ public class ParcelStat extends Indicators {
 	}
 
 	public static void main(String[] args) throws Exception {
-		File rootFile = new File("./result0308/");
+		File rootFile = new File("./result2903/tmp");
 		File rootParam = new File(rootFile, "paramFolder");
 		List<File> lF = new ArrayList<>();
-		lF.add(new File(rootParam, "paramSet/DDense/parameterTechnic.xml"));
-		lF.add(new File(rootParam, "paramSet/DDense/parameterScenario.xml"));
-
+		String scenario = "CDense";
+		String variant = "base";
+		
+		lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterTechnic.json"));
+		lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterScenario.json"));
+		
 		SimpluParametersJSON p = new SimpluParametersJSON(lF);
 
-		ParcelStat parc = new ParcelStat(p, rootFile, "DDense", "variante0");
+		ParcelStat parc = new ParcelStat(p, rootFile, scenario, variant);
 
 		SimpleFeatureCollection parcelStatSHP = parc.markSimuledParcels();
 		parc.caclulateStatParcel();
@@ -69,12 +71,13 @@ public class ParcelStat extends Indicators {
 		parc.toString();
 		parc.setCountToZero();
 
-		HashMap<String, SimpleFeatureCollection> commParcel = Vectors.divideSFCIntoPart(parcelStatSHP, "INSEE");
+		List<String> listInsee = FromGeom.getInsee(new File(parc.rootFile, "/dataGeo/old/communities.shp"), "DEPCOM");
 
-		for (String city : commParcel.keySet()) {
+		for (String city : listInsee) {
+			SimpleFeatureCollection commParcel = ParcelFonction.getParcelByZip(parcelStatSHP, city);
 			System.out.println("ville " + city);
-			parc.caclulateStatParcel(commParcel.get(city));
-			parc.caclulateStatBatiParcel(commParcel.get(city));
+			parc.caclulateStatParcel(commParcel);
+			parc.caclulateStatBatiParcel(commParcel);
 			parc.writeLine(city, "ParcelStat");
 			parc.toString();
 			parc.setCountToZero();

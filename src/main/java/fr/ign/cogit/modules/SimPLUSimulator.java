@@ -135,17 +135,17 @@ public class SimPLUSimulator {
 		File paramFolder = new File("./" + nameMainFolder + "/paramFolder");
 		TransformXMLToJSON.convert(paramFolder);
 		List<File> lF = new ArrayList<>();
-		lF.add(new File(paramFolder, "paramSet/CPeuDense/parameterTechnic.json"));
-		lF.add(new File(paramFolder, "paramSet/CPeuDense/parameterScenario.json"));
+		lF.add(new File(paramFolder, "paramSet/CDense/parameterTechnic.json"));
+		lF.add(new File(paramFolder, "paramSet/CDense/parameterScenario.json"));
 		SimpluParametersJSON p = new SimpluParametersJSON(lF);
 		// AttribNames.setATT_CODE_PARC("CODE");
 		// USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
-		File pack = new File("./" + nameMainFolder + "/testSimPLU1893");
+		File pack = new File("./" + nameMainFolder + "/testSimPLU");
 		File fOut = new File(pack, "result");
 
 		System.out.println("start pack " + pack);
 		SimPLUSimulator sim = new SimPLUSimulator(paramFolder, pack, p, fOut);
-		List<File> simued = sim.run();
+		sim.run();
 
 		System.out.println("done with pack " + pack.getName());
 
@@ -441,7 +441,7 @@ public class SimPLUSimulator {
 			IFeatureCollection<IFeature> building = null;
 			// until we found the right type
 			while (seekType) {
-				System.out.println("we try to put aaa " + type + " housing unit");
+				System.out.println("we try to put a " + type + " housing unit");
 				importantInfo.append("simulation d'un " + type + " \n");
 				// we add the parameters for the building type want to simulate
 				SimpluParametersJSON pWithBuildingType = new SimpluParametersJSON(pUsed);
@@ -672,8 +672,6 @@ public class SimPLUSimulator {
 					writer.write("ART7112 not used \n");
 					System.out.println("cuboid from ART7112 failed");
  					writer.append("ART7112 not used \n");
-					System.out.println();
-					System.out.println(e);
 					OptimisedBuildingsCuboidFinalDirectRejection oCB = new OptimisedBuildingsCuboidFinalDirectRejection();
 					cc = oCB.process(bPU, par, env, i, pred);
 				}

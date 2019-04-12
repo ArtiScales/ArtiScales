@@ -55,7 +55,37 @@ public class SelectParcels {
 	  List<File> lF = new ArrayList<File>(Arrays.asList(paramFile1, paramFile2));
 	  SimpluParametersJSON p = new SimpluParametersJSON(lF);
 	  String zip = "25195";
-	  new SelectParcels(rootFolder, outputFolder, varianteSpatialConf, p).selectAndDecompParcels(zip, false, null, tmpFile);
+	  new SelectParcels(rootFolder, outputFolder, varianteSpatialConf, p).selectAndDecompParcels(zip, false, null, tmpFile);		
+		
+	}
+		
+		public static void splitIntoPack() throws Exception {
+//		aggregateParcelsFromZips(new File("/home/ubuntu/boulot/these/result2903/"));
+		File rootFile = new File("/home/ubuntu/boulot/these/result2903/");
+		File regul = new File(rootFile, "dataRegulation");
+		File geo = new File(rootFile, "dataGeo");
+		File tmp = new File(rootFile, "tmp");
+		tmp.mkdir();
+		for (File scenarFile : (new File(rootFile, "ParcelSelectionDepot")).listFiles()) {
+			if (scenarFile.isDirectory()) {
+				String scenar = scenarFile.getName();
+				if (!scenar.equals("DPeuDense")) {
+					continue;
+				}
+							System.out.println(scenarFile);
+				for (File variantFile : scenarFile.listFiles()) {
+					String variant = variantFile.getName();
+					System.out.println(variantFile);
+					File parcel = new File(variantFile, "parcelGenExport.shp");
+					File outFolder = new File(rootFile, "SimPLUDepot/" + scenar + "/"+variant);
+					if (outFolder.exists()) {
+						continue;
+					}
+					outFolder.mkdirs();
+					separateToDifferentOptimizedPack(parcel, outFolder, tmp, regul, geo);
+				}
+			}
+		}
 	}
 
 	public SelectParcels(File rootfile, File outfile, File spatialconfiguration, SimpluParametersJSON par) throws Exception {

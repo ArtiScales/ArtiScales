@@ -18,12 +18,20 @@ import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.opengis.feature.simple.SimpleFeature;
 
+import com.vividsolutions.jts.geom.Geometry;
+
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
+import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.simplu3d.util.SimpluParameters;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 
 public class SimuTool {
+	public static void main(String[] args) throws IOException {
+		// getSimuInfo(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/CDense/"), "25056000NTdiv590");
+		getStatDenial(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/CDense/"), new File("/tmp/salut"));
+
+	}
 
 	public static SimpluParametersJSON getParamFile(List<SimpluParametersJSON> lP, String scenar) throws FileNotFoundException {
 		for (SimpluParametersJSON p : lP) {
@@ -352,6 +360,7 @@ public class SimuTool {
 				if (feat.getAttribute("INSEE") != null && feat.getAttribute("INSEE").equals(insee) && feat.getAttribute("TYPEPLAN") != null
 						&& feat.getAttribute("TYPEPLAN").equals("RNU")) {
 					answer = true;
+					break ;
 				}
 			}
 		} catch (Exception problem) {
@@ -499,4 +508,213 @@ public class SimuTool {
 		return in;
 	}
 
+	/**
+	 * When there's a zoning problem (when running the packager distributed on the grid), put the right features of the zoning shapefile into the packages
+	 * 
+	 * @param fIn
+	 *            : folder from where to recursively seek for the <i>geoSnap</i> folder
+	 * @param zoningFile
+	 *            : the original zoning file from where to copy the different zoning features
+	 * @throws Exception
+	 */
+	public static void replaceZoning(File fIn, File zoningFile) throws Exception {
+		ShapefileDataStore zoningSDS = new ShapefileDataStore(zoningFile.toURI().toURL());
+		SimpleFeatureCollection zoningOG = zoningSDS.getFeatureSource().getFeatures();
+		for (File f : fIn.listFiles()) {
+			if (f.getName().equals("geoSnap")) {
+				ShapefileDataStore parcelSDS = new ShapefileDataStore(new File(f.getParentFile(), "parcelle.shp").toURI().toURL());
+				SimpleFeatureCollection parcelOG = parcelSDS.getFeatureSource().getFeatures();
+				Geometry union = Vectors.unionSFC(parcelOG);
+				Vectors.exportSFC(Vectors.snapDatas(zoningOG, union), new File(f, "zone_urba.shp"));
+				parcelSDS.dispose();
+			} else if (f.isDirectory()) {
+				replaceZoning(f, zoningFile);
+			}
+		}
+		zoningSDS.dispose();
+	}
+
+	/**
+	 * put the aggregate denial of cuboid configuration propositions into a .csv
+	 * 
+	 * @param fIn
+	 *            : folder from where the recursive serarch for <i>importantFile</i> log will start
+	 * @param fOut
+	 *            : file to write the outputed .csv
+	 * @return
+	 * @throws IOException
+	 */
+	public static File getStatDenial(File fIn, File fOut) throws IOException {
+		HashMap<String, Integer> result = new HashMap<String, Integer>();
+		String str = getStatDenial(fIn, result).toString();
+		System.out.println(str);
+		str = str.replace("{", "").replace("}", "").replace(" ", "");
+		CSVWriter csv = new CSVWriter(new FileWriter(fOut));
+
+		for (String st : str.split(",")) {
+			String[] s = st.split("=");
+			csv.writeNext(s);
+		}
+		csv.close();
+		return fOut;
+	}
+
+	/**
+	 * make the statistics about simPLU denials with a recursive search of file within folders
+	 * 
+	 * @param fIn
+	 *            where to start the recursive search
+	 * @param result
+	 *            list of it for the recursive algorithm
+	 * @return
+	 * @throws IOException
+	 */
+	public static HashMap<String, Integer> getStatDenial(File fIn, HashMap<String, Integer> result) throws IOException {
+		for (File f : fIn.listFiles()) {
+			if (f.isDirectory()) {
+				result = getStatDenial(f, result);
+			} else if (f.getName().equals("importantInfo")) {
+				CSVReader read = new CSVReader(new FileReader(f), ';');
+				for (String[] l : read.readAll()) {
+					if (l[0].startsWith("denial reasons : {")) {
+						String reasons = l[0].replace("denial reasons : {", "").replace("}", "");
+						if (reasons.contains("=")) {
+							for (String reason : reasons.split(",")) {
+								reason = reason.replace(" ", "");
+								String topic = reason.split("=")[0];
+								int val = Integer.valueOf(reason.split("=")[1]);
+								Integer tmp = result.putIfAbsent(topic, val);
+								if (tmp != null) {
+									result.replace(topic, tmp, tmp + val);
+								}
+							}
+						}
+					}
+				}
+				read.close();
+			}
+		}
+		return result;
+	}
+
+	public static void getSimuInfo(File fIn, String code) throws IOException {
+		for (File f : fIn.listFiles()) {
+
+			if (f.isDirectory()) {
+				getSimuInfo(f, code);
+			}
+			if (f.getName().endsWith(code + ".shp")) {
+				CSVReader read = new CSVReader(new FileReader(new File(f.getParentFile(), "importantInfo")), ';');
+				boolean display = false;
+				for (String[] l : read.readAll()) {
+					if (l[0].equals(code)) {
+						display = true;
+						System.out.println("for the parcel " + l[0]);
+					} else if (display) {
+						if (l[0].startsWith("25")) {
+							display = false;
+						}
+						if (display) {
+							System.out.println(l[0]);
+						}
+					}
+				}
+				read.close();
+			}
+		}
+	}
+
+	public static void digForACode(File fIn, String nameSHP, String code) throws IOException {
+		for (File f : fIn.listFiles()) {
+
+			if (f.isDirectory()) {
+				digForACode(f, nameSHP, code);
+			}
+			if (f.getName().startsWith(nameSHP) && f.getName().endsWith(".shp")) {
+				ShapefileDataStore communitiesSDS = new ShapefileDataStore(f.toURI().toURL());
+				SimpleFeatureCollection communitiesOG = communitiesSDS.getFeatureSource().getFeatures();
+				SimpleFeatureIterator it = communitiesOG.features();
+				while (it.hasNext()) {
+					SimpleFeature feat = it.next();
+					String insee = (String) feat.getAttribute("CODE");
+					if (insee != null && insee.equals(code)) {
+						System.out.println(f);
+						break;
+					}
+				}
+				it.close();
+				communitiesSDS.dispose();
+			}
+		}
+	}
+
+	public static void digForACity(File fIn, String thisCity) throws IOException {
+		for (File f : fIn.listFiles()) {
+			if (f.isDirectory()) {
+				digForACity(f, thisCity);
+			}
+			if (f.getName().equals("parcelle.shp")) {
+				ShapefileDataStore communitiesSDS = new ShapefileDataStore(f.toURI().toURL());
+				SimpleFeatureCollection communitiesOG = communitiesSDS.getFeatureSource().getFeatures();
+				SimpleFeatureIterator it = communitiesOG.features();
+				int toto = 0;
+				while (it.hasNext()) {
+					SimpleFeature feat = it.next();
+					String insee = (String) feat.getAttribute("INSEE");
+					if (insee != null && insee.equals(thisCity)) {
+						if (feat.getAttribute("DoWeSimul").equals("true")) {
+							toto++;
+						}
+
+					}
+				}
+				it.close();
+				communitiesSDS.dispose();
+				if (toto > 3) {
+					System.out.println(f);
+
+				}
+			}
+		}
+	}
+
+	public static void digForBesac(File fIn) throws IOException {
+		for (File f : fIn.listFiles()) {
+			if (f.isDirectory()) {
+				digForBesac(f);
+			}
+			if (f.getName().equals("zone_urba.shp")) {
+				ShapefileDataStore communitiesSDS = new ShapefileDataStore(f.toURI().toURL());
+				SimpleFeatureCollection communitiesOG = communitiesSDS.getFeatureSource().getFeatures();
+				SimpleFeatureIterator it = communitiesOG.features();
+
+				while (it.hasNext()) {
+					SimpleFeature feat = it.next();
+					String code = (String) feat.getAttribute("INSEE");
+					String libelle = (String) feat.getAttribute("LIBELLE");
+
+					if (code.equals("25056") && libelle.equals("1AU-D")) {
+						// File parcelF = new File(f.getParentFile().getParentFile(), "parcelle.shp");
+						// ShapefileDataStore parcelSDS = new ShapefileDataStore(parcelF.toURI().toURL());
+						// SimpleFeatureCollection parcelOG = parcelSDS.getFeatureSource().getFeatures();
+						// SimpleFeatureIterator itParcel = parcelOG.features();
+						// int nb = 0;
+						// while (itParcel.hasNext()) {
+						// SimpleFeature featP = itParcel.next();
+						// String auth = (String) featP.getAttribute("DoWeSimul");
+						// if (auth.equals("true")) {
+						// nb++;
+						// }
+						// }
+						// itParcel.close();
+						// if (nb > 10) {
+						System.out.println(f);
+						// }
+					}
+				}
+				it.close();
+				communitiesSDS.dispose();
+			}
+		}
+	}
 }

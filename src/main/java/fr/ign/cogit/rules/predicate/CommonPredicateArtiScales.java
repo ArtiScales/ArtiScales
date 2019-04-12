@@ -340,6 +340,7 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 		// We check if the number of cuboids does not exceed the max
 		// In documentation : Rule-form-001
 		if (!cRO.checkNumberOfBuildings(lAllCuboids, nbCuboid)) {
+			denial = SimuTool.increm(denial, "nbCuboid");
 			return false;
 		}
 
