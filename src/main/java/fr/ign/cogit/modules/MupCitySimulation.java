@@ -1,10 +1,6 @@
 package fr.ign.cogit.modules;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Comparator;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -40,10 +36,6 @@ public class MupCitySimulation {
 		this.variant = variant;
 		this.variantFile = variantFile;
 		this.geoFile = geoFile;
-	}
-
-	private static void deleteDirectoryStream(Path path) throws IOException {
-		Files.walk(path).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
 	}
 
 	public static void main(String[] args) throws Exception {

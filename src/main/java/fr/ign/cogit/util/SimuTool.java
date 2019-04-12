@@ -27,6 +27,11 @@ import fr.ign.cogit.simplu3d.util.SimpluParameters;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 
 public class SimuTool {
+	public static void main(String[] args) throws IOException {
+		// getSimuInfo(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/CDense/"), "25056000NTdiv590");
+		getStatDenial(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/CDense/"), new File("/tmp/salut"));
+
+	}
 
 	public static SimpluParametersJSON getParamFile(List<SimpluParametersJSON> lP, String scenar) throws FileNotFoundException {
 		for (SimpluParametersJSON p : lP) {
@@ -355,6 +360,7 @@ public class SimuTool {
 				if (feat.getAttribute("INSEE") != null && feat.getAttribute("INSEE").equals(insee) && feat.getAttribute("TYPEPLAN") != null
 						&& feat.getAttribute("TYPEPLAN").equals("RNU")) {
 					answer = true;
+					break ;
 				}
 			}
 		} catch (Exception problem) {
@@ -501,8 +507,18 @@ public class SimuTool {
 		in.put(subject, initValue + 1);
 		return in;
 	}
-	public static void replaceZoning(File fIn, File zoningFolder) throws Exception {
-		ShapefileDataStore zoningSDS = new ShapefileDataStore(zoningFolder.toURI().toURL());
+
+	/**
+	 * When there's a zoning problem (when running the packager distributed on the grid), put the right features of the zoning shapefile into the packages
+	 * 
+	 * @param fIn
+	 *            : folder from where to recursively seek for the <i>geoSnap</i> folder
+	 * @param zoningFile
+	 *            : the original zoning file from where to copy the different zoning features
+	 * @throws Exception
+	 */
+	public static void replaceZoning(File fIn, File zoningFile) throws Exception {
+		ShapefileDataStore zoningSDS = new ShapefileDataStore(zoningFile.toURI().toURL());
 		SimpleFeatureCollection zoningOG = zoningSDS.getFeatureSource().getFeatures();
 		for (File f : fIn.listFiles()) {
 			if (f.getName().equals("geoSnap")) {
@@ -512,10 +528,73 @@ public class SimuTool {
 				Vectors.exportSFC(Vectors.snapDatas(zoningOG, union), new File(f, "zone_urba.shp"));
 				parcelSDS.dispose();
 			} else if (f.isDirectory()) {
-				replaceZoning(f, zoningFolder);
+				replaceZoning(f, zoningFile);
 			}
 		}
 		zoningSDS.dispose();
+	}
+
+	/**
+	 * put the aggregate denial of cuboid configuration propositions into a .csv
+	 * 
+	 * @param fIn
+	 *            : folder from where the recursive serarch for <i>importantFile</i> log will start
+	 * @param fOut
+	 *            : file to write the outputed .csv
+	 * @return
+	 * @throws IOException
+	 */
+	public static File getStatDenial(File fIn, File fOut) throws IOException {
+		HashMap<String, Integer> result = new HashMap<String, Integer>();
+		String str = getStatDenial(fIn, result).toString();
+		System.out.println(str);
+		str = str.replace("{", "").replace("}", "").replace(" ", "");
+		CSVWriter csv = new CSVWriter(new FileWriter(fOut));
+
+		for (String st : str.split(",")) {
+			String[] s = st.split("=");
+			csv.writeNext(s);
+		}
+		csv.close();
+		return fOut;
+	}
+
+	/**
+	 * make the statistics about simPLU denials with a recursive search of file within folders
+	 * 
+	 * @param fIn
+	 *            where to start the recursive search
+	 * @param result
+	 *            list of it for the recursive algorithm
+	 * @return
+	 * @throws IOException
+	 */
+	public static HashMap<String, Integer> getStatDenial(File fIn, HashMap<String, Integer> result) throws IOException {
+		for (File f : fIn.listFiles()) {
+			if (f.isDirectory()) {
+				result = getStatDenial(f, result);
+			} else if (f.getName().equals("importantInfo")) {
+				CSVReader read = new CSVReader(new FileReader(f), ';');
+				for (String[] l : read.readAll()) {
+					if (l[0].startsWith("denial reasons : {")) {
+						String reasons = l[0].replace("denial reasons : {", "").replace("}", "");
+						if (reasons.contains("=")) {
+							for (String reason : reasons.split(",")) {
+								reason = reason.replace(" ", "");
+								String topic = reason.split("=")[0];
+								int val = Integer.valueOf(reason.split("=")[1]);
+								Integer tmp = result.putIfAbsent(topic, val);
+								if (tmp != null) {
+									result.replace(topic, tmp, tmp + val);
+								}
+							}
+						}
+					}
+				}
+				read.close();
+			}
+		}
+		return result;
 	}
 
 	public static void getSimuInfo(File fIn, String code) throws IOException {
@@ -530,7 +609,7 @@ public class SimuTool {
 				for (String[] l : read.readAll()) {
 					if (l[0].equals(code)) {
 						display = true;
-						System.out.println("for the parcel "+l[0]);
+						System.out.println("for the parcel " + l[0]);
 					} else if (display) {
 						if (l[0].startsWith("25")) {
 							display = false;

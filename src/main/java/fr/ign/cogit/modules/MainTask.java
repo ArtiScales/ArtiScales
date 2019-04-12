@@ -5,13 +5,9 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
-import org.thema.msca.operation.SimpleAgregateOperation.VAR;
-
-import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.indicators.BuildingToHousingUnit;
 import fr.ign.cogit.indicators.ParcelStat;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
-import fr.ign.cogit.util.FromGeom;
 import fr.ign.cogit.util.SimuTool;
 import fr.ign.cogit.util.TransformXMLToJSON;
 
@@ -42,7 +38,7 @@ public class MainTask {
 
 		// List<Parameters> listScenarios = getParamFile("scenar0MKDom", new
 		// File("/home/mbrasebin/Documents/Code/ArtiScales/ArtiScales/src/main/resources/paramSet/"));
-		rootFile = new File("./WorkSession0327/");
+		rootFile = new File("./reTemp/");
 		paramFile = new File(rootFile, "paramFolder");
 		geoFile = new File(rootFile, "dataGeo");
 		regulFile = new File(rootFile, "dataRegulation");
@@ -50,7 +46,7 @@ public class MainTask {
 
 		File paramSet = new File(paramFile, "paramSet");
 
-		List<SimpluParametersJSON> listScenarioParameters = getParamFile("CPeuDense", paramSet);
+		List<SimpluParametersJSON> listScenarioParameters = getParamFile("CDense", paramSet);
 		System.out.println(listScenarioParameters);
 		// kind verification
 		if (!rootFile.exists() || !geoFile.exists() || !regulFile.exists()) {
@@ -243,7 +239,7 @@ public class MainTask {
 	 * @return list : list of Parameters object to run
 	 * @throws Exception
 	 */
-	private static List<SimpluParametersJSON> getParamFile(File fIn) throws Exception {
+	public static List<SimpluParametersJSON> getParamFile(File fIn) throws Exception {
 		List<SimpluParametersJSON> listParameters = new ArrayList<SimpluParametersJSON>();
 		for (File folder : fIn.listFiles()) {
 			if (folder.isDirectory()) {
