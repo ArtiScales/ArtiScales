@@ -1,5 +1,12 @@
 package fr.ign.cogit.tests;
 
+import java.io.File;
+
+import org.geotools.data.simple.SimpleFeatureCollection;
+
+import fr.ign.cogit.GTFunctions.Vectors;
+import fr.ign.cogit.util.SimuTool;
+
 public class Test {
 
 	public static void main(String[] args) throws Exception {
@@ -8,6 +15,8 @@ public class Test {
 		// replaceZoning(new File("/media/ubuntu/saintmande/Packager/CDense/"),
 		// new File("/home/ubuntu/boulot/these/result2903/dataRegulation/zoning.shp"));
 		// replaceZoning(new File("/tmp/salut/"), new File("/home/ubuntu/boulot/these/result2903/dataRegulation/zoning.shp"));-
+		
+		Vectors.exportSFC(SimuTool.giveEvalToBuilding(new File("/tmp/test/TotBatSimuFill.shp"), new File("/tmp/test/CDense--N6_St_Moy_ahpE_seed_42-evalAnal-20.0.shp")),new File("/tmp/test/result.shp"));
 	}
 
 

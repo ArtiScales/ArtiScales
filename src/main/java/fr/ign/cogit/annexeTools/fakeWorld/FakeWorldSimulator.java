@@ -15,7 +15,7 @@ public class FakeWorldSimulator {
 	public static void main(String[] args) throws Exception {
 
 		// Parent folder with all subfolder
-		String absoluteRootFolder = "./fakeWorld/";
+		String absoluteRootFolder = "./result2903/FakeWorld";
 		// String absoluteRootFolder = "/tmp/Artiscales_fakeworld/Artiscales"; 1, il doit y avo
 
 		File rootFolderFile = new File(absoluteRootFolder);
@@ -94,7 +94,7 @@ public class FakeWorldSimulator {
 
 		for (File buildingTypeFile : folderProfileBuildingType.listFiles()) {
 
-			if (buildingTypeFile.getName().endsWith(".json") && buildingTypeFile.getName().contains("midBlockFlat")) {
+			if (buildingTypeFile.getName().endsWith(".json") ) {
 
 				lFTemp.add(buildingTypeFile);
 			}

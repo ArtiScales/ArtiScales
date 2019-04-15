@@ -55,6 +55,9 @@ public abstract class Indicators {
 	public String getnameVariant() {
 		return variantName;
 	}
+	public File getBuildingTotalFile() {
+		return simPLUDepotGenFile;
+	}
 
 	/**
 	 * getters of the MUP-City's scenario name

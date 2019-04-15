@@ -8,31 +8,146 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map.Entry;
+
+import javax.persistence.criteria.From;
 
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
+import org.geotools.factory.CommonFactoryFinder;
+import org.geotools.factory.GeoTools;
+import org.geotools.feature.DefaultFeatureCollection;
+import org.geotools.feature.simple.SimpleFeatureBuilder;
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
+import org.geotools.filter.SortByImpl;
+import org.geotools.filter.SortOrder;
+import org.geotools.filter.v1_1.SortOrderTypeBinding;
+import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.feature.simple.SimpleFeatureType;
+import org.opengis.filter.Filter;
+import org.opengis.filter.FilterFactory2;
+import org.opengis.filter.expression.PropertyName;
+import org.opengis.filter.sort.SortBy;
+import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.NoSuchAuthorityCodeException;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.Polygon;
 
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
 import fr.ign.cogit.GTFunctions.Vectors;
+import fr.ign.cogit.indicators.BuildingToHousingUnit;
 import fr.ign.cogit.simplu3d.util.SimpluParameters;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 
 public class SimuTool {
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws Exception {
 		// getSimuInfo(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/CDense/"), "25056000NTdiv590");
-		getStatDenial(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/CDense/"), new File("/tmp/salut"));
+		// getStatDenial(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/CDense/"), new File("/tmp/salut"));
+//		digForACity(new File("/media/ubuntu/saintmande/Packager/CDense/"), "25245");
+		
+//		Vectors.exportSFC(giveEvalToBuilding(new File("/home/ubuntu/boulot/these/result2903/tmp/SimPLUDepot/CDense/base/TotBatSimuFill.shp"), new File("/home/ubuntu/boulot/these/result2903/MupCityDepot/CDense/base/CDense--N6_St_Moy_ahpE_seed_42-evalAnal-20.0.shp")),new File("/home/ubuntu/boulot/these/result2903/tmp/SimPLUDepot/CDense/base/TotBatSimuFillEval.shp"));
+		
+		File root = new File("./result2903");
+		File rootParam = new File(root, "paramFolder");
+		String scenario = "CDense";
+		String variant = "base";
+		List<File> lF = new ArrayList<>();
+		lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterTechnic.json"));
+		lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterScenario.json"));
 
+		SimpluParametersJSON p = new SimpluParametersJSON(lF);
+
+		destructNotNeededBuildings( new File("/home/ubuntu/boulot/these/result2903/tmp/"),p,  scenario,  variant);
+	}
+	
+	public static SimpleFeatureCollection destructNotNeededBuildings(File rootFile,SimpluParametersJSON par, String scenarName, String variantName) throws Exception {
+		File geoFile = new File(rootFile, "dataGeo");
+		DefaultFeatureCollection result = new DefaultFeatureCollection();
+		List<String> listInsee = FromGeom.getInsee(FromGeom.getCommunities(geoFile), "DEPCOM");
+		
+		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
+
+		BuildingToHousingUnit bht = new BuildingToHousingUnit(rootFile, par, scenarName, variantName);
+		ShapefileDataStore sds = new ShapefileDataStore(bht.getBuildingTotalFile().toURI().toURL()); 
+		SimpleFeatureCollection buildings = sds.getFeatureSource().getFeatures();
+		
+//		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
+//
+//		Filter cqlFilter = CQL.toFilter("EVAL");
+//	    Query query = new Query(simpleFeatureTypeName, cqlFilter);
+//
+////	    query.setPropertyNames(attributeFields);
+////	    query.setMaxFeatures(maxFeatures);
+//
+//
+//		        FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
+//				 SortBy[] sort = new SortBy[]{ff.sort("EVAL", SortOrder.ASCENDING)};
+//		        query.setSortBy(sort);
+//		    
+//
+//		    // submit the query, and get back an iterator over matching features
+//			ShapefileDataStore sds = new ShapefileDataStore(bht.getBuildingTotalFile().toURI().toURL()); 
+//
+//		    SimpleFeatureSource featureSource = sds.getFeatureSource();
+//		    SimpleFeatureIterator featureItr = featureSource.getFeatures(query).features();
+		
+		for (String insee : listInsee) {
+			SimpleFeatureCollection buildZip = getBuildingByZip(buildings, insee);
+			if (!buildZip.isEmpty()) {
+				System.out.println("size :" + buildZip.size());
+
+				SortBy sort = ff.sort("EVAL", SortOrder.ASCENDING);
+
+				SimpleFeatureCollection buildSorted = buildZip.sort(sort);
+				System.out.println("size other:" + buildSorted.size());
+
+				SimpleFeatureIterator justTBSure = buildSorted.features();
+
+				while (justTBSure.hasNext()) {
+					System.out.println(justTBSure.next().getAttribute("eval"));
+				}
+				justTBSure.close();
+				break;
+				// bht.distributionEstimate();
+				//
+				// int objLgt = SimuTool.getHousingUnitsGoal(geoFile, insee);
+				// while (objLgt > 0) {
+				//
+				// }
+			}
+		}
+		sds.dispose();
+		return result;
 	}
 
+	public static SimpleFeatureCollection getBuildingByZip(SimpleFeatureCollection buildingIn , String zip) throws IOException {
+		SimpleFeatureIterator it = buildingIn.features();
+		DefaultFeatureCollection result = new DefaultFeatureCollection();
+		try {
+			while (it.hasNext()) {
+				SimpleFeature feat = it.next();
+				if (((String)feat.getAttribute("CODE")).substring(0, 5).equals(zip)) {
+					result.add(feat);
+				}
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			it.close();
+		}
+		return result.collection();
+	}
+	
 	public static SimpluParametersJSON getParamFile(List<SimpluParametersJSON> lP, String scenar) throws FileNotFoundException {
 		for (SimpluParametersJSON p : lP) {
 			if (p.getString("name").equals(scenar)) {
@@ -42,12 +157,65 @@ public class SimuTool {
 		throw new FileNotFoundException("no corresponding param file");
 	}
 
+	public static SimpleFeatureCollection giveEvalToBuilding(File buildingFile, File mupOutputFile)
+			throws IOException, NoSuchAuthorityCodeException, FactoryException {
+		ShapefileDataStore buildSDS = new ShapefileDataStore(buildingFile.toURI().toURL());
+		SimpleFeatureCollection building = buildSDS.getFeatureSource().getFeatures();
+
+		ShapefileDataStore mupSDS = new ShapefileDataStore(mupOutputFile.toURI().toURL());
+		SimpleFeatureCollection mupOutput = mupSDS.getFeatureSource().getFeatures();
+
+		SimpleFeatureIterator buildIt = building.features();
+
+		DefaultFeatureCollection result = new DefaultFeatureCollection();
+
+		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
+		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
+		sfTypeBuilder.setName("testType");
+		sfTypeBuilder.setCRS(sourceCRS);
+		sfTypeBuilder.add("the_geom", Polygon.class);
+		sfTypeBuilder.setDefaultGeometry("the_geom");
+		sfTypeBuilder.add("SDPShon", Double.class);
+		sfTypeBuilder.add("SurfacePar", Double.class);
+		sfTypeBuilder.add("SurfaceSol", Double.class);
+		sfTypeBuilder.add("CODE", String.class);
+		sfTypeBuilder.add("LIBELLE", String.class);
+		sfTypeBuilder.add("TYPEZONE", String.class);
+		sfTypeBuilder.add("BUILDTYPE", String.class);
+		sfTypeBuilder.add("EVAL", Double.class);
+		SimpleFeatureBuilder builder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
+
+		try {
+			while (buildIt.hasNext()) {
+				SimpleFeature feat = buildIt.next();
+				builder.set("the_geom", feat.getDefaultGeometry());
+				builder.set("SDPShon", feat.getAttribute("SDPShon"));
+				builder.set("SurfacePar", feat.getAttribute("SurfacePar"));
+				builder.set("SurfaceSol", feat.getAttribute("SurfaceSol"));
+				builder.set("CODE", feat.getAttribute("CODE"));
+				builder.set("LIBELLE", feat.getAttribute("LIBELLE"));
+				builder.set("TYPEZONE", feat.getAttribute("TYPEZONE"));
+				builder.set("BUILDTYPE", feat.getAttribute("BUILDTYPE"));
+				builder.set("EVAL", ParcelFonction.getCloseEvalInParcel(feat, mupOutput));
+				result.add(builder.buildFeature(null));
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			buildIt.close();
+		}
+		mupSDS.dispose();
+		buildSDS.dispose();
+		return result.collection();
+	}
+
 	/**
 	 * get the objective of housing density for a particular city in its "DEPCOM" attribute
 	 * 
 	 * TODO get too much time for a simple op. extract the attribute table and play from there
 	 *
 	 * @param geoFile
+	 *            closer
 	 * @param zipCode
 	 * @return
 	 * @throws IOException
@@ -97,7 +265,7 @@ public class SimuTool {
 	}
 	//
 	// public static void main(String[] args) throws IOException {
-	// extractCSVFromSHP(new File("/home/ubuntu/boulot/these/result0308/dataGeo/communities.shp"), new File("/tmp/"));
+	// extractCSVFromSHP(new File("/home/ubuntu/boulot/these/result0308/dataGeo/communities.shp"), new File("/tm)p/"));
 	// }
 
 	public static File extractCSVFromSHP(File shapeFile, File outFolder) throws IOException {
@@ -360,7 +528,7 @@ public class SimuTool {
 				if (feat.getAttribute("INSEE") != null && feat.getAttribute("INSEE").equals(insee) && feat.getAttribute("TYPEPLAN") != null
 						&& feat.getAttribute("TYPEPLAN").equals("RNU")) {
 					answer = true;
-					break ;
+					break;
 				}
 			}
 		} catch (Exception problem) {

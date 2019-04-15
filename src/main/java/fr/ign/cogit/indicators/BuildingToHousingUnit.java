@@ -250,13 +250,6 @@ public class BuildingToHousingUnit extends Indicators {
 		return super.getFirstlineCsv() + genFirstLine;
 	}
 
-	public void distributionEstimate() throws IOException {
-		ShapefileDataStore batiSimuledSDS = new ShapefileDataStore(simPLUDepotGenFile.toURI().toURL());
-		SimpleFeatureCollection batiSimuled = batiSimuledSDS.getFeatureSource().getFeatures();
-		distributionEstimate(batiSimuled);
-		batiSimuledSDS.dispose();
-	}
-
 	public void makeGenStat() throws Exception {
 		makeGenStat("ALLLL");
 	}
@@ -383,7 +376,15 @@ public class BuildingToHousingUnit extends Indicators {
 		stat.close();
 	}
 
-	public void distributionEstimate(SimpleFeatureCollection collec) throws IOException {
+	public int distributionEstimate() throws IOException {
+		ShapefileDataStore batiSimuledSDS = new ShapefileDataStore(simPLUDepotGenFile.toURI().toURL());
+		SimpleFeatureCollection batiSimuled = batiSimuledSDS.getFeatureSource().getFeatures();
+		int lgt = distributionEstimate(batiSimuled);
+		batiSimuledSDS.dispose();
+		return lgt ; 
+	}
+	
+	public int distributionEstimate(SimpleFeatureCollection collec) throws IOException {
 		SimpleFeatureIterator it = collec.features();
 		List<String> buildingCode = new ArrayList<String>();
 		try {
@@ -441,6 +442,7 @@ public class BuildingToHousingUnit extends Indicators {
 		} finally {
 			it.close();
 		}
+		return nbHU;
 	}
 
 	/**
