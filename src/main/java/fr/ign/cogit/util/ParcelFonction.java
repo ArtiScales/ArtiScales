@@ -900,6 +900,7 @@ public class ParcelFonction {
 	}
 
 	public static String normalizeNameBigZone(String nameZone) throws Exception {
+		System.out.println(nameZone);
 		switch (nameZone) {
 		case "U":
 		case "ZC":

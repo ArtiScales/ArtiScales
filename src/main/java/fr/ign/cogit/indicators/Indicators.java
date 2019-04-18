@@ -4,20 +4,17 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import fr.ign.analyse.obj.ProjetAnalyse;
-import fr.ign.analyse.obj.ScenarAnalyse;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.cogit.util.FromGeom;
 
 public abstract class Indicators {
 	SimpluParametersJSON p;
-	protected File rootFile, paramFolder, parcelDepotGenFile, simPLUDepotGenFile, indicFile, mapDepotFile;
+	protected File rootFile, paramFolder, mapStyle, mupOutputFile, parcelDepotGenFile, simPLUDepotGenFile, indicFile, mapDepotFile;
 	protected String scenarName, variantName, echelle;
 
 	static boolean firstLineGen = true;
 	static boolean firstLineSimu = true;
 	static boolean particularExists = false;
-	ScenarAnalyse sA;
 
 	public Indicators(SimpluParametersJSON p, File rootfile, String scenarname, String variantname) throws Exception {
 		this.p = p;
@@ -25,23 +22,18 @@ public abstract class Indicators {
 		this.scenarName = scenarname;
 		this.variantName = variantname;
 		this.paramFolder = new File(rootFile, "paramFolder");
+		// we're not sure what's the name of MUp-City's outputs
+		for (File f : (new File(rootFile, "MupCityDepot/" + scenarName + "/" + variantName + "/")).listFiles()) {
+			if (f.getName().endsWith(".shp")) {
+				this.mupOutputFile = f;
+				break;
+			}
+		}
 		this.parcelDepotGenFile = new File(rootFile, "ParcelSelectionDepot/" + scenarName + "/" + variantName + "/parcelGenExport.shp");
 		this.simPLUDepotGenFile = new File(rootFile, "SimPLUDepot/" + scenarName + "/" + variantName + "/TotBatSimuFill.shp");
 		if (!simPLUDepotGenFile.exists() && !scenarname.equals("") && !variantname.equals("")) {
 			FromGeom.mergeBatis(simPLUDepotGenFile.getParentFile());
 		}
-
-		// lazy way to get MUP-City's informations
-		String strictStr = "St";
-		String meanStr = "Moy";
-		if (p.getBoolean("strict")) {
-			strictStr = "Ba";
-		}
-		if (p.getBoolean("mean")) {
-			meanStr = "Yag";
-		}
-		sA = new ScenarAnalyse(p.getString("cm"), p.getString("emprise"), p.getString("seuil"), p.getString("data"), "N" + p.getString("N"),
-				p.getString("ahpName"), strictStr, meanStr, "seed_" + p.getString("seed"));
 	}
 
 	/**
@@ -55,26 +47,9 @@ public abstract class Indicators {
 	public String getnameVariant() {
 		return variantName;
 	}
+
 	public File getBuildingTotalFile() {
 		return simPLUDepotGenFile;
-	}
-
-	/**
-	 * getters of the MUP-City's scenario name
-	 * 
-	 * @return the name of the MUP-City's scenario used
-	 */
-	public String getMupScenario() {
-		return sA.getShortScenarNameWthSeed();
-	}
-
-	/**
-	 * getters of the MUP-City's technical parameters informations
-	 * 
-	 * @return the name of the MUP-City's scenario used
-	 */
-	public String getMupTech() {
-		return ((ProjetAnalyse) sA).getNiceName().replace(";", "#");
 	}
 
 	/**

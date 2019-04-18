@@ -337,11 +337,11 @@ public class MapRenderer {
 					newLine = "sodipodi:absref=\"" + rootMapStyle.getAbsolutePath() + "/" + mapName + "-legend.png\"";
 				}
 				sb.append(newLine + "\n");
-			} else if(((String) line).contains("inkscape:export-filename")) {
+			} else if (((String) line).contains("inkscape:export-filename")) {
 				String newLine = "inkscape:export-filename=\"" + "./" + mapName + ".png\"";
-				sb.append(newLine+"\n");
+				sb.append(newLine + "\n");
 			}
-			
+
 			else {
 				sb.append(line + "\n");
 			}
@@ -350,9 +350,9 @@ public class MapRenderer {
 		bw.write(sb.toString(), 0, sb.length());
 		bw.close();
 
-//		BufferedImage input_image = ImageIO.read(svgFile); // read svginto input_image object
-//		File outputfile = new File(outFolder, mapName + ".png");
-//		ImageIO.write(input_image, "PNG", outputfile);
+		// BufferedImage input_image = ImageIO.read(svgFile); // read svginto input_image object
+		// File outputfile = new File(outFolder, mapName + ".png");
+		// ImageIO.write(input_image, "PNG", outputfile);
 
 		return svgFile;
 	}

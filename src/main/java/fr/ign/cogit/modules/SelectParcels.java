@@ -41,40 +41,6 @@ public class SelectParcels {
 	int nbParcels;
 	float moyEval;
 
-	public static void main(String[] args) throws Exception {
-		
-		
-	}
-		
-		public static void splitIntoPack() throws Exception {
-//		aggregateParcelsFromZips(new File("/home/ubuntu/boulot/these/result2903/"));
-		File rootFile = new File("/home/ubuntu/boulot/these/result2903/");
-		File regul = new File(rootFile, "dataRegulation");
-		File geo = new File(rootFile, "dataGeo");
-		File tmp = new File(rootFile, "tmp");
-		tmp.mkdir();
-		for (File scenarFile : (new File(rootFile, "ParcelSelectionDepot")).listFiles()) {
-			if (scenarFile.isDirectory()) {
-				String scenar = scenarFile.getName();
-				if (!scenar.equals("DPeuDense")) {
-					continue;
-				}
-							System.out.println(scenarFile);
-				for (File variantFile : scenarFile.listFiles()) {
-					String variant = variantFile.getName();
-					System.out.println(variantFile);
-					File parcel = new File(variantFile, "parcelGenExport.shp");
-					File outFolder = new File(rootFile, "SimPLUDepot/" + scenar + "/"+variant);
-					if (outFolder.exists()) {
-						continue;
-					}
-					outFolder.mkdirs();
-					separateToDifferentOptimizedPack(parcel, outFolder, tmp, regul, geo);
-				}
-			}
-		}
-	}
-
 	public SelectParcels(File rootfile, File outfile, File spatialconfiguration, SimpluParametersJSON par) throws Exception {
 		// objet contenant les paramètres
 		p = par;
@@ -121,6 +87,10 @@ public class SelectParcels {
 
 		// SimuTool.deleteDirectoryStream(tmpFile.toPath());
 		return outFile;
+	}
+
+	public void setGeoFile(File newGeoFile) {
+		geoFile = newGeoFile;
 	}
 
 	public void selectAndDecompParcels(String zip, Boolean mergeParcels, File mergeFile) throws Exception {
@@ -892,5 +862,34 @@ public class SelectParcels {
 			}
 		}
 		predicate.close();
+	}
+
+	public static void splitIntoPack() throws Exception {
+		// aggregateParcelsFromZips(new File("/home/ubuntu/boulot/these/result2903/"));
+		File rootFile = new File("/home/ubuntu/boulot/these/result2903/");
+		File regul = new File(rootFile, "dataRegulation");
+		File geo = new File(rootFile, "dataGeo");
+		File tmp = new File(rootFile, "tmp");
+		tmp.mkdir();
+		for (File scenarFile : (new File(rootFile, "ParcelSelectionDepot")).listFiles()) {
+			if (scenarFile.isDirectory()) {
+				String scenar = scenarFile.getName();
+				if (!scenar.equals("DPeuDense")) {
+					continue;
+				}
+				System.out.println(scenarFile);
+				for (File variantFile : scenarFile.listFiles()) {
+					String variant = variantFile.getName();
+					System.out.println(variantFile);
+					File parcel = new File(variantFile, "parcelGenExport.shp");
+					File outFolder = new File(rootFile, "SimPLUDepot/" + scenar + "/" + variant);
+					if (outFolder.exists()) {
+						continue;
+					}
+					outFolder.mkdirs();
+					separateToDifferentOptimizedPack(parcel, outFolder, tmp, regul, geo);
+				}
+			}
+		}
 	}
 }

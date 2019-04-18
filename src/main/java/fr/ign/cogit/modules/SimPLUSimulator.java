@@ -4,17 +4,24 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import org.apache.commons.math3.random.MersenneTwister;
 import org.geotools.data.shapefile.ShapefileDataStore;
+import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
+import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeature;
 
+import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.annexeTools.SDPCalcPolygonizer;
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
@@ -27,6 +34,7 @@ import fr.ign.cogit.geoxygene.feature.FT_FeatureCollection;
 import fr.ign.cogit.geoxygene.spatial.geomaggr.GM_MultiSurface;
 import fr.ign.cogit.geoxygene.util.attribute.AttributeManager;
 import fr.ign.cogit.geoxygene.util.conversion.ShapefileWriter;
+import fr.ign.cogit.indicators.BuildingToHousingUnit;
 import fr.ign.cogit.rules.io.PrescriptionPreparator;
 import fr.ign.cogit.rules.io.ZoneRulesAssociation;
 import fr.ign.cogit.rules.predicate.CommonPredicateArtiScales;
@@ -237,6 +245,30 @@ public class SimPLUSimulator {
 		}
 	}
 
+	public SimPLUSimulator(File paramFile, File mainFile, File geoFile, File regulationFile, File parcelfile, SimpluParametersJSON pa, File fileOut)
+			throws Exception {
+
+		// some static parameters needed
+		this.p = pa;
+
+		this.paramFile = paramFile;
+		this.simuFile = mainFile;
+		this.folderOut = fileOut;
+		folderOut.mkdirs();
+		this.parcelsFile = parcelfile;
+
+		this.buildFile = new File(geoFile, "building.shp");
+		this.roadFile = new File(geoFile, "road.shp");
+		this.communitiesFile = new File(geoFile, "communities.shp");
+
+		this.zoningFile = new File(regulationFile, "zoning.shp");
+		this.predicateFile = new File(regulationFile, "predicate.csv");
+		this.filePrescPonct = new File(regulationFile, "prescPonct.shp");
+		this.filePrescLin = new File(regulationFile, "prescLin.shp");
+		this.filePrescSurf = new File(regulationFile, "prescSurf.shp");
+
+	}
+
 	/**
 	 * Run overload if the BuildingType has already been decided
 	 * 
@@ -302,7 +334,6 @@ public class SimPLUSimulator {
 				continue bpu;
 			}
 
-
 			File output = new File(folderOut, "out-parcel_" + codeParcel + ".shp");
 			System.out.println("Output in : " + output);
 			ShapefileWriter.write(building, output.toString(), CRS.decode("EPSG:2154"));
@@ -325,6 +356,56 @@ public class SimPLUSimulator {
 		return listBatiSimu;
 	}
 
+	public void run(int obj, File parcelFile) throws Exception {
+		List<SimpleFeature> sortedList = new LinkedList<SimpleFeature>();
+		ShapefileDataStore sds = new ShapefileDataStore(parcelFile.toURI().toURL());
+		SimpleFeatureIterator it = sds.getFeatureSource().getFeatures().features();
+		Hashtable<SimpleFeature, Double> repart = new Hashtable<SimpleFeature, Double>();
+		try {
+			while (it.hasNext()) {
+				SimpleFeature feat = it.next();
+				repart.put(feat, Double.valueOf((String) feat.getAttribute("eval")));
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			it.close();
+		}
+
+		List<Entry<SimpleFeature, Double>> entryList = new ArrayList<Entry<SimpleFeature, Double>>(repart.entrySet());
+		Collections.sort(entryList, new Comparator<Entry<SimpleFeature, Double>>() {
+			@Override
+			public int compare(Entry<SimpleFeature, Double> obj1, Entry<SimpleFeature, Double> obj2) {
+				return obj2.getValue().compareTo(obj1.getValue());
+			}
+		});
+
+		for (Entry<SimpleFeature, Double> s : entryList) {
+			sortedList.add(s.getKey());
+		}
+		while (obj > 0 && sortedList.size() > 0) {
+			obj = obj - run(sortedList.remove(0));
+		}
+		sds.dispose();
+	}
+
+	public int run(SimpleFeature parcel) throws Exception {
+		DefaultFeatureCollection parcelColl = new DefaultFeatureCollection();
+		parcelColl.add(parcel);
+		File parcelTemp = Vectors.exportSFC(parcelColl, new File(folderOut, "parcelTemp.shp"));
+		// parcels aside not taken into account : thats untrue (but it's just for an example
+		Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile, parcelTemp, roadFile, buildFile, filePrescPonct, filePrescLin,
+				filePrescSurf, null);
+
+		List<File> batiSimuled = run(env);
+		File bati = batiSimuled.get(0);
+		ShapefileDataStore sds = new ShapefileDataStore(bati.toURI().toURL());
+		SimpleFeatureCollection sfc = sds.getFeatureSource().getFeatures();
+		int nbBuilt = BuildingToHousingUnit.simpleEstimate(sfc, p.getDouble("HousingUnitSize"), p.getDouble("heightStorey"));
+		sds.dispose();
+		return nbBuilt;
+	}
+
 	/**
 	 * Run a SimPLU3D simulation on all the parcel stored in the parcelFile's SimpleFeatureCollection
 	 * 
@@ -345,6 +426,10 @@ public class SimPLUSimulator {
 
 		Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile, parcelsFile, roadFile, buildFile, filePrescPonct, filePrescLin,
 				filePrescSurf, null);
+		return run(env);
+	}
+
+	public List<File> run(Environnement env) throws Exception {
 		SimpluParametersJSON pUsed = new SimpluParametersJSON(p);
 		FileWriter importantInfo = new FileWriter(new File(folderOut, "importantInfo"), true);
 		///////////
@@ -454,7 +539,8 @@ public class SimPLUSimulator {
 				if ((double) building.get(0).getAttribute("SDPShon") < pWithBuildingType.getDouble("areaMin")) {
 					System.out.println("SDP is too small ( " + (double) building.get(0).getAttribute("SDPShon") + " for a min of "
 							+ pWithBuildingType.getDouble("areaMin") + ")");
- 	                importantInfo.append("SDP is too small ( "+ (double) building.get(0).getAttribute("SDPShon") +" for a min of "+ pWithBuildingType.getDouble("areaMin")+") \n");
+					importantInfo.append("SDP is too small ( " + (double) building.get(0).getAttribute("SDPShon") + " for a min of "
+							+ pWithBuildingType.getDouble("areaMin") + ") \n");
 					// File output = new File(folderOut, "temp-parcel_" + codeParcel + "-" + type + ".shp");
 					// System.out.println("Output in : " + output);
 					// ShapefileWriter.write(building, output.toString(), CRS.decode("EPSG:2154"));
@@ -469,7 +555,7 @@ public class SimPLUSimulator {
 					// if it's blocked, we'll go for this type
 					else {
 						System.out.println("anyway, we'll go for this " + type + " type");
- 						importantInfo.append("anyway, we'll go for this " + type + " type \n");
+						importantInfo.append("anyway, we'll go for this " + type + " type \n");
 						seekType = false;
 					}
 				} else {
@@ -502,7 +588,7 @@ public class SimPLUSimulator {
 			System.out.println("&&&&&&&&&&&&&& Aucun bâtiment n'a été simulé &&&&&&&&&&&&&&");
 			return null;
 		}
- 		importantInfo.close();
+		importantInfo.close();
 		return listBatiSimu;
 	}
 
@@ -591,16 +677,15 @@ public class SimPLUSimulator {
 		return result;
 	}
 
-	
 	public IFeatureCollection<IFeature> runSimulation(Environnement env, int i, SimpluParametersJSON par, BuildingType type,
 			IFeatureCollection<Prescription> prescriptionUse) throws Exception {
 
-		FileWriter fw = new FileWriter(new File(folderOut, "important"),true);
+		FileWriter fw = new FileWriter(new File(folderOut, "important"), true);
 		IFeatureCollection<IFeature> result = runSimulation(env, i, par, type, prescriptionUse, fw);
 		fw.close();
 		return result;
 	}
-	
+
 	/**
 	 * Simulation for the ie bPU
 	 * 
@@ -645,7 +730,7 @@ public class SimPLUSimulator {
 
 		if (!pred.isCanBeSimulated()) {
 			System.out.println("Parcel is not simulable according to the predicate");
- 			writer.append("no simu possible for many reasons \n");
+			writer.append("no simu possible for many reasons \n");
 			return null;
 		}
 		// if (!pred.isOutsized()) {
@@ -668,10 +753,10 @@ public class SimPLUSimulator {
 				// TODO fix that defaite
 				try {
 					cc = article71Case12(alignementsGeometries, pred, env, i, bPU, par);
- 					writer.append("ART7112 used \n");
+					writer.append("ART7112 used \n");
 				} catch (Exception e) {
 					System.out.println("cuboid from ART7112 failed");
- 					writer.append("ART7112 not used \n");
+					writer.append("ART7112 not used \n");
 					OptimisedBuildingsCuboidFinalDirectRejection oCB = new OptimisedBuildingsCuboidFinalDirectRejection();
 					cc = oCB.process(bPU, par, env, i, pred);
 				}
@@ -703,8 +788,8 @@ public class SimPLUSimulator {
 			}
 		}
 		System.out.println(pred.getDenial());
-		writer.append("denial reasons : "+ pred.getDenial() + " \n \n");
-//		writer.write("stoped because of  : "+ "" + " \n \n ");
+		writer.append("denial reasons : " + pred.getDenial() + " \n \n");
+		// writer.write("stoped because of : "+ "" + " \n \n ");
 		// the -0.1 is set to avoid uncounting storeys when its very close to make one storey (which is very frequent)
 		double surfacePlancherTotal = 0.0;
 		double surfaceAuSol = 0.0;

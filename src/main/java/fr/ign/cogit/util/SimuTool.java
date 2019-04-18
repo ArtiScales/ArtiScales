@@ -8,33 +8,19 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Map.Entry;
-
-import javax.persistence.criteria.From;
 
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
-import org.geotools.factory.CommonFactoryFinder;
-import org.geotools.factory.GeoTools;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
-import org.geotools.filter.SortByImpl;
-import org.geotools.filter.SortOrder;
-import org.geotools.filter.v1_1.SortOrderTypeBinding;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.filter.Filter;
-import org.opengis.filter.FilterFactory2;
-import org.opengis.filter.expression.PropertyName;
-import org.opengis.filter.sort.SortBy;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -45,7 +31,6 @@ import com.vividsolutions.jts.geom.Polygon;
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
 import fr.ign.cogit.GTFunctions.Vectors;
-import fr.ign.cogit.indicators.BuildingToHousingUnit;
 import fr.ign.cogit.simplu3d.util.SimpluParameters;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 
@@ -57,77 +42,6 @@ public class SimuTool {
 		
 //		Vectors.exportSFC(giveEvalToBuilding(new File("/home/ubuntu/boulot/these/result2903/tmp/SimPLUDepot/CDense/base/TotBatSimuFill.shp"), new File("/home/ubuntu/boulot/these/result2903/MupCityDepot/CDense/base/CDense--N6_St_Moy_ahpE_seed_42-evalAnal-20.0.shp")),new File("/home/ubuntu/boulot/these/result2903/tmp/SimPLUDepot/CDense/base/TotBatSimuFillEval.shp"));
 		
-		File root = new File("./result2903");
-		File rootParam = new File(root, "paramFolder");
-		String scenario = "CDense";
-		String variant = "base";
-		List<File> lF = new ArrayList<>();
-		lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterTechnic.json"));
-		lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterScenario.json"));
-
-		SimpluParametersJSON p = new SimpluParametersJSON(lF);
-
-		destructNotNeededBuildings( new File("/home/ubuntu/boulot/these/result2903/tmp/"),p,  scenario,  variant);
-	}
-	
-	public static SimpleFeatureCollection destructNotNeededBuildings(File rootFile,SimpluParametersJSON par, String scenarName, String variantName) throws Exception {
-		File geoFile = new File(rootFile, "dataGeo");
-		DefaultFeatureCollection result = new DefaultFeatureCollection();
-		List<String> listInsee = FromGeom.getInsee(FromGeom.getCommunities(geoFile), "DEPCOM");
-		
-		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
-
-		BuildingToHousingUnit bht = new BuildingToHousingUnit(rootFile, par, scenarName, variantName);
-		ShapefileDataStore sds = new ShapefileDataStore(bht.getBuildingTotalFile().toURI().toURL()); 
-		SimpleFeatureCollection buildings = sds.getFeatureSource().getFeatures();
-		
-//		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
-//
-//		Filter cqlFilter = CQL.toFilter("EVAL");
-//	    Query query = new Query(simpleFeatureTypeName, cqlFilter);
-//
-////	    query.setPropertyNames(attributeFields);
-////	    query.setMaxFeatures(maxFeatures);
-//
-//
-//		        FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
-//				 SortBy[] sort = new SortBy[]{ff.sort("EVAL", SortOrder.ASCENDING)};
-//		        query.setSortBy(sort);
-//		    
-//
-//		    // submit the query, and get back an iterator over matching features
-//			ShapefileDataStore sds = new ShapefileDataStore(bht.getBuildingTotalFile().toURI().toURL()); 
-//
-//		    SimpleFeatureSource featureSource = sds.getFeatureSource();
-//		    SimpleFeatureIterator featureItr = featureSource.getFeatures(query).features();
-		
-		for (String insee : listInsee) {
-			SimpleFeatureCollection buildZip = getBuildingByZip(buildings, insee);
-			if (!buildZip.isEmpty()) {
-				System.out.println("size :" + buildZip.size());
-
-				SortBy sort = ff.sort("EVAL", SortOrder.ASCENDING);
-
-				SimpleFeatureCollection buildSorted = buildZip.sort(sort);
-				System.out.println("size other:" + buildSorted.size());
-
-				SimpleFeatureIterator justTBSure = buildSorted.features();
-
-				while (justTBSure.hasNext()) {
-					System.out.println(justTBSure.next().getAttribute("eval"));
-				}
-				justTBSure.close();
-				break;
-				// bht.distributionEstimate();
-				//
-				// int objLgt = SimuTool.getHousingUnitsGoal(geoFile, insee);
-				// while (objLgt > 0) {
-				//
-				// }
-			}
-		}
-		sds.dispose();
-		return result;
 	}
 
 	public static SimpleFeatureCollection getBuildingByZip(SimpleFeatureCollection buildingIn , String zip) throws IOException {
@@ -543,7 +457,6 @@ public class SimuTool {
 	public static List<String> getLocationParamNames(File locationBuildingType, SimpluParameters p) {
 		List<String> listZones = new ArrayList<String>();
 		List<String> specialScenarZone = new ArrayList<String>();
-		System.out.println(locationBuildingType);
 		for (File param : locationBuildingType.listFiles()) {
 			String nameParam = param.getName();
 			if (nameParam.equals("default.json")) {
@@ -840,7 +753,6 @@ public class SimuTool {
 				communitiesSDS.dispose();
 				if (toto > 3) {
 					System.out.println(f);
-
 				}
 			}
 		}
