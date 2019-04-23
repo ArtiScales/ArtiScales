@@ -610,6 +610,7 @@ public class FromGeom {
 
 	/**
 	 * return the TYPEZONEs that a parcels intersect
+	 * result is sorted by the largest interdected zone to the lowest 
 	 * 
 	 * @param parcelIn
 	 * @param zoningFile
@@ -617,6 +618,7 @@ public class FromGeom {
 	 * @throws Exception
 	 */
 	public static List<String> parcelInBigZone(SimpleFeature parcelIn, File zoningFile) throws Exception {
+		System.out.println("hehe"+zoningFile);
 		List<String> result = new LinkedList<String>();
 		ShapefileDataStore shpDSZone = new ShapefileDataStore(zoningFile.toURI().toURL());
 		SimpleFeatureCollection shpDSZoneReduced = Vectors.snapDatas(shpDSZone.getFeatureSource().getFeatures(),
@@ -633,7 +635,6 @@ public class FromGeom {
 				PrecisionModel precMod = new PrecisionModel(100);
 				Geometry featGeometry = GeometryPrecisionReducer.reduce((Geometry) feat.getDefaultGeometry(), precMod);
 				Geometry parcelInGeometry = GeometryPrecisionReducer.reduce((Geometry) parcelIn.getDefaultGeometry(), precMod);
-
 				if (featGeometry.buffer(0.5).contains(parcelInGeometry)) {
 					twoZones = false;
 					switch ((String) feat.getAttribute("TYPEZONE")) {
@@ -710,6 +711,7 @@ public class FromGeom {
 			}
 
 		}
+		System.out.println("tot restulk "+ result);
 		return result;
 	}
 

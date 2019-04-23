@@ -101,7 +101,6 @@ public class CompatibleResult extends Indicators{
 			}
 			csv.close();
 		}
-
 		return null;
 	}
 
@@ -133,13 +132,16 @@ public class CompatibleResult extends Indicators{
 		sp.setGeoFile(newGeoFile);
 		File parcelNew = new File(outParcel, "parcelGenExport.shp");
 		sp.selectAndDecompParcels(zip, true, parcelNew);
-
+		
 		// generate new SimPLUSimu
 		File outSimPLU = new File(indicFile, "newSimPLUDepot");
+		File tmpFile = new File(indicFile, "tmpFile");
+		tmpFile.mkdirs();
+		//TODO problem in the copy of the zoning file => the .prj is not copied and nothing is selected when cropped
 		SimPLUSimulator simPLU = new SimPLUSimulator(new File(rootFile, "paramFolder"), indicFile, newGeoFile, new File(rootFile, "dataRegulation"),
-				parcelNew, p,outSimPLU);
+				tmpFile, parcelNew, p, outSimPLU);
 		simPLU.run(nbToFill, parcelNew);
-		
+
 		return null;
 
 	}

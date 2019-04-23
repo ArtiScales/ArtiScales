@@ -500,8 +500,8 @@ public class ParcelFonction {
 	 * @throws Exception
 	 */
 	public static SimpleFeatureCollection parcelDensification(String splitZone, SimpleFeatureCollection parcelCollection, File tmpFile, File mupFile,
-			SimpluParametersJSON p, File rootFile) throws Exception {
-		return parcelDensification(splitZone, parcelCollection, tmpFile, rootFile, mupFile, p.getDouble("areaParcel"), p.getDouble("widParcel"),
+			SimpluParametersJSON p, File geoFile, File regulFile) throws Exception {
+		return parcelDensification(splitZone, parcelCollection, tmpFile, geoFile, regulFile, mupFile, p.getDouble("areaParcel"), p.getDouble("widParcel"),
 				p.getDouble("lenDriveway"));
 	}
 
@@ -516,14 +516,12 @@ public class ParcelFonction {
 	 * @return
 	 * @throws Exception
 	 */
-	public static SimpleFeatureCollection parcelDensification(String splitZone, SimpleFeatureCollection parcelCollection, File tmpFile, File rootFile,
-			File mupFile, double maximalAreaSplitParcel, Double maximalWidthSplitParcel, Double lenDriveway) throws Exception {
+	public static SimpleFeatureCollection parcelDensification(String splitZone, SimpleFeatureCollection parcelCollection, File tmpFile, File geoFile,
+			File regulFile, File mupFile, double maximalAreaSplitParcel, Double maximalWidthSplitParcel, Double lenDriveway) throws Exception {
 
 		File pivotFile = new File(tmpFile, "parcelsInbfFlaged.shp");
 		Vectors.exportSFC(parcelCollection, pivotFile);
 		IFeatureCollection<IFeature> parcelCollec = ShapefileReader.read(pivotFile.getAbsolutePath());
-
-		File geoFile = new File(rootFile, "dataGeo");
 
 		// the little islands (ilots)
 		File ilotReduced = new File(tmpFile, "ilotReduced.shp");
@@ -541,7 +539,7 @@ public class ParcelFonction {
 				// if the parcel is bigger than the limit size
 				if (feat.getGeom().area() > maximalAreaSplitParcel) {
 					// we falg cut the parcel
-					IFeatureCollection<IFeature> tmp = generateFlagSplitedParcels(feat, iMultiCurve, tmpFile, rootFile, mupFile,
+					IFeatureCollection<IFeature> tmp = generateFlagSplitedParcels(feat, iMultiCurve, tmpFile,geoFile, regulFile, mupFile,
 							maximalAreaSplitParcel, maximalWidthSplitParcel, lenDriveway);
 					cutedAll.addAll(tmp);
 				} else {
@@ -589,9 +587,9 @@ public class ParcelFonction {
 	 * @throws Exception
 	 */
 	public static SimpleFeatureCollection parcelTotRecomp(String splitZone, SimpleFeatureCollection parcels, File tmpFile, File mupOutput,
-			SimpluParametersJSON p, boolean allOrCell, File rootFile) throws Exception {
+			SimpluParametersJSON p, boolean allOrCell, File geoFile, File regulFile) throws Exception {
 
-		return parcelTotRecomp(splitZone, parcels, tmpFile, rootFile, mupOutput, p.getDouble("areaParcel"), p.getDouble("widParcel"),
+		return parcelTotRecomp(splitZone, parcels, tmpFile, geoFile, regulFile, mupOutput, p.getDouble("areaParcel"), p.getDouble("widParcel"),
 				p.getDouble("lenRoad"), p.getInteger("decompositionLevelWithoutRoad"), allOrCell);
 	}
 
@@ -613,7 +611,7 @@ public class ParcelFonction {
 	 * @return
 	 * @throws Exception
 	 */
-	public static SimpleFeatureCollection parcelTotRecomp(String splitZone, SimpleFeatureCollection parcels, File tmpFile, File rootFile,
+	public static SimpleFeatureCollection parcelTotRecomp(String splitZone, SimpleFeatureCollection parcels, File tmpFile, File geoFile, File regulFile,
 			File mupOutput, double maximalArea, double maximalWidth, double lenRoad, int decompositionLevelWithoutRoad, boolean allOrCell)
 			throws Exception {
 
@@ -623,7 +621,7 @@ public class ParcelFonction {
 		// parcels to save for after
 		DefaultFeatureCollection savedParcels = new DefaultFeatureCollection();
 		// import of the zoning file
-		ShapefileDataStore shpDSZone = new ShapefileDataStore(FromGeom.getZoning(new File(rootFile, "dataRegulation")).toURI().toURL());
+		ShapefileDataStore shpDSZone = new ShapefileDataStore(FromGeom.getZoning(regulFile).toURI().toURL());
 		SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
 
 		Geometry unionParcel = Vectors.unionSFC(parcels);
@@ -877,6 +875,16 @@ public class ParcelFonction {
 						}
 					}
 
+					//if the parcel is already build, no simulation
+					boolean iPB = isParcelBuilt(feat, unionParcel, geoFile);
+					if (iPB) {
+						feat.setAttribute("DoWeSimul", "false");
+						feat.setAttribute("IsBuild", "true");
+						feat.setAttribute("eval", "0.0");
+					} else {
+						feat.setAttribute("IsBuild", "false");
+					}
+					
 					SimpleFeatureBuilder finalParcelBuilder = FromGeom.setSFBParcelWithFeat(feat, schema);
 
 					if (feat.getAttribute("CODE") == null) {
@@ -929,7 +937,7 @@ public class ParcelFonction {
 	 * @throws Exception
 	 */
 	public static SimpleFeatureCollection setRecompositionProcesssus(String splitZone, SimpleFeatureCollection parcelCollection, File tmpFile,
-			File mupOutput, File rootFile, SimpluParametersJSON p, String typeOfRecomp, boolean dontTouchUZones) throws Exception {
+			File mupOutput, File rootFile, File geoFile, File regulFile, SimpluParametersJSON p, String typeOfRecomp, boolean dontTouchUZones) throws Exception {
 
 		boolean goOn = false;
 
@@ -972,7 +980,7 @@ public class ParcelFonction {
 						parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
 						System.out.println("we cut the parcels with " + type + " parameters");
 						result = addAllParcels(result,
-								runParcelRecomp(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType, dontTouchUZones, rootFile, typeOfRecomp));
+								runParcelRecomp(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType, dontTouchUZones, geoFile, regulFile, typeOfRecomp));
 						// THAT'S AN UGLY PATCH, BUT HAS TO TAKE CARE OF GEOM ERRORS TODO find somathing nices
 						if (bigZoned.size() > 2) {
 							break;
@@ -1007,7 +1015,7 @@ public class ParcelFonction {
 						if (typoed.size() > 0) {
 							parcelToNotAdd = dontAddParcel(parcelToNotAdd, typoed);
 							System.out.println("we cut the parcels with " + type + " parameters");
-							def = runParcelRecomp(splitZone, typoed, tmpFile, mupOutput, pBuildingType, dontTouchUZones, rootFile, typeOfRecomp);
+							def = runParcelRecomp(splitZone, typoed, tmpFile, mupOutput, pBuildingType, dontTouchUZones, geoFile, regulFile, typeOfRecomp);
 							if (typoed.size() > 2) {
 								break;
 							} else {
@@ -1020,7 +1028,7 @@ public class ParcelFonction {
 							if (bigZoned.size() > 0) {
 								parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
 								System.out.println("we cut the parcels with " + type + " parameters");
-								def = runParcelRecomp(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType, dontTouchUZones, rootFile,
+								def = runParcelRecomp(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType, dontTouchUZones, geoFile, regulFile,
 										typeOfRecomp);
 							}
 						}
@@ -1034,14 +1042,14 @@ public class ParcelFonction {
 	}
 
 	public static SimpleFeatureCollection runParcelRecomp(String splitZone, SimpleFeatureCollection bigZoned, File tmpFile, File mupOutput,
-			SimpluParametersJSON pBuildingType, boolean dontTouchUZones, File rootFile, String typeOfRecomp) throws Exception {
+			SimpluParametersJSON pBuildingType, boolean dontTouchUZones, File geoFile, File regulFile, String typeOfRecomp) throws Exception {
 		switch (typeOfRecomp) {
 		case "densification":
-			return parcelDensification(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType, rootFile);
+			return parcelDensification(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType, geoFile,regulFile);
 		case "partRecomp":
-			return parcelPartRecomp(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType, dontTouchUZones, rootFile);
+			return parcelPartRecomp(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType, dontTouchUZones,  geoFile,  regulFile);
 		case "totRecomp":
-			return parcelTotRecomp(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType, pBuildingType.getBoolean("allZone"), rootFile);
+			return parcelTotRecomp(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType, pBuildingType.getBoolean("allZone"), geoFile,regulFile);
 		}
 		throw new FileNotFoundException("I didn't get the Recomp order");
 
@@ -1063,15 +1071,14 @@ public class ParcelFonction {
 	}
 
 	public static SimpleFeatureCollection parcelPartRecomp(String typeZone, SimpleFeatureCollection parcels, File tmpFile, File mupOutput,
-			SimpluParametersJSON p, boolean dontTouchUZones, File rootFile) throws Exception {
-		return parcelPartRecomp(typeZone, parcels, tmpFile, rootFile, mupOutput, p.getDouble("areaParcel"), p.getDouble("widParcel"),
+			SimpluParametersJSON p, boolean dontTouchUZones, File geoFile, File regulFile) throws Exception {
+		return parcelPartRecomp(typeZone, parcels, tmpFile, geoFile,regulFile, mupOutput, p.getDouble("areaParcel"), p.getDouble("widParcel"),
 				p.getDouble("lenRoad"), p.getInteger("decompositionLevelWithoutRoad"), dontTouchUZones);
 	}
 
-	public static SimpleFeatureCollection parcelPartRecomp(String typeZone, SimpleFeatureCollection parcels, File tmpFile, File rootFile,
+	public static SimpleFeatureCollection parcelPartRecomp(String typeZone, SimpleFeatureCollection parcels, File tmpFile, File geoFile, File regulFile,
 			File mupOutput, double maximalArea, double maximalWidth, double roadWidth, int decompositionLevelWithoutRoad, boolean dontTouchUZones)
 			throws Exception {
-		File geoFile = new File(rootFile, "dataGeo");
 		Geometry emprise = Vectors.unionSFC(parcels);
 
 		DefaultFeatureCollection parcelResult = new DefaultFeatureCollection();
@@ -1225,17 +1232,17 @@ public class ParcelFonction {
 
 				featureBuilder.set("SECTION", section);
 				featureBuilder.set("NUMERO", i);
-
 				featureBuilder.set("CODE", insee + "000" + section + i);
 				featureBuilder.set("COM_ABS", "000");
 
-				featureBuilder.set("IsBuild", isParcelBuilt(parcel, emprise, geoFile));
+				boolean iPB = isParcelBuilt(parcel, emprise, geoFile);
+				featureBuilder.set("IsBuild", iPB);
 
 				featureBuilder.set("U", false);
 				featureBuilder.set("AU", false);
 				featureBuilder.set("NC", true);
 
-				if (isParcelInCell(parcel, cellsSFS)) {
+				if (isParcelInCell(parcel, cellsSFS) && !iPB) {
 					featureBuilder.set("DoWeSimul", "true");
 					featureBuilder.set("eval", getEvalInParcel(parcel, mupOutput));
 				} else {
@@ -1333,10 +1340,10 @@ public class ParcelFonction {
 	//
 	// }
 
-	public static IFeatureCollection<IFeature> generateFlagSplitedParcels(IFeature ifeat, IMultiCurve<IOrientableCurve> iMultiCurve, File tmpFile,
-			File rootFile, File outMupFile, Double maximalAreaSplitParcel, Double maximalWidthSplitParcel, Double lenDriveway) throws Exception {
+	public static IFeatureCollection<IFeature> generateFlagSplitedParcels(IFeature ifeat, IMultiCurve<IOrientableCurve> iMultiCurve, File tmpFile,File geoFile,
+			File regulFile, File outMupFile, Double maximalAreaSplitParcel, Double maximalWidthSplitParcel, Double lenDriveway) throws Exception {
 		DirectPosition.PRECISION = 3;
-		IFeatureCollection<IFeature> batiLargeCollec = ShapefileReader.read(FromGeom.getBuild(new File(rootFile, "dataGeo")).getAbsolutePath());
+		IFeatureCollection<IFeature> batiLargeCollec = ShapefileReader.read(FromGeom.getBuild(geoFile).getAbsolutePath());
 		IFeatureCollection<IFeature> batiCollec = new FT_FeatureCollection<>();
 		batiCollec.addAll(batiLargeCollec.select(ifeat.getGeom()));
 
@@ -1354,7 +1361,7 @@ public class ParcelFonction {
 		long numParcelle = Math.round(Math.random() * 10000);
 
 		// may we need to normal cut it?
-		if (decomp.size() == 1 && isArt3AllowsIsolatedParcel(decomp.get(0), rootFile)) {
+		if (decomp.size() == 1 && isArt3AllowsIsolatedParcel(decomp.get(0), regulFile)) {
 			System.out.println("normal decomp instead of flagg decomp allowed");
 			File superTemp = Vectors
 					.exportSFC(
@@ -1405,8 +1412,7 @@ public class ParcelFonction {
 						simul = true;
 					}
 					// doesn't has to be connected to the road to be urbanized
-					else if (isArt3AllowsIsolatedParcel(newFeat, rootFile)) {
-
+					else if (isArt3AllowsIsolatedParcel(newFeat, regulFile)) {
 						simul = true;
 					}
 				} else {
@@ -1414,7 +1420,7 @@ public class ParcelFonction {
 				}
 			}
 
-			List<String> zones = FromGeom.parcelInBigZone(newFeat, FromGeom.getZoning(new File(rootFile, "dataRegulation")));
+			List<String> zones = FromGeom.parcelInBigZone(newFeat, FromGeom.getZoning(regulFile));
 
 			if (zones.contains("U")) {
 				u = true;
@@ -1713,8 +1719,8 @@ public class ParcelFonction {
 		// on snap la couche de batiment et la met dans une géométrie unique
 		Geometry batiUnion = Vectors.unionSFC(Vectors.snapDatas(batiCollection, emprise));
 		shpDSBati.dispose();
-
-		if (((Geometry) parcelIn.getDefaultGeometry()).contains(batiUnion)) {
+//		if (((Geometry) parcelIn.getDefaultGeometry()).contains(batiUnion)) {
+		if (((Geometry) parcelIn.getDefaultGeometry()).intersects(batiUnion.buffer(-0.5))) {
 			return true;
 		}
 		return false;
@@ -2391,14 +2397,14 @@ public class ParcelFonction {
 	 * @return
 	 * @throws IOException
 	 */
-	public static boolean isArt3AllowsIsolatedParcel(IFeature feat, File rootFile) throws IOException {
+	public static boolean isArt3AllowsIsolatedParcel(IFeature feat, File regulFile) throws IOException {
 		// get Insee Number
 		String insee = ((String) feat.getAttribute("CODE_DEP")) + ((String) feat.getAttribute("CODE_COM"));
 
 		int nInsee = 0;
 		int nArt3 = 0;
 		// get rule file
-		CSVReader rule = new CSVReader(new FileReader(new File(rootFile, "dataRegulation/predicate.csv")));
+		CSVReader rule = new CSVReader(new FileReader(new File(regulFile, "predicate.csv")));
 
 		// seek for attribute numbers
 		String[] firstLine = rule.readNext();

@@ -156,7 +156,7 @@ public class SelectParcels {
 					System.out.println();
 					System.out.println("///// We start the densification process\\\\\\");
 					parcelCollection = ParcelFonction.setRecompositionProcesssus(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP,
-							rootFile, p, "densification", true);
+							rootFile, geoFile, regulFile, p, "densification", true);
 					Vectors.exportSFC(parcelCollection, new File(tmpFile, "afterDensification"));
 				} else {
 					System.err.println("splitParcel : complex section non implemented yet");
@@ -170,7 +170,7 @@ public class SelectParcels {
 				System.out.println();
 				System.out.println("///// We start the splitTotRecomp process\\\\\\");
 				parcelCollection = ParcelFonction.setRecompositionProcesssus(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP, rootFile,
-						p, "totRecomp", true);
+						geoFile, regulFile, p, "totRecomp", true);
 				Vectors.exportSFC(parcelCollection, new File(tmpFile, "afterSplitTotRecomp"));
 			} else {
 				System.err.println("splitParcel : complex section non implemented yet");
@@ -182,7 +182,7 @@ public class SelectParcels {
 				System.out.println();
 				System.out.println("///// We start the splitPartRecomp process\\\\\\");
 				parcelCollection = ParcelFonction.setRecompositionProcesssus(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP, rootFile,
-						p, "partRecomp", true);
+						geoFile, regulFile, p, "partRecomp", true);
 				Vectors.exportSFC(parcelCollection, new File(tmpFile, "aftersplitPartRecomp"));
 			} else {
 				System.err.println("splitParcel : complex section non implemented yet");
@@ -243,20 +243,6 @@ public class SelectParcels {
 			}
 		}
 		return routine;
-	}
-
-	/**
-	 * create a folder form the type of action
-	 * 
-	 * @param action
-	 * @return
-	 * @throws IOException
-	 */
-	public void writeXMLResult(XmlGen xmlFile) throws IOException {
-
-		xmlFile.addLine("nbParcels", String.valueOf(nbParcels));
-		xmlFile.addLine("MoyenneEvalParcelles", String.valueOf(moyEval));
-
 	}
 
 	/**

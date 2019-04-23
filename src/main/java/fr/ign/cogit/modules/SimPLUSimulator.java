@@ -21,6 +21,8 @@ import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeature;
 
+import com.vividsolutions.jts.geom.Geometry;
+
 import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.annexeTools.SDPCalcPolygonizer;
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
@@ -78,6 +80,9 @@ public class SimPLUSimulator {
 			filePrescLin, filePrescSurf;
 
 	int compteurOutput = 0;
+
+	// only for the one to one parcel type of simulation
+	private File geoFile, regulationFile, tmpFile;
 
 	public static List<String> ID_PARCELLE_TO_SIMULATE = new ArrayList<>();
 
@@ -245,8 +250,8 @@ public class SimPLUSimulator {
 		}
 	}
 
-	public SimPLUSimulator(File paramFile, File mainFile, File geoFile, File regulationFile, File parcelfile, SimpluParametersJSON pa, File fileOut)
-			throws Exception {
+	public SimPLUSimulator(File paramFile, File mainFile, File geoFile, File regulationFile, File tmpFile, File parcelfile, SimpluParametersJSON pa,
+			File fileOut) throws Exception {
 
 		// some static parameters needed
 		this.p = pa;
@@ -257,15 +262,10 @@ public class SimPLUSimulator {
 		folderOut.mkdirs();
 		this.parcelsFile = parcelfile;
 
-		this.buildFile = new File(geoFile, "building.shp");
-		this.roadFile = new File(geoFile, "road.shp");
-		this.communitiesFile = new File(geoFile, "communities.shp");
-
-		this.zoningFile = new File(regulationFile, "zoning.shp");
+		this.geoFile = geoFile;
+		this.regulationFile = regulationFile;
+		this.tmpFile = tmpFile;
 		this.predicateFile = new File(regulationFile, "predicate.csv");
-		this.filePrescPonct = new File(regulationFile, "prescPonct.shp");
-		this.filePrescLin = new File(regulationFile, "prescLin.shp");
-		this.filePrescSurf = new File(regulationFile, "prescSurf.shp");
 
 	}
 
@@ -384,7 +384,10 @@ public class SimPLUSimulator {
 			sortedList.add(s.getKey());
 		}
 		while (obj > 0 && sortedList.size() > 0) {
-			obj = obj - run(sortedList.remove(0));
+			SimpleFeature toSimul = sortedList.remove(0);
+			System.out.println("bella chiao " + toSimul.getAttribute("CODE") + " of eval " + toSimul.getAttribute("eval"));
+			obj = obj - run(toSimul);
+			System.out.println("obj are " + obj);
 		}
 		sds.dispose();
 	}
@@ -393,7 +396,18 @@ public class SimPLUSimulator {
 		DefaultFeatureCollection parcelColl = new DefaultFeatureCollection();
 		parcelColl.add(parcel);
 		File parcelTemp = Vectors.exportSFC(parcelColl, new File(folderOut, "parcelTemp.shp"));
-		// parcels aside not taken into account : thats untrue (but it's just for an example
+		// parcels aside not taken into account : thats untrue (but it's just for an example)
+		File emprise = Vectors.exportGeom(((Geometry) parcel.getDefaultGeometry()).buffer(30), new File(tmpFile, "emprise"));
+
+		this.buildFile = Vectors.cropSFC(new File(geoFile, "building.shp"), emprise, tmpFile);
+		this.roadFile = Vectors.cropSFC(new File(geoFile, "road.shp"), emprise, tmpFile);
+		this.communitiesFile = Vectors.cropSFC(new File(geoFile, "communities.shp"), emprise, tmpFile);
+
+		this.zoningFile = Vectors.cropSFC(new File(regulationFile, "zoning.shp"), emprise, tmpFile);
+		this.filePrescPonct = Vectors.cropSFC(new File(regulationFile, "prescPonct.shp"), emprise, tmpFile);
+		this.filePrescLin = Vectors.cropSFC(new File(regulationFile, "prescLin.shp"), emprise, tmpFile);
+		this.filePrescSurf = Vectors.cropSFC(new File(regulationFile, "prescSurf.shp"), emprise, tmpFile);
+
 		Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile, parcelTemp, roadFile, buildFile, filePrescPonct, filePrescLin,
 				filePrescSurf, null);
 

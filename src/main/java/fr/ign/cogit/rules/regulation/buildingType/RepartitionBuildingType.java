@@ -296,6 +296,7 @@ public class RepartitionBuildingType {
 	 */
 	public static SimpluParametersJSON addRepartitionToParameters(SimpluParametersJSON p, File zoningFile, File communeFile, IFeature parcel,
 			File locationBuildings) throws Exception {
+
 		String affect = FromGeom.affectZoneAndTypoToLocation(p.getString("useRepartition"), p.getString("scenarioPMSP3D"), parcel, zoningFile,
 				communeFile, true);
 		// we seek for if there's a special default repartition for the scenario
@@ -442,15 +443,14 @@ public class RepartitionBuildingType {
 		return hasAttic(BuildingType.valueOf(type.toUpperCase()));
 	}
 
-	
 	public static boolean hasCommonParts(BuildingType type) {
-		if (type == BuildingType.SMALLHOUSE || type == BuildingType.DETACHEDHOUSE|| type == BuildingType.MULTIFAMILYHOUSE) {
+		if (type == BuildingType.SMALLHOUSE || type == BuildingType.DETACHEDHOUSE || type == BuildingType.MULTIFAMILYHOUSE) {
 			return false;
 		} else {
 			return true;
 		}
 	}
-	
+
 	/**
 	 * return the buildingType with the most ignore the -1 values which means that is a forbidden type
 	 * 
