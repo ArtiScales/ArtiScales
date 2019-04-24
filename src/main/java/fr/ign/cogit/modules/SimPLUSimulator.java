@@ -383,7 +383,14 @@ public class SimPLUSimulator {
 		for (Entry<SimpleFeature, Double> s : entryList) {
 			sortedList.add(s.getKey());
 		}
+		DefaultFeatureCollection d = new DefaultFeatureCollection();
+		for (SimpleFeature s : sortedList) {
+			d.add(s);
+		}
+			Vectors.exportSFC(d.collection(), new File ("/tmp/lookout.shp"));
+		
 		while (obj > 0 && sortedList.size() > 0) {
+			System.out.println("size of the list : "+sortedList.size());
 			SimpleFeature toSimul = sortedList.remove(0);
 			System.out.println("bella chiao " + toSimul.getAttribute("CODE") + " of eval " + toSimul.getAttribute("eval"));
 			obj = obj - run(toSimul);
@@ -403,7 +410,9 @@ public class SimPLUSimulator {
 		this.roadFile = Vectors.cropSFC(new File(geoFile, "road.shp"), emprise, tmpFile);
 		this.communitiesFile = Vectors.cropSFC(new File(geoFile, "communities.shp"), emprise, tmpFile);
 
-		this.zoningFile = Vectors.cropSFC(new File(regulationFile, "zoning.shp"), emprise, tmpFile);
+//		this.zoningFile = Vectors.cropSFC(new File(regulationFile, "zoning.shp"), emprise, tmpFile);
+//		Vectors.copyShp("zoning", regulationFile, tmpFile);
+		this.zoningFile = new File(tmpFile, "zoning.shp");
 		this.filePrescPonct = Vectors.cropSFC(new File(regulationFile, "prescPonct.shp"), emprise, tmpFile);
 		this.filePrescLin = Vectors.cropSFC(new File(regulationFile, "prescLin.shp"), emprise, tmpFile);
 		this.filePrescSurf = Vectors.cropSFC(new File(regulationFile, "prescSurf.shp"), emprise, tmpFile);
@@ -412,11 +421,15 @@ public class SimPLUSimulator {
 				filePrescSurf, null);
 
 		List<File> batiSimuled = run(env);
-		File bati = batiSimuled.get(0);
-		ShapefileDataStore sds = new ShapefileDataStore(bati.toURI().toURL());
-		SimpleFeatureCollection sfc = sds.getFeatureSource().getFeatures();
-		int nbBuilt = BuildingToHousingUnit.simpleEstimate(sfc, p.getDouble("HousingUnitSize"), p.getDouble("heightStorey"));
-		sds.dispose();
+		int nbBuilt = 0;
+		if (batiSimuled != null && !batiSimuled.isEmpty()) {
+			File bati = batiSimuled.get(0);
+			ShapefileDataStore sds = new ShapefileDataStore(bati.toURI().toURL());
+			SimpleFeatureCollection sfc = sds.getFeatureSource().getFeatures();
+			BuildingToHousingUnit bTH = new BuildingToHousingUnit(folderOut, p);
+			nbBuilt = bTH.simpleDistributionEstimate(sfc);;
+			sds.dispose();
+		}
 		return nbBuilt;
 	}
 
@@ -489,7 +502,7 @@ public class SimPLUSimulator {
 
 		boolean association = ZoneRulesAssociation.associate(env, predicateFile, zoningFile, willWeAssociateAnyway(pUsed));
 
-		if (!association) {
+		if (!association ) {
 			System.out.println("Association between rules and UrbanZone failed");
 			importantInfo.close();
 			return null;
@@ -502,8 +515,8 @@ public class SimPLUSimulator {
 		int nbBPU = env.getBpU().size();
 		bpu: for (int i = 0; i < nbBPU; i++) {
 			pUsed = new SimpluParametersJSON(p);
-			CadastralParcel CadParc = env.getBpU().get(i).getCadastralParcels().get(0);
-			String codeParcel = CadParc.getCode();
+			CadastralParcel cadParc = env.getBpU().get(i).getCadastralParcels().get(0);
+			String codeParcel = cadParc.getCode();
 			importantInfo.append(codeParcel + "\n");
 			// if this parcel contains no attributes, it means that it has been put here
 			// just to express its boundaries
@@ -512,8 +525,7 @@ public class SimPLUSimulator {
 			}
 			// if parcel has been marked as non simulable, return null
 			if (!isParcelSimulable(codeParcel)) {
-				CadParc.setHasToBeSimulated(false);
-				System.out.println(codeParcel + " : je l'ai stopé net coz pas selected");
+				cadParc.setHasToBeSimulated(false);
 				System.out.println(codeParcel + " not selected : simulation stoped");
 				importantInfo.append(codeParcel + "pas sélectionnée \n \n");
 				continue;

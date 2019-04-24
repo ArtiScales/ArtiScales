@@ -301,12 +301,11 @@ public class CommonRulesOperator<O extends AbstractSimpleBuilding> {
 		}
 
 		// On récupère la superficie de la basic propertyUnit
-		double airePAr = 0;
+		double airePar = 0;
 		for (CadastralParcel cP : currentBPU.getCadastralParcels()) {
-			airePAr = airePAr + cP.getArea();
+			airePar = airePar + cP.getArea();
 		}
-
-		return ((builtArea / airePAr) <= maxValue);
+		return ((builtArea / airePar) <= maxValue);
 	}
 
 	/**

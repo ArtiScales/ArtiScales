@@ -73,6 +73,10 @@ public class BuildingToHousingUnit extends Indicators {
 				+ "nbHU_periUrbain," + "nbHU_rural";
 	}
 
+	public BuildingToHousingUnit(File rootFile, SimpluParametersJSON par) throws Exception {
+		super(par, rootFile, "", "");
+	}
+
 	// public static void main(String[] args) throws Exception {
 	// File rootFile = new File("/tmp/3856/");
 	// ShapefileDataStore buildSDS = new ShapefileDataStore((new File(rootFile, "/batiment.shp")).toURI().toURL());
@@ -165,6 +169,32 @@ public class BuildingToHousingUnit extends Indicators {
 		parcelSDS.dispose();
 		return existingBuildingDensity(buildingSFC, parcelSFC, initialDensities, code);
 
+	}
+
+	public int getEstimationForACity(String insee) throws IOException {
+		int result = -1;
+		CSVReader read = new CSVReader(new FileReader(new File(indicFile, "genStat.csv")));
+		String[] fLine = read.readNext();
+		int nbCode = 0;
+		int nbHU = 0;
+		for (int i =0 ; i < fLine.length; i++) {
+			if (fLine[i].equals("code")) {
+				nbCode = i;
+			}
+			if (fLine[i].equals("nb_housingUnit")) {
+				nbHU = i;
+			}
+		}
+		for (String[] line : read.readAll()) {
+			if(line[nbCode].equals(insee)) {
+				result = Integer.valueOf(line[nbHU]);
+			}
+		}
+		read.close();
+		if (result == -1) {
+			System.out.println("beware : estimation from getEstimationForACity() has not been found");
+		}
+		return result ;
 	}
 
 	public static double existingBuildingDensity(SimpleFeatureCollection buildingSFC, SimpleFeatureCollection parcelSFC, File initialDensities,
@@ -379,6 +409,32 @@ public class BuildingToHousingUnit extends Indicators {
 		return lgt;
 	}
 
+	public int simpleDistributionEstimate(SimpleFeatureCollection collec) throws Exception {
+		SimpleFeatureIterator it = collec.features();
+		List<String> buildingCode = new ArrayList<String>();
+			while (it.hasNext()) {
+				SimpleFeature ftBati = it.next();
+				if (!buildingCode.contains((String) ftBati.getAttribute("CODE"))) {
+					BuildingType type = BuildingType.valueOf((String) ftBati.getAttribute("BUILDTYPE"));
+					double surfaceLgt = (double) ftBati.getAttribute("SDPShon");
+					HashMap<String, HashMap<String, Integer>> repartition;
+					// for a single house, there's only a single housing unit
+					switch (type) {
+					case DETACHEDHOUSE:
+					case SMALLHOUSE:
+						nbHU = 1;
+						System.out.println("le batiment" + type + " de la parcelle " + numeroParcel + " fait " + surfaceLgt + " mcarré ");
+						break;
+					// for collective buildings
+					default:
+						repartition = makeCollectiveHousingRepartition(ftBati, type, paramFolder);
+						nbHU = repartition.get("carac").get("totHU");
+					}
+				}
+				}
+	return nbHU;
+	}
+
 	public int distributionEstimate(SimpleFeatureCollection collec) throws IOException {
 		SimpleFeatureIterator it = collec.features();
 		List<String> buildingCode = new ArrayList<String>();
@@ -456,7 +512,7 @@ public class BuildingToHousingUnit extends Indicators {
 		try {
 			while (batiIt.hasNext()) {
 				SimpleFeature build = batiIt.next();
-				double stairs = Math.round((((Integer) build.getAttribute("HAUTEUR")) / heightStorey));
+				double stairs = Math.round((((Double) build.getAttribute("Hauteur") / heightStorey)));
 				// lot of houses - we trim the last stairs
 				if (stairs > 1) {
 					stairs = stairs - 0.5;

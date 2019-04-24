@@ -618,7 +618,6 @@ public class FromGeom {
 	 * @throws Exception
 	 */
 	public static List<String> parcelInBigZone(SimpleFeature parcelIn, File zoningFile) throws Exception {
-		System.out.println("hehe"+zoningFile);
 		List<String> result = new LinkedList<String>();
 		ShapefileDataStore shpDSZone = new ShapefileDataStore(zoningFile.toURI().toURL());
 		SimpleFeatureCollection shpDSZoneReduced = Vectors.snapDatas(shpDSZone.getFeatureSource().getFeatures(),
@@ -711,7 +710,6 @@ public class FromGeom {
 			}
 
 		}
-		System.out.println("tot restulk "+ result);
 		return result;
 	}
 
