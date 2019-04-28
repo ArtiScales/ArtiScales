@@ -30,25 +30,14 @@ import fr.ign.cogit.util.SimuTool;
 
 public class CompatibleResult extends Indicators {
 	File newGeoFile;
+	static String indicName = "compatibleResult";
 
 	public CompatibleResult(File rootFile, SimpluParametersJSON par, String scenarName, String variantName) throws Exception {
-		super(par, rootFile, scenarName, variantName);
+		super(par, rootFile, scenarName, variantName, indicName);
 
-		File indicMainFile = new File(rootFile, "/indic/compatibleResult/");
-
-		super.indicFile = new File(indicMainFile + "/" + scenarName + "/" + variantName + "/");
-		indicFile.mkdirs();
 		newGeoFile = new File(indicFile, "dataGeo");
 		newGeoFile.mkdirs();
 
-		// housingUnitFirstLine = "code_parcel," + "SDP," + "emprise," + "nb_housingUnit," + "type_HU," + "zone," + "typo_HU," + "averageSDPPerHU,"
-		// + "buildDensity";
-		//
-		// genStatFirstLine = "code," + "SDPTot," + "initial_densite," + "average_densite," + "standardDev_densite," + "objectifSCOT_densite,"
-		// + "diff_objectifSCOT_densite," + "average_SDP_per_HU," + "standardDev_SDP_per_HU," + "nb_building," + "nb_housingUnit,"
-		// + "objectifPLH_housingUnit," + "diff_objectifPLH_housingUnit," + "nbHU_detachedHouse," + "nbHU_smallHouse," + "nbHU_multiFamilyHouse,"
-		// + "nbHU_smallBlockFlat," + "nbHU_midBlockFlat," + "nbHU_U," + "nbHU_AU," + "nbHU_NC," + "nbHU_centre," + "nbHU_banlieue,"
-		// + "nbHU_periUrbain," + "nbHU_rural";
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -148,7 +137,7 @@ public class CompatibleResult extends Indicators {
 	public SimpleFeatureCollection destructNotNeededBuildings() throws Exception {
 		File geoFile = new File(rootFile, "dataGeo");
 		DefaultFeatureCollection result = new DefaultFeatureCollection();
-		List<SimpleFeature> parcelFreed = new ArrayList<SimpleFeature>();
+		// List<SimpleFeature> parcelFreed = new ArrayList<SimpleFeature>();
 
 		List<String> listInsee = FromGeom.getInsee(FromGeom.getCommunities(geoFile), "DEPCOM");
 

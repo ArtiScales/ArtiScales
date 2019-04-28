@@ -3,7 +3,6 @@ package fr.ign.cogit.modules;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +21,6 @@ import org.opengis.filter.FilterFactory2;
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
 import fr.ign.cogit.GTFunctions.Vectors;
-import fr.ign.cogit.outputs.XmlGen;
 import fr.ign.cogit.simplu3d.util.SimpluParameters;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.cogit.util.DataPreparator;
@@ -40,6 +38,11 @@ public class SelectParcels {
 	// result parameters
 	int nbParcels;
 	float moyEval;
+
+	public static void main(String[] args) throws Exception {
+		aggregateParcelsFromZips(new File("/home/ubuntu/workspace/ArtiScales/result2903/"),
+				new File("/home/ubuntu/workspace/ArtiScales/result2903/tmp/"), "ParcelManager");
+	}
 
 	public SelectParcels(File rootfile, File outfile, File spatialconfiguration, SimpluParametersJSON par) throws Exception {
 		// objet contenant les paramètres
@@ -691,12 +694,29 @@ public class SelectParcels {
 		predicate.close();
 	}
 
+	/**
+	 * get all the parcels from different pack and generate an aggregated shapefile in the same variante file
+	 * 
+	 * @param rootFile
+	 *           File of the ArtiScales project
+	 * @throws Exception
+	 */
 	public static void aggregateParcelsFromZips(File rootFile) throws Exception {
-		for (File scenarFile : (new File(rootFile, "ParcelSelectionDepot2")).listFiles()) {
+		aggregateParcelsFromZips(rootFile, rootFile, "ParcelSelectionDepot");
+	}
+
+	/**
+	 * get all the parcels from different pack and generate an aggregated shapefile in a specific variante file of another rootFile
+	 * 
+	 * @param rootFile
+	 *            File of the ArtiScales project
+	 * 
+	 * @throws Exception
+	 */
+	public static void aggregateParcelsFromZips(File rootFile, File whereToSave, String nameOfParcelDepot) throws Exception {
+		for (File scenarFile : (new File(rootFile, nameOfParcelDepot)).listFiles()) {
 			if (scenarFile.isDirectory()) {
-				System.out.println(scenarFile);
 				for (File variantFile : scenarFile.listFiles()) {
-					System.out.println(variantFile);
 					List<File> zips = new ArrayList<File>();
 					for (File zip : variantFile.listFiles()) {
 						if (zip.isDirectory() && !zip.getName().equals("tmpFile")) {
@@ -704,7 +724,9 @@ public class SelectParcels {
 						}
 					}
 					System.out.println(new File(variantFile, "parcelGenExport.shp"));
-					Vectors.mergeVectFiles(zips, new File(variantFile, "parcelGenExport.shp"));
+					File save = new File(whereToSave, "ParcelSelectionDepot/" + scenarFile.getName() + "/" + variantFile.getName() + "/");
+					save.mkdirs();
+					Vectors.mergeVectFiles(zips, new File(save, "parcelGenExport.shp"));
 				}
 			}
 		}

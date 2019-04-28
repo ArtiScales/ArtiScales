@@ -90,6 +90,16 @@
 
 	<dependencies>
 		<dependency>
+		    	<groupId>tech.tablesaw</groupId>
+		    	<artifactId>tablesaw-core</artifactId>
+		    	<version>LATEST</version>
+		</dependency>
+		<dependency>
+			<groupId>tech.tablesaw</groupId>
+			<artifactId>tablesaw-jsplot</artifactId>
+			<version>LATEST</version>
+		</dependency>
+		<dependency>
 			<groupId>fr.ign.cogit</groupId>
 			<artifactId>simplu3d</artifactId>
 			<version>${simplu3d.version}</version>
@@ -110,7 +120,7 @@
 					<artifactId>jts-core</artifactId>
 				</exclusion>
 			</exclusions>
-				</dependency>
+		</dependency>
 		<dependency>
 			<groupId>fr.ign</groupId>
 			<artifactId>mupcity-openMole</artifactId>

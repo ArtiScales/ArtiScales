@@ -35,75 +35,71 @@ public class ParcelStat extends Indicators {
 
 	File parcelOGFile;
 	int nbParcelIgnored, nbParcelSimulated, nbParcelSimulFailed;
-	double surfParcelIgnored, surfParcelSimulated, surfParcelSimulFailed; 
-//	surfaceSDPParcelle, surfaceEmpriseParcelle;
+	double surfParcelIgnored, surfParcelSimulated, surfParcelSimulFailed;
+	// surfaceSDPParcelle, surfaceEmpriseParcelle;
 	SimpleFeatureCollection preciseParcelCollection;
 	String firstLine;
+	static String indicName= "parcelStat";
 
 	public ParcelStat(SimpluParametersJSON p, File rootFile, String scenarName, String variantName) throws Exception {
-		super(p, rootFile, scenarName, variantName);
-		super.indicFile = new File(rootFile, "indic/parcelStat/" + scenarName + "/" + variantName);
-		super.indicFile.mkdirs();
-		super.mapStyle = new File(rootFile, "mapStyle");
+		super(p, rootFile, scenarName, variantName, indicName);
 		if (!variantName.equals("")) {
 			super.mapDepotFile = new File(indicFile, "mapDepot");
 			super.mapDepotFile.mkdir();
 		}
 		parcelOGFile = FromGeom.getParcels(new File(rootFile, "dataGeo"));
-		firstLine = "INSEE,nb_parcel_simulated,nb_parcel_simu_failed,surf_parcel_ignored,surf_parcel_simulated,surf_parcel_simulFailed" ;
-//				",surface_SDP_parcelle,surface_emprise_parcelle";
+		firstLine = "INSEE,nb_parcel_simulated,nb_parcel_simu_failed,surf_parcel_ignored,surf_parcel_simulated,surf_parcel_simulFailed";
+		// ",surface_SDP_parcelle,surface_emprise_parcelle";
 	}
 
 	public static void main(String[] args) throws Exception {
-		File rootFile = new File("./result2903/");
+		File rootFile = new File("./result2903/tmp");
 		File rootParam = new File(rootFile, "paramFolder");
 		List<File> lF = new ArrayList<>();
 		String scenario = "CDense";
-		String variant = "base";
-		
+		// String variant = "base";
+
 		lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterTechnic.json"));
 		lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterScenario.json"));
-		
+
 		SimpluParametersJSON p = new SimpluParametersJSON(lF);
+		for (File f : (new File(rootFile, "SimPLUDepot/" + scenario + "/")).listFiles()) {
+			ParcelStat parc = new ParcelStat(p, rootFile, scenario, f.getName());
 
-		ParcelStat parc = new ParcelStat(p, rootFile, scenario, variant);
-
-		SimpleFeatureCollection parcelStatSHP = parc.markSimuledParcels();
-		parc.caclulateStatParcel();
-//		parc.caclulateStatBatiParcel();
-		parc.writeLine("AllZone", "ParcelStat");
-		parc.toString();
-		parc.setCountToZero();
-
-		List<String> listInsee = FromGeom.getInsee(new File(parc.rootFile, "/dataGeo/old/communities.shp"), "DEPCOM");
-
-		for (String city : listInsee) {
-			SimpleFeatureCollection commParcel = ParcelFonction.getParcelByZip(parcelStatSHP, city);
-			System.out.println("ville " + city);
-			parc.caclulateStatParcel(commParcel);
-//			parc.caclulateStatBatiParcel(commParcel);
-			parc.writeLine(city, "ParcelStat");
+			SimpleFeatureCollection parcelStatSHP = parc.markSimuledParcels();
+			parc.caclulateStatParcel();
+			// parc.caclulateStatBatiParcel();
+			parc.writeLine("AllZone", "ParcelStat");
 			parc.toString();
 			parc.setCountToZero();
+
+			List<String> listInsee = FromGeom.getInsee(new File(parc.rootFile, "/dataGeo/old/communities.shp"), "DEPCOM");
+
+			for (String city : listInsee) {
+				SimpleFeatureCollection commParcel = ParcelFonction.getParcelByZip(parcelStatSHP, city);
+				System.out.println("ville " + city);
+				parc.caclulateStatParcel(commParcel);
+				// parc.caclulateStatBatiParcel(commParcel);
+				parc.writeLine(city, "ParcelStat");
+				parc.toString();
+				parc.setCountToZero();
+			}
+			File commStatFile = parc.joinStatToCommunities();
+
+			List<MapRenderer> allOfTheMaps = new ArrayList<MapRenderer>();
+			MapRenderer surfParcelSimulatedMap = new SurfParcelSimulatedMap(1000, 1000, new File(parc.rootFile, "mapStyle"), commStatFile,
+					parc.mapDepotFile);
+			allOfTheMaps.add(surfParcelSimulatedMap);
+			MapRenderer surfParcelFailedMap = new SurfParcelFailedMap(1000, 1000, parc.mapStyle, commStatFile, parc.mapDepotFile);
+			allOfTheMaps.add(surfParcelFailedMap);
+			// MapRenderer aParcelSDPSimuMap = new AParcelSDPSimuMap(1000, 1000,parc.mapStyle , commStatFile, parc.mapDepotFile);
+			// allOfTheMaps.add(aParcelSDPSimuMap);
+
+			for (MapRenderer map : allOfTheMaps) {
+				map.renderCityInfo();
+				map.generateSVG();
+			}
 		}
-		File commStatFile = parc.joinStatToCommunities();
-
-		List<MapRenderer> allOfTheMaps = new ArrayList<MapRenderer>();
-		MapRenderer surfParcelSimulatedMap = new SurfParcelSimulatedMap(1000, 1000, new File(parc.rootFile, "mapStyle"), commStatFile,
-				parc.mapDepotFile);
-		allOfTheMaps.add(surfParcelSimulatedMap);
-		MapRenderer surfParcelFailedMap = new SurfParcelFailedMap(1000, 1000, parc.mapStyle, commStatFile, parc.mapDepotFile);
-		allOfTheMaps.add(surfParcelFailedMap);
-//		MapRenderer aParcelSDPSimuMap = new AParcelSDPSimuMap(1000, 1000,parc.mapStyle , commStatFile, parc.mapDepotFile);
-//		allOfTheMaps.add(aParcelSDPSimuMap);
-
-		
-		
-		for (MapRenderer map : allOfTheMaps) {
-			map.renderCityInfo();
-			map.generateSVG();
-		}
-
 	}
 
 	public File joinStatToCommunities() throws NoSuchAuthorityCodeException, IOException, FactoryException {
@@ -139,8 +135,8 @@ public class ParcelStat extends Indicators {
 				String insee = (String) ftBati.getAttribute("DEPCOM");
 				CSVReader stat = new CSVReader(new FileReader(statFile), ',', '\0');
 				String[] firstLine = stat.readNext();
-				int inseeP = 0, nbParcSimuP = 0, nbParcFailP = 0, aParcSimuP = 0, aParcFailP = 0, surface_SDP_parcelleP = 0,
-						surface_emprise_parcelleP = 0;
+				int inseeP = 0, nbParcSimuP = 0, nbParcFailP = 0, aParcSimuP = 0, aParcFailP = 0;
+				// surface_SDP_parcelleP = 0, surface_emprise_parcelleP = 0;
 				for (int i = 0; i < firstLine.length; i++) {
 					switch (firstLine[i]) {
 					case "INSEE":
@@ -158,12 +154,12 @@ public class ParcelStat extends Indicators {
 					case "surf_parcel_simulFailed":
 						aParcFailP = i;
 						break;
-//					case "surface_SDP_parcelle":
-//						surface_SDP_parcelleP = i;
-//						break;
-//					case "surface_emprise_parcelle":
-//						surface_emprise_parcelleP = i;
-//						break;
+					// case "surface_SDP_parcelle":
+					// surface_SDP_parcelleP = i;
+					// break;
+					// case "surface_emprise_parcelle":
+					// surface_emprise_parcelleP = i;
+					// break;
 					}
 				}
 
@@ -175,8 +171,8 @@ public class ParcelStat extends Indicators {
 						builder.set("nbParcFail", l[nbParcFailP]);
 						builder.set("aParcSimu", Double.valueOf(l[aParcSimuP]));
 						builder.set("aParcFail", Double.valueOf(l[aParcFailP]));
-//						builder.set("aSDP", Double.valueOf(l[surface_SDP_parcelleP]));
-//						builder.set("aEmprise", Double.valueOf(l[surface_emprise_parcelleP]));
+						// builder.set("aSDP", Double.valueOf(l[surface_SDP_parcelleP]));
+						// builder.set("aEmprise", Double.valueOf(l[surface_emprise_parcelleP]));
 						result.add(builder.buildFeature(null));
 						break;
 					}
@@ -195,67 +191,67 @@ public class ParcelStat extends Indicators {
 	public String toString() {
 		String result = "nbParcelIgnored : " + nbParcelIgnored + ", nbParcelSimulated : " + nbParcelSimulated + ", nbParcelSimulFailed : "
 				+ nbParcelSimulFailed + ", surfParcelIgnored : " + surfParcelIgnored + ", surfParcelSimulated : " + surfParcelSimulated
-				+ ", surfParcelSimulFailed : " + surfParcelSimulFailed ; 
-				//+ ", surfaceSDPParcelle : " + surfaceSDPParcelle 	+ ", surfaceEmpriseParcelle : " + surfaceEmpriseParcelle;
+				+ ", surfParcelSimulFailed : " + surfParcelSimulFailed;
+		// + ", surfaceSDPParcelle : " + surfaceSDPParcelle + ", surfaceEmpriseParcelle : " + surfaceEmpriseParcelle;
 		System.out.println(result);
 		return result;
 	}
 
 	public String writeLine(String geoEntity, String nameFile) throws IOException {
 		String result = geoEntity + "," + nbParcelSimulated + "," + nbParcelSimulFailed + "," + surfParcelIgnored + "," + surfParcelSimulated + ","
-				+ surfParcelSimulFailed ;
-				//+ "," + surfaceSDPParcelle + "," + surfaceEmpriseParcelle;
+				+ surfParcelSimulFailed;
+		// + "," + surfaceSDPParcelle + "," + surfaceEmpriseParcelle;
 		toGenCSV(nameFile, firstLine, result);
 		return result;
 	}
 
-//	public void caclulateStatBatiParcel() throws IOException {
-//		File parcelStatShapeFile = new File(indicFile, "parcelStatted.shp");
-//		if (!parcelStatShapeFile.exists()) {
-//			markSimuledParcels();
-//		}
-//
-//		ShapefileDataStore parcelSimuledSDS = new ShapefileDataStore(parcelStatShapeFile.toURI().toURL());
-//		SimpleFeatureCollection parcelSimuled = parcelSimuledSDS.getFeatureSource().getFeatures();
-//		caclulateStatBatiParcel(parcelSimuled);
-//		parcelSimuledSDS.dispose();
-//
-//	}
-//
-//	public void caclulateStatBatiParcel(SimpleFeatureCollection parcelSimuled) throws IOException {
-//
-//		ShapefileDataStore batiSDS = new ShapefileDataStore(simPLUDepotGenFile.toURI().toURL());
-//		SimpleFeatureCollection batiColl = batiSDS.getFeatureSource().getFeatures();
-//		SimpleFeatureIterator itParcel = parcelSimuled.features();
-//
-//		try {
-//			while (itParcel.hasNext()) {
-//				SimpleFeature ft = itParcel.next();
-//				if (((String) ft.getAttribute("DoWeSimul")).equals("simulated")) {
-//					SimpleFeatureIterator batiIt = Vectors.snapDatas(batiColl, (Geometry) ft.getDefaultGeometry()).features();
-//					try {
-//						while (batiIt.hasNext()) {
-//							SimpleFeature ftBati = batiIt.next();
-//							if (((Geometry) ftBati.getDefaultGeometry()).intersects((Geometry) ft.getDefaultGeometry())) {
-//								this.surfaceSDPParcelle = surfaceSDPParcelle + (double) ftBati.getAttribute("SDPShon");
-//								this.surfaceEmpriseParcelle = surfaceEmpriseParcelle + (double) ftBati.getAttribute("SurfaceSol");
-//							}
-//						}
-//					} catch (Exception problem) {
-//						problem.printStackTrace();
-//					} finally {
-//						batiIt.close();
-//					}
-//				}
-//			}
-//		} catch (Exception problem) {
-//			problem.printStackTrace();
-//		} finally {
-//			itParcel.close();
-//		}
-//
-//		batiSDS.dispose();
-//	}
+	// public void caclulateStatBatiParcel() throws IOException {
+	// File parcelStatShapeFile = new File(indicFile, "parcelStatted.shp");
+	// if (!parcelStatShapeFile.exists()) {
+	// markSimuledParcels();
+	// }
+	//
+	// ShapefileDataStore parcelSimuledSDS = new ShapefileDataStore(parcelStatShapeFile.toURI().toURL());
+	// SimpleFeatureCollection parcelSimuled = parcelSimuledSDS.getFeatureSource().getFeatures();
+	// caclulateStatBatiParcel(parcelSimuled);
+	// parcelSimuledSDS.dispose();
+	//
+	// }
+	//
+	// public void caclulateStatBatiParcel(SimpleFeatureCollection parcelSimuled) throws IOException {
+	//
+	// ShapefileDataStore batiSDS = new ShapefileDataStore(simPLUDepotGenFile.toURI().toURL());
+	// SimpleFeatureCollection batiColl = batiSDS.getFeatureSource().getFeatures();
+	// SimpleFeatureIterator itParcel = parcelSimuled.features();
+	//
+	// try {
+	// while (itParcel.hasNext()) {
+	// SimpleFeature ft = itParcel.next();
+	// if (((String) ft.getAttribute("DoWeSimul")).equals("simulated")) {
+	// SimpleFeatureIterator batiIt = Vectors.snapDatas(batiColl, (Geometry) ft.getDefaultGeometry()).features();
+	// try {
+	// while (batiIt.hasNext()) {
+	// SimpleFeature ftBati = batiIt.next();
+	// if (((Geometry) ftBati.getDefaultGeometry()).intersects((Geometry) ft.getDefaultGeometry())) {
+	// this.surfaceSDPParcelle = surfaceSDPParcelle + (double) ftBati.getAttribute("SDPShon");
+	// this.surfaceEmpriseParcelle = surfaceEmpriseParcelle + (double) ftBati.getAttribute("SurfaceSol");
+	// }
+	// }
+	// } catch (Exception problem) {
+	// problem.printStackTrace();
+	// } finally {
+	// batiIt.close();
+	// }
+	// }
+	// }
+	// } catch (Exception problem) {
+	// problem.printStackTrace();
+	// } finally {
+	// itParcel.close();
+	// }
+	//
+	// batiSDS.dispose();
+	// }
 
 	public void caclulateStatParcel() throws IOException {
 		File parcelStatShapeFile = new File(indicFile, "parcelStatted.shp");
@@ -519,8 +515,6 @@ public class ParcelStat extends Indicators {
 
 	public void run() throws IOException, NoSuchAuthorityCodeException, FactoryException {
 
-		Indicators.firstLineGen = true;
-
 		for (String city : FromGeom.getInsee(parcelDepotGenFile)) {
 			double surfSelect = 0;
 			double surfSelectU = 0;
@@ -578,7 +572,7 @@ public class ParcelStat extends Indicators {
 
 	public void setCountToZero() {
 		nbParcelIgnored = nbParcelSimulated = nbParcelSimulFailed = 0;
-		surfParcelIgnored = surfParcelSimulated = surfParcelSimulFailed =  0;
-//		surfaceSDPParcelle = surfaceEmpriseParcelle =
+		surfParcelIgnored = surfParcelSimulated = surfParcelSimulFailed = 0;
+		// surfaceSDPParcelle = surfaceEmpriseParcelle =
 	}
 }
