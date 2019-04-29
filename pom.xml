@@ -34,6 +34,15 @@
 			</testResource>
 		</testResources>
 		<plugins>
+		    <plugin>
+			<groupId>org.openjfx</groupId>
+			<artifactId>javafx-maven-plugin</artifactId>
+			<version>0.0.2</version>
+			<configuration>
+			    <mainClass>HelloFX</mainClass>
+			</configuration>
+		    </plugin>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
@@ -89,6 +98,7 @@
 	</build>
 
 	<dependencies>
+<!--
 		<dependency>
 		    	<groupId>tech.tablesaw</groupId>
 		    	<artifactId>tablesaw-core</artifactId>
@@ -99,6 +109,7 @@
 			<artifactId>tablesaw-jsplot</artifactId>
 			<version>LATEST</version>
 		</dependency>
+-->
 		<dependency>
 			<groupId>fr.ign.cogit</groupId>
 			<artifactId>simplu3d</artifactId>
