@@ -1,24 +1,32 @@
 package fr.ign.cogit.tests;
 
 import java.io.File;
+import java.util.List;
 
+import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.data.simple.SimpleFeatureIterator;
+import org.geotools.feature.DefaultFeatureCollection;
+import org.geotools.feature.simple.SimpleFeatureBuilder;
+import org.opengis.feature.simple.SimpleFeature;
+
+import com.vividsolutions.jts.geom.Geometry;
 
 import fr.ign.cogit.GTFunctions.Vectors;
+import fr.ign.cogit.geoxygene.feature.DefaultFeature;
 import fr.ign.cogit.util.SimuTool;
 
 public class Test {
 
-	public static void main(String[] args) throws Exception {
 
-//		getSimuInfo(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/CDense/base"), "25056000HS0072");
+		// getSimuInfo(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/CDense/base"), "25056000HS0072");
 		// replaceZoning(new File("/media/ubuntu/saintmande/Packager/CDense/"),
 		// new File("/home/ubuntu/boulot/these/result2903/dataRegulation/zoning.shp"));
 		// replaceZoning(new File("/tmp/salut/"), new File("/home/ubuntu/boulot/these/result2903/dataRegulation/zoning.shp"));-
-		
-		Vectors.exportSFC(SimuTool.giveEvalToBuilding(new File("/tmp/test/TotBatSimuFill.shp"), new File("/tmp/test/CDense--N6_St_Moy_ahpE_seed_42-evalAnal-20.0.shp")),new File("/tmp/test/result.shp"));
-	}
 
+		// Vectors.exportSFC(SimuTool.giveEvalToBuilding(new File("/tmp/test/TotBatSimuFill.shp"),
+		// new File("/tmp/test/CDense--N6_St_Moy_ahpE_seed_42-evalAnal-20.0.shp")), new File("/tmp/test/result.shp"));
+//	}
 
 	// ShapefileDataStore communitiesSDS = new ShapefileDataStore((new
 	// File("/home/ubuntu/boulot/these/ArtiScales/ArtiScales/ParcelSelectionDepot/DDense/variante0/parcelGenExport.shp")).toURI().toURL());

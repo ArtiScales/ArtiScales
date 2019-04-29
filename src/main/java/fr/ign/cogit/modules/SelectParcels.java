@@ -698,7 +698,7 @@ public class SelectParcels {
 	 * get all the parcels from different pack and generate an aggregated shapefile in the same variante file
 	 * 
 	 * @param rootFile
-	 *           File of the ArtiScales project
+	 *            File of the ArtiScales project
 	 * @throws Exception
 	 */
 	public static void aggregateParcelsFromZips(File rootFile) throws Exception {
