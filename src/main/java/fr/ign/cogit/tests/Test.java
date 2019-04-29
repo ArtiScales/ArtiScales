@@ -17,7 +17,8 @@ import fr.ign.cogit.geoxygene.feature.DefaultFeature;
 import fr.ign.cogit.util.SimuTool;
 
 public class Test {
-
+	
+}
 
 		// getSimuInfo(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/CDense/base"), "25056000HS0072");
 		// replaceZoning(new File("/media/ubuntu/saintmande/Packager/CDense/"),
@@ -183,4 +184,3 @@ public class Test {
 	// }
 	// Vectors.mergeVectFiles(toMerge, new File(ou, "mergeParcels.shp"));
 	// }
-}

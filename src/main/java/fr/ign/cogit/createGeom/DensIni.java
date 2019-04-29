@@ -2,10 +2,12 @@ package fr.ign.cogit.createGeom;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.geotools.data.DataUtilities;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
@@ -14,12 +16,13 @@ import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.feature.simple.SimpleFeatureType;
+import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.twak.utils.collections.HashableList;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.MultiPolygon;
-import com.vividsolutions.jts.geom.Polygon;
 
 import au.com.bytecode.opencsv.CSVReader;
 import fr.ign.cogit.GTFunctions.Vectors;
@@ -27,19 +30,20 @@ import fr.ign.cogit.GTFunctions.Vectors;
 public class DensIni {
 
 	public static void main(String[] args) throws Exception {
-
-		DefaultFeatureCollection result = new DefaultFeatureCollection();
-
-		File nbLgtFile = new File("/home/ubuntu/boulot/these/result2903/tmp/dataGeo/old/communitiesIris.shp");
 		String nameFieldLgt = "P12_LOG";
-		String nameFieldCode = "IRIS";
-
+		String nameFieldCodeCsv = "COM";
+		String nameInseeFileOut = "DEPCOM";
 		File zoningFile = new File("/home/ubuntu/boulot/these/result2903/tmp/dataRegulation/zoning.shp");
-
+		File nbLgtFile = new File("/home/ubuntu/Téléchargements/base-ic-logement-2012.csv");
 		List<File> filesToAddInitialDensity = new ArrayList<File>();
-		// filesToAddInitialDensity.add(new File("/home/ubuntu/boulot/these/result2903/tmp/dataGeo/old/communitiesIris.shp"));
 		filesToAddInitialDensity.add(new File("/home/ubuntu/boulot/these/result2903/tmp/dataGeo/old/communities.shp"));
 		filesToAddInitialDensity.add(new File("/home/ubuntu/boulot/these/result2903/tmp/dataGeo/communities.shp"));
+		createCommunitiesWithIniDensity(nameFieldLgt, nameFieldCodeCsv, nameInseeFileOut, zoningFile, nbLgtFile, filesToAddInitialDensity);
+
+	}
+
+	public static void createCommunitiesWithIniDensity(String nameFieldLgt, String nameFieldCodeCsv, String nameInseeFileOut, File zoningFile,
+			File nbLgtFile, List<File> filesToAddInitialDensity) throws IOException, NoSuchAuthorityCodeException, FactoryException {
 
 		// step1 : isolate constructible zones and merge them into a single SimpleFeature
 		ShapefileDataStore zoningSDS = new ShapefileDataStore(zoningFile.toURI().toURL());
@@ -80,12 +84,12 @@ public class DensIni {
 		Vectors.exportSFC(zones, new File("/tmp/step1.shp"));
 
 		// step2 calculate the density
+		HashMap<String, Double> iniDensVal = new HashMap<String, Double>();
 		SimpleFeatureIterator com = zones.features();
 		while (com.hasNext()) {
 			SimpleFeature feature = com.next();
 			CSVReader csvR = new CSVReader(new FileReader(nbLgtFile));
 			String[] fline = csvR.readNext();
-
 			double obj = 0;
 			double dens = 0;
 			int field = 0;
@@ -94,22 +98,48 @@ public class DensIni {
 				if (fline[i].equals(nameFieldLgt)) {
 					field = i;
 				}
-				if (fline[i].equals(nameFieldCode)) {
+				if (fline[i].equals(nameFieldCodeCsv)) {
 					code = i;
 				}
 			}
 			for (String[] line : csvR.readAll()) {
 				if (line[code].equals(feature.getAttribute("INSEE"))) {
-					obj = Double.valueOf(line[field]);
-					break;
+					obj = obj+ Double.valueOf(line[field].replace(",", "."));
 				}
 			}
-			dens = obj / ((Geometry) feature.getDefaultGeometry()).getArea();
-			
+			dens = obj / (((Geometry) feature.getDefaultGeometry()).getArea()/10000);
+			iniDensVal.put((String) feature.getAttribute("INSEE"), dens);
 			csvR.close();
 		}
-
+		com.close();
+		System.out.println(iniDensVal);
 		// //step 3 : affect the density of housing units per hectare to a list of administrative file (could either be communities or Iris)
+		for (File f : filesToAddInitialDensity) {
+
+			DefaultFeatureCollection result = new DefaultFeatureCollection();
+
+			ShapefileDataStore inSDS = new ShapefileDataStore(f.toURI().toURL());
+			SimpleFeatureIterator inIt = inSDS.getFeatureSource().getFeatures().features();
+
+			SimpleFeatureType schema = inSDS.getSchema();
+			SimpleFeatureTypeBuilder b = new SimpleFeatureTypeBuilder();
+			b.setName(schema.getName());
+			b.setSuperType((SimpleFeatureType) schema.getSuper());
+			b.addAll(schema.getAttributeDescriptors());
+			b.add("iniDens", Double.class);
+			SimpleFeatureType nSchema = b.buildFeatureType();
+			while (inIt.hasNext()) {
+				SimpleFeature feat = inIt.next();
+				SimpleFeature featFin = DataUtilities.reType(nSchema, feat);
+				if (iniDensVal.containsKey(feat.getAttribute(nameInseeFileOut))) {
+					featFin.setAttribute("iniDens", iniDensVal.get(feat.getAttribute(nameInseeFileOut)));
+					result.add(featFin);
+				}
+			}
+			inIt.close();
+			Vectors.exportSFC(result, new File(f.getParentFile(), f.getName().replace(".shp", "-dens.shp")));
+		}
+
 		//
 		// for (File irisFile : filesToAddInitialDensity ) {
 		// ShapefileDataStore communitiesSDS = new ShapefileDataStore(irisFile.toURI().toURL());
