@@ -5,10 +5,19 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import org.knowm.xchart.CSVImporter;
+import org.knowm.xchart.CSVImporter.DataOrientation;
+import org.knowm.xchart.CSVImporter.SeriesData;
+import org.knowm.xchart.CategoryChart;
+import org.knowm.xchart.CategoryChartBuilder;
+import org.knowm.xchart.CategorySeries;
+import org.knowm.xchart.SwingWrapper;
+import org.knowm.xchart.style.Styler.LegendPosition;
 
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
@@ -20,29 +29,29 @@ public class CompVariant extends Indicators {
 	String indicStatFile;
 	static String indicName = "compVariant";
 
-	public static void main(String[] args) throws Exception {
-		File rootFile = new File("./result2903/tmp");
-		File rootParam = new File(rootFile, "paramFolder");
-		List<File> lF = new ArrayList<>();
-		String scenario = "CDense";
-		lF.add(new File(rootParam, "paramSet/" + scenario + "/parameterTechnic.xml"));
-		lF.add(new File(rootParam, "paramSet/" + scenario + "/parameterScenario.xml"));
-
-		SimpluParametersJSON p = new SimpluParametersJSON(lF);
-
-		CompVariant parc = new CompVariant(p, "compVariant", "ParcelStat.csv", rootFile, scenario);
-		// parc.createGraph(new File(parc.indicFile, "compVariantbTHGen.csv"));
-
-		// parc.createStat("bTH", "genStat.csv");
-		// List<MapRenderer> allOfTheMaps = new ArrayList<MapRenderer>();
-		//
-		// File commStatFile = parc.joinStatoBTHCommunnities("compVariantbTHCityCoeffVar.csv");
-		//
-		// MapRenderer mapNbHUCV = new MapNbHUCV(1000, 1000, parc.mapStyle, commStatFile, parc.mapDepotFile);
-		// mapNbHUCV.renderCityInfo();
-		// mapNbHUCV.generateSVG();
-		// allOfTheMaps.add(MapNbHUCV);
-	}
+//	public static void main(String[] args) throws Exception {
+//		File rootFile = new File("./result2903/tmp");
+//		File rootParam = new File(rootFile, "paramFolder");
+//		List<File> lF = new ArrayList<>();
+//		String scenario = "CDense";
+//		lF.add(new File(rootParam, "paramSet/" + scenario + "/parameterTechnic.xml"));
+//		lF.add(new File(rootParam, "paramSet/" + scenario + "/parameterScenario.xml"));
+//
+//		SimpluParametersJSON p = new SimpluParametersJSON(lF);
+//
+//		CompVariant parc = new CompVariant(p, "compVariant", "ParcelStat.csv", rootFile, scenario);
+//		// parc.createGraph(new File(parc.indicFile, "compVariantbTHGen.csv"));
+//
+//		// parc.createStat("bTH", "genStat.csv");
+//		// List<MapRenderer> allOfTheMaps = new ArrayList<MapRenderer>();
+//		//
+//		// File commStatFile = parc.joinStatoBTHCommunnities("compVariantbTHCityCoeffVar.csv");
+//		//
+//		// MapRenderer mapNbHUCV = new MapNbHUCV(1000, 1000, parc.mapStyle, commStatFile, parc.mapDepotFile);
+//		// mapNbHUCV.renderCityInfo();
+//		// mapNbHUCV.generateSVG();
+//		// allOfTheMaps.add(MapNbHUCV);
+//	}
 
 	public CompVariant(SimpluParametersJSON p, String indicname, String indicstatfile, File rootfile, String scenarname) throws Exception {
 		super(p, rootfile, scenarname, "", indicName);
@@ -198,6 +207,33 @@ public class CompVariant extends Indicators {
 	// stage.show();
 	// }
 
+	 public static void main(String[] args) {
+		 // help here : https://github.com/knowm/XChart and here : https://knowm.org/open-source/xchart/xchart-example-code/
+		 getChart("","Salut", "c'est", "cool");
+		  }
+		 
+		  public static CategoryChart getChart(String csvPath, String title, String xTitle, String yTitle) {
+		 
+			  SeriesData csvData = CSVImporter.getSeriesDataFromCSVFile(csvPath,DataOrientation.Columns);
+			  
+//			  CategorySeries serie =;
+			  
+		    // Create Chart
+		    CategoryChart chart = new CategoryChartBuilder().width(800).height(600).title(title).xAxisTitle(xTitle).yAxisTitle(yTitle).build();
+		 
+		    // Customize Chart
+		    chart.getStyler().setLegendPosition(LegendPosition.InsideNW);
+		    chart.getStyler().setHasAnnotations(true);
+		    chart.addSeries("nombre", csvData.getxAxisData(), csvData.getyAxisData());
+		    // Series
+		    new SwingWrapper(chart).displayChart();
+		    return chart;
+		  }
+	
+	 public void createGraph(File csvIn) throws IOException {
+		 
+	 }
+	
 	// public void createGraph(File csvIn) throws IOException {
 	// Table distrib = Table.read().csv(csvIn.toString());
 	// // see tutorial here https://dzone.com/articles/learn-data-science-with-java-and-tablesaw

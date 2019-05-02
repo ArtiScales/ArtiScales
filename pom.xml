@@ -98,6 +98,11 @@
 	</build>
 
 	<dependencies>
+		<dependency>
+			<groupId>org.knowm.xchart</groupId>
+			<artifactId>xchart</artifactId>
+			<version>3.5.4</version>
+		</dependency>
 <!--
 		<dependency>
 		    	<groupId>tech.tablesaw</groupId>
