@@ -1,23 +1,9 @@
 package fr.ign.cogit.tests;
 
-import java.io.File;
-import java.util.List;
-
-import org.geotools.data.shapefile.ShapefileDataStore;
-import org.geotools.data.simple.SimpleFeatureCollection;
-import org.geotools.data.simple.SimpleFeatureIterator;
-import org.geotools.feature.DefaultFeatureCollection;
-import org.geotools.feature.simple.SimpleFeatureBuilder;
-import org.opengis.feature.simple.SimpleFeature;
-
-import com.vividsolutions.jts.geom.Geometry;
-
-import fr.ign.cogit.GTFunctions.Vectors;
-import fr.ign.cogit.geoxygene.feature.DefaultFeature;
-import fr.ign.cogit.util.SimuTool;
-
 public class Test {
-	
+	public static void main(String[] args) throws Exception {
+	}
+
 }
 
 		// getSimuInfo(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/CDense/base"), "25056000HS0072");

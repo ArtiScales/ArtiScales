@@ -36,8 +36,8 @@ public class DensIni {
 		File zoningFile = new File("/home/ubuntu/boulot/these/result2903/tmp/dataRegulation/zoning.shp");
 		File nbLgtFile = new File("/home/ubuntu/Téléchargements/base-ic-logement-2012.csv");
 		List<File> filesToAddInitialDensity = new ArrayList<File>();
-		filesToAddInitialDensity.add(new File("/home/ubuntu/boulot/these/result2903/tmp/dataGeo/old/communities.shp"));
-		filesToAddInitialDensity.add(new File("/home/ubuntu/boulot/these/result2903/tmp/dataGeo/communities.shp"));
+		filesToAddInitialDensity.add(new File("/home/ubuntu/boulot/these/result2903/dataGeo/old/communities.shp"));
+		filesToAddInitialDensity.add(new File("/home/ubuntu/boulot/these/result2903/dataGeo/communities.shp"));
 		createCommunitiesWithIniDensity(nameFieldLgt, nameFieldCodeCsv, nameInseeFileOut, zoningFile, nbLgtFile, filesToAddInitialDensity);
 
 	}
@@ -81,13 +81,14 @@ public class DensIni {
 			builder.set("INSEE", com);
 			zones.add(builder.buildFeature(null));
 		}
-		Vectors.exportSFC(zones, new File("/tmp/step1.shp"));
+		// Vectors.exportSFC(zones, new File("/tmp/step1.shp"));
 
 		// step2 calculate the density
 		HashMap<String, Double> iniDensVal = new HashMap<String, Double>();
 		SimpleFeatureIterator com = zones.features();
 		while (com.hasNext()) {
 			SimpleFeature feature = com.next();
+			String insee = (String) feature.getAttribute("INSEE");
 			CSVReader csvR = new CSVReader(new FileReader(nbLgtFile));
 			String[] fline = csvR.readNext();
 			double obj = 0;
@@ -103,19 +104,17 @@ public class DensIni {
 				}
 			}
 			for (String[] line : csvR.readAll()) {
-				if (line[code].equals(feature.getAttribute("INSEE"))) {
-					obj = obj+ Double.valueOf(line[field].replace(",", "."));
+				if (line[code].equals(insee)) {
+					obj = obj + Double.valueOf(line[field].replace(",", "."));
 				}
 			}
-			dens = obj / (((Geometry) feature.getDefaultGeometry()).getArea()/10000);
-			iniDensVal.put((String) feature.getAttribute("INSEE"), dens);
+			dens = obj / (((Geometry) feature.getDefaultGeometry()).getArea() / 10000);
+			iniDensVal.put(insee, dens);
 			csvR.close();
 		}
 		com.close();
-		System.out.println(iniDensVal);
 		// //step 3 : affect the density of housing units per hectare to a list of administrative file (could either be communities or Iris)
 		for (File f : filesToAddInitialDensity) {
-
 			DefaultFeatureCollection result = new DefaultFeatureCollection();
 
 			ShapefileDataStore inSDS = new ShapefileDataStore(f.toURI().toURL());

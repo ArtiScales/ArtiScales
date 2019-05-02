@@ -2,7 +2,6 @@ package fr.ign.cogit.indicators;
 
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -22,7 +21,6 @@ import org.opengis.referencing.NoSuchAuthorityCodeException;
 import com.vividsolutions.jts.geom.Geometry;
 
 import au.com.bytecode.opencsv.CSVReader;
-import au.com.bytecode.opencsv.CSVWriter;
 import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.map.MapRenderer;
 import fr.ign.cogit.map.theseMC.DiffObjLgtMap;
@@ -41,14 +39,14 @@ public class BuildingToHousingUnit extends Indicators {
 			nbBanlieue, nbPeriUrbain, nbRural, objHU, diffHU;
 	double sDPtot, empriseTot, averageSDPHU, standDevSDPHU, averageDensite, standDevDensite, objDens, diffDens;
 	String housingUnitFirstLine, genFirstLine, genStatFirstLine, numeroParcel;
-	File initDensities;
+	// File initDensities;
 	static String indicName = "bTH";
 
 	public BuildingToHousingUnit(File rootFile, SimpluParametersJSON par, String scenarName, String variantName) throws Exception {
 		super(par, rootFile, scenarName, variantName, indicName);
 
-		File indicMainFile = new File(rootFile, "/indic/" + indicName + "/");
-		initDensities = new File(indicMainFile, "initialDensities.csv");
+		// File indicMainFile = new File(rootFile, "/indic/" + indicName + "/");
+		// initDensities = new File(indicMainFile, "initialDensities.csv");
 
 		if (!variantName.equals("")) {
 			super.mapDepotFile = new File(indicFile, "mapDepot");
@@ -90,7 +88,6 @@ public class BuildingToHousingUnit extends Indicators {
 				bhtU.makeGenStat(city);
 				bhtU.setCountToZero();
 			}
-
 			File commStatFile = bhtU.joinStatoBTHCommunnities("genStat.csv");
 			allOfTheMap(bhtU, commStatFile);
 		}
@@ -126,29 +123,56 @@ public class BuildingToHousingUnit extends Indicators {
 		}
 	}
 
-	public static double existingBuildingDensity(File buildingFile, File parcelsFile, File initialDensities, String code) throws Exception {
-		// if this value has already been calculated (for all of them scenarios and vairants - it could tho depends on the scenario parameters for the housing unit estimation
-		if (initialDensities.exists()) {
-			CSVReader csv = new CSVReader(new FileReader(initialDensities));
-			for (String[] line : csv.readAll()) {
-				if (line[0].equals(code)) {
-					csv.close();
-					return Double.valueOf(line[1]);
-				}
-			}
-			csv.close();
+	/**
+	 * get the initial density. If it's not in the corresponding shapefile, it calculates it from a building estimation
+	 * 
+	 * @param buildingFile
+	 * @param parcelsFile
+	 * @param initialDensities
+	 * @param code
+	 * @return
+	 * @throws Exception
+	 */
+	public static double existingBuildingDensity(File buildingFile, File parcelsFile, File communitiesFile, String code) throws Exception {
+		if (code.equals("ALLLL")) {
+			System.out.println("not concerned");
+			return 0;
 		}
 
-		ShapefileDataStore parcelSDS = new ShapefileDataStore(parcelsFile.toURI().toURL());
-		SimpleFeatureCollection parcelSFC = DataUtilities.collection(ParcelFonction.getParcelByZip(parcelSDS.getFeatureSource().getFeatures(), code));
+		// if this value has already been calculated (for all of them scenarios and vairants - it could tho depends on the scenario parameters for the housing unit estimation
+		ShapefileDataStore commSDS = new ShapefileDataStore(communitiesFile.toURI().toURL());
+		SimpleFeatureIterator commIt = commSDS.getFeatureSource().getFeatures().features();
+		double iniDens = 0.0;
+		try {
+			while (commIt.hasNext()) {
+				SimpleFeature feat = commIt.next();
+				if (feat.getAttribute("DEPCOM").equals(code)) {
+					iniDens = (Double) feat.getAttribute("iniDens");
+				}
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			commIt.close();
+		}
 
-		ShapefileDataStore buildingSDS = new ShapefileDataStore(buildingFile.toURI().toURL());
-		SimpleFeatureCollection buildingSFC = DataUtilities
-				.collection(Vectors.snapDatas(buildingSDS.getFeatureSource().getFeatures(), Vectors.unionSFC(parcelSFC)));
+		if (iniDens == 0.0) {
+			System.out.println("iniDens's missing");
 
-		buildingSDS.dispose();
-		parcelSDS.dispose();
-		return existingBuildingDensity(buildingSFC, parcelSFC, initialDensities, code);
+			ShapefileDataStore parcelSDS = new ShapefileDataStore(parcelsFile.toURI().toURL());
+			SimpleFeatureCollection parcelSFC = DataUtilities
+					.collection(ParcelFonction.getParcelByZip(parcelSDS.getFeatureSource().getFeatures(), code));
+
+			ShapefileDataStore buildingSDS = new ShapefileDataStore(buildingFile.toURI().toURL());
+			SimpleFeatureCollection buildingSFC = DataUtilities
+					.collection(Vectors.snapDatas(buildingSDS.getFeatureSource().getFeatures(), Vectors.unionSFC(parcelSFC)));
+
+			buildingSDS.dispose();
+			parcelSDS.dispose();
+			iniDens = existingBuildingDensity(buildingSFC, code, parcelSFC);
+		}
+		commSDS.dispose();
+		return iniDens;
 
 	}
 
@@ -178,8 +202,8 @@ public class BuildingToHousingUnit extends Indicators {
 		return result;
 	}
 
-	public static double existingBuildingDensity(SimpleFeatureCollection buildingSFC, SimpleFeatureCollection parcelSFC, File initialDensities,
-			String code) throws Exception {
+	public static double existingBuildingDensity(SimpleFeatureCollection buildingSFC, String code, SimpleFeatureCollection parcelSFC)
+			throws Exception {
 		if (code.equals("ALLLL")) {
 			System.out.println("not concerned");
 			return 0;
@@ -187,11 +211,11 @@ public class BuildingToHousingUnit extends Indicators {
 		String[] attr = { "CODE_DEP", "CODE_COM" };
 		parcelSFC = Vectors.getSFCPart(parcelSFC, code, attr);
 		buildingSFC = Vectors.snapDatas(buildingSFC, Vectors.unionSFC(parcelSFC));
-		return existingBuildingDensity(buildingSFC, parcelSFC, code, initialDensities);
+		return existingBuildingDensity(buildingSFC, parcelSFC, code);
 	}
 
-	public static double existingBuildingDensity(SimpleFeatureCollection buildingSFC, SimpleFeatureCollection parcelsSFC, String code,
-			File initialDensities) throws IOException {
+	public static double existingBuildingDensity(SimpleFeatureCollection buildingSFC, SimpleFeatureCollection parcelsSFC, String code)
+			throws IOException {
 		double surfTot = 0;
 		SimpleFeatureIterator itParcel = parcelsSFC.features();
 		try {
@@ -228,10 +252,10 @@ public class BuildingToHousingUnit extends Indicators {
 		double dens = nbLgt / surfTot;
 		System.out.println("nbLgt is " + nbLgt + " and aera is " + surfTot + " so density is : " + dens);
 
-		CSVWriter csv = new CSVWriter(new FileWriter(initialDensities, true));
-		String[] line = { code, String.valueOf(dens) };
-		csv.writeNext(line);
-		csv.close();
+		// CSVWriter csv = new CSVWriter(new FileWriter(initialDensities, true));
+		// String[] line = { code, String.valueOf(dens) };
+		// csv.writeNext(line);
+		// csv.close();
 
 		return nbLgt / surfTot;
 	}
@@ -258,7 +282,7 @@ public class BuildingToHousingUnit extends Indicators {
 		System.out.println();
 		System.out.println("city " + code);
 		double iniDensite = existingBuildingDensity(new File(rootFile, "dataGeo/building.shp"), new File(rootFile, "dataGeo/parcel.shp"),
-				initDensities, code);
+				new File(rootFile, "dataGeo/communities.shp"), code);
 		String insee = code.substring(0, 5);
 		setCountToZero();
 		CSVReader stat = new CSVReader(new FileReader(new File(indicFile, "housingUnits.csv")), ',', '\0');
@@ -414,7 +438,8 @@ public class BuildingToHousingUnit extends Indicators {
 		try {
 			while (it.hasNext()) {
 				SimpleFeature ftBati = it.next();
-				if (!buildingCode.contains((String) ftBati.getAttribute("CODE"))) {
+				String code = (String) ftBati.getAttribute("CODE");
+				if (!buildingCode.contains(code)) {
 
 					// typo of the zone
 					String typo = FromGeom.parcelInTypo(FromGeom.getCommunities(new File(rootFile, "dataGeo")), ftBati).toUpperCase();
@@ -437,7 +462,7 @@ public class BuildingToHousingUnit extends Indicators {
 						repartition = makeCollectiveHousingRepartition(ftBati, type, paramFolder);
 						nbHU = repartition.get("carac").get("totHU");
 					}
-					numeroParcel = String.valueOf(ftBati.getAttribute("CODE"));
+					numeroParcel = code;
 
 					averageDensite = nbHU / ((double) ftBati.getAttribute("SurfacePar") / 10000);
 
@@ -457,7 +482,7 @@ public class BuildingToHousingUnit extends Indicators {
 					}
 					System.out.println("");
 
-					buildingCode.add((String) ftBati.getAttribute("CODE"));
+					buildingCode.add(code);
 				}
 			}
 

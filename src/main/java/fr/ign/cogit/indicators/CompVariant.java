@@ -14,7 +14,6 @@ import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 
-
 public class CompVariant extends Indicators {
 
 	String[] baseVariant;
@@ -32,7 +31,7 @@ public class CompVariant extends Indicators {
 		SimpluParametersJSON p = new SimpluParametersJSON(lF);
 
 		CompVariant parc = new CompVariant(p, "compVariant", "ParcelStat.csv", rootFile, scenario);
-//		parc.createGraph(new File(parc.indicFile, "compVariantbTHGen.csv"));
+		// parc.createGraph(new File(parc.indicFile, "compVariantbTHGen.csv"));
 
 		// parc.createStat("bTH", "genStat.csv");
 		// List<MapRenderer> allOfTheMaps = new ArrayList<MapRenderer>();
@@ -159,84 +158,84 @@ public class CompVariant extends Indicators {
 		csvWCity.close();
 		csvWGen.close();
 	}
-	
-//	public void createGraph(File csvInj, Stage stage ) throws IOException {
-//	//from  http://lauraliparulo.altervista.org/data-science-java-part-2-csv-data-charts/
-//	    stage.setTitle("Index Chart Sample");
-//        final NumberAxis yAxis = new NumberAxis(0, 5000000, 1);
-//        final CategoryAxis xAxis = new CategoryAxis();
-// 
-//        final LineChart<String, Number> lineChart = new LineChart<>(xAxis, yAxis);
-//        yAxis.setLabel("People without job");
-//        xAxis.setLabel("year");
-//        lineChart.setTitle("Unemployment in Germnay");
-// 
-//        XYChart.Series series = new XYChart.Series();
-//        XYChart.Series seriesWest = new XYChart.Series();
-//        XYChart.Series seriesEast = new XYChart.Series();
-//         
-//        series.setName("Germany");
-//        seriesWest.setName("West Germany");
-//        seriesEast.setName("East Germany");
-//         
-//        try (CSVReader dataReader = new CSVReader(new FileReader("docs/unemployment_germany.csv"))) {
-//            String[] nextLine;
-//            while ((nextLine = dataReader.readNext()) != null) {
-//                String year = String.valueOf(nextLine[0]);
-//                int population = Integer.parseInt(nextLine[1]);
-//                series.getData().add(new XYChart.Data(year, population));
-//                int populationWest = Integer.parseInt(nextLine[2]);
-//                ;
-//                seriesWest.getData().add(new XYChart.Data(year, populationWest));
-//                int populationEast = Integer.parseInt(nextLine[3]);
-//                seriesEast.getData().add(new XYChart.Data(year, populationEast));
-//            }
-//        }
-// 
-//        lineChart.getData().addAll(series, seriesWest, seriesEast);
-//        Scene scene = new Scene(lineChart, 500, 400);
-//        stage.setScene(scene);
-//        stage.show();
-//	}
 
-//	public void createGraph(File csvIn) throws IOException {
-//		Table distrib = Table.read().csv(csvIn.toString());
-//		// see tutorial here https://dzone.com/articles/learn-data-science-with-java-and-tablesaw
-//		// NumberColumn toPlot = distrib.numberColumn(nameColumn);
-//		// Table distribClean = distrib;
-//		// Table fatalities1 =
-//		// distrib.summarize("SDPTot", sum).by("nameVariant");
-//		// System.out.println(fatalities1);
-//
-//		// distrib.sortAscendingOn("");
-//		// Plot.show(Histogram.create("surf de pl", distrib, "SDPTot"),outFile);
-//		Plot.show(HorizontalBarPlot.create("Nombre de logements simulés dans une commune de type rurale", distrib, "nameVariant", "nbHU_rural"),
-//				new File(graphDepotFile, "nbHU_rural"));
-//		Plot.show(HorizontalBarPlot.create("Nombre de logements simulés dans une commune de type péri-urbain", distrib, "nameVariant",
-//				"nbHU_periUrbain"), new File(graphDepotFile, "nbHU_periUrbain"));
-//		Plot.show(HorizontalBarPlot.create("Nombre de logements simulés dans un quartier de type banlieue", distrib, "nameVariant", "nbHU_banlieue"),
-//				new File(graphDepotFile, "nbHU_banlieue"));
-//		Plot.show(HorizontalBarPlot.create("Nombre de logements simulés dans un quartier de type centre", distrib, "nameVariant", "nbHU_centre"),
-//				new File(graphDepotFile, "nbHU_centre"));
-//		Plot.show(HorizontalBarPlot.create("Nombre de logements simulés dans une zone non constructible (NC)", distrib, "nameVariant", "nbHU_NC"),
-//				new File(graphDepotFile, "nbHU_NC"));
-//		Plot.show(HorizontalBarPlot.create("Nombre de logements simulés dans une zone à urbaniser (AU)", distrib, "nameVariant", "nbHU_AU"),
-//				new File(graphDepotFile, "nbHU_AU"));
-//		Plot.show(HorizontalBarPlot.create("Nombre de logements simulés dans une zone urbanisable (U)", distrib, "nameVariant", "nbHU_U"),
-//				new File(graphDepotFile, "nbHU_U"));
-//		Plot.show(HorizontalBarPlot.create("Nombre de logements simulés de type maison isolée", distrib, "nameVariant", "nbHU_detachedHouse"),
-//				new File(graphDepotFile, "nbHU_detachedHouse"));
-//		Plot.show(HorizontalBarPlot.create("Nombre de logements simulés de type pavillon de lotissement", distrib, "nameVariant", "nbHU_smallHouse"),
-//				new File(graphDepotFile, "nbHU_smallHouse"));
-//		Plot.show(HorizontalBarPlot.create("Nombre de logements simulés de type immeuble d'habitat intermédiaire", distrib, "nameVariant",
-//				"nbHU_multiFamilyHouse"), new File(graphDepotFile, "nbHU_multiFamilyHouse"));
-//		Plot.show(HorizontalBarPlot.create("Nombre de logements simulés de type petit immeuble collectif", distrib, "nameVariant",
-//				"nbHU_smallBlockFlat"), new File(graphDepotFile, "nbHU_smallBlockFlat"));
-//		Plot.show(HorizontalBarPlot.create("Nombre de logements simulés de type immeuble collectif de taille moyenne", distrib, "nameVariant",
-//				"nbHU_midBlockFlat"), new File(graphDepotFile, "nbHU_midBlockFlat"));
-//		Plot.show(HorizontalBarPlot.create("Surface de plancher par variantes", distrib, "nameVariant", "SDPTot"),
-//				new File(graphDepotFile, "compVariantSDP"));
-//		Plot.show(HorizontalBarPlot.create("Nombre de logements simulés par variantes", distrib, "nameVariant", "nb_housingUnit"),
-//				new File(graphDepotFile, "compVariantNbHU"));
-//	}
+	// public void createGraph(File csvInj, Stage stage ) throws IOException {
+	// //from http://lauraliparulo.altervista.org/data-science-java-part-2-csv-data-charts/
+	// stage.setTitle("Index Chart Sample");
+	// final NumberAxis yAxis = new NumberAxis(0, 5000000, 1);
+	// final CategoryAxis xAxis = new CategoryAxis();
+	//
+	// final LineChart<String, Number> lineChart = new LineChart<>(xAxis, yAxis);
+	// yAxis.setLabel("People without job");
+	// xAxis.setLabel("year");
+	// lineChart.setTitle("Unemployment in Germnay");
+	//
+	// XYChart.Series series = new XYChart.Series();
+	// XYChart.Series seriesWest = new XYChart.Series();
+	// XYChart.Series seriesEast = new XYChart.Series();
+	//
+	// series.setName("Germany");
+	// seriesWest.setName("West Germany");
+	// seriesEast.setName("East Germany");
+	//
+	// try (CSVReader dataReader = new CSVReader(new FileReader("docs/unemployment_germany.csv"))) {
+	// String[] nextLine;
+	// while ((nextLine = dataReader.readNext()) != null) {
+	// String year = String.valueOf(nextLine[0]);
+	// int population = Integer.parseInt(nextLine[1]);
+	// series.getData().add(new XYChart.Data(year, population));
+	// int populationWest = Integer.parseInt(nextLine[2]);
+	// ;
+	// seriesWest.getData().add(new XYChart.Data(year, populationWest));
+	// int populationEast = Integer.parseInt(nextLine[3]);
+	// seriesEast.getData().add(new XYChart.Data(year, populationEast));
+	// }
+	// }
+	//
+	// lineChart.getData().addAll(series, seriesWest, seriesEast);
+	// Scene scene = new Scene(lineChart, 500, 400);
+	// stage.setScene(scene);
+	// stage.show();
+	// }
+
+	// public void createGraph(File csvIn) throws IOException {
+	// Table distrib = Table.read().csv(csvIn.toString());
+	// // see tutorial here https://dzone.com/articles/learn-data-science-with-java-and-tablesaw
+	// // NumberColumn toPlot = distrib.numberColumn(nameColumn);
+	// // Table distribClean = distrib;
+	// // Table fatalities1 =
+	// // distrib.summarize("SDPTot", sum).by("nameVariant");
+	// // System.out.println(fatalities1);
+	//
+	// // distrib.sortAscendingOn("");
+	// // Plot.show(Histogram.create("surf de pl", distrib, "SDPTot"),outFile);
+	// Plot.show(HorizontalBarPlot.create("Nombre de logements simulés dans une commune de type rurale", distrib, "nameVariant", "nbHU_rural"),
+	// new File(graphDepotFile, "nbHU_rural"));
+	// Plot.show(HorizontalBarPlot.create("Nombre de logements simulés dans une commune de type péri-urbain", distrib, "nameVariant",
+	// "nbHU_periUrbain"), new File(graphDepotFile, "nbHU_periUrbain"));
+	// Plot.show(HorizontalBarPlot.create("Nombre de logements simulés dans un quartier de type banlieue", distrib, "nameVariant", "nbHU_banlieue"),
+	// new File(graphDepotFile, "nbHU_banlieue"));
+	// Plot.show(HorizontalBarPlot.create("Nombre de logements simulés dans un quartier de type centre", distrib, "nameVariant", "nbHU_centre"),
+	// new File(graphDepotFile, "nbHU_centre"));
+	// Plot.show(HorizontalBarPlot.create("Nombre de logements simulés dans une zone non constructible (NC)", distrib, "nameVariant", "nbHU_NC"),
+	// new File(graphDepotFile, "nbHU_NC"));
+	// Plot.show(HorizontalBarPlot.create("Nombre de logements simulés dans une zone à urbaniser (AU)", distrib, "nameVariant", "nbHU_AU"),
+	// new File(graphDepotFile, "nbHU_AU"));
+	// Plot.show(HorizontalBarPlot.create("Nombre de logements simulés dans une zone urbanisable (U)", distrib, "nameVariant", "nbHU_U"),
+	// new File(graphDepotFile, "nbHU_U"));
+	// Plot.show(HorizontalBarPlot.create("Nombre de logements simulés de type maison isolée", distrib, "nameVariant", "nbHU_detachedHouse"),
+	// new File(graphDepotFile, "nbHU_detachedHouse"));
+	// Plot.show(HorizontalBarPlot.create("Nombre de logements simulés de type pavillon de lotissement", distrib, "nameVariant", "nbHU_smallHouse"),
+	// new File(graphDepotFile, "nbHU_smallHouse"));
+	// Plot.show(HorizontalBarPlot.create("Nombre de logements simulés de type immeuble d'habitat intermédiaire", distrib, "nameVariant",
+	// "nbHU_multiFamilyHouse"), new File(graphDepotFile, "nbHU_multiFamilyHouse"));
+	// Plot.show(HorizontalBarPlot.create("Nombre de logements simulés de type petit immeuble collectif", distrib, "nameVariant",
+	// "nbHU_smallBlockFlat"), new File(graphDepotFile, "nbHU_smallBlockFlat"));
+	// Plot.show(HorizontalBarPlot.create("Nombre de logements simulés de type immeuble collectif de taille moyenne", distrib, "nameVariant",
+	// "nbHU_midBlockFlat"), new File(graphDepotFile, "nbHU_midBlockFlat"));
+	// Plot.show(HorizontalBarPlot.create("Surface de plancher par variantes", distrib, "nameVariant", "SDPTot"),
+	// new File(graphDepotFile, "compVariantSDP"));
+	// Plot.show(HorizontalBarPlot.create("Nombre de logements simulés par variantes", distrib, "nameVariant", "nb_housingUnit"),
+	// new File(graphDepotFile, "compVariantNbHU"));
+	// }
 }

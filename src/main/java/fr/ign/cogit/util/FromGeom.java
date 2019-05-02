@@ -609,8 +609,7 @@ public class FromGeom {
 	}
 
 	/**
-	 * return the TYPEZONEs that a parcels intersect
-	 * result is sorted by the largest interdected zone to the lowest 
+	 * return the TYPEZONEs that a parcels intersect result is sorted by the largest interdected zone to the lowest
 	 * 
 	 * @param parcelIn
 	 * @param zoningFile
