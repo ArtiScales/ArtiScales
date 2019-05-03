@@ -356,7 +356,7 @@ public class SimPLUSimulator {
 		return listBatiSimu;
 	}
 
-	public void run(int obj, File parcelFile) throws Exception {
+	public int run(int obj, File parcelFile) throws Exception {
 		List<SimpleFeature> sortedList = new LinkedList<SimpleFeature>();
 		ShapefileDataStore sds = new ShapefileDataStore(parcelFile.toURI().toURL());
 		SimpleFeatureIterator it = sds.getFeatureSource().getFeatures().features();
@@ -397,6 +397,7 @@ public class SimPLUSimulator {
 			System.out.println("obj are " + obj);
 		}
 		sds.dispose();
+		return obj;
 	}
 
 	public int run(SimpleFeature parcel) throws Exception {

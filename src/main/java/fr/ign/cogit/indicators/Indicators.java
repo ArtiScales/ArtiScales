@@ -277,7 +277,6 @@ public abstract class Indicators {
 						break;
 					}
 				}
-
 				for (String[] l : stat.readAll()) {
 					if (l[inseeP].equals(insee)) {
 						builder.set("the_geom", featCity.getDefaultGeometry());

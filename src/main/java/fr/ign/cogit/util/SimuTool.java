@@ -38,19 +38,29 @@ public class SimuTool {
 	public static void main(String[] args) throws Exception {
 		// getSimuInfo(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/CDense/"), "25056000NTdiv590");
 		// getStatDenial(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/CDense/"), new File("/tmp/salut"));
-//		digForACity(new File("/media/ubuntu/saintmande/Packager/CDense/"), "25245");
-		
-//		Vectors.exportSFC(giveEvalToBuilding(new File("/home/ubuntu/boulot/these/result2903/tmp/SimPLUDepot/CDense/base/TotBatSimuFill.shp"), new File("/home/ubuntu/boulot/these/result2903/MupCityDepot/CDense/base/CDense--N6_St_Moy_ahpE_seed_42-evalAnal-20.0.shp")),new File("/home/ubuntu/boulot/these/result2903/tmp/SimPLUDepot/CDense/base/TotBatSimuFillEval.shp"));
-		
+		// digForACity(new File("/media/ubuntu/saintmande/Packager/CDense/"), "25245");
+
+		// Vectors.exportSFC(giveEvalToBuilding(new File("/home/ubuntu/boulot/these/result2903/tmp/SimPLUDepot/CDense/base/TotBatSimuFill.shp"), new
+		// File("/home/ubuntu/boulot/these/result2903/MupCityDepot/CDense/base/CDense--N6_St_Moy_ahpE_seed_42-evalAnal-20.0.shp")),new
+		// File("/home/ubuntu/boulot/these/result2903/tmp/SimPLUDepot/CDense/base/TotBatSimuFillEval.shp"));
+
 	}
 
-	public static SimpleFeatureCollection getBuildingByZip(SimpleFeatureCollection buildingIn , String zip) throws IOException {
+	/**
+	 * return a collection of buildings sharing the same zipcode (using the field "CODE")
+	 * 
+	 * @param buildingIn
+	 * @param zip
+	 * @return
+	 * @throws IOException
+	 */
+	public static SimpleFeatureCollection getBuildingByZip(SimpleFeatureCollection buildingIn, String zip) throws IOException {
 		SimpleFeatureIterator it = buildingIn.features();
 		DefaultFeatureCollection result = new DefaultFeatureCollection();
 		try {
 			while (it.hasNext()) {
 				SimpleFeature feat = it.next();
-				if (((String)feat.getAttribute("CODE")).substring(0, 5).equals(zip)) {
+				if (((String) feat.getAttribute("CODE")).substring(0, 5).equals(zip)) {
 					result.add(feat);
 				}
 			}
@@ -61,7 +71,7 @@ public class SimuTool {
 		}
 		return result.collection();
 	}
-	
+
 	public static SimpluParametersJSON getParamFile(List<SimpluParametersJSON> lP, String scenar) throws FileNotFoundException {
 		for (SimpluParametersJSON p : lP) {
 			if (p.getString("name").equals(scenar)) {

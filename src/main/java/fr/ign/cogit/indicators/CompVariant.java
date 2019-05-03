@@ -5,53 +5,55 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import org.knowm.xchart.BitmapEncoder;
+import org.knowm.xchart.BitmapEncoder.BitmapFormat;
 import org.knowm.xchart.CSVImporter;
 import org.knowm.xchart.CSVImporter.DataOrientation;
 import org.knowm.xchart.CSVImporter.SeriesData;
 import org.knowm.xchart.CategoryChart;
 import org.knowm.xchart.CategoryChartBuilder;
-import org.knowm.xchart.CategorySeries;
-import org.knowm.xchart.SwingWrapper;
 import org.knowm.xchart.style.Styler.LegendPosition;
 
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
+import fr.ign.cogit.map.MapRenderer;
+import fr.ign.cogit.map.theseMC.compVariant.MapNbHUCV;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 
 public class CompVariant extends Indicators {
+	int nbVariant = 0;
 
 	String[] baseVariant;
 	String indicStatFile;
 	static String indicName = "compVariant";
 
-//	public static void main(String[] args) throws Exception {
-//		File rootFile = new File("./result2903/tmp");
-//		File rootParam = new File(rootFile, "paramFolder");
-//		List<File> lF = new ArrayList<>();
-//		String scenario = "CDense";
-//		lF.add(new File(rootParam, "paramSet/" + scenario + "/parameterTechnic.xml"));
-//		lF.add(new File(rootParam, "paramSet/" + scenario + "/parameterScenario.xml"));
-//
-//		SimpluParametersJSON p = new SimpluParametersJSON(lF);
-//
-//		CompVariant parc = new CompVariant(p, "compVariant", "ParcelStat.csv", rootFile, scenario);
-//		// parc.createGraph(new File(parc.indicFile, "compVariantbTHGen.csv"));
-//
-//		// parc.createStat("bTH", "genStat.csv");
-//		// List<MapRenderer> allOfTheMaps = new ArrayList<MapRenderer>();
-//		//
-//		// File commStatFile = parc.joinStatoBTHCommunnities("compVariantbTHCityCoeffVar.csv");
-//		//
-//		// MapRenderer mapNbHUCV = new MapNbHUCV(1000, 1000, parc.mapStyle, commStatFile, parc.mapDepotFile);
-//		// mapNbHUCV.renderCityInfo();
-//		// mapNbHUCV.generateSVG();
-//		// allOfTheMaps.add(MapNbHUCV);
-//	}
+	public static void main(String[] args) throws Exception {
+		File rootFile = new File("./result2903/tmp");
+		File rootParam = new File(rootFile, "paramFolder");
+		List<File> lF = new ArrayList<>();
+		String scenario = "CDense";
+		lF.add(new File(rootParam, "paramSet/" + scenario + "/parameterTechnic.xml"));
+		lF.add(new File(rootParam, "paramSet/" + scenario + "/parameterScenario.xml"));
+
+		SimpluParametersJSON p = new SimpluParametersJSON(lF);
+
+		CompVariant parc = new CompVariant(p, "compVariant", "ParcelStat.csv", rootFile, scenario);
+		parc.createStat("bTH", "genStat.csv");
+		List<MapRenderer> allOfTheMaps = new ArrayList<MapRenderer>();
+
+		File commStatFile = parc.joinStatoBTHCommunnities("compVariantbTHCityCoeffVar.csv");
+
+		parc.createGraph(new File(parc.indicFile, "compVariantbTHGen.csv"));
+
+		MapRenderer mapNbHUCV = new MapNbHUCV(1000, 1000, parc.mapStyle, commStatFile, parc.mapDepotFile);
+		mapNbHUCV.renderCityInfo();
+		mapNbHUCV.generateSVG();
+		allOfTheMaps.add(mapNbHUCV);
+	}
 
 	public CompVariant(SimpluParametersJSON p, String indicname, String indicstatfile, File rootfile, String scenarname) throws Exception {
 		super(p, rootfile, scenarname, "", indicName);
@@ -74,7 +76,17 @@ public class CompVariant extends Indicators {
 			if (f.isDirectory() && statFile.exists()) {
 				CSVReader csvR = new CSVReader(new FileReader(statFile));
 				if (firstLine) {
-					String[] fLine = csvR.readNext();
+					String[] fLineTmp = csvR.readNext();
+					// adding a count of the variant
+					String[] fLine = new String[fLineTmp.length + 1];
+					int y = 0;
+					for (int i = 0; i < fLine.length; i++) {
+						if (i == 3) {
+							fLine[i] = "nbVariant";
+						} else {
+							fLine[i] = fLineTmp[y++];
+						}
+					}
 					csvWGen.writeNext(fLine);
 					csvWCity.writeNext(fLine);
 					firstLine = false;
@@ -82,14 +94,23 @@ public class CompVariant extends Indicators {
 					csvR.readNext();
 				}
 				for (String[] l : csvR.readAll()) {
-					if (l[2].equals("AllZone") || l[2].equals("ALLLL")) {
-						csvWGen.writeNext(l);
+					String insee = l[2];
+					String lineTmp = "";
+					for (String s : l) {
+						lineTmp = lineTmp + s + ",";
+					}
+					// System.out.println(insee + ",");
+					// System.out.println(insee + "," + String.valueOf(nbVariant) + ",");
+					String[] line = lineTmp.replace(insee + ",", insee + "," + String.valueOf(nbVariant) + ",").split(",");
+					if (insee.equals("AllZone") || insee.equals("ALLLL")) {
+						csvWGen.writeNext(line);
 					} else {
-						csvWCity.writeNext(l);
+						csvWCity.writeNext(line);
 					}
 				}
 				csvR.close();
 			}
+			nbVariant++;
 		}
 		csvWGen.close();
 		csvWCity.close();
@@ -106,17 +127,17 @@ public class CompVariant extends Indicators {
 		csvWGen.writeNext(fLine);
 		CSVWriter csvWCity = new CSVWriter(new FileWriter(new File(indicFile, nameCity.replace(".csv", "") + "CoeffVar.csv")), ',', '\u0000');
 		csvWCity.writeNext(fLine);
-		DescriptiveStatistics[] listStatGen = new DescriptiveStatistics[fLine.length - 3];
+		DescriptiveStatistics[] listStatGen = new DescriptiveStatistics[fLine.length - 4];
 		// boolean to get the existing DS
 		boolean ini = true;
 		for (String[] l : csvGen.readAll()) {
-			for (int i = 3; i < fLine.length; i++) {
+			for (int i = 4; i < fLine.length; i++) {
 				DescriptiveStatistics ds = new DescriptiveStatistics();
 				if (!ini) {
-					ds = listStatGen[i - 3];
+					ds = listStatGen[i - 4];
 				}
 				ds.addValue(Double.valueOf(l[i]));
-				listStatGen[i - 3] = ds;
+				listStatGen[i - 4] = ds;
 			}
 			ini = false;
 		}
@@ -124,8 +145,9 @@ public class CompVariant extends Indicators {
 		line[0] = scenarName;
 		line[1] = "AllVariant";
 		line[2] = "AllZone";
-		for (int i = 3; i < fLine.length; i++) {
-			line[i] = String.valueOf(listStatGen[i - 3].getStandardDeviation() / listStatGen[i - 3].getMean());
+		line[3] = String.valueOf(nbVariant);
+		for (int i = 4; i < fLine.length; i++) {
+			line[i] = String.valueOf(listStatGen[i - 4].getStandardDeviation() / listStatGen[i - 4].getMean());
 		}
 		csvWGen.writeNext(line);
 
@@ -135,18 +157,18 @@ public class CompVariant extends Indicators {
 			String city = l[2];
 			if (listStatCity.containsKey(city)) {
 				DescriptiveStatistics[] listStat = listStatCity.remove(city);
-				for (int i = 3; i < fLine.length; i++) {
-					DescriptiveStatistics ds = listStat[i - 3];
+				for (int i = 4; i < fLine.length; i++) {
+					DescriptiveStatistics ds = listStat[i - 4];
 					ds.addValue(Double.valueOf(l[i]));
-					listStat[i - 3] = ds;
+					listStat[i - 4] = ds;
 				}
 				listStatCity.put(city, listStat);
 			} else {
-				DescriptiveStatistics[] newListStat = new DescriptiveStatistics[fLine.length - 3];
-				for (int i = 3; i < fLine.length; i++) {
+				DescriptiveStatistics[] newListStat = new DescriptiveStatistics[fLine.length - 4];
+				for (int i = 4; i < fLine.length; i++) {
 					DescriptiveStatistics ds = new DescriptiveStatistics();
 					ds.addValue(Double.valueOf(l[i]));
-					newListStat[i - 3] = ds;
+					newListStat[i - 4] = ds;
 				}
 				listStatCity.put(city, newListStat);
 			}
@@ -156,9 +178,10 @@ public class CompVariant extends Indicators {
 			lineCity[0] = scenarName;
 			lineCity[1] = "AllVariant";
 			lineCity[2] = city;
+			line[3] = String.valueOf(nbVariant);
 			DescriptiveStatistics[] cityStat = listStatCity.get(city);
-			for (int i = 3; i < fLine.length; i++) {
-				lineCity[i] = String.valueOf(cityStat[i - 3].getStandardDeviation() / cityStat[i - 3].getMean());
+			for (int i = 4; i < fLine.length; i++) {
+				lineCity[i] = String.valueOf(cityStat[i - 4].getStandardDeviation() / cityStat[i - 4].getMean());
 			}
 			csvWCity.writeNext(lineCity);
 		}
@@ -207,33 +230,57 @@ public class CompVariant extends Indicators {
 	// stage.show();
 	// }
 
-	 public static void main(String[] args) {
-		 // help here : https://github.com/knowm/XChart and here : https://knowm.org/open-source/xchart/xchart-example-code/
-		 getChart("","Salut", "c'est", "cool");
-		  }
-		 
-		  public static CategoryChart getChart(String csvPath, String title, String xTitle, String yTitle) {
-		 
-			  SeriesData csvData = CSVImporter.getSeriesDataFromCSVFile(csvPath,DataOrientation.Columns);
-			  
-//			  CategorySeries serie =;
-			  
-		    // Create Chart
-		    CategoryChart chart = new CategoryChartBuilder().width(800).height(600).title(title).xAxisTitle(xTitle).yAxisTitle(yTitle).build();
-		 
-		    // Customize Chart
-		    chart.getStyler().setLegendPosition(LegendPosition.InsideNW);
-		    chart.getStyler().setHasAnnotations(true);
-		    chart.addSeries("nombre", csvData.getxAxisData(), csvData.getyAxisData());
-		    // Series
-		    new SwingWrapper(chart).displayChart();
-		    return chart;
-		  }
-	
-	 public void createGraph(File csvIn) throws IOException {
-		 
-	 }
-	
+	public void createGraph(File distrib) throws IOException {
+		getChart(distrib, graphDepotFile, "exemple on SDPTot", "nbVariant", "Variante", "SDPTot", "Surface De Plancher Totale");
+		getChart(distrib, graphDepotFile, "Nombre de logements simulés dans une commune de type rurale", "nbVariant", "Variante ", "nbHU_rural",
+				"Nombre de logements simulés");
+		getChart(distrib, graphDepotFile, "Nombre de logements simulés dans une commune de type péri-urbain", "nbVariant", "Variante ",
+				"nbHU_periUrbain", "Nombre de logements simulés");
+		getChart(distrib, graphDepotFile, "Nombre de logements simulés dans un quartier de type banlieue", "nbVariant", "Variante ", "nbHU_banlieue",
+				"nombre de logements simulés");
+		getChart(distrib, graphDepotFile, "Nombre de logements simulés dans un quartier de type centre", "nbVariant", "Variante ", "nbHU_centre",
+				"Nombre de logements simulés");
+		getChart(distrib, graphDepotFile, "Nombre de logements simulés dans une zone non constructible (NC)", "nbVariant", "Variante ", "nbHU_NC",
+				"Nombre de logements simulés");
+		getChart(distrib, graphDepotFile, "Nombre de logements simulés dans une zone à urbaniser (AU)", "nbVariant", "Variante ", "nbHU_AU",
+				"Nombre de logements simulés");
+		getChart(distrib, graphDepotFile, "Nombre de logements simulés dans une zone urbanisable (U)", "nbVariant", "Variante ", "nbHU_U",
+				"Nombre de logements simulés");
+		getChart(distrib, graphDepotFile, "Nombre de logements simulés de type maison isolée", "nbVariant", "Variante ", "nbHU_detachedHouse",
+				"Nombre de logements simulés");
+		getChart(distrib, graphDepotFile, "Nombre de logements simulés de type pavillon de lotissement", "nbVariant", "Variante ", "nbHU_smallHouse",
+				"Nombre de logements simulés");
+		getChart(distrib, graphDepotFile, "Nombre de logements simulés de type immeuble d'habitat intermédiaire", "nbVariant", "Variante ",
+				"nbHU_multiFamilyHouse", "Nombre de logements simulés");
+		getChart(distrib, graphDepotFile, "Nombre de logements simulés de type petit immeuble collectif", "nbVariant", "Variante ",
+				"nbHU_smallBlockFlat", "Nombre de logements simulés");
+		getChart(distrib, graphDepotFile, "Nombre de logements simulés de type immeuble collectif de taille moyenne", "nbVariant", "Variante ",
+				"nbHU_midBlockFlat", "Nombre de logements simulés");
+		getChart(distrib, graphDepotFile, "Nombre de logements simulés par variantes", "nbVariant", "Variante ", "nb_housingUnit",
+				"Nombre de logements simulés");
+	}
+
+	public static CategoryChart getChart(File csv, File graphDepotFile, String title, String x, String xTitle, String y, String yTitle)
+			throws IOException {
+
+		SeriesData csvData = CSVImporter.getSeriesDataFromCSVFile(csv, DataOrientation.Columns, x, y);
+		// CategorySeries serie =;
+
+		// Create Chart
+		CategoryChart chart = new CategoryChartBuilder().width(800).height(600).title(title).xAxisTitle(xTitle).yAxisTitle(yTitle).build();
+		chart.addSeries(yTitle, csvData.getxAxisData(), csvData.getyAxisData());
+		// Customize Chart
+		chart.getStyler().setLegendPosition(LegendPosition.InsideNW);
+		chart.getStyler().setHasAnnotations(true);
+
+		BitmapEncoder.saveBitmap(chart, graphDepotFile + "/" + y, BitmapFormat.PNG);
+
+		// chart.addSeries("nombre", csvData.getxAxisData(), csvData.getyAxisData());
+		// Series
+		// new SwingWrapper(chart).displayChart();
+		return chart;
+	}
+
 	// public void createGraph(File csvIn) throws IOException {
 	// Table distrib = Table.read().csv(csvIn.toString());
 	// // see tutorial here https://dzone.com/articles/learn-data-science-with-java-and-tablesaw
