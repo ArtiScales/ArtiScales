@@ -16,7 +16,6 @@ import org.knowm.xchart.CSVImporter.DataOrientation;
 import org.knowm.xchart.CSVImporter.SeriesData;
 import org.knowm.xchart.CategoryChart;
 import org.knowm.xchart.CategoryChartBuilder;
-import org.knowm.xchart.style.Styler.LegendPosition;
 
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
@@ -41,7 +40,7 @@ public class CompVariant extends Indicators {
 
 		SimpluParametersJSON p = new SimpluParametersJSON(lF);
 
-		CompVariant parc = new CompVariant(p, "compVariant", "ParcelStat.csv", rootFile, scenario);
+		CompVariant parc = new CompVariant(p, rootFile, scenario);
 		parc.createStat("bTH", "genStat.csv");
 		List<MapRenderer> allOfTheMaps = new ArrayList<MapRenderer>();
 
@@ -55,19 +54,13 @@ public class CompVariant extends Indicators {
 		allOfTheMaps.add(mapNbHUCV);
 	}
 
-	public CompVariant(SimpluParametersJSON p, String indicname, String indicstatfile, File rootfile, String scenarname) throws Exception {
+	public CompVariant(SimpluParametersJSON p, File rootfile, String scenarname) throws Exception {
 		super(p, rootfile, scenarname, "", indicName);
-
-		this.indicStatFile = indicstatfile;
-		super.mapDepotFile = new File(indicFile, "mapDepot");
-		super.mapDepotFile.mkdir();
-		super.graphDepotFile = new File(indicFile, "graphDepot");
-		super.graphDepotFile.mkdir();
 	}
 
 	public void createStat(String nameCompared, String nameFileStat) throws IOException {
-		String nameGen = "compVariant" + nameCompared + "Gen.csv";
-		String nameCity = "compVariant" + nameCompared + "City.csv";
+		String nameGen = indicName + nameCompared + "Gen.csv";
+		String nameCity = indicName + nameCompared + "City.csv";
 		CSVWriter csvWGen = new CSVWriter(new FileWriter(new File(indicFile, nameGen)), ',', '\u0000');
 		CSVWriter csvWCity = new CSVWriter(new FileWriter(new File(indicFile, nameCity)), ',', '\u0000');
 		boolean firstLine = true;
@@ -231,54 +224,50 @@ public class CompVariant extends Indicators {
 	// }
 
 	public void createGraph(File distrib) throws IOException {
-		getChart(distrib, graphDepotFile, "exemple on SDPTot", "nbVariant", "Variante", "SDPTot", "Surface De Plancher Totale");
-		getChart(distrib, graphDepotFile, "Nombre de logements simulés dans une commune de type rurale", "nbVariant", "Variante ", "nbHU_rural",
+		makeGraph(distrib, graphDepotFile, "exemple on SDPTot", "nbVariant", "Variante", "SDPTot", "Surface De Plancher Totale");
+		makeGraph(distrib, graphDepotFile, "Nombre de logements simulés dans une commune de type rurale", "nbVariant", "Variante ", "nbHU_rural",
 				"Nombre de logements simulés");
-		getChart(distrib, graphDepotFile, "Nombre de logements simulés dans une commune de type péri-urbain", "nbVariant", "Variante ",
+		makeGraph(distrib, graphDepotFile, "Nombre de logements simulés dans une commune de type péri-urbain", "nbVariant", "Variante ",
 				"nbHU_periUrbain", "Nombre de logements simulés");
-		getChart(distrib, graphDepotFile, "Nombre de logements simulés dans un quartier de type banlieue", "nbVariant", "Variante ", "nbHU_banlieue",
+		makeGraph(distrib, graphDepotFile, "Nombre de logements simulés dans un quartier de type banlieue", "nbVariant", "Variante ", "nbHU_banlieue",
 				"nombre de logements simulés");
-		getChart(distrib, graphDepotFile, "Nombre de logements simulés dans un quartier de type centre", "nbVariant", "Variante ", "nbHU_centre",
+		makeGraph(distrib, graphDepotFile, "Nombre de logements simulés dans un quartier de type centre", "nbVariant", "Variante ", "nbHU_centre",
 				"Nombre de logements simulés");
-		getChart(distrib, graphDepotFile, "Nombre de logements simulés dans une zone non constructible (NC)", "nbVariant", "Variante ", "nbHU_NC",
+		makeGraph(distrib, graphDepotFile, "Nombre de logements simulés dans une zone non constructible (NC)", "nbVariant", "Variante ", "nbHU_NC",
 				"Nombre de logements simulés");
-		getChart(distrib, graphDepotFile, "Nombre de logements simulés dans une zone à urbaniser (AU)", "nbVariant", "Variante ", "nbHU_AU",
+		makeGraph(distrib, graphDepotFile, "Nombre de logements simulés dans une zone à urbaniser (AU)", "nbVariant", "Variante ", "nbHU_AU",
 				"Nombre de logements simulés");
-		getChart(distrib, graphDepotFile, "Nombre de logements simulés dans une zone urbanisable (U)", "nbVariant", "Variante ", "nbHU_U",
+		makeGraph(distrib, graphDepotFile, "Nombre de logements simulés dans une zone urbanisable (U)", "nbVariant", "Variante ", "nbHU_U",
 				"Nombre de logements simulés");
-		getChart(distrib, graphDepotFile, "Nombre de logements simulés de type maison isolée", "nbVariant", "Variante ", "nbHU_detachedHouse",
+		makeGraph(distrib, graphDepotFile, "Nombre de logements simulés de type maison isolée", "nbVariant", "Variante ", "nbHU_detachedHouse",
 				"Nombre de logements simulés");
-		getChart(distrib, graphDepotFile, "Nombre de logements simulés de type pavillon de lotissement", "nbVariant", "Variante ", "nbHU_smallHouse",
+		makeGraph(distrib, graphDepotFile, "Nombre de logements simulés de type pavillon de lotissement", "nbVariant", "Variante ", "nbHU_smallHouse",
 				"Nombre de logements simulés");
-		getChart(distrib, graphDepotFile, "Nombre de logements simulés de type immeuble d'habitat intermédiaire", "nbVariant", "Variante ",
+		makeGraph(distrib, graphDepotFile, "Nombre de logements simulés de type immeuble d'habitat intermédiaire", "nbVariant", "Variante ",
 				"nbHU_multiFamilyHouse", "Nombre de logements simulés");
-		getChart(distrib, graphDepotFile, "Nombre de logements simulés de type petit immeuble collectif", "nbVariant", "Variante ",
+		makeGraph(distrib, graphDepotFile, "Nombre de logements simulés de type petit immeuble collectif", "nbVariant", "Variante ",
 				"nbHU_smallBlockFlat", "Nombre de logements simulés");
-		getChart(distrib, graphDepotFile, "Nombre de logements simulés de type immeuble collectif de taille moyenne", "nbVariant", "Variante ",
+		makeGraph(distrib, graphDepotFile, "Nombre de logements simulés de type immeuble collectif de taille moyenne", "nbVariant", "Variante ",
 				"nbHU_midBlockFlat", "Nombre de logements simulés");
-		getChart(distrib, graphDepotFile, "Nombre de logements simulés par variantes", "nbVariant", "Variante ", "nb_housingUnit",
+		makeGraph(distrib, graphDepotFile, "Nombre de logements simulés par variantes", "nbVariant", "Variante ", "nb_housingUnit",
 				"Nombre de logements simulés");
 	}
 
-	public static CategoryChart getChart(File csv, File graphDepotFile, String title, String x, String xTitle, String y, String yTitle)
+	public static void makeGraph(File csv, File graphDepotFile, String title, String x, String xTitle, String y, String yTitle)
 			throws IOException {
 
 		SeriesData csvData = CSVImporter.getSeriesDataFromCSVFile(csv, DataOrientation.Columns, x, y);
-		// CategorySeries serie =;
-
+		
 		// Create Chart
 		CategoryChart chart = new CategoryChartBuilder().width(800).height(600).title(title).xAxisTitle(xTitle).yAxisTitle(yTitle).build();
 		chart.addSeries(yTitle, csvData.getxAxisData(), csvData.getyAxisData());
 		// Customize Chart
-		chart.getStyler().setLegendPosition(LegendPosition.InsideNW);
+		chart.getStyler().setLegendVisible(false);
 		chart.getStyler().setHasAnnotations(true);
 
 		BitmapEncoder.saveBitmap(chart, graphDepotFile + "/" + y, BitmapFormat.PNG);
 
-		// chart.addSeries("nombre", csvData.getxAxisData(), csvData.getyAxisData());
-		// Series
 		// new SwingWrapper(chart).displayChart();
-		return chart;
 	}
 
 	// public void createGraph(File csvIn) throws IOException {

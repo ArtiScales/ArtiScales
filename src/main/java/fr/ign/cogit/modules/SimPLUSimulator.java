@@ -60,6 +60,7 @@ import fr.ign.cogit.simplu3d.rjmcmc.cuboid.optimizer.cuboid.OptimisedBuildingsCu
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.optimizer.paralellcuboid.ParallelCuboidOptimizer;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.cogit.util.FromGeom;
+import fr.ign.cogit.util.SimuTool;
 import fr.ign.cogit.util.TransformXMLToJSON;
 import fr.ign.mpp.configuration.BirthDeathModification;
 import fr.ign.mpp.configuration.GraphConfiguration;
@@ -144,7 +145,7 @@ public class SimPLUSimulator {
 		// // SimPLUSimulator.fillSelectedParcels(new File(rootFolder), geoFile,
 		// // pluFile, selectedParcels, 50, "25495", p);
 
-		String nameMainFolder = "result2903";
+		String nameMainFolder = "result2903/tmp";
 		File paramFolder = new File("./" + nameMainFolder + "/paramFolder");
 		TransformXMLToJSON.convert(paramFolder);
 		List<File> lF = new ArrayList<>();
@@ -837,38 +838,9 @@ public class SimPLUSimulator {
 		// dissapearing during this procces)
 
 		// get multiple zone regulation infos infos
-		List<String> typeZones = new ArrayList<>();
-		List<String> libelles = new ArrayList<>();
-		String libellesFinal = "";
-		String typeZonesFinal = "";
+		String libelles = SimuTool.getLibInfo(bPU, "LIBELLE");
+		String typeZones = SimuTool.getLibInfo(bPU, "TYPEZONE");
 
-		// if multiple parts of a parcel has been simulated, put a long name containing
-		// them all
-		try {
-			for (SubParcel subParcel : bPU.getCadastralParcels().get(0).getSubParcels()) {
-				String temporaryTypeZone = subParcel.getUrbaZone().getTypeZone();
-				String temporarylibelle = subParcel.getUrbaZone().getLibelle();
-				if (!typeZones.contains(temporaryTypeZone)) {
-					typeZones.add(temporaryTypeZone);
-				}
-				if (!libelles.contains(temporarylibelle)) {
-					libelles.add(temporarylibelle);
-				}
-			}
-			for (String typeZoneTemp : typeZones) {
-				typeZonesFinal = typeZonesFinal + typeZoneTemp + "+";
-			}
-			typeZonesFinal = typeZonesFinal.substring(0, typeZonesFinal.length() - 1);
-
-			for (String libelleTemp : libelles) {
-				libellesFinal = libellesFinal + libelleTemp + "+";
-			}
-			libellesFinal = libellesFinal.substring(0, libellesFinal.length() - 1);
-
-		} catch (NullPointerException np) {
-			libellesFinal = "NC";
-			typeZonesFinal = "NC";
-		}
 		// Writting the output
 		IFeatureCollection<IFeature> iFeatC = new FT_FeatureCollection<>();
 
@@ -892,8 +864,8 @@ public class SimPLUSimulator {
 			AttributeManager.addAttribute(feat, "SurfacePar", areaParcels, "Double");
 			AttributeManager.addAttribute(feat, "SurfaceSol", surfaceAuSol, "Double");
 			AttributeManager.addAttribute(feat, "CODE", bPU.getCadastralParcels().get(0).getCode(), "String");
-			AttributeManager.addAttribute(feat, "LIBELLE", libellesFinal, "String");
-			AttributeManager.addAttribute(feat, "TYPEZONE", typeZonesFinal, "String");
+			AttributeManager.addAttribute(feat, "LIBELLE", libelles, "String");
+			AttributeManager.addAttribute(feat, "TYPEZONE", typeZones, "String");
 			AttributeManager.addAttribute(feat, "BUILDTYPE", type, "String");
 			iFeatC.add(feat);
 		}
@@ -1026,6 +998,5 @@ public class SimPLUSimulator {
 				prescriptionUse, env);
 
 		return pred;
-
 	}
 }

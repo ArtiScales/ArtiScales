@@ -14,6 +14,11 @@ import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.referencing.CRS;
+import org.knowm.xchart.BitmapEncoder;
+import org.knowm.xchart.BitmapEncoder.BitmapFormat;
+import org.knowm.xchart.CategoryChart;
+import org.knowm.xchart.CategoryChartBuilder;
+import org.knowm.xchart.Histogram;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
@@ -30,25 +35,24 @@ import fr.ign.cogit.map.theseMC.SurfParcelSimulatedMap;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.cogit.util.FromGeom;
 import fr.ign.cogit.util.ParcelFonction;
+import fr.ign.cogit.util.SimuTool;
 
 public class ParcelStat extends Indicators {
 
 	File parcelOGFile;
-	int nbParcelIgnored, nbParcelSimulated, nbParcelSimulFailed;
+	int nbParcelIgnored, nbParcelSimulated, nbParcelSimulFailed, nbParcelSimulatedU, nbParcelSimulFailedU, nbParcelSimulatedAU, nbParcelSimulFailedAU,
+			nbParcelSimulatedNC, nbParcelSimulFailedNC, nbParcelSimulatedCentre, nbParcelSimulFailedCentre, nbParcelSimulatedBanlieue,
+			nbParcelSimulFailedBanlieue, nbParcelSimulatedPeriUrb, nbParcelSimulFailedPeriUrb, nbParcelSimulatedRural, nbParcelSimulFailedRural;
 	double surfParcelIgnored, surfParcelSimulated, surfParcelSimulFailed;
 	// surfaceSDPParcelle, surfaceEmpriseParcelle;
 	SimpleFeatureCollection preciseParcelCollection;
 	String firstLine;
-	static String indicName= "parcelStat";
+	static String indicName = "parcelStat";
 
 	public ParcelStat(SimpluParametersJSON p, File rootFile, String scenarName, String variantName) throws Exception {
 		super(p, rootFile, scenarName, variantName, indicName);
-		if (!variantName.equals("")) {
-			super.mapDepotFile = new File(indicFile, "mapDepot");
-			super.mapDepotFile.mkdir();
-		}
 		parcelOGFile = FromGeom.getParcels(new File(rootFile, "dataGeo"));
-		firstLine = "INSEE,nb_parcel_simulated,nb_parcel_simu_failed,surf_parcel_ignored,surf_parcel_simulated,surf_parcel_simulFailed";
+		firstLine = "INSEE,nb_parcel_simulated,nb_parcel_simu_failed,surf_parcel_ignored,surf_parcel_simulated,surf_parcel_simulFailed,nbParcelSimulatedU,nbParcelSimulFailedU,nbParcelSimulatedAU,nbParcelSimulFailedAU,nbParcelSimulatedNC,nbParcelSimulFailedNC,nbParcelSimulatedCentre,nbParcelSimulFailedCentre,nbParcelSimulatedBanlieue,nbParcelSimulFailedBanlieue,nbParcelSimulatedPeriUrb,nbParcelSimulFailedPeriUrb,nbParcelSimulatedRural,nbParcelSimulFailedRural";
 		// ",surface_SDP_parcelle,surface_emprise_parcelle";
 	}
 
@@ -66,40 +70,147 @@ public class ParcelStat extends Indicators {
 		for (File f : (new File(rootFile, "SimPLUDepot/" + scenario + "/")).listFiles()) {
 			ParcelStat parc = new ParcelStat(p, rootFile, scenario, f.getName());
 
-			SimpleFeatureCollection parcelStatSHP = parc.markSimuledParcels();
-			parc.caclulateStatParcel();
-			// parc.caclulateStatBatiParcel();
-			parc.writeLine("AllZone", "ParcelStat");
-			parc.toString();
-			parc.setCountToZero();
-
-			List<String> listInsee = FromGeom.getInsee(new File(parc.rootFile, "/dataGeo/old/communities.shp"), "DEPCOM");
-
-			for (String city : listInsee) {
-				SimpleFeatureCollection commParcel = ParcelFonction.getParcelByZip(parcelStatSHP, city);
-				System.out.println("ville " + city);
-				parc.caclulateStatParcel(commParcel);
-				// parc.caclulateStatBatiParcel(commParcel);
-				parc.writeLine(city, "ParcelStat");
-				parc.toString();
-				parc.setCountToZero();
-			}
-			File commStatFile = parc.joinStatToCommunities();
-
-			List<MapRenderer> allOfTheMaps = new ArrayList<MapRenderer>();
-			MapRenderer surfParcelSimulatedMap = new SurfParcelSimulatedMap(1000, 1000, new File(parc.rootFile, "mapStyle"), commStatFile,
-					parc.mapDepotFile);
-			allOfTheMaps.add(surfParcelSimulatedMap);
-			MapRenderer surfParcelFailedMap = new SurfParcelFailedMap(1000, 1000, parc.mapStyle, commStatFile, parc.mapDepotFile);
-			allOfTheMaps.add(surfParcelFailedMap);
-			// MapRenderer aParcelSDPSimuMap = new AParcelSDPSimuMap(1000, 1000,parc.mapStyle , commStatFile, parc.mapDepotFile);
-			// allOfTheMaps.add(aParcelSDPSimuMap);
-
-			for (MapRenderer map : allOfTheMaps) {
-				map.renderCityInfo();
-				map.generateSVG();
-			}
+			// SimpleFeatureCollection parcelStatSHP = parc.markSimuledParcels();
+			// parc.caclulateStatParcel();
+			// // parc.caclulateStatBatiParcel();
+			// parc.writeLine("AllZone", "ParcelStat");
+			// parc.setCountToZero();
+			// List<String> listInsee = FromGeom.getInsee(new File(parc.rootFile, "/dataGeo/old/communities.shp"), "DEPCOM");
+			//
+			// for (String city : listInsee) {
+			// SimpleFeatureCollection commParcel = ParcelFonction.getParcelByZip(parcelStatSHP, city);
+			// System.out.println("city " + city);
+			// parc.caclulateStatParcel(commParcel);
+			// // parc.caclulateStatBatiParcel(commParcel);
+			// parc.writeLine(city, "ParcelStat");
+			// parc.toString();
+			// parc.setCountToZero();
+			// }
+			// File commStatFile = parc.joinStatToCommunities();
+			// parc.createMap(parc, commStatFile);
+			parc.createGraph(new File(parc.indicFile, "ParcelStat.csv"));
 		}
+	}
+
+	public void createMap(ParcelStat parc, File commStatFile) throws IOException, NoSuchAuthorityCodeException, FactoryException {
+		List<MapRenderer> allOfTheMaps = new ArrayList<MapRenderer>();
+		MapRenderer surfParcelSimulatedMap = new SurfParcelSimulatedMap(1000, 1000, new File(parc.rootFile, "mapStyle"), commStatFile,
+				parc.mapDepotFile);
+		allOfTheMaps.add(surfParcelSimulatedMap);
+		MapRenderer surfParcelFailedMap = new SurfParcelFailedMap(1000, 1000, parc.mapStyle, commStatFile, parc.mapDepotFile);
+		allOfTheMaps.add(surfParcelFailedMap);
+		// MapRenderer aParcelSDPSimuMap = new AParcelSDPSimuMap(1000, 1000,parc.mapStyle , commStatFile, parc.mapDepotFile);
+		// allOfTheMaps.add(aParcelSDPSimuMap);
+
+		for (MapRenderer map : allOfTheMaps) {
+			map.renderCityInfo();
+			map.generateSVG();
+		}
+	}
+
+	public void createGraph(File distrib) throws IOException {
+		String[] xTypeSimulated = { "nbParcelSimulatedCentre", "nbParcelSimulatedBanlieue", "nbParcelSimulatedPeriUrb", "nbParcelSimulatedRural" };
+		String[] xTypeSimulFailed = { "nbParcelSimulFailedCentre", "nbParcelSimulFailedBanlieue", "nbParcelSimulFailedPeriUrb",
+				"nbParcelSimulatedRural" };
+		String[][] xType = { xTypeSimulated, xTypeSimulFailed };
+		makeGraphDouble(distrib, graphDepotFile, "Nombre de logements par type de bâtiment", xType, "type de bâtiment",
+				"Nombre de logements simulés");
+		//TODO refaire ça pour les zones 
+	}
+
+	public static void makeGraphDouble(File csv, File graphDepotFile, String title, String[][] xes, String xTitle, String yTitle) throws IOException {
+		// Create Chart
+		CategoryChart chart = new CategoryChartBuilder().width(800).height(600).title(title).xAxisTitle(xTitle).yAxisTitle(yTitle).build();
+		int count = 0;
+		for (String[] x : xes) {
+
+			List<String> label = new ArrayList<String>();
+			List<Double> yS = new ArrayList<Double>();
+			for (String s : x) {
+				label.add(s);
+				// SeriesData csvData= CSVImporter.getSeriesDataFromCSVFile(csv, DataOrientation.Columns, s, y);
+				CSVReader csvR = new CSVReader(new FileReader(csv));
+				int iX = 0;
+				int iCode = 0;
+				String[] fLine = csvR.readNext();
+				// get them first line
+				for (int i = 0; i < fLine.length; i++) {
+					System.out.println(fLine[i]);
+					System.out.println(s);
+					if (fLine[i].equals(s))
+						iX = i;
+					if (fLine[i].equals("INSEE"))
+						iCode = i;
+				}
+
+				for (String[] lines : csvR.readAll()) {
+					if (lines[iCode].equals("AllZone")) {
+						yS.add(Double.valueOf(lines[iX]));
+						break;
+					}
+				}
+				csvR.close();
+			}
+			String simulOrNot = "Simulation échouée";
+			if (count == 1) {
+				simulOrNot = "Simulée";
+			}
+			chart.addSeries(simulOrNot, label, yS);
+			count++;
+		}
+
+		// chart.addSeries(yTitle, label, yS);
+		// Histogram histogram1 ;
+		// Histogram histogram2 ;
+		// chart.addSeries("histogram 1", histogram1.getxAxisData(), histogram1.getyAxisData());
+		//
+		// chart.addSeries("histogram 2", histogram2.getxAxisData(), histogram2.getyAxisData());
+		// Customize Chart
+		// chart.getStyler().setLegendPosition(LegendPosition.InsideNW);
+		chart.getStyler().setLegendVisible(true);
+		chart.getStyler().setHasAnnotations(true);
+		chart.getStyler().setXAxisLabelRotation(45);
+		BitmapEncoder.saveBitmap(chart, graphDepotFile + "/" + SimuTool.makeCamelWordOutOfPhrases(xTitle + yTitle), BitmapFormat.PNG);
+		// new SwingWrapper(chart).displayChart();
+	}
+
+	public static void makeGraph(File csv, File graphDepotFile, String title, String[] x, String xTitle, String yTitle) throws IOException {
+		// Create Chart
+		CategoryChart chart = new CategoryChartBuilder().width(800).height(600).title(title).xAxisTitle(xTitle).yAxisTitle(yTitle).build();
+		List<String> label = new ArrayList<String>();
+		List<Double> yS = new ArrayList<Double>();
+		for (String s : x) {
+			label.add(makeLabelPHDable(s));
+			// SeriesData csvData= CSVImporter.getSeriesDataFromCSVFile(csv, DataOrientation.Columns, s, y);
+			CSVReader csvR = new CSVReader(new FileReader(csv));
+			int iX = 0;
+			int iCode = 0;
+			String[] fLine = csvR.readNext();
+			// get them first line
+			for (int i = 0; i < fLine.length; i++) {
+				if (fLine[i].equals(s))
+					iX = i;
+				if (fLine[i].equals("code"))
+					iCode = i;
+			}
+			for (String[] lines : csvR.readAll()) {
+				if (lines[iCode].equals("ALLLL")) {
+					yS.add(Double.valueOf(lines[iX]));
+					break;
+				}
+			}
+			csvR.close();
+		}
+
+		chart.addSeries(yTitle, label, yS);
+
+		// Customize Chart
+		// chart.getStyler().setLegendPosition(LegendPosition.InsideNW);
+		chart.getStyler().setLegendVisible(false);
+		chart.getStyler().setHasAnnotations(true);
+		chart.getStyler().setXAxisLabelRotation(45);
+		BitmapEncoder.saveBitmap(chart, graphDepotFile + "/" + x[0], BitmapFormat.PNG);
+		// new SwingWrapper(chart).displayChart();
 	}
 
 	public File joinStatToCommunities() throws NoSuchAuthorityCodeException, IOException, FactoryException {
@@ -188,17 +299,12 @@ public class ParcelStat extends Indicators {
 		return Vectors.exportSFC(result, outFile);
 	}
 
-	public String toString() {
-		String result = "nbParcelIgnored : " + nbParcelIgnored + ", nbParcelSimulated : " + nbParcelSimulated + ", nbParcelSimulFailed : "
-				+ nbParcelSimulFailed + ", surfParcelIgnored : " + surfParcelIgnored + ", surfParcelSimulated : " + surfParcelSimulated
-				+ ", surfParcelSimulFailed : " + surfParcelSimulFailed;
-		// + ", surfaceSDPParcelle : " + surfaceSDPParcelle + ", surfaceEmpriseParcelle : " + surfaceEmpriseParcelle;
-		System.out.println(result);
-		return result;
-	}
-
 	public String writeLine(String geoEntity, String nameFile) throws IOException {
 		String result = geoEntity + "," + nbParcelSimulated + "," + nbParcelSimulFailed + "," + surfParcelIgnored + "," + surfParcelSimulated + ","
+				+ surfParcelSimulFailed + nbParcelSimulatedU + "," + nbParcelSimulFailedU + "," + nbParcelSimulatedAU + "," + nbParcelSimulFailedAU
+				+ "," + nbParcelSimulatedNC + "," + nbParcelSimulFailedNC + "," + nbParcelSimulatedCentre + "," + nbParcelSimulFailedCentre + ","
+				+ nbParcelSimulatedBanlieue + "," + nbParcelSimulFailedBanlieue + "," + nbParcelSimulatedPeriUrb + "," + nbParcelSimulFailedPeriUrb
+				+ "," + nbParcelSimulatedRural + "," + nbParcelSimulFailedRural + "," + surfParcelIgnored + "," + surfParcelSimulated + ","
 				+ surfParcelSimulFailed;
 		// + "," + surfaceSDPParcelle + "," + surfaceEmpriseParcelle;
 		toGenCSV(nameFile, firstLine, result);
@@ -267,10 +373,10 @@ public class ParcelStat extends Indicators {
 	public void caclulateStatParcel(SimpleFeatureCollection parcelSimuled) throws IOException {
 
 		SimpleFeatureIterator itParcel = parcelSimuled.features();
-
+		// nbParcelSimulatedCentre, nbParcelSimulFailedCentre, nbParcelSimulatedPeriUrb,
+		// nbParcelSimulFailedPeriUrb, nbParcelSimulatedRural, nbParcelSimulFailedRural
 		try {
 			while (itParcel.hasNext()) {
-
 				SimpleFeature ft = itParcel.next();
 				switch ((String) ft.getAttribute("DoWeSimul")) {
 				case "noSelection":
@@ -280,10 +386,56 @@ public class ParcelStat extends Indicators {
 				case "simulated":
 					surfParcelSimulated = surfParcelSimulated + ((Geometry) ft.getDefaultGeometry()).getArea();
 					nbParcelSimulated++;
+					if (ft.getAttribute("U").equals("T")) {
+						nbParcelSimulatedU++;
+					}
+					if (ft.getAttribute("AU").equals("T")) {
+						nbParcelSimulatedAU++;
+					}
+					if (ft.getAttribute("NC").equals("T")) {
+						nbParcelSimulatedNC++;
+					}
+					switch (FromGeom.getTypo(FromGeom.getCommunitiesIris(new File(rootFile, "dataGeo")), (Geometry) ft.getDefaultGeometry())) {
+					case "rural":
+						nbParcelSimulatedRural++;
+						break;
+					case "periUrbain":
+						nbParcelSimulatedPeriUrb++;
+						break;
+					case "centre":
+						nbParcelSimulatedCentre++;
+						break;
+					case "banlieue":
+						nbParcelSimulatedBanlieue++;
+						break;
+					}
 					break;
 				case "simuFailed":
 					surfParcelSimulFailed = surfParcelSimulFailed + ((Geometry) ft.getDefaultGeometry()).getArea();
 					nbParcelSimulFailed++;
+					if (ft.getAttribute("U").equals("T")) {
+						nbParcelSimulFailedU++;
+					}
+					if (ft.getAttribute("AU").equals("T")) {
+						nbParcelSimulFailedAU++;
+					}
+					if (ft.getAttribute("NC").equals("T")) {
+						nbParcelSimulFailedNC++;
+					}
+					switch (FromGeom.getTypo(FromGeom.getCommunitiesIris(new File(rootFile, "dataGeo")), (Geometry) ft.getDefaultGeometry())) {
+					case "rural":
+						nbParcelSimulFailedRural++;
+						break;
+					case "periUrbain":
+						nbParcelSimulFailedPeriUrb++;
+						break;
+					case "centre":
+						nbParcelSimulFailedCentre++;
+						break;
+					case "banlieue":
+						nbParcelSimulFailedBanlieue++;
+						break;
+					}
 					break;
 				}
 
@@ -571,7 +723,7 @@ public class ParcelStat extends Indicators {
 	}
 
 	public void setCountToZero() {
-		nbParcelIgnored = nbParcelSimulated = nbParcelSimulFailed = 0;
+		nbParcelIgnored = nbParcelSimulated = nbParcelSimulFailed = nbParcelSimulatedU = nbParcelSimulFailedU = nbParcelSimulatedAU = nbParcelSimulFailedAU = nbParcelSimulatedNC = nbParcelSimulFailedNC = nbParcelSimulatedCentre = nbParcelSimulFailedCentre = nbParcelSimulatedBanlieue = nbParcelSimulFailedBanlieue = nbParcelSimulatedPeriUrb = nbParcelSimulFailedPeriUrb = nbParcelSimulatedRural = nbParcelSimulFailedRural = 0;
 		surfParcelIgnored = surfParcelSimulated = surfParcelSimulFailed = 0;
 		// surfaceSDPParcelle = surfaceEmpriseParcelle =
 	}

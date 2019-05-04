@@ -1,6 +1,7 @@
 package fr.ign.cogit.indicators;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -51,9 +52,16 @@ public abstract class Indicators {
 		if (!simPLUDepotGenFile.exists() && !scenarname.equals("") && !variantname.equals("")) {
 			FromGeom.mergeBatis(simPLUDepotGenFile.getParentFile());
 		}
-		indicFile = new File(rootFile, "indic/" + indicName + "/" + scenarName + "/" + variantName);
-		indicFile.mkdirs();
-		mapStyle = new File(rootFile, "mapStyle");
+		// if there's a will of saving the infos
+		if (scenarname != "") {
+			indicFile = new File(rootFile, "indic/" + indicName + "/" + scenarName + "/" + variantName);
+			indicFile.mkdirs();
+			mapStyle = new File(rootFile, "mapStyle");
+			mapDepotFile = new File(indicFile, "mapDepot");
+			mapDepotFile.mkdir();
+			graphDepotFile = new File(indicFile, "graphDepot");
+			graphDepotFile.mkdir();
+		}
 	}
 
 	/**
@@ -315,6 +323,37 @@ public abstract class Indicators {
 			it.close();
 		}
 		return Vectors.exportSFC(result, outFile);
+	}
+
+	public static String makeLabelPHDable(String s) throws FileNotFoundException {
+		switch (s) {
+		case "nbHU_detachedHouse":
+			return "Maison isolée";
+		case "nbHU_smallHouse":
+			return "Pavillon de lotissement";
+		case "nbHU_multiFamilyHouse":
+			return "Immeuble d'habitat intermédiaire";
+		case "nbHU_smallBlockFlat":
+			return "Petit immeuble collectif";
+		case "nbHU_midBlockFlat":
+			return "Immeuble collectif de taille moyenne";
+		case "nbHU_U":
+			return "Urbanisable";
+		case "nbHU_AU":
+			return "À urbaniser";
+		case "nbHU_NC":
+			return "fermé à l'urbanisation";
+		case "nbHU_rural":
+			return "rurale";
+		case "nbHU_periUrbain":
+			return "périurbaine";
+		case "nbHU_banlieue":
+			return "banlieue";
+		case "nbHU_centre":
+			return "centre ville";
+		}
+
+		throw new FileNotFoundException("name not found");
 	}
 
 	// public File joinStatToBhTSFC(SimpleFeatureCollection collec, File statFile, File outFile)

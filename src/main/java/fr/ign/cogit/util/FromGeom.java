@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -42,6 +43,7 @@ import com.vividsolutions.jts.precision.GeometryPrecisionReducer;
 import au.com.bytecode.opencsv.CSVReader;
 import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
+import fr.ign.cogit.geoxygene.sig3d.gui.window.io.ShapeFile3DWindow;
 import fr.ign.cogit.geoxygene.util.conversion.AdapterFactory;
 import fr.ign.cogit.geoxygene.util.conversion.GeOxygeneGeoToolsTypes;
 
@@ -207,6 +209,28 @@ public class FromGeom {
 				result = mayOccur.get(0);
 			}
 		}
+		return result;
+	}
+
+	public static String getTypo(File communitiesFile, Geometry geom) throws IOException {
+		String result = "";
+		ShapefileDataStore sds = new ShapefileDataStore(communitiesFile.toURI().toURL());
+		SimpleFeatureIterator it = sds.getFeatureSource().getFeatures().features();
+		try {
+			while (it.hasNext()) {
+				SimpleFeature sf = it.next();
+				if (((Geometry) sf.getDefaultGeometry()).contains(geom)) {
+					result = (String) sf.getAttribute("typo");
+					break;
+				}
+
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			it.close();
+		}
+		sds.dispose();
 		return result;
 	}
 
@@ -693,8 +717,8 @@ public class FromGeom {
 		} finally {
 			featuresZones.close();
 		}
-
 		shpDSZone.dispose();
+
 		if (twoZones == true) {
 			List<Entry<String, Double>> entryList = new ArrayList<Entry<String, Double>>(repart.entrySet());
 			Collections.sort(entryList, new Comparator<Entry<String, Double>>() {
@@ -707,7 +731,6 @@ public class FromGeom {
 			for (Entry<String, Double> s : entryList) {
 				result.add(s.getKey());
 			}
-
 		}
 		return result;
 	}
@@ -972,5 +995,16 @@ public class FromGeom {
 		finalParcelBuilder.set("NC", "false");
 
 		return finalParcelBuilder;
+	}
+
+	public static File getCommunitiesIris(File geoFile) throws FileNotFoundException {
+		for (File f : geoFile.listFiles()) {
+			if (f.isDirectory()) {
+				return getCommunitiesIris(f);
+			} else if (f.getName().startsWith("communitiesIris") && f.getName().endsWith(".shp")) {
+				return f;
+			}
+		}
+		throw new FileNotFoundException("CommunitiesIris file not found");
 	}
 }

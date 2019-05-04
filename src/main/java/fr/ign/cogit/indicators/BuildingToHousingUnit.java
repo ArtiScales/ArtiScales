@@ -14,6 +14,10 @@ import org.geotools.data.DataUtilities;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
+import org.knowm.xchart.BitmapEncoder;
+import org.knowm.xchart.BitmapEncoder.BitmapFormat;
+import org.knowm.xchart.CategoryChart;
+import org.knowm.xchart.CategoryChartBuilder;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
@@ -48,10 +52,10 @@ public class BuildingToHousingUnit extends Indicators {
 		// File indicMainFile = new File(rootFile, "/indic/" + indicName + "/");
 		// initDensities = new File(indicMainFile, "initialDensities.csv");
 
-		if (!variantName.equals("")) {
-			super.mapDepotFile = new File(indicFile, "mapDepot");
-			super.mapDepotFile.mkdir();
-		}
+		// if (!variantName.equals("")) {
+		// super.mapDepotFile = new File(indicFile, "mapDepot");
+		// super.mapDepotFile.mkdir();
+		// }
 
 		housingUnitFirstLine = "code_parcel," + "SDP," + "emprise," + "nb_housingUnit," + "type_HU," + "zone," + "typo_HU," + "averageSDPPerHU,"
 				+ "buildDensity";
@@ -79,18 +83,73 @@ public class BuildingToHousingUnit extends Indicators {
 		SimpluParametersJSON p = new SimpluParametersJSON(lF);
 		for (File f : (new File(rootFile, "SimPLUDepot/" + scenario + "/")).listFiles()) {
 			BuildingToHousingUnit bhtU = new BuildingToHousingUnit(rootFile, p, scenario, f.getName());
-			// for every cities
-			List<String> listInsee = FromGeom.getInsee(new File(bhtU.rootFile, "/dataGeo/old/communities.shp"), "DEPCOM");
+
 			bhtU.distributionEstimate();
 			bhtU.makeGenStat();
 			bhtU.setCountToZero();
+			// for every cities
+			List<String> listInsee = FromGeom.getInsee(new File(bhtU.rootFile, "/dataGeo/old/communities.shp"), "DEPCOM");
 			for (String city : listInsee) {
 				bhtU.makeGenStat(city);
 				bhtU.setCountToZero();
 			}
 			File commStatFile = bhtU.joinStatoBTHCommunnities("genStat.csv");
 			allOfTheMap(bhtU, commStatFile);
+
+			bhtU.createGraph(new File(bhtU.indicFile, "genStat.csv"));
+
 		}
+	}
+
+	public void createGraph(File distrib) throws IOException {
+		String[] xType = { "nbHU_detachedHouse", "nbHU_smallHouse", "nbHU_multiFamilyHouse", "nbHU_smallBlockFlat", "nbHU_midBlockFlat" };
+		makeGraph(distrib, graphDepotFile, "Scenario : " + scenarName + " - Variante : " + variantName, xType, "type de bâtiment",
+				"Nombre de logements simulés");
+		String[] xTypo = { "nbHU_rural", "nbHU_periUrbain", "nbHU_banlieue", "nbHU_centre" };
+		makeGraph(distrib, graphDepotFile, "Scenario : " + scenarName + " - Variante : " + variantName, xTypo, "Typologie des communes",
+				"Nombre de logements simulés");
+		String[] xZone = { "nbHU_U", "nbHU_AU", "nbHU_NC" };
+		makeGraph(distrib, graphDepotFile, "Scenario : " + scenarName + " - Variante : " + variantName, xZone, "type de zonage",
+				"Nombre de logements simulés");
+	}
+
+	public static void makeGraph(File csv, File graphDepotFile, String title, String[] x, String xTitle, String yTitle) throws IOException {
+		// Create Chart
+		CategoryChart chart = new CategoryChartBuilder().width(800).height(600).title(title).xAxisTitle(xTitle).yAxisTitle(yTitle).build();
+		List<String> label = new ArrayList<String>();
+		List<Double> yS = new ArrayList<Double>();
+		for (String s : x) {
+			label.add(makeLabelPHDable(s));
+			// SeriesData csvData= CSVImporter.getSeriesDataFromCSVFile(csv, DataOrientation.Columns, s, y);
+			CSVReader csvR = new CSVReader(new FileReader(csv));
+			int iX = 0;
+			int iCode = 0;
+			String[] fLine = csvR.readNext();
+			// get them first line
+			for (int i = 0; i < fLine.length; i++) {
+				if (fLine[i].equals(s))
+					iX = i;
+				if (fLine[i].equals("code"))
+					iCode = i;
+			}
+			for (String[] lines : csvR.readAll()) {
+				if (lines[iCode].equals("ALLLL")) {
+					yS.add(Double.valueOf(lines[iX]));
+					break;
+				}
+			}
+			csvR.close();
+		}
+
+		chart.addSeries(yTitle, label, yS);
+
+		// Customize Chart
+		// chart.getStyler().setLegendPosition(LegendPosition.InsideNW);
+		chart.getStyler().setLegendVisible(false);
+		chart.getStyler().setHasAnnotations(true);
+		chart.getStyler().setXAxisLabelRotation(45);
+		BitmapEncoder.saveBitmap(chart, graphDepotFile + "/" + SimuTool.makeCamelWordOutOfPhrases(xTitle+yTitle), BitmapFormat.PNG);
+		// new SwingWrapper(chart).displayChart();
 	}
 
 	public static void allOfTheMap(BuildingToHousingUnit bhtU, File commStatFile)
@@ -338,6 +397,7 @@ public class BuildingToHousingUnit extends Indicators {
 				}
 				// typo
 				switch (l[typoP]) {
+				//TODO refaire ça avec la nouvelle fonction
 				case "CENTRE":
 					nbCentre = nbCentre + Integer.valueOf(l[nbHousingUnitP]);
 					break;
@@ -352,9 +412,16 @@ public class BuildingToHousingUnit extends Indicators {
 					break;
 				}
 				// zone
-				if (l[zoneP].contains("U") || l[zoneP].contains("ZC")) {
+				String mainZone = "";
+				if (l[zoneP].contains("+")) {
+					mainZone = l[zoneP].split("+")[0];
+				} else {
+					mainZone = l[zoneP];
+				}
+
+				if (mainZone.equals("U") || mainZone.equals("ZC")) {
 					nbU = nbU + Integer.valueOf(l[nbHousingUnitP]);
-				} else if (l[zoneP].contains("AU")) {
+				} else if (mainZone.equals("AU")) {
 					nbAU = nbAU + Integer.valueOf(l[nbHousingUnitP]);
 				} else {
 					nbNC = nbNC + Integer.valueOf(l[nbHousingUnitP]);

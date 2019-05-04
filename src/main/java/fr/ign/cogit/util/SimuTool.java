@@ -8,10 +8,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
@@ -31,21 +34,33 @@ import com.vividsolutions.jts.geom.Polygon;
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
 import fr.ign.cogit.GTFunctions.Vectors;
+import fr.ign.cogit.simplu3d.model.BasicPropertyUnit;
+import fr.ign.cogit.simplu3d.model.SubParcel;
 import fr.ign.cogit.simplu3d.util.SimpluParameters;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 
 public class SimuTool {
-	public static void main(String[] args) throws Exception {
-		// getSimuInfo(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/CDense/"), "25056000NTdiv590");
-		// getStatDenial(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/CDense/"), new File("/tmp/salut"));
-		// digForACity(new File("/media/ubuntu/saintmande/Packager/CDense/"), "25245");
+	// public static void main(String[] args) throws Exception {
+	// getSimuInfo(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/CDense/"), "25056000NTdiv590");
+	// getStatDenial(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/CDense/"), new File("/tmp/salut"));
+	// digForACity(new File("/media/ubuntu/saintmande/Packager/CDense/"), "25245");
 
-		// Vectors.exportSFC(giveEvalToBuilding(new File("/home/ubuntu/boulot/these/result2903/tmp/SimPLUDepot/CDense/base/TotBatSimuFill.shp"), new
-		// File("/home/ubuntu/boulot/these/result2903/MupCityDepot/CDense/base/CDense--N6_St_Moy_ahpE_seed_42-evalAnal-20.0.shp")),new
-		// File("/home/ubuntu/boulot/these/result2903/tmp/SimPLUDepot/CDense/base/TotBatSimuFillEval.shp"));
+	// Vectors.exportSFC(giveEvalToBuilding(new File("/home/ubuntu/boulot/these/result2903/tmp/SimPLUDepot/CDense/base/TotBatSimuFill.shp"), new
+	// File("/home/ubuntu/boulot/these/result2903/MupCityDepot/CDense/base/CDense--N6_St_Moy_ahpE_seed_42-evalAnal-20.0.shp")),new
+	// File("/home/ubuntu/boulot/these/result2903/tmp/SimPLUDepot/CDense/base/TotBatSimuFillEval.shp"));
 
+	// }
+
+	public static String makeCamelWordOutOfPhrases(String in) {
+	String result = "";
+		String[] tab = in.split(" ");
+		for (String s : tab) {
+			result = result+s.substring(0, 1).toUpperCase() + s.substring(1);
+		}
+		return result;
+		
 	}
-
+	
 	/**
 	 * return a collection of buildings sharing the same zipcode (using the field "CODE")
 	 * 
@@ -807,4 +822,106 @@ public class SimuTool {
 			}
 		}
 	}
+
+	public static SimpleFeatureCollection fixBuildingForZone(File buildingFile, File zoningFile) throws IOException {
+		ShapefileDataStore bSDS = new ShapefileDataStore(buildingFile.toURI().toURL());
+		ShapefileDataStore zSDS = new ShapefileDataStore(zoningFile.toURI().toURL());
+		SimpleFeatureCollection buildings = bSDS.getFeatureSource().getFeatures();
+		SimpleFeatureCollection zoning = zSDS.getFeatureSource().getFeatures();
+		SimpleFeatureIterator it = buildings.features();
+		DefaultFeatureCollection result = new DefaultFeatureCollection();
+		try {
+			buildingLoop: while (it.hasNext()) {
+				SimpleFeature building = it.next();
+				Geometry buildingGeom = (Geometry) building.getDefaultGeometry();
+				SimpleFeatureCollection zones = Vectors.snapDatas(zoning, buildingGeom);
+				SimpleFeatureIterator zoneIt = zones.features();
+				try {
+					while (zoneIt.hasNext()) {
+						SimpleFeature zone = zoneIt.next();
+						Geometry zoneGeom = (Geometry) zone.getDefaultGeometry();
+						String typeZone = "";
+
+						if (zoneGeom.contains(buildingGeom.buffer(-0.5))) {
+							building.setAttribute("TYPEZONE", zone.getAttribute("TYPEZONE"));
+							result.add(building);
+							continue buildingLoop;
+						} else if (zoneGeom.intersects(buildingGeom)) {
+							// TODO develop that (but I have no cases there)
+							// SimpleFeatureCollection salut = ;
+							// for ()
+						} else {
+							System.out.println("not normal case");
+						}
+
+						building.setAttribute("TYPEZONE", typeZone);
+
+					}
+				} catch (Exception problem) {
+					problem.printStackTrace();
+				} finally {
+					zoneIt.close();
+				}
+				System.out.println(building);
+
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			it.close();
+		}
+		// Vectors.exportSFC(result.collection(), new File("/tmp/salut.shp"));
+		bSDS.dispose();
+		zSDS.dispose();
+		return result.collection();
+	}
+
+	public static String getLibInfo(BasicPropertyUnit bPU, String field) {
+		String stringResult = "";
+		List<String> typeZones = new LinkedList<>();
+		// if multiple parts of a parcel has been simulated, put a long name containing them all
+		try {
+			HashMap<String, Double> repart = new HashMap<String, Double>();
+			for (SubParcel subParcel : bPU.getCadastralParcels().get(0).getSubParcels()) {
+				String temporaryType = "";
+				if (field.equals("TYPEZONE")) {
+					temporaryType = subParcel.getUrbaZone().getTypeZone();
+				} else if (field.equals("LIBELLE")) {
+					temporaryType = subParcel.getUrbaZone().getLibelle();
+				} else {
+					throw new Error("invalid name");
+				}
+
+				if (!repart.containsKey(temporaryType)) {
+					repart.put(temporaryType, subParcel.getArea());
+				} else {
+					double tmp = repart.remove(temporaryType);
+					repart.put(temporaryType, subParcel.getArea() + tmp);
+				}
+
+			}
+			List<Entry<String, Double>> entryList = new ArrayList<Entry<String, Double>>(repart.entrySet());
+
+			Collections.sort(entryList, new Comparator<Entry<String, Double>>() {
+				@Override
+				public int compare(Entry<String, Double> obj1, Entry<String, Double> obj2) {
+					return obj2.getValue().compareTo(obj1.getValue());
+				}
+			});
+
+			for (Entry<String, Double> s : entryList) {
+				typeZones.add(s.getKey());
+			}
+
+			for (String typeZoneTemp : typeZones) {
+				stringResult = stringResult + typeZoneTemp + "+";
+			}
+			stringResult = stringResult.substring(0, stringResult.length() - 1);
+
+		} catch (NullPointerException np) {
+			stringResult = "NC";
+		}
+		return stringResult;
+	}
+
 }
