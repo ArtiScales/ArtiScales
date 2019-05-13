@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<parameters>
+
+	<!--PARAMÈTRES SCÉNARISTIQUES POUR LES SIMULATIONS AVEC ARTISCALES -->
+	
+	<!-- Nom du scénario -->
+	<param key="name" value="CDense" />
+	<param key="scenarioPMSP3D" value="dense" />
+		
+	<!-- PARAMETRES DU MODULE MUP-CITY -->
+
+		<!-- Densité du développement résidentiel -->
+		<!-- Intensité du développement résidentiel. Les valeurs doivent être comprises 
+			entre 3 et 7 -->
+		<param key="N" value="6" />
+
+		<!-- Si "false", développement résidentiel globalement uniforme -->
+		<!-- Si "true", développement résidentiel très contrasté -->
+		<param key="strict" value="true" />
+
+		<!-- Paramètre concernant la pondération des règles d'aménagement -->
+		<!-- Ces pondérations sont calculées au moyens de matrice d'aide à la décision 
+			(Analytic Hierarchical Process, voir (Saaty, 1977) -->
+
+			<!-- Nom générique pour le jeu de pondération -->
+			<param key="ahpName" value="service" />
+			<!-- Pondération de la règle d'accessibilité aux espaces naturels et de 
+				loisirs de fréquentation potentielle mensuelle -->
+			<param key="ahp8" value="0.111" />
+			<!-- Pondération de la règle d'accessibilité aux espaces naturels et de 
+				loisirs de fréquentation potentielle hebdomadaire -->
+			<param key="ahp7" value="0.111" />
+			<!-- Pondération de la règle d'accessibilité aux espaces naturels et de 
+				loisirs de fréquentation potentielle quotidienne -->
+			<param key="ahp6" value="0.111" />
+			<!-- Pondération de la règle d'accessibilité au réseau de transport en commun -->
+			<param key="ahp5" value="0.111" />
+			<!-- Pondération de la règle d'accessibilité aux commerces et services de 
+				fréquentation mensuelle -->
+			<param key="ahp4" value="0.111" />
+			<!-- Pondération de la règle d'accessibilité aux commerces et services de 
+				fréquentation hebdomadaire -->
+			<param key="ahp3" value="0.111" />
+			<!-- Pondération de la règle d'accessibilité aux commerces et services de 
+				fréquentation quotidienne -->
+			<param key="ahp2" value="0.111" />
+			<!-- Pondération de la règle de proximité au réseau routier existant -->
+			<param key="ahp1" value="0.111" />
+			<!-- Pondération de la règle morphologique -->
+			<param key="ahp0" value="0.111" />
+
+		<!-- Méthode d'agrégation des valeurs d'évaluations -->
+		<!-- Si "true", utilisation des moyennes pondérées -->
+		<!-- Si "false", utilisation de l'agrégation de Yager (Yager, 1978). Cette 
+			méthode est beaucoup plus sévère et moins de cellules sont calculées -->
+		<param key="mean" value="true" />
+
+	<!-- PARAMÈTRES DU MODULE PARCEL MANAGER -->
+
+		<!-- Zones où les parcelles pourront être sélectionnées -->
+
+			<!-- Sélectionne les parcelles situées dans les zones U sur des terrains 
+				déjà construits -->
+			<param key="Ubuilt" value="true" />
+			<!-- Sélectionne les parcelles situées dans les zones U sur des terrains 
+				non-construits -->
+			<param key="UnotBuilt" value="true" />
+			<!-- Types de sélections situées dans les zones AU ouverte à l'urbanisation résidentielle -->
+			<param key="AU" value="true" />
+			<!-- Types de sélections situées dans les zones 2AU de réserve foncière -->
+			<param key="2AU" value="true" />
+			<!-- Types de sélections situées dans les zones A et N -->
+			<param key="NC" value="false" />
+
+		<!-- Décomposition des parcelles - affecte un type de découpage à un secteur (couple de zone/typo) -->
+		<!-- Les combinaisons de zone/typo sont séparées avec un "-" et ces différents secteurs sont séparés par un "_"  -->
+
+		<param key="splitDensification" value="U" />		
+		<param key="splitTotRecomp" value="AU" />	
+			<!-- Si true, toutes les parcelles générées dans ces zones remodelées avec le processus de configuration parcellaire pour une zone entière sont sélectionnées. Si false, uniquement les parcelles intersectant les cellules générées par MUP-City sont sélectionnées -->
+			<param key="allZone" value="true" />
+		<param key="splitPartRecomp" value="false" />
+
+	<!-- PARAMETRES DE SIMPLU3D -->
+
+		<!-- prise en compte des prescriptions graphiques et zone tampon si ces préscriptions sont ponctuelles ou linéaires -->
+	
+			<!-- Espace boisé classé -->			
+			<param key="protectedWood" value="true" />
+			<param key="bufferProtectedWood" value="3" />
+			<!-- quel niveau de nuisance/risque retirons nous de l'urbanisation? -->
+			<!-- Si riskAll = true, toutes les zones couvertes par une réglementation ne sont pas urbanisables -->
+			<param key="bufferRisk" value="1"/>			
+			<param key="riskAll" value="true"/>
+			<!-- Si riskSerious= true, uniquement les zones les plus graves (dont le libelle contient les mots-clefs suivants : grave, fort, maximal, rouge ne seront pas urbanisables-->
+			<param key="riskSerious" value="true"/>
+			<!-- Emplacement réservé -->
+			<param key="reserve" value="true"/>
+			<param key="bufferReserve" value="3"/>
+			<!-- Élément paysager -->
+			<param key="landscapeFeatures" value="true"/>
+			<param key="bufferLandscapeFeatures" value="3"/>
+			<!-- Alignements homologué -->
+			<param key="alignment" value="false"/>
+			<param key="bufferAlignment" value="1"/>
+			<!-- Élement constituant la protection de la biodiversité -->	
+			<param key="biodiversityArea" value="false"/>
+			<param key="bufferBiodiversityArea" value="3"/>
+
+
+		<!--Fichier utilisé contenant les différentes répartitions. Ces fichiers sont présents dans les ressources dans le dossier "resources/locationBuildingType" -->
+		<!--Il convient de mettre un "-" entre différents éléments devant caractériser cette zone (pour l'instant, la typologie de la commune et le type de zone du PLU) -->
+		<!--Il convient de mettre un "_" entre différentes zones -->		
+		<!--Il convient de mettre un ":" pour préciser un scénario à utiliser -->
+		<param key="useRepartition" value="dense:banlieue_dense:centre_dense:periUrbain-U_dense:periUrbain-AU_dense:rural" />
+
+	<!--PARAMETRE CONCERNANT LES LOGEMENTS -->
+
+		<!-- Taille moyenne d'un logement pour toute la simulation (uniquement utilisée pour le calcul du stationnement - pour le calcul de la distribution des tailles de logement, voir dossier ressources/profileBuildingType/ -->
+		<param key="HousingUnitSize" value="50" />
+		<!-- Taille moyenne d'un étage -->
+		<param key="heightStorey" value="3.5" />
+		<!-- Ratio de surface planchers appliqué aux attiques -->
+		<param key="ratioAttic" value = "0.5" />
+		<!-- Taille moyenne d'une place de parking --> 
+		<param key="areaParkingLot" value="25" />
+		<!-- Largeur de l'accessibilitées des parcelles aux routes -->
+		<param key="lenDriveway" value = "3" />
+		<!-- Largeur des voiries générées -->
+		<param key="lenRoad" value = "5" />
+
+	
+	<!-- Mode de fonctionnement d'ArtiScales -->
+	<!-- Si true, le modèle ne prends en compte et ne garde dans les résultats pas plus de logement que le nombre prévu par les objectifs de création contenus dans le PLH et/ou le SCoT -->
+	<!-- Si false, le modèle urbanise toutes les parcelles sans tenir compte du nombre de logements construits -->
+	<param key="fill" value="false" />
+
+</parameters>
+

@@ -1,0 +1,50 @@
+<parameters>
+<param key="nameBuildingType" value="detachedHouse" />
+
+<!--Paramètres par défaut du découpage de parcelle -->
+
+	<!-- Aire limite de découpage des parcelles -->
+	<param key="areaParcel" value="1000" />
+	<!-- Largeur minimum de la limite parcellaire donnant sur la voirie -->
+	<!-- Si aucune voirie adjacente à la parcelle, le découpage sera orienté aléatoirement -->
+	<param key="widParcel" value="7" />
+	<!-- niveau de décompositions auxquels il n'y aura pas de création de routes (partant de la médiane des différents niveaux de décomposition constatées-->
+	<param key="decompositionLevelWithoutRoad" value="3" />
+
+<!--Paramètres par défaut des différents types de bâtiments simulés -->
+
+	<!-- Largeur -->
+	<param key="minlen" value="7" />
+	<param key="maxlen" value="15" />
+	<!-- Longueur -->
+	<param key="minwid" value="7" />
+	<param key="maxwid" value="10" />
+	<!-- Hauteur -->
+	<param key="minheight" value="3.5" />
+	<param key="maxheight" value="7" />
+
+	<!-- Fonction d'optimisation (pas (encore) utilisée) -->
+	<param key="fctOpt" value="" />
+
+	<!-- Si "true", l'intersection entre les cuboïdes est permise -->
+	<param key="intersection" value="true" />
+
+	<!-- Nombre de boites maximal composant un bâtiment -->
+	<param key="nbCuboid" value="2" />
+
+	<!-- Surface de plancher maximale pour un bâtiment -->
+	<param key="areaMax" value="280" />
+	<!-- Surface de plancher miniale pour un bâtiment -->
+	<param key="areaMin" value="49" />
+
+	<!-- Nombre d'étage du bâtiment à partir duquel le dernier étage est en attique (si 99, ne s'applique pas) -->
+	<param key="nbStoreysAttic" value="99" />
+
+<!--Paramètres par défaut des différents logements inclus dans les bâtiments simulés -->
+
+	<!-- Nombre minimum de logement par bâtiment -->
+	<param key="minHousingUnit" value="1" />
+	<!-- Nombre maximum de logement par bâtiment -->
+	<param key="maxHousingUnit" value="1" />
+		
+</parameters>

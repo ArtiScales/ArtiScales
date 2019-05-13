@@ -1,0 +1,60 @@
+<parameters>
+<param key="nameBuildingType" value="midBlockFlat" />
+
+<!--Paramètres par défaut du découpage de parcelle -->
+
+	<!-- Aire limite de découpage des parcelles -->
+	<param key="areaParcel" value="4000" />
+	<!-- Largeur minimum de la limite parcellaire donnant sur la voirie -->
+	<!-- Si aucune voirie adjacente à la parcelle, le découpage sera orienté aléatoirement -->
+	<param key="widParcel" value="15" />
+	<!-- niveau de décompositions auxquels il n'y aura pas de création de routes (partant de la médiane des différents niveaux de décomposition constatées-->
+	<param key="decompositionLevelWithoutRoad" value="2" />
+
+
+<!--Paramètres par défaut des différents types de bâtiments simulés -->
+
+	<!-- Largeur -->
+	<param key="minlen" value="5" />
+	<param key="maxlen" value="10" />
+	<!-- Longueur -->
+	<param key="minwid" value="5" />
+	<param key="maxwid" value="10" />
+	<!-- Hauteur -->
+	<param key="minheight" value="7" />
+	<param key="maxheight" value="21" />
+
+	<!-- Si "true", l'intersection entre les cuboïdes est permise -->
+	<param key="intersection" value="true" />
+
+	<!-- Nombre de boites maximal composant un bâtiment -->
+	<param key="nbCuboid" value="20" />
+
+	<!-- Surface de plancher maximale pour un bâtiment -->
+	<param key="areaMax" value="12000" />
+	<!-- Surface minimale pour un bâtiment -->
+	<param key="areaMin" value="2500" />
+
+	<!-- Nombre d'étage du bâtiment à partir duquel le dernier étage est en attique (si 99, ne s'applique pas) -->
+	<param key="nbStoreysAttic" value="5" />
+
+<!--Paramètres par défaut des différents logements inclus dans les bâtiments simulés -->
+
+	<!-- Nombre minimum de logement par bâtiment -->
+	<param key="minHousingUnit" value="30" />
+		
+	<!-- Borne de la classe de taille des logements de type T1/T2 -->
+	<param key="sizeSmallDwelling" value="30-55" />
+	<!-- Borne de la classe de taille des logements de type T3 -->
+	<param key="sizeMidDwelling" value="60-75" />
+	<!-- Borne de la classe de taille des logements de type T4 ou plus -->
+	<param key="sizeLargeDwelling" value="80-110" />
+
+	<!-- Fréquence de construction de logements de type T1/T2 -->
+	<param key="freqSmallDwelling" value="0.4" />
+	<!-- Fréquence de taille des logements de type T3 -->
+	<param key="freqMidDwelling" value="0.4" />
+	<!-- Fréquence de taille des logements de type T4 ou plus -->
+	<param key="freqLargeDwelling" value="0.2" />
+
+</parameters>
