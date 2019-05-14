@@ -10,10 +10,11 @@ import org.opengis.referencing.NoSuchAuthorityCodeException;
 import fr.ign.cogit.map.MapRenderer;
 
 public class NbBat extends MapRenderer {
-	static String nameMap = "nbHU";
+	static String nameMap = "nbBat";
+	static String text = "Nombre de bâtiments simulés";
 
 	public NbBat(int imageWidth, int imageHeight, File rootMapstyle, File tomapshp, File outfolder) {
-		super(imageWidth, imageHeight, nameMap, rootMapstyle, new File(rootMapstyle, "svgModel.svg"), tomapshp, outfolder);
+		super(imageWidth, imageHeight, nameMap, text, rootMapstyle, new File(rootMapstyle, "svgModel.svg"), tomapshp, outfolder);
 	}
 
 	public static void main(String[] args) throws MalformedURLException, NoSuchAuthorityCodeException, IOException, FactoryException {

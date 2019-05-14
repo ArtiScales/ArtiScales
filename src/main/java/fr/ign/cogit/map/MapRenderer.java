@@ -44,14 +44,15 @@ public class MapRenderer {
 	private Rectangle imageBounds;
 	protected File sdlFile, svgFile, rootMapStyle, toMapShapeFile, outFolder;
 
-	protected String mapName;
+	protected String mapName, text;
 
 	StyleFactory styleFactory = CommonFactoryFinder.getStyleFactory(null);
 	FilterFactory filterFactory = CommonFactoryFinder.getFilterFactory(null);
 
-	public MapRenderer(int imageWidth, int imageHeight, String mapname, File rootMapstyle, File svgfile, File tomapshp, File outfolder) {
+	public MapRenderer(int imageWidth, int imageHeight, String mapname,String text, File rootMapstyle, File svgfile, File tomapshp, File outfolder) {
 		this.outFolder = outfolder;
 		this.mapName = mapname;
+		this.text = text;
 		this.imageBounds = new Rectangle(0, 0, imageWidth, imageHeight);
 		this.rootMapStyle = rootMapstyle;
 		this.sdlFile = new File(rootMapstyle, mapName + ".sld");
@@ -341,7 +342,10 @@ public class MapRenderer {
 				String newLine = "inkscape:export-filename=\"" + "./" + mapName + ".png\"";
 				sb.append(newLine + "\n");
 			}
-
+			else if (((String) line).contains("> </flowPara>")) {
+				String newLine = ((String) line).replace("> </flowPara>", ">"+ text + "</flowPara>");
+				sb.append(newLine + "\n");
+			}
 			else {
 				sb.append(line + "\n");
 			}

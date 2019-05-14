@@ -11,10 +11,11 @@ import fr.ign.cogit.map.MapRenderer;
 
 public class DiffObjDensMap extends MapRenderer {
 	static String nameMap = "diffObjDens";
+	static String text = "différence entre les densités de logements simulées par hectare les objectifs de densité";
 
 	public DiffObjDensMap(int imageWidth, int imageHeight, File mapStyleFolder, File featureFile, File outFolder)
 			throws MalformedURLException, NoSuchAuthorityCodeException, IOException, FactoryException {
-		super(imageWidth, imageHeight, nameMap, mapStyleFolder, new File(mapStyleFolder, "svgModel.svg"), featureFile, outFolder);
+		super(imageWidth, imageHeight, nameMap,text, mapStyleFolder, new File(mapStyleFolder, "svgModel.svg"), featureFile, outFolder);
 	}
 
 	public static void main(String[] args) throws MalformedURLException, NoSuchAuthorityCodeException, IOException, FactoryException {

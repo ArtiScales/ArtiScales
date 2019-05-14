@@ -11,9 +11,11 @@ import fr.ign.cogit.map.MapRenderer;
 
 public class SurfParcelFailedMap extends MapRenderer {
 	static String nameMap = "surfParcelFailed";
+	static String text = "Surface des parcelles où le modèle n'a pas pu simuler de bâtiment";
+
 
 	public SurfParcelFailedMap(int imageWidth, int imageHeight, File rootMapstyle, File tomapshp, File outfolder) {
-		super(imageWidth, imageHeight, nameMap, rootMapstyle, new File(rootMapstyle, "svgModel.svg"), tomapshp, outfolder);
+		super(imageWidth, imageHeight, nameMap, text, rootMapstyle, new File(rootMapstyle, "svgModel.svg"), tomapshp, outfolder);
 	}
 
 	public static void main(String[] args) throws MalformedURLException, NoSuchAuthorityCodeException, IOException, FactoryException {
