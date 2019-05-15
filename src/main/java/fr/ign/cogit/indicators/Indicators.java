@@ -24,6 +24,7 @@ import au.com.bytecode.opencsv.CSVReader;
 import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.cogit.util.FromGeom;
+import fr.ign.cogit.util.SimuTool;
 
 public abstract class Indicators {
 	SimpluParametersJSON p;
@@ -41,16 +42,20 @@ public abstract class Indicators {
 		this.variantName = variantname;
 		this.paramFolder = new File(rootFile, "paramFolder");
 		// we're not sure what's the name of MUp-City's outputs
-		for (File f : (new File(rootFile, "MupCityDepot/" + scenarName + "/" + variantName + "/")).listFiles()) {
-			if (f.getName().endsWith(".shp")) {
-				this.mupOutputFile = f;
-				break;
+		if ((new File(rootFile, "MupCityDepot/" + scenarName + "/" + variantName + "/")).exists()) {
+			for (File f : (new File(rootFile, "MupCityDepot/" + scenarName + "/" + variantName + "/")).listFiles()) {
+				if (f.getName().endsWith(".shp")) {
+					this.mupOutputFile = f;
+					break;
+				}
 			}
 		}
 		this.parcelDepotGenFile = new File(rootFile, "ParcelSelectionDepot/" + scenarName + "/" + variantName + "/parcelGenExport.shp");
 		this.simPLUDepotGenFile = new File(rootFile, "SimPLUDepot/" + scenarName + "/" + variantName + "/TotBatSimuFill.shp");
 		if (!simPLUDepotGenFile.exists() && !scenarname.equals("") && !variantname.equals("")) {
-			FromGeom.mergeBatis(simPLUDepotGenFile.getParentFile());
+			File buildingFile = FromGeom.mergeBatis(simPLUDepotGenFile.getParentFile());
+			// TODO the nex treatement is made for the simu that puts zones into a wrong order and will be deleted one day
+			SimuTool.fixBuildingForZone(buildingFile, new File(rootFile, "/dataRegulation/zoning.shp"), true);
 		}
 		// if there's a will of saving the infos
 		if (scenarname != "") {
@@ -160,15 +165,15 @@ public abstract class Indicators {
 		writer.close();
 	}
 
-	public File joinStatoBTHCommunnities(String nameFileToJoin) throws NoSuchAuthorityCodeException, IOException, FactoryException {
+	public File joinStatoBTHCommunities(String nameFileToJoin) throws NoSuchAuthorityCodeException, IOException, FactoryException {
 		ShapefileDataStore communitiesOGSDS = new ShapefileDataStore((new File(rootFile, "/dataGeo/old/communities.shp")).toURI().toURL());
 		SimpleFeatureCollection communitiesOG = communitiesOGSDS.getFeatureSource().getFeatures();
-		File result = joinStatToBhTSFC(communitiesOG, new File(indicFile, nameFileToJoin), new File(indicFile, "commStat.shp"));
+		File result = joinStatToBTHSFC(communitiesOG, new File(indicFile, nameFileToJoin), new File(indicFile, "commStat.shp"));
 		communitiesOGSDS.dispose();
 		return result;
 	}
 
-	public File joinStatToBhTSFC(SimpleFeatureCollection collec, File statFile, File outFile)
+	public File joinStatToBTHSFC(SimpleFeatureCollection collec, File statFile, File outFile)
 			throws IOException, NoSuchAuthorityCodeException, FactoryException {
 		DefaultFeatureCollection result = new DefaultFeatureCollection();
 		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
@@ -209,7 +214,7 @@ public abstract class Indicators {
 				String insee = (String) featCity.getAttribute("DEPCOM");
 				CSVReader stat = new CSVReader(new FileReader(statFile), ',', '\0');
 				String[] firstLine = stat.readNext();
-				int inseeP = 0, SDPTotP = 0, iniDens = 0, avDensiteP = 0, SDDensiteP = 0, avSDPpHUP = 0, sdSDPpHUP = 0, difObjDensP = 0,
+				int inseeP = 0, SDPTotP = 0, iniDensP = 0, avDensiteP = 0, SDDensiteP = 0, avSDPpHUP = 0, sdSDPpHUP = 0, difObjDensP = 0,
 						nbBuildingP = 0, nbHUP = 0, difObjHUP = 0, nbSmallP = 0, nbDetachP = 0, nbFamHP = 0, nbSmallBkP = 0, nbMidBkP = 0, nbUP = 0,
 						nbAUP = 0, nbNCP = 0, nbCentrP = 0, nbBanlP = 0, nbPeriUP = 0, nbRurP = 0;
 				for (int i = 0; i < firstLine.length; i++) {
@@ -221,7 +226,7 @@ public abstract class Indicators {
 						SDPTotP = i;
 						break;
 					case "initial_densite":
-						iniDens = i;
+						iniDensP = i;
 						break;
 					case "average_densite":
 						avDensiteP = i;
@@ -290,7 +295,7 @@ public abstract class Indicators {
 						builder.set("the_geom", featCity.getDefaultGeometry());
 						builder.set("INSEE", l[inseeP]);
 						builder.set("SDPTot", Double.valueOf(l[SDPTotP]));
-						builder.set("iniDens", Double.valueOf(l[iniDens]));
+						builder.set("iniDens", Double.valueOf(l[iniDensP]));
 						builder.set("avDensite", Double.valueOf(l[avDensiteP]));
 						builder.set("SDDensite", Double.valueOf(l[SDDensiteP]));
 						builder.set("avSDPpHU", Double.valueOf(l[avSDPpHUP]));
@@ -327,6 +332,8 @@ public abstract class Indicators {
 
 	public static String makeLabelPHDable(String s) throws FileNotFoundException {
 		switch (s) {
+		case "buildDensity":
+			return "densité de logement simulé par hectare";
 		case "nbHU_detachedHouse":
 			return "Maison isolée";
 		case "nbHU_smallHouse":
@@ -351,6 +358,27 @@ public abstract class Indicators {
 			return "banlieue";
 		case "nbHU_centre":
 			return "centre ville";
+		case "nbParcelSimulatedU":
+		case "nbParcelSimulFailedU":
+			return "Urbanisable (U)";
+		case "nbParcelSimulatedAU":
+		case "nbParcelSimulFailedAU":
+			return "À Urbaniser (AU)";
+		case "nbParcelSimulatedNC":
+		case "nbParcelSimulFailedNC":
+			return "Non Urbanisable (NC)";
+		case "nbParcelSimulatedBanlieue":
+		case "nbParcelSimulFailedBanlieue":
+			return "banlieue";
+		case "nbParcelSimulatedPeriUrb":
+		case "nbParcelSimulFailedPeriUrb":
+			return "périurbaine";
+		case "nbParcelSimulatedRural":
+		case "nbParcelSimulFailedRural":
+			return "rurale";
+		case "nbParcelSimulatedCentre":
+		case "nbParcelSimulFailedCentre":
+			return "centre";
 		}
 
 		throw new FileNotFoundException("name not found");

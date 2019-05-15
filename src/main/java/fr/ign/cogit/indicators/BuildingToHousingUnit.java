@@ -49,14 +49,6 @@ public class BuildingToHousingUnit extends Indicators {
 	public BuildingToHousingUnit(File rootFile, SimpluParametersJSON par, String scenarName, String variantName) throws Exception {
 		super(par, rootFile, scenarName, variantName, indicName);
 
-		// File indicMainFile = new File(rootFile, "/indic/" + indicName + "/");
-		// initDensities = new File(indicMainFile, "initialDensities.csv");
-
-		// if (!variantName.equals("")) {
-		// super.mapDepotFile = new File(indicFile, "mapDepot");
-		// super.mapDepotFile.mkdir();
-		// }
-
 		housingUnitFirstLine = "code_parcel," + "SDP," + "emprise," + "nb_housingUnit," + "type_HU," + "zone," + "typo_HU," + "averageSDPPerHU,"
 				+ "buildDensity";
 
@@ -67,12 +59,13 @@ public class BuildingToHousingUnit extends Indicators {
 				+ "nbHU_periUrbain," + "nbHU_rural";
 	}
 
-	public BuildingToHousingUnit(File rootFile, SimpluParametersJSON par) throws Exception {
-		super(par, rootFile, "", "", indicName);
+	public BuildingToHousingUnit(File batiFolder, File paramFile, SimpluParametersJSON par) throws Exception {
+		super(par, batiFolder, "", "", indicName);
+		super.paramFolder = paramFile;
 	}
 
 	public static void main(String[] args) throws Exception {
-		File rootFile = new File("./result2903/tmp");
+		File rootFile = new File("./result2903/");
 		File rootParam = new File(rootFile, "paramFolder");
 		String scenario = "CDense";
 		// String variant = "base";
@@ -93,15 +86,22 @@ public class BuildingToHousingUnit extends Indicators {
 				bhtU.makeGenStat(city);
 				bhtU.setCountToZero();
 			}
-			File commStatFile = bhtU.joinStatoBTHCommunnities("genStat.csv");
+			File commStatFile = bhtU.joinStatoBTHCommunities("genStat.csv");
 			allOfTheMap(bhtU, commStatFile);
 
-			bhtU.createGraph(new File(bhtU.indicFile, "genStat.csv"));
-
+			// bhtU.createGraphCount(new File(bhtU.indicFile, "genStat.csv"));
+			bhtU.createGraphCount(new File(bhtU.indicFile, "genStat.csv"));
 		}
 	}
 
-	public void createGraph(File distrib) throws IOException {
+	public void createGraphDensity(File distrib) throws IOException {
+		String[] xType = { "buildDensity" };
+		makeGraph(distrib, graphDepotFile, "Scenario : " + scenarName + " - Variante : " + variantName, xType, "densité de logements par hectare",
+				"densité de logements par hectare");
+
+	}
+
+	public void createGraphCount(File distrib) throws IOException {
 		String[] xType = { "nbHU_detachedHouse", "nbHU_smallHouse", "nbHU_multiFamilyHouse", "nbHU_smallBlockFlat", "nbHU_midBlockFlat" };
 		makeGraph(distrib, graphDepotFile, "Scenario : " + scenarName + " - Variante : " + variantName, xType, "type de bâtiment",
 				"Nombre de logements simulés");
@@ -148,7 +148,7 @@ public class BuildingToHousingUnit extends Indicators {
 		chart.getStyler().setLegendVisible(false);
 		chart.getStyler().setHasAnnotations(true);
 		chart.getStyler().setXAxisLabelRotation(45);
-		BitmapEncoder.saveBitmap(chart, graphDepotFile + "/" + SimuTool.makeCamelWordOutOfPhrases(xTitle+yTitle), BitmapFormat.PNG);
+		BitmapEncoder.saveBitmap(chart, graphDepotFile + "/" + SimuTool.makeCamelWordOutOfPhrases(xTitle + yTitle), BitmapFormat.PNG);
 		// new SwingWrapper(chart).displayChart();
 	}
 
@@ -340,8 +340,8 @@ public class BuildingToHousingUnit extends Indicators {
 	public void makeGenStat(String code) throws Exception {
 		System.out.println();
 		System.out.println("city " + code);
-		double iniDensite = existingBuildingDensity(new File(rootFile, "dataGeo/building.shp"), new File(rootFile, "dataGeo/parcel.shp"),
-				new File(rootFile, "dataGeo/communities.shp"), code);
+		File geoFile = new File(rootFile, "dataGeo");
+		double iniDensite = existingBuildingDensity(FromGeom.getBuild(geoFile), FromGeom.getParcels(geoFile), FromGeom.getCommunities(geoFile), code);
 		String insee = code.substring(0, 5);
 		setCountToZero();
 		CSVReader stat = new CSVReader(new FileReader(new File(indicFile, "housingUnits.csv")), ',', '\0');
@@ -397,24 +397,23 @@ public class BuildingToHousingUnit extends Indicators {
 				}
 				// typo
 				switch (l[typoP]) {
-				//TODO refaire ça avec la nouvelle fonction
-				case "CENTRE":
+				case "centre":
 					nbCentre = nbCentre + Integer.valueOf(l[nbHousingUnitP]);
 					break;
-				case "BANLIEUE":
+				case "banlieue":
 					nbBanlieue = nbBanlieue + Integer.valueOf(l[nbHousingUnitP]);
 					break;
-				case "PERIURBAIN":
+				case "periUrbain":
 					nbPeriUrbain = nbPeriUrbain + Integer.valueOf(l[nbHousingUnitP]);
 					break;
-				case "RURAL":
+				case "rural":
 					nbRural = nbRural + Integer.valueOf(l[nbHousingUnitP]);
 					break;
 				}
 				// zone
 				String mainZone = "";
 				if (l[zoneP].contains("+")) {
-					mainZone = l[zoneP].split("+")[0];
+					mainZone = l[zoneP].split("\\+")[0];
 				} else {
 					mainZone = l[zoneP];
 				}
@@ -449,7 +448,6 @@ public class BuildingToHousingUnit extends Indicators {
 		}
 		averageDensite = densityStat.getMean();
 		standDevDensite = densityStat.getStandardDeviation();
-
 		averageSDPHU = sDPPerHUStat.getMean();
 		standDevSDPHU = sDPPerHUStat.getStandardDeviation();
 
@@ -480,14 +478,13 @@ public class BuildingToHousingUnit extends Indicators {
 			SimpleFeature ftBati = it.next();
 			if (!buildingCode.contains((String) ftBati.getAttribute("CODE"))) {
 				BuildingType type = BuildingType.valueOf((String) ftBati.getAttribute("BUILDTYPE"));
-				double surfaceLgt = (double) ftBati.getAttribute("SDPShon");
 				HashMap<String, HashMap<String, Integer>> repartition;
 				// for a single house, there's only a single housing unit
 				switch (type) {
 				case DETACHEDHOUSE:
 				case SMALLHOUSE:
 					nbHU = 1;
-					System.out.println("le batiment" + type + " de la parcelle " + numeroParcel + " fait " + surfaceLgt + " mcarré ");
+					// System.out.println("le batiment" + type + " de la parcelle " + numeroParcel + " fait " + surfaceLgt + " mcarré ");
 					break;
 				// for collective buildings
 				default:
@@ -509,8 +506,9 @@ public class BuildingToHousingUnit extends Indicators {
 				if (!buildingCode.contains(code)) {
 
 					// typo of the zone
-					String typo = FromGeom.parcelInTypo(FromGeom.getCommunities(new File(rootFile, "dataGeo")), ftBati).toUpperCase();
-
+					// String typo = FromGeom.parcelInTypo(FromGeom.getCommunitiesIris(new File(rootFile, "dataGeo")), ftBati).toUpperCase();
+					String typo = FromGeom.getTypo(FromGeom.getCommunitiesIris(new File(rootFile, "dataGeo")),
+							(Geometry) ftBati.getDefaultGeometry());
 					BuildingType type = BuildingType.valueOf((String) ftBati.getAttribute("BUILDTYPE"));
 					boolean collectiveHousing = false;
 					double surfaceLgt = (double) ftBati.getAttribute("SDPShon");
@@ -521,7 +519,7 @@ public class BuildingToHousingUnit extends Indicators {
 					case SMALLHOUSE:
 						nbHU = 1;
 						averageSDPHU = surfaceLgt / nbHU;
-						System.out.println("le batiment" + type + " de la parcelle " + numeroParcel + " fait " + surfaceLgt + " mcarré ");
+						// System.out.println("le batiment" + type + " de la parcelle " + numeroParcel + " fait " + surfaceLgt + " mcarré ");
 						break;
 					// for collective buildings
 					default:
@@ -533,7 +531,7 @@ public class BuildingToHousingUnit extends Indicators {
 
 					averageDensite = nbHU / ((double) ftBati.getAttribute("SurfacePar") / 10000);
 
-					System.out.println("on peux ici construire " + nbHU + " logements à une densité de " + averageDensite);
+					// System.out.println("on peux ici construire " + nbHU + " logements à une densité de " + averageDensite);
 					if (collectiveHousing) {
 						String lineParticular = numeroParcel + "," + surfaceLgt + "," + ftBati.getAttribute("SurfaceSol") + "," + String.valueOf(nbHU)
 								+ "," + type + "," + ftBati.getAttribute("TYPEZONE") + "," + typo + "," + String.valueOf(averageSDPHU) + ","
@@ -547,7 +545,7 @@ public class BuildingToHousingUnit extends Indicators {
 
 						toParticularCSV(indicFile, "housingUnits.csv", getFirstlinePartCsv(), lineParticular);
 					}
-					System.out.println("");
+					// System.out.println("");
 
 					buildingCode.add(code);
 				}
@@ -646,7 +644,7 @@ public class BuildingToHousingUnit extends Indicators {
 			HashMap<String, Integer> midHU = new HashMap<String, Integer>();
 			HashMap<String, Integer> largeHU = new HashMap<String, Integer>();
 			double leftSDP = totSDP;
-			System.out.println("this one is " + totSDP);
+			// System.out.println("this one is " + totSDP);
 			boolean enoughSpace = true;
 			while (enoughSpace) {
 				// ponderated randomness
@@ -654,7 +652,7 @@ public class BuildingToHousingUnit extends Indicators {
 				if (rd < freqSmallDwelling) {
 					// this is a small house
 
-					System.out.println("small dwelling");
+					// System.out.println("small dwelling");
 					// HashMap<String, Integer> smallHUTemp = smallHU;
 					Object[] repart = doDwellingRepart(smallHU, leftSDP, sizeSmallDwellingMax, sizeSmallDwellingMin);
 					smallHU = (HashMap<String, Integer>) repart[0];
@@ -668,7 +666,7 @@ public class BuildingToHousingUnit extends Indicators {
 					}
 				} else if (rd < (freqSmallDwelling + freqMidDwelling)) {
 					// this is a medium house
-					System.out.println("mid dwelling");
+					// System.out.println("mid dwelling");
 					// HashMap<String, Integer> midHUTemp = midHU;
 					Object[] repart = doDwellingRepart(midHU, leftSDP, sizeMidDwellingMax, sizeMidDwellingMin);
 					midHU = (HashMap<String, Integer>) repart[0];
@@ -677,13 +675,13 @@ public class BuildingToHousingUnit extends Indicators {
 					// if nothing has changed, it's time to end that
 					if (!conti) {
 						enoughSpace = false;
-						System.out.println("same size");
+						// System.out.println("same size");
 					} else {
 						nbLgtFinal++;
 					}
 				} else {
 					// this is a large house
-					System.out.println("large dwelling");
+					// System.out.println("large dwelling");
 					// HashMap<String, Integer> largeHUTemp = largeHU;
 					Object[] repart = doDwellingRepart(largeHU, leftSDP, sizeLargeDwellingMax, sizeLargeDwellingMin);
 					largeHU = (HashMap<String, Integer>) repart[0];
@@ -696,13 +694,13 @@ public class BuildingToHousingUnit extends Indicators {
 						nbLgtFinal++;
 					}
 				}
-				System.out.println("nbLgtFinal : " + nbLgtFinal);
+				// System.out.println("nbLgtFinal : " + nbLgtFinal);
 
 			}
 			// if the limit of minimum housing units is outpassed
-			System.out.println("minLgt : " + minLgt + " contre " + nbLgtFinal);
+			// System.out.println("minLgt : " + minLgt + " contre " + nbLgtFinal);
 			if (nbLgtFinal >= minLgt) {
-				System.out.println("it's enough");
+				// System.out.println("it's enough");
 				doRepart = false;
 				result.put("smallHU", smallHU);
 				result.put("midHU", midHU);
@@ -711,7 +709,7 @@ public class BuildingToHousingUnit extends Indicators {
 				carac.put("totHU", nbLgtFinal);
 				result.put("carac", carac);
 			} else {
-				System.out.println("it's not enough");
+				// System.out.println("it's not enough");
 			}
 		}
 		return result;
@@ -755,8 +753,8 @@ public class BuildingToHousingUnit extends Indicators {
 			} else {
 				smallHU.put(String.valueOf(sdp), 1);
 			}
-			System.out.println("new HU of " + sdp + "m2 - sdp left : " + leftSDP);
-			System.out.println("this is the last one");
+			// System.out.println("new HU of " + sdp + "m2 - sdp left : " + leftSDP);
+			// System.out.println("this is the last one");
 		}
 		// nothing to declare
 		else {
@@ -770,7 +768,7 @@ public class BuildingToHousingUnit extends Indicators {
 			} else {
 				smallHU.put(String.valueOf(sdp), 1);
 			}
-			System.out.println("new HU of " + sdp + "m2 - sdp left : " + leftSDP);
+			// System.out.println("new HU of " + sdp + "m2 - sdp left : " + leftSDP);
 		}
 		result[0] = smallHU;
 		result[1] = leftSDP;

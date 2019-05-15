@@ -31,7 +31,6 @@ public class RepartitionBuildingType {
 
 	public RepartitionBuildingType(SimpluParametersJSON p, File paramFile, File zoningFile, File communeFile, File parcelFile)
 			throws NoSuchElementException, Exception {
-		System.out.println("parcelFile = " + parcelFile);
 		this.parcelles = ShapefileReader.read(parcelFile.getAbsolutePath());
 		this.paramFile = paramFile;
 		this.zoningFile = zoningFile;
@@ -302,7 +301,7 @@ public class RepartitionBuildingType {
 		// we seek for if there's a special default repartition for the scenario
 		// System.out.println("profileBuildings = " + profileBuildings);
 		// if nothing is returned, we use the default parameter file
-		if (affect.equals("")) {
+		if (affect.equals("") || affect.equals("null")) {
 			for (File f : locationBuildings.listFiles()) {
 				String name = f.getName();
 				// first if there is a special default comportment for the scenario

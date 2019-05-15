@@ -25,13 +25,12 @@ import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 
 public class CompVariant extends Indicators {
 	int nbVariant = 0;
-
 	String[] baseVariant;
 	String indicStatFile;
 	static String indicName = "compVariant";
 
 	public static void main(String[] args) throws Exception {
-		File rootFile = new File("./result2903/tmp");
+		File rootFile = new File("./result2903/");
 		File rootParam = new File(rootFile, "paramFolder");
 		List<File> lF = new ArrayList<>();
 		String scenario = "CDense";
@@ -44,7 +43,7 @@ public class CompVariant extends Indicators {
 		parc.createStat("bTH", "genStat.csv");
 		List<MapRenderer> allOfTheMaps = new ArrayList<MapRenderer>();
 
-		File commStatFile = parc.joinStatoBTHCommunnities("compVariantbTHCityCoeffVar.csv");
+		File commStatFile = parc.joinStatoBTHCommunities("compVariantbTHCityCoeffVar.csv");
 
 		parc.createGraph(new File(parc.indicFile, "compVariantbTHGen.csv"));
 
@@ -253,11 +252,10 @@ public class CompVariant extends Indicators {
 				"Nombre de logements simulés");
 	}
 
-	public static void makeGraph(File csv, File graphDepotFile, String title, String x, String xTitle, String y, String yTitle)
-			throws IOException {
+	public static void makeGraph(File csv, File graphDepotFile, String title, String x, String xTitle, String y, String yTitle) throws IOException {
 
 		SeriesData csvData = CSVImporter.getSeriesDataFromCSVFile(csv, DataOrientation.Columns, x, y);
-		
+
 		// Create Chart
 		CategoryChart chart = new CategoryChartBuilder().width(800).height(600).title(title).xAxisTitle(xTitle).yAxisTitle(yTitle).build();
 		chart.addSeries(yTitle, csvData.getxAxisData(), csvData.getyAxisData());

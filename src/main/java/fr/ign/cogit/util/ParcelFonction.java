@@ -402,7 +402,7 @@ public class ParcelFonction {
 				Geometry geomToComplete = (Geometry) featToComplete.getDefaultGeometry();
 				Geometry geomsOrigin = Vectors.unionSFC(Vectors.snapDatas(originalParcel, geomToComplete));
 				if (!geomsOrigin.buffer(1).contains(geomToComplete)) {
-					System.out.println("this parcel has disapeard : " + geomToComplete);
+//					System.out.println("this parcel has disapeard : " + geomToComplete);
 					// SimpleFeatureBuilder fit = FromGeom.setSFBParcelWithFeat(featToComplete,
 					// schema);
 					// result.add(fit.buildFeature(null));
@@ -983,7 +983,7 @@ public class ParcelFonction {
 						result = addAllParcels(result, runParcelRecomp(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType, dontTouchUZones,
 								geoFile, regulFile, typeOfRecomp));
 						// THAT'S AN UGLY PATCH, BUT HAS TO TAKE CARE OF GEOM ERRORS TODO find somathing nices
-						if (bigZoned.size() > 2) {
+						if (bigZoned.size() > 10) {
 							break;
 						} else {
 							System.out.println("too small collec, we try to cut em with other parameters");
@@ -1018,7 +1018,7 @@ public class ParcelFonction {
 							System.out.println("we cut the parcels with " + type + " parameters");
 							def = runParcelRecomp(splitZone, typoed, tmpFile, mupOutput, pBuildingType, dontTouchUZones, geoFile, regulFile,
 									typeOfRecomp);
-							if (typoed.size() > 2) {
+							if (typoed.size() > 10) {
 								break;
 							} else {
 								System.out.println("too small collec, we try to cut em with other parameters");
@@ -1168,13 +1168,38 @@ public class ParcelFonction {
 		try {
 			while (bigParcelIt.hasNext()) {
 				SimpleFeature feat = bigParcelIt.next();
-				System.out.println(feat);
 				// if the parcel is bigger than the limit size
 				if (((Geometry) feat.getDefaultGeometry()).getArea() > maximalArea) {
 					// we cut the parcel
 					feat.setAttribute("SPLIT", 1);
-					SimpleFeatureIterator it = splitParcels(feat, maximalArea, maximalWidth, 0, 0, null, roadWidth, false,
-							decompositionLevelWithoutRoad, tmpFile, false).features();
+					SimpleFeatureCollection da = splitParcels(feat, maximalArea, maximalWidth, 0, 0, null, roadWidth, false,	decompositionLevelWithoutRoad, tmpFile, false);
+					SimpleFeatureIterator it = da.features();
+					//time out coz some parcels are too big
+//					System.out.println("sixty seconds");
+//					final Duration timeout = Duration.ofSeconds(60);
+//					ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+//
+//					final Future<SimpleFeatureCollection> handler = executor.submit(new Callable() {
+//					    public SimpleFeatureCollection call() throws Exception {
+//					        return splitParcels(feat, maximalArea, maximalWidth, 0, 0, null, roadWidth, false,
+//									decompositionLevelWithoutRoad, tmpFile, false);
+//					    }
+//					});
+//
+//					executor.schedule(new Runnable() {
+//					    @Override
+//					    public void run(){
+//					        handler.cancel(true);
+//					    }      
+//					}, timeout.toMillis(), TimeUnit.MILLISECONDS);
+//					System.out.println("done ?!");
+//
+//					executor.shutdownNow();
+//					if (handler.get().isEmpty()) {
+//						System.out.println("zobinet");
+//						return null;
+//					}
+//					SimpleFeatureIterator it = handler.get().features();
 					while (it.hasNext()) {
 						SimpleFeature f = it.next();
 						cutParcels.add(sfBuilderSimple.buildFeature(null, new Object[] { f.getDefaultGeometry() }));
@@ -1641,7 +1666,6 @@ public class ParcelFonction {
 			}
 			OBBBlockDecomposition obb = new OBBBlockDecomposition(pol, maximalArea, maximalWidth, roadEpsilon, extBlock, roadWidth, forceRoadAccess,
 					decompositionLevelWithRoad);
-
 			try {
 				IFeatureCollection<IFeature> featCollDecomp = obb.decompParcel(noise);
 				for (IFeature featDecomp : featCollDecomp) {
@@ -2184,7 +2208,6 @@ public class ParcelFonction {
 
 					SimpleFeature feature = sfBuilder.buildFeature(null, attr);
 					newParcel.add(feature);
-					// System.out.println(i+" on "+tot);
 				}
 			}
 

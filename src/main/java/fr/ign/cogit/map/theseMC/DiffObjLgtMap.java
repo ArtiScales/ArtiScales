@@ -11,7 +11,7 @@ import fr.ign.cogit.map.MapRenderer;
 
 public class DiffObjLgtMap extends MapRenderer {
 	static String nameMap = "diffObjLgt";
-	static String text = "différence entre les objectifs de création de logements et le nombre de logements simulés";
+	static String text = "différence entre le nombre de logements simulés et les objectifs de création de logements";
 
 	public DiffObjLgtMap(int imageWidth, int imageHeight, File mapStyleFolder, File featureFile, File outFolder)
 			throws MalformedURLException, NoSuchAuthorityCodeException, IOException, FactoryException {

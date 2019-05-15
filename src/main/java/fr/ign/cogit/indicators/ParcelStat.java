@@ -18,7 +18,6 @@ import org.knowm.xchart.BitmapEncoder;
 import org.knowm.xchart.BitmapEncoder.BitmapFormat;
 import org.knowm.xchart.CategoryChart;
 import org.knowm.xchart.CategoryChartBuilder;
-import org.knowm.xchart.Histogram;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
@@ -57,7 +56,7 @@ public class ParcelStat extends Indicators {
 	}
 
 	public static void main(String[] args) throws Exception {
-		File rootFile = new File("./result2903/tmp");
+		File rootFile = new File("./result2903/");
 		File rootParam = new File(rootFile, "paramFolder");
 		List<File> lF = new ArrayList<>();
 		String scenario = "CDense";
@@ -70,24 +69,24 @@ public class ParcelStat extends Indicators {
 		for (File f : (new File(rootFile, "SimPLUDepot/" + scenario + "/")).listFiles()) {
 			ParcelStat parc = new ParcelStat(p, rootFile, scenario, f.getName());
 
-			// SimpleFeatureCollection parcelStatSHP = parc.markSimuledParcels();
-			// parc.caclulateStatParcel();
-			// // parc.caclulateStatBatiParcel();
-			// parc.writeLine("AllZone", "ParcelStat");
-			// parc.setCountToZero();
-			// List<String> listInsee = FromGeom.getInsee(new File(parc.rootFile, "/dataGeo/old/communities.shp"), "DEPCOM");
-			//
-			// for (String city : listInsee) {
-			// SimpleFeatureCollection commParcel = ParcelFonction.getParcelByZip(parcelStatSHP, city);
-			// System.out.println("city " + city);
-			// parc.caclulateStatParcel(commParcel);
-			// // parc.caclulateStatBatiParcel(commParcel);
-			// parc.writeLine(city, "ParcelStat");
-			// parc.toString();
-			// parc.setCountToZero();
-			// }
-			// File commStatFile = parc.joinStatToCommunities();
-			// parc.createMap(parc, commStatFile);
+			SimpleFeatureCollection parcelStatSHP = parc.markSimuledParcels();
+			parc.caclulateStatParcel();
+			// parc.caclulateStatBatiParcel();
+			parc.writeLine("AllZone", "ParcelStat");
+			parc.setCountToZero();
+			List<String> listInsee = FromGeom.getInsee(new File(parc.rootFile, "/dataGeo/old/communities.shp"), "DEPCOM");
+
+			for (String city : listInsee) {
+				SimpleFeatureCollection commParcel = ParcelFonction.getParcelByZip(parcelStatSHP, city);
+				System.out.println("city " + city);
+				parc.caclulateStatParcel(commParcel);
+				// parc.caclulateStatBatiParcel(commParcel);
+				parc.writeLine(city, "ParcelStat");
+				parc.toString();
+				parc.setCountToZero();
+			}
+			File commStatFile = parc.joinStatToCommunities();
+			parc.createMap(parc, commStatFile);
 			parc.createGraph(new File(parc.indicFile, "ParcelStat.csv"));
 		}
 	}
@@ -113,9 +112,13 @@ public class ParcelStat extends Indicators {
 		String[] xTypeSimulFailed = { "nbParcelSimulFailedCentre", "nbParcelSimulFailedBanlieue", "nbParcelSimulFailedPeriUrb",
 				"nbParcelSimulatedRural" };
 		String[][] xType = { xTypeSimulated, xTypeSimulFailed };
-		makeGraphDouble(distrib, graphDepotFile, "Nombre de logements par type de bâtiment", xType, "type de bâtiment",
-				"Nombre de logements simulés");
-		//TODO refaire ça pour les zones 
+		makeGraphDouble(distrib, graphDepotFile, "Scenario : " + scenarName + " - Variante : " + variantName, xType, "typologie",
+				"Nombre de parcelles");
+		String[] xZoneSimulated = { "nbParcelSimulatedU", "nbParcelSimulatedAU", "nbParcelSimulatedNC" };
+		String[] xZoneSimulFailed = { "nbParcelSimulFailedU", "nbParcelSimulFailedAU", "nbParcelSimulFailedNC" };
+		String[][] xZone = { xZoneSimulated, xZoneSimulFailed };
+		makeGraphDouble(distrib, graphDepotFile, "Scenario : " + scenarName + " - Variante : " + variantName, xZone, "type de zone",
+				"Nombre de parcelles");
 	}
 
 	public static void makeGraphDouble(File csv, File graphDepotFile, String title, String[][] xes, String xTitle, String yTitle) throws IOException {
@@ -123,11 +126,10 @@ public class ParcelStat extends Indicators {
 		CategoryChart chart = new CategoryChartBuilder().width(800).height(600).title(title).xAxisTitle(xTitle).yAxisTitle(yTitle).build();
 		int count = 0;
 		for (String[] x : xes) {
-
 			List<String> label = new ArrayList<String>();
 			List<Double> yS = new ArrayList<Double>();
 			for (String s : x) {
-				label.add(s);
+				label.add(makeLabelPHDable(s));
 				// SeriesData csvData= CSVImporter.getSeriesDataFromCSVFile(csv, DataOrientation.Columns, s, y);
 				CSVReader csvR = new CSVReader(new FileReader(csv));
 				int iX = 0;
@@ -135,8 +137,6 @@ public class ParcelStat extends Indicators {
 				String[] fLine = csvR.readNext();
 				// get them first line
 				for (int i = 0; i < fLine.length; i++) {
-					System.out.println(fLine[i]);
-					System.out.println(s);
 					if (fLine[i].equals(s))
 						iX = i;
 					if (fLine[i].equals("INSEE"))
@@ -151,9 +151,9 @@ public class ParcelStat extends Indicators {
 				}
 				csvR.close();
 			}
-			String simulOrNot = "Simulation échouée";
+			String simulOrNot = "Simulée";
 			if (count == 1) {
-				simulOrNot = "Simulée";
+				simulOrNot = "Simulation échouée";
 			}
 			chart.addSeries(simulOrNot, label, yS);
 			count++;
@@ -386,15 +386,16 @@ public class ParcelStat extends Indicators {
 				case "simulated":
 					surfParcelSimulated = surfParcelSimulated + ((Geometry) ft.getDefaultGeometry()).getArea();
 					nbParcelSimulated++;
-					if (ft.getAttribute("U").equals("T")) {
+					if ((boolean) ft.getAttribute("U")) {
 						nbParcelSimulatedU++;
 					}
-					if (ft.getAttribute("AU").equals("T")) {
+					if ((boolean) ft.getAttribute("AU")) {
 						nbParcelSimulatedAU++;
 					}
-					if (ft.getAttribute("NC").equals("T")) {
+					if ((boolean) ft.getAttribute("NC")) {
 						nbParcelSimulatedNC++;
 					}
+					// System.out.println(FromGeom.getTypo(FromGeom.getCommunitiesIris(new File(rootFile, "dataGeo")), (Geometry) ft.getDefaultGeometry()));
 					switch (FromGeom.getTypo(FromGeom.getCommunitiesIris(new File(rootFile, "dataGeo")), (Geometry) ft.getDefaultGeometry())) {
 					case "rural":
 						nbParcelSimulatedRural++;
@@ -413,13 +414,13 @@ public class ParcelStat extends Indicators {
 				case "simuFailed":
 					surfParcelSimulFailed = surfParcelSimulFailed + ((Geometry) ft.getDefaultGeometry()).getArea();
 					nbParcelSimulFailed++;
-					if (ft.getAttribute("U").equals("T")) {
+					if ((boolean) ft.getAttribute("U")) {
 						nbParcelSimulFailedU++;
 					}
-					if (ft.getAttribute("AU").equals("T")) {
+					if ((boolean) ft.getAttribute("AU")) {
 						nbParcelSimulFailedAU++;
 					}
-					if (ft.getAttribute("NC").equals("T")) {
+					if ((boolean) ft.getAttribute("NC")) {
 						nbParcelSimulFailedNC++;
 					}
 					switch (FromGeom.getTypo(FromGeom.getCommunitiesIris(new File(rootFile, "dataGeo")), (Geometry) ft.getDefaultGeometry())) {
@@ -517,7 +518,6 @@ public class ParcelStat extends Indicators {
 			}
 		}
 
-		System.out.println("list made");
 		changedP: for (String changedParcel : simuledCode) {
 			SimpleFeatureIterator itParcel = parcelSimuled.features();
 			try {
@@ -525,7 +525,6 @@ public class ParcelStat extends Indicators {
 					SimpleFeature ft = itParcel.next();
 					String codeTmp = (String) ft.getAttribute("CODE");
 					if (codeTmp.equals(changedParcel)) {
-						System.out.println("we in");
 						// no construction has been simulated in this parcel
 						if (isParcelReallySimulated(ft)) {
 							simuledParcels.add(codeTmp);

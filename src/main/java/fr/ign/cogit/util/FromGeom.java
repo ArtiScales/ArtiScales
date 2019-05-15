@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -43,15 +42,13 @@ import com.vividsolutions.jts.precision.GeometryPrecisionReducer;
 import au.com.bytecode.opencsv.CSVReader;
 import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
-import fr.ign.cogit.geoxygene.sig3d.gui.window.io.ShapeFile3DWindow;
 import fr.ign.cogit.geoxygene.util.conversion.AdapterFactory;
 import fr.ign.cogit.geoxygene.util.conversion.GeOxygeneGeoToolsTypes;
 
 public class FromGeom {
 
 	public static void main(String[] args) throws Exception {
-		mergeBatis(new File("/home/ubuntu/workspace/ArtiScales/result0308/SimPLUDepot/DDense/variante0/"));
-
+		mergeBatis(new File("/home/ubuntu/boulot/these/result2903/tmp/indic/compatibleResult/CDense/variantMvData2/newSimPLUDepot/"));
 	}
 	// File rootParam = new
 	// File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/exScenar");
@@ -152,9 +149,9 @@ public class FromGeom {
 		List<String> mayOccur = new ArrayList<String>();
 		// TODO make sure that this returns the best answer
 		String zone = FromGeom.parcelInBigZone(zoningFile, parcel);
-		if (zone == null) {
-			System.out.println("Could not affect zone in " + zoningFile + " to " + parcel);
-			return null;
+		if (zone.equals("null")) {
+			System.out.println("Could not affect zonez in " + zoningFile + " to " + parcel);
+			return "null";
 		}
 		String typo = FromGeom.parcelInTypo(communeFile, parcel);
 
@@ -624,7 +621,7 @@ public class FromGeom {
 	public static String parcelInBigZone(File zoningFile, SimpleFeature parcelIn) throws Exception {
 		List<String> yo = parcelInBigZone(parcelIn, zoningFile);
 		if (yo.isEmpty())
-			return null;
+			return "null";
 		return yo.get(0);
 	}
 
@@ -822,7 +819,7 @@ public class FromGeom {
 	}
 
 	/**
-	 * Overload if the entry is a file. Not very good coz the shapefileDataStore cannot be disposed.
+	 * Get parcels from a Zoning file matching a certain type of zone (characterized by the field TYPEZONE) Overload if the entry is a file.
 	 * 
 	 * @param typeZone
 	 * @param parcelFile
@@ -833,7 +830,9 @@ public class FromGeom {
 	public static SimpleFeatureCollection selecParcelZoning(String typeZone, File parcelFile, File zoningFile) throws Exception {
 		// import of the parcel file
 		ShapefileDataStore shpDSParcel = new ShapefileDataStore(parcelFile.toURI().toURL());
-		return selecParcelZoning(typeZone, shpDSParcel.getFeatureSource().getFeatures(), zoningFile);
+		SimpleFeatureCollection result = selecParcelZoning(typeZone, shpDSParcel.getFeatureSource().getFeatures(), zoningFile);
+		shpDSParcel.dispose();
+		return result;
 	}
 
 	public static SimpleFeatureBuilder getParcelSplitSFBuilder() throws NoSuchAuthorityCodeException, FactoryException {

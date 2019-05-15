@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import org.apache.commons.math3.random.MersenneTwister;
+import org.geotools.data.DataUtilities;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
@@ -388,10 +389,9 @@ public class SimPLUSimulator {
 		for (SimpleFeature s : sortedList) {
 			d.add(s);
 		}
-		Vectors.exportSFC(d.collection(), new File("/tmp/lookout.shp"));
+		// Vectors.exportSFC(d.collection(), new File("/tmp/lookout.shp"));
 
 		while (obj > 0 && sortedList.size() > 0) {
-			System.out.println("size of the list : " + sortedList.size());
 			SimpleFeature toSimul = sortedList.remove(0);
 			System.out.println("bella chiao " + toSimul.getAttribute("CODE") + " of eval " + toSimul.getAttribute("eval"));
 			obj = obj - run(toSimul);
@@ -411,28 +411,30 @@ public class SimPLUSimulator {
 		this.buildFile = Vectors.cropSFC(new File(geoFile, "building.shp"), emprise, tmpFile);
 		this.roadFile = Vectors.cropSFC(new File(geoFile, "road.shp"), emprise, tmpFile);
 		this.communitiesFile = Vectors.cropSFC(new File(geoFile, "communities.shp"), emprise, tmpFile);
+		this.parcelsFile = parcelTemp;
 
-		// this.zoningFile = Vectors.cropSFC(new File(regulationFile, "zoning.shp"), emprise, tmpFile);
-		// Vectors.copyShp("zoning", regulationFile, tmpFile);
-		this.zoningFile = new File(tmpFile, "zoning.shp");
+		this.zoningFile = Vectors.cropSFC(new File(regulationFile, "zoning.shp"), emprise, tmpFile);
 		this.filePrescPonct = Vectors.cropSFC(new File(regulationFile, "prescPonct.shp"), emprise, tmpFile);
 		this.filePrescLin = Vectors.cropSFC(new File(regulationFile, "prescLin.shp"), emprise, tmpFile);
 		this.filePrescSurf = Vectors.cropSFC(new File(regulationFile, "prescSurf.shp"), emprise, tmpFile);
-
-		Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile, parcelTemp, roadFile, buildFile, filePrescPonct, filePrescLin,
-				filePrescSurf, null);
-
+		Environnement env;
+		try {
+			env = LoaderSHP.load(simuFile, codeFile, zoningFile, parcelTemp, roadFile, buildFile, filePrescPonct, filePrescLin, filePrescSurf, null);
+		} catch (Exception e) {
+			System.out.println("error catched : " + e);
+			return 0;
+		}
 		List<File> batiSimuled = run(env);
 		int nbBuilt = 0;
 		if (batiSimuled != null && !batiSimuled.isEmpty()) {
 			File bati = batiSimuled.get(0);
 			ShapefileDataStore sds = new ShapefileDataStore(bati.toURI().toURL());
-			SimpleFeatureCollection sfc = sds.getFeatureSource().getFeatures();
-			BuildingToHousingUnit bTH = new BuildingToHousingUnit(folderOut, p);
-			nbBuilt = bTH.simpleDistributionEstimate(sfc);
-			;
+			SimpleFeatureCollection sfc = DataUtilities.collection(sds.getFeatureSource().getFeatures());
 			sds.dispose();
+			BuildingToHousingUnit bTH = new BuildingToHousingUnit(folderOut, paramFile, p);
+			nbBuilt = bTH.simpleDistributionEstimate(sfc);
 		}
+		System.out.println("returned : " + nbBuilt);
 		return nbBuilt;
 	}
 
@@ -459,6 +461,13 @@ public class SimPLUSimulator {
 		return run(env);
 	}
 
+	/**
+	 * method employed for every simPLU Simu
+	 * 
+	 * @param env
+	 * @return
+	 * @throws Exception
+	 */
 	public List<File> run(Environnement env) throws Exception {
 		SimpluParametersJSON pUsed = new SimpluParametersJSON(p);
 		FileWriter importantInfo = new FileWriter(new File(folderOut, "importantInfo"), true);
@@ -468,7 +477,6 @@ public class SimPLUSimulator {
 		// know if there's only one or multiple zones in the parcel pack
 		List<String> sectors = new ArrayList<String>();
 		IFeatureCollection<CadastralParcel> parcels = env.getCadastralParcels();
-
 		for (CadastralParcel parcel : parcels) {
 			String tmp = FromGeom.affectZoneAndTypoToLocation(pUsed.getString("useRepartition"), pUsed.getString("scenarioPMSP3D"), parcel,
 					zoningFile, communitiesFile, true);

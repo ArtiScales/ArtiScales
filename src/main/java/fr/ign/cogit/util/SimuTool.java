@@ -40,7 +40,12 @@ import fr.ign.cogit.simplu3d.util.SimpluParameters;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 
 public class SimuTool {
-	// public static void main(String[] args) throws Exception {
+	public static void main(String[] args) throws Exception {
+		// digForRepportOnACity(new File("/home/ubuntu/boulot/these/result2903/tmp/outCompMai9"), "25245", new File("/tmp/ville"));
+		digForPackWithoutSimu(new File("/media/ubuntu/saintmande/Packager/CDense/base/"),
+				new File("/home/ubuntu/boulot/these/result2903/tmp/SimPLUDepot/CDense/base/"), new File("/tmp/missingFromCDenseBase.csv"));
+
+	}
 	// getSimuInfo(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/CDense/"), "25056000NTdiv590");
 	// getStatDenial(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/CDense/"), new File("/tmp/salut"));
 	// digForACity(new File("/media/ubuntu/saintmande/Packager/CDense/"), "25245");
@@ -52,15 +57,15 @@ public class SimuTool {
 	// }
 
 	public static String makeCamelWordOutOfPhrases(String in) {
-	String result = "";
+		String result = "";
 		String[] tab = in.split(" ");
 		for (String s : tab) {
-			result = result+s.substring(0, 1).toUpperCase() + s.substring(1);
+			result = result + s.substring(0, 1).toUpperCase() + s.substring(1);
 		}
 		return result;
-		
+
 	}
-	
+
 	/**
 	 * return a collection of buildings sharing the same zipcode (using the field "CODE")
 	 * 
@@ -783,6 +788,93 @@ public class SimuTool {
 		}
 	}
 
+	public static String digForRepportOnACity(File fIn, String insee, File outFile) throws IOException {
+		String result = "";
+		FileWriter w = new FileWriter(outFile);
+		CSVReader read = new CSVReader(new FileReader(fIn), '£');
+		boolean record = false;
+		for (String[] s : read.readAll()) {
+			String line = s[0];
+			if (line.equals("for city " + insee)) {
+				record = true;
+				System.out.println("ja");
+				continue;
+			}
+			if (record) {
+				if (line.startsWith("for city ")) {
+					break;
+				}
+				System.out.println(line);
+				result = "\n" + result + line;
+				w.write(line + "\n");
+			}
+
+		}
+		// System.out.println(result);
+		read.close();
+		w.close();
+		return result;
+	}
+
+	public static void digForPackWithoutSimu(File fPack, File fSimu, File fOut) throws IOException {
+		boolean fLine = true;
+		List<String[]> lL = new ArrayList<String[]>();
+		for (File superPack : fPack.listFiles()) {
+			String superP = superPack.getName();
+			for (File pack : superPack.listFiles()) {
+				String p = pack.getName();
+				for (File f : pack.listFiles()) {
+					if (f.getName().equals("parcelle.shp")) {
+						if (fLine) {
+							String[] fl = { "SuperPack", "Pack" };
+							lL.add(fl);
+							fLine = false;
+						}
+						ShapefileDataStore parcelleSDS = new ShapefileDataStore(f.toURI().toURL());
+						SimpleFeatureCollection parcelleOG = parcelleSDS.getFeatureSource().getFeatures();
+						SimpleFeatureIterator it = parcelleOG.features();
+						boolean add = false;
+						while (it.hasNext()) {
+							SimpleFeature feat = it.next();
+							if (feat.getAttribute("DoWeSimul").equals("true"))
+								add = true;
+						}
+						if (add) {
+							File simuFile = new File(fSimu, superP + "/" + p + "/");
+							if (!simuFile.exists()) {
+								System.out.println("prb " + simuFile);
+								add = true;
+							} else {
+								boolean exist = false;
+								for (File fs : simuFile.listFiles()) {
+									if (fs.getName().startsWith("out") && fs.getName().endsWith(".shp")) {
+										exist = true;
+										break;
+									}
+
+								}
+								if (exist) {
+									add = false;
+								}
+							}
+						}
+						if (add) {
+							String[] l = { superP, p };
+							lL.add(l);
+						}
+						it.close();
+						parcelleSDS.dispose();
+					}
+				}
+			}
+		}
+		CSVWriter csv = new CSVWriter(new FileWriter(fOut));
+
+		csv.writeAll(lL);
+
+		csv.close();
+	}
+
 	public static void digForBesac(File fIn) throws IOException {
 		for (File f : fIn.listFiles()) {
 			if (f.isDirectory()) {
@@ -823,7 +915,16 @@ public class SimuTool {
 		}
 	}
 
-	public static SimpleFeatureCollection fixBuildingForZone(File buildingFile, File zoningFile) throws IOException {
+	/**
+	 * fix the field TYPEZONE of buildings simulated with a wrong order of the crossed type of zoning (the most intersected type must be the first one written so it's taken for the
+	 * statistics)
+	 * 
+	 * @param buildingFile
+	 * @param zoningFile
+	 * @return
+	 * @throws IOException
+	 */
+	public static SimpleFeatureCollection fixBuildingForZone(File buildingFile, File zoningFile, boolean replace) throws IOException {
 		ShapefileDataStore bSDS = new ShapefileDataStore(buildingFile.toURI().toURL());
 		ShapefileDataStore zSDS = new ShapefileDataStore(zoningFile.toURI().toURL());
 		SimpleFeatureCollection buildings = bSDS.getFeatureSource().getFeatures();
@@ -863,16 +964,17 @@ public class SimuTool {
 					zoneIt.close();
 				}
 				System.out.println(building);
-
 			}
 		} catch (Exception problem) {
 			problem.printStackTrace();
 		} finally {
 			it.close();
 		}
-		// Vectors.exportSFC(result.collection(), new File("/tmp/salut.shp"));
 		bSDS.dispose();
 		zSDS.dispose();
+		if (replace) {
+			Vectors.exportSFC(result.collection(), buildingFile);			
+		}
 		return result.collection();
 	}
 
