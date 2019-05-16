@@ -52,11 +52,11 @@ public class BuildingToHousingUnit extends Indicators {
 		housingUnitFirstLine = "code_parcel," + "SDP," + "emprise," + "nb_housingUnit," + "type_HU," + "zone," + "typo_HU," + "averageSDPPerHU,"
 				+ "buildDensity";
 
-		genStatFirstLine = "code," + "SDPTot," + "initial_densite," + "average_densite," + "standardDev_densite," + "objectifSCOT_densite,"
-				+ "diff_objectifSCOT_densite," + "average_SDP_per_HU," + "standardDev_SDP_per_HU," + "nb_building," + "nb_housingUnit,"
-				+ "objectifPLH_housingUnit," + "diff_objectifPLH_housingUnit," + "nbHU_detachedHouse," + "nbHU_smallHouse," + "nbHU_multiFamilyHouse,"
-				+ "nbHU_smallBlockFlat," + "nbHU_midBlockFlat," + "nbHU_U," + "nbHU_AU," + "nbHU_NC," + "nbHU_centre," + "nbHU_banlieue,"
-				+ "nbHU_periUrbain," + "nbHU_rural";
+		genStatFirstLine = "code," + "SDPTot," + "empriseTot," + "initial_densite," + "average_densite," + "standardDev_densite,"
+				+ "objectifSCOT_densite," + "diff_objectifSCOT_densite," + "average_SDP_per_HU," + "standardDev_SDP_per_HU," + "nb_building,"
+				+ "nb_housingUnit," + "objectifPLH_housingUnit," + "diff_objectifPLH_housingUnit," + "nbHU_detachedHouse," + "nbHU_smallHouse,"
+				+ "nbHU_multiFamilyHouse," + "nbHU_smallBlockFlat," + "nbHU_midBlockFlat," + "nbHU_U," + "nbHU_AU," + "nbHU_NC," + "nbHU_centre,"
+				+ "nbHU_banlieue," + "nbHU_periUrbain," + "nbHU_rural";
 	}
 
 	public BuildingToHousingUnit(File batiFolder, File paramFile, SimpluParametersJSON par) throws Exception {
@@ -103,14 +103,17 @@ public class BuildingToHousingUnit extends Indicators {
 
 	public void createGraphCount(File distrib) throws IOException {
 		String[] xType = { "nbHU_detachedHouse", "nbHU_smallHouse", "nbHU_multiFamilyHouse", "nbHU_smallBlockFlat", "nbHU_midBlockFlat" };
-		makeGraph(distrib, graphDepotFile, "Scenario : " + scenarName + " - Variante : " + variantName, xType, "type de bâtiment",
+		makeGraph(distrib, graphDepotFile, "Scenario : " + scenarName + " - Variante : " + variantName, xType, "Type de bâtiment",
 				"Nombre de logements simulés");
 		String[] xTypo = { "nbHU_rural", "nbHU_periUrbain", "nbHU_banlieue", "nbHU_centre" };
 		makeGraph(distrib, graphDepotFile, "Scenario : " + scenarName + " - Variante : " + variantName, xTypo, "Typologie des communes",
 				"Nombre de logements simulés");
 		String[] xZone = { "nbHU_U", "nbHU_AU", "nbHU_NC" };
-		makeGraph(distrib, graphDepotFile, "Scenario : " + scenarName + " - Variante : " + variantName, xZone, "type de zonage",
+		makeGraph(distrib, graphDepotFile, "Scenario : " + scenarName + " - Variante : " + variantName, xZone, "Type de zonage",
 				"Nombre de logements simulés");
+		String[] xConso = { "SDPTot",  "empriseTot"};
+		makeGraph(distrib, graphDepotFile, "Scenario : " + scenarName + " - Variante : " + variantName, xConso, "Consommation surfacique des bâtiments simulés",
+				"Surface (em m²)");
 	}
 
 	public static void makeGraph(File csv, File graphDepotFile, String title, String[] x, String xTitle, String yTitle) throws IOException {
@@ -454,10 +457,10 @@ public class BuildingToHousingUnit extends Indicators {
 		double diffDens = objDens - averageDensite;
 		double diffObj = objHU - nbHU;
 
-		String line = insee + "," + sDPtot + "," + iniDensite + "," + averageDensite + "," + standDevDensite + "," + objDens + "," + diffDens + ","
-				+ averageSDPHU + "," + standDevSDPHU + "," + nbBuildings + "," + nbHU + "," + objHU + "," + diffObj + "," + nbDetachedHouse + ","
-				+ nbSmallHouse + "," + nbMultifamilyHouse + "," + nbSmallBlockFlat + "," + nbMidBlockFlat + "," + nbU + "," + nbAU + "," + nbNC + ","
-				+ nbCentre + "," + nbBanlieue + "," + nbPeriUrbain + "," + nbRural;
+		String line = insee + "," + sDPtot + "," + empriseTot + "," + iniDensite + "," + averageDensite + "," + standDevDensite + "," + objDens + ","
+				+ diffDens + "," + averageSDPHU + "," + standDevSDPHU + "," + nbBuildings + "," + nbHU + "," + objHU + "," + diffObj + ","
+				+ nbDetachedHouse + "," + nbSmallHouse + "," + nbMultifamilyHouse + "," + nbSmallBlockFlat + "," + nbMidBlockFlat + "," + nbU + ","
+				+ nbAU + "," + nbNC + "," + nbCentre + "," + nbBanlieue + "," + nbPeriUrbain + "," + nbRural;
 
 		toGenCSV("genStat", genStatFirstLine, line);
 		stat.close();

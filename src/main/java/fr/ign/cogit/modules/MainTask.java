@@ -186,7 +186,7 @@ public class MainTask {
 				parcelOutFile.mkdirs();
 
 				ParcelStat pc = new ParcelStat(p, rootFile, scenarName, variantName);
-				pc.run();
+				pc.caclulateStatParcel();
 			}
 		}
 	}

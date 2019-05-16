@@ -379,7 +379,12 @@ public abstract class Indicators {
 		case "nbParcelSimulatedCentre":
 		case "nbParcelSimulFailedCentre":
 			return "centre";
+		case "SDPTot": 
+			return "Surface de plancher totale";
+		case "empriseTot": 
+			return "Emprise totale";
 		}
+		
 
 		throw new FileNotFoundException("name not found");
 	}
