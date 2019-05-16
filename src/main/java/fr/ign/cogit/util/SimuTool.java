@@ -42,12 +42,13 @@ import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 public class SimuTool {
 	public static void main(String[] args) throws Exception {
 		// digForRepportOnACity(new File("/home/ubuntu/boulot/these/result2903/tmp/outCompMai9"), "25245", new File("/tmp/ville"));
-		digForPackWithoutSimu(new File("/media/ubuntu/saintmande/Packager/CDense/base/"),
-				new File("/home/ubuntu/boulot/these/result2903/tmp/SimPLUDepot/CDense/base/"), new File("/tmp/missingFromCDenseBase.csv"));
+		// digForPackWithoutSimu(new File("/media/ubuntu/saintmande/Packager/CDense/base/"),
+		// new File("/home/ubuntu/boulot/these/result2903/tmp/SimPLUDepot/CDense/base/"), new File("/tmp/missingFromCDenseBase.csv"));
+
+		getStatDenial(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/CDense/variantMvData1"), new File("/tmp/salut"));
 
 	}
 	// getSimuInfo(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/CDense/"), "25056000NTdiv590");
-	// getStatDenial(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/CDense/"), new File("/tmp/salut"));
 	// digForACity(new File("/media/ubuntu/saintmande/Packager/CDense/"), "25245");
 
 	// Vectors.exportSFC(giveEvalToBuilding(new File("/home/ubuntu/boulot/these/result2903/tmp/SimPLUDepot/CDense/base/TotBatSimuFill.shp"), new
@@ -656,7 +657,7 @@ public class SimuTool {
 	 * @throws IOException
 	 */
 	public static File getStatDenial(File fIn, File fOut) throws IOException {
-		HashMap<String, Integer> result = new HashMap<String, Integer>();
+		HashMap<String, Long> result = new HashMap<String, Long>();
 		String str = getStatDenial(fIn, result).toString();
 		System.out.println(str);
 		str = str.replace("{", "").replace("}", "").replace(" ", "");
@@ -680,7 +681,7 @@ public class SimuTool {
 	 * @return
 	 * @throws IOException
 	 */
-	public static HashMap<String, Integer> getStatDenial(File fIn, HashMap<String, Integer> result) throws IOException {
+	public static HashMap<String, Long> getStatDenial(File fIn, HashMap<String, Long> result) throws IOException {
 		for (File f : fIn.listFiles()) {
 			if (f.isDirectory()) {
 				result = getStatDenial(f, result);
@@ -692,9 +693,9 @@ public class SimuTool {
 						if (reasons.contains("=")) {
 							for (String reason : reasons.split(",")) {
 								reason = reason.replace(" ", "");
-								String topic = reason.split("=")[0];
-								int val = Integer.valueOf(reason.split("=")[1]);
-								Integer tmp = result.putIfAbsent(topic, val);
+								String topic = reason.split("=")[0];								
+								long val = Integer.valueOf(reason.split("=")[1]);
+								Long tmp = result.putIfAbsent(topic, val);
 								if (tmp != null) {
 									result.replace(topic, tmp, tmp + val);
 								}
@@ -973,7 +974,7 @@ public class SimuTool {
 		bSDS.dispose();
 		zSDS.dispose();
 		if (replace) {
-			Vectors.exportSFC(result.collection(), buildingFile);			
+			Vectors.exportSFC(result.collection(), buildingFile);
 		}
 		return result.collection();
 	}

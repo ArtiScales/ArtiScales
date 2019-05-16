@@ -48,7 +48,7 @@ import fr.ign.cogit.geoxygene.util.conversion.GeOxygeneGeoToolsTypes;
 public class FromGeom {
 
 	public static void main(String[] args) throws Exception {
-		mergeBatis(new File("/home/ubuntu/boulot/these/result2903/tmp/indic/compatibleResult/CDense/variantMvData2/newSimPLUDepot/"));
+		mergeBatis(new File("/home/ubuntu/boulot/these/result2903/indic/compatibleResult/CDense/variantMvData1/newSimPLUDepot/"));
 	}
 	// File rootParam = new
 	// File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/exScenar");

@@ -55,7 +55,9 @@ public class RepartitionBuildingType {
 		// add the zone parameters with the first parcel (redone for each parcel if it's a multizone type)
 		File location = new File(paramFile, "locationBuildingType");
 		p = addRepartitionToParameters(p, zoningFile, communeFile, parcelles.get(0), location);
-
+System.out.println("that p : ");
+System.out.println(p);
+System.out.println();
 		pDetachedHouse = p.getDouble("detachedHouse");
 
 		if (pDetachedHouse == -1) {

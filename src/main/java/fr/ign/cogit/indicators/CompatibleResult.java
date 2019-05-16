@@ -42,7 +42,7 @@ import fr.ign.cogit.util.ParcelFonction;
 import fr.ign.cogit.util.SimuTool;
 
 public class CompatibleResult extends Indicators {
-	File newGeoFile, newParcelDepot;
+	File newGeoFile, newParcelDepot, newOutSimPLU, tmpFile;
 	static String indicName = "compatibleResult";
 	String fLine;
 
@@ -61,6 +61,10 @@ public class CompatibleResult extends Indicators {
 		newGeoFile.mkdirs();
 		newParcelDepot = new File(indicFile, "newParcelDepot");
 		newParcelDepot.mkdir();
+		newOutSimPLU = new File(indicFile, "newSimPLUDepot");
+		newOutSimPLU.mkdirs();
+		tmpFile = new File(indicFile, "tmpFile");
+		tmpFile.mkdirs();
 		prepareNewGeoFile();
 	}
 
@@ -77,8 +81,10 @@ public class CompatibleResult extends Indicators {
 		SimpluParametersJSON p = new SimpluParametersJSON(lF);
 
 		CompatibleResult cr = new CompatibleResult(root, p, scenario, variant);
-		cr.complete("25245");
-		cr.calculateParcelSaved();
+		cr.complete();
+		// cr.complete("25410");
+		cr.joinStatToCommunities("resume.csv");
+
 		System.out.println("not possible to ok the construction objectives : " + cr.notPossibleToConstruct);
 	}
 
@@ -135,7 +141,7 @@ public class CompatibleResult extends Indicators {
 						builder.set("INSEE", l[inseeP]);
 						builder.set("NbBuildDif", Double.valueOf(l[NbBuildDifP]));
 						builder.set("AParcDif", Double.valueOf(l[AParcDifP]));
-						builder.set("impCompObj", Double.valueOf(l[impCompObjP]));
+						builder.set("impCompObj", Boolean.valueOf(l[impCompObjP]));
 						result.add(builder.buildFeature(null));
 						break;
 					}
@@ -232,11 +238,8 @@ public class CompatibleResult extends Indicators {
 		sp.selectAndDecompParcels(insee, true, parcelGen);
 
 		// generate new SimPLUSimu
-		File outSimPLU = new File(indicFile, "newSimPLUDepot");
-		File tmpFile = new File(indicFile, "tmpFile");
-		tmpFile.mkdirs();
 		SimPLUSimulator simPLU = new SimPLUSimulator(new File(rootFile, "paramFolder"), indicFile, newGeoFile, new File(rootFile, "dataRegulation"),
-				tmpFile, parcelCity, p, outSimPLU);
+				tmpFile, parcelCity, p, newOutSimPLU);
 		System.out.println("number to fill : " + nbToFill);
 		int restObj = simPLU.run(nbToFill, parcelCity);
 		if (restObj > 0) {
@@ -246,7 +249,7 @@ public class CompatibleResult extends Indicators {
 		}
 
 		// Count the number of buildings simulated
-		for (File f : outSimPLU.listFiles()) {
+		for (File f : newOutSimPLU.listFiles()) {
 			if (f.getName().startsWith("out") && f.getName().endsWith(".shp") && f.getName().contains(insee)) {
 				nbBuildingDifference++;
 			}
@@ -305,7 +308,8 @@ public class CompatibleResult extends Indicators {
 						break;
 					}
 				}
-				line = line + "," + String.valueOf(diffLgt) + "," + nbBuildingDifference + "," + String.valueOf(calculateParcelSaved()) + "," + true;
+				line = line + "," + String.valueOf(diffLgt) + "," + nbBuildingDifference + "," + "-" + String.valueOf(calculateParcelSaved()) + ","
+						+ true;
 			} else if (diffLgt == 0) {
 				System.out.println("prefect fit");
 				line = line + "," + "";
@@ -328,18 +332,32 @@ public class CompatibleResult extends Indicators {
 		setCountToZero();
 	}
 
+	/**
+	 * make compatible a given community
+	 * 
+	 * @param insee
+	 *            : zip/insee code of the community
+	 * @throws Exception
+	 */
 	public void complete(String insee) throws Exception {
 		File geoFile = new File(rootFile, "dataGeo");
 
 		// bth indicator to get the total building shapefile and do the estimation of household
 		BuildingToHousingUnit bht = new BuildingToHousingUnit(rootFile, p, scenarName, variantName);
 		// get the building file and affect it an evaluation according to MUP-City's cells
-		SimpleFeatureCollection buildings = SimuTool.giveEvalToBuilding(bht.getBuildingTotalFile(), bht.mupOutputFile);
+		File tmpBati = new File(tmpFile, "batiment.shp");
+		if (!tmpBati.exists()) {
+			Vectors.exportSFC(SimuTool.giveEvalToBuilding(bht.getBuildingTotalFile(), bht.mupOutputFile), tmpBati);
+		}
+		ShapefileDataStore sds = new ShapefileDataStore(tmpBati.toURI().toURL());
+		SimpleFeatureCollection buildings = sds.getFeatureSource().getFeatures();
+
 		File csvResume = new File(indicFile, "resume.csv");
 		FileWriter csvW = new FileWriter(csvResume, true);
 		csvW.append(fLine + "\n");
 		csvW.close();
 		complete(insee, csvResume, buildings, geoFile, bht);
+		sds.dispose();
 	}
 
 	/**
@@ -348,39 +366,30 @@ public class CompatibleResult extends Indicators {
 	 * @return
 	 * @throws Exception
 	 */
-	public void completeAll() throws Exception {
+	public void complete() throws Exception {
 		File geoFile = new File(rootFile, "dataGeo");
 
 		// list of all insee we analyse
 		List<String> listInsee = FromGeom.getInsee(FromGeom.getCommunities(geoFile), "DEPCOM");
 
-		// bth indicator to get the total building shapefile and do the estimation of household
-		BuildingToHousingUnit bht = new BuildingToHousingUnit(rootFile, p, scenarName, variantName);
-		// get the building file and affect it an evaluation according to MUP-City's cells
-		SimpleFeatureCollection buildings = SimuTool.giveEvalToBuilding(bht.getBuildingTotalFile(), bht.mupOutputFile);
-		File csvResume = new File(indicFile, "resume.csv");
-		FileWriter csvW = new FileWriter(csvResume, true);
-		String fLine = "insee,objLgt,diffAfterSimu,diffAfterCompatibleResult";
-		csvW.append(fLine + "\n");
-		csvW.close();
 		// for each cities
 		for (String insee : listInsee) {
-			complete(insee, csvResume, buildings, geoFile, bht);
+			complete(insee);
 		}
 	}
 
-	private Double calculateParcelTaken(String insee) throws IOException {
+	private Double calculateParcelTaken(String insee) throws Exception {
 		// get the newly simulated parcels code
 		for (File f : (new File(indicFile, "newSimPLUDepot")).listFiles()) {
 			String name = f.getName();
 			if (name.startsWith("out") && name.endsWith(".shp") && name.contains(insee)) {
-				parcelTaken.add(name.split("_")[1].split(".")[0]);
+				parcelTaken.add(name.split("_")[1].split(".shp")[0]);
 			}
 		}
 
 		// calculate the newly simulated parcels area
 		Double areaTaken = 0.0;
-		ShapefileDataStore parcelSDS = new ShapefileDataStore((new File(newGeoFile, "parcelPartExport.shp")).toURI().toURL());
+		ShapefileDataStore parcelSDS = new ShapefileDataStore((new File(newParcelDepot, "parcelPartExport.shp")).toURI().toURL());
 		SimpleFeatureIterator parcelIt = parcelSDS.getFeatureSource().getFeatures().features();
 		DefaultFeatureCollection parcelSimuled = new DefaultFeatureCollection();
 		try {
@@ -396,16 +405,15 @@ public class CompatibleResult extends Indicators {
 		} finally {
 			parcelIt.close();
 		}
-		System.out.println("saved : " + areaTaken);
+		System.out.println("taken : " + areaTaken + " m2");
 		parcelSDS.dispose();
-		Vectors.exportSFC(parcelSimuled, new File(newParcelDepot, "parcelSimuled.shp"));
+		completeParcelle(new File(newParcelDepot, "parcelSimuled.shp"), parcelSimuled);
 		return areaTaken;
-
 	}
 
-	public Double calculateParcelSaved() throws IOException {
+	public Double calculateParcelSaved() throws Exception {
 		Double surfSaved = 0.0;
-		ShapefileDataStore parcelSDS = new ShapefileDataStore((new File(newGeoFile, "parcelPartExport.shp")).toURI().toURL());
+		ShapefileDataStore parcelSDS = new ShapefileDataStore((new File(newGeoFile, "parcelGenExport.shp")).toURI().toURL());
 		SimpleFeatureIterator parcelIt = parcelSDS.getFeatureSource().getFeatures().features();
 		DefaultFeatureCollection parcelRejected = new DefaultFeatureCollection();
 		try {
@@ -421,10 +429,22 @@ public class CompatibleResult extends Indicators {
 		} finally {
 			parcelIt.close();
 		}
-		System.out.println("taken : " + surfSaved);
+		System.out.println("taken : " + surfSaved + " m2");
 		parcelSDS.dispose();
-		Vectors.exportSFC(parcelRejected, new File(newParcelDepot, "parcelRejected.shp"));
+		completeParcelle(new File(newParcelDepot, "parcelRejected.shp"), parcelRejected);
 		return surfSaved;
+	}
+
+	public void completeParcelle(File parcelRejectedFile, SimpleFeatureCollection parcelRejected) throws Exception {
+		if (!parcelRejectedFile.exists()) {
+			Vectors.exportSFC(parcelRejected, new File(newParcelDepot, "parcelRejected.shp"));
+		} else {
+			File tmp = Vectors.exportSFC(parcelRejected, new File(tmpFile, "parcelRejected.shp"));
+			List<File> merge = new ArrayList<File>();
+			merge.add(tmp);
+			merge.add(parcelRejectedFile);
+			Vectors.mergeVectFiles(merge, parcelRejectedFile);
+		}
 	}
 
 	private void setCountToZero() {
