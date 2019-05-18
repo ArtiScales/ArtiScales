@@ -979,7 +979,7 @@ public class ParcelFonction {
 					SimpleFeatureCollection bigZoned = getParcelByBigZone(stringParam.split("-")[1], typoed, rootFile);
 					if (bigZoned.size() > 0) {
 						parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
-						System.out.println("we cut the parcels with " + type + " parameters");
+						System.out.println(bigZoned.size() + " elements : we cut the parcels with " + type + " parameters");
 						result = addAllParcels(result, runParcelRecomp(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType, dontTouchUZones,
 								geoFile, regulFile, typeOfRecomp));
 						// THAT'S AN UGLY PATCH, BUT HAS TO TAKE CARE OF GEOM ERRORS TODO find somathing nices
@@ -1017,9 +1017,11 @@ public class ParcelFonction {
 						if (typoed.size() > 0) {
 							Vectors.exportSFC(typoed, new File("/tmp/salut-" + stringParam + ".shp"));
 							parcelToNotAdd = dontAddParcel(parcelToNotAdd, typoed);
-							System.out.println("we cut the parcels with " + type + " parameters");
-							def = runParcelRecomp(splitZone, typoed, tmpFile, mupOutput, pBuildingType, dontTouchUZones, geoFile, regulFile,
-									typeOfRecomp);
+							System.out.println(typoed.size() + " elements :we cut the parcels with " + type + " parameters");
+							def = addAllParcels(def, runParcelRecomp(splitZone, typoed, tmpFile, mupOutput, pBuildingType, dontTouchUZones, geoFile,
+									regulFile, typeOfRecomp));
+							Vectors.exportSFC(def, new File("/tmp/" + stringParam + ".shp"));
+
 							// if (typoed.size() > 10) {
 							// break;
 							// } else {
@@ -1032,8 +1034,8 @@ public class ParcelFonction {
 							if (bigZoned.size() > 0) {
 								parcelToNotAdd = dontAddParcel(parcelToNotAdd, bigZoned);
 								System.out.println("we cut the parcels with " + type + " parameters");
-								def = runParcelRecomp(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType, dontTouchUZones, geoFile, regulFile,
-										typeOfRecomp);
+								def = addAllParcels(def, runParcelRecomp(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType, dontTouchUZones,
+										geoFile, regulFile, typeOfRecomp));
 							}
 						}
 					}
@@ -1095,6 +1097,9 @@ public class ParcelFonction {
 		// city information
 		ShapefileDataStore shpDSCities = new ShapefileDataStore(FromGeom.getCommunities(geoFile).toURI().toURL());
 		SimpleFeatureCollection citiesSFS = shpDSCities.getFeatureSource().getFeatures();
+
+		// Vectors.exportSFC(parcels, new File(tmpFile, "step0.shp"));
+		// System.out.println("done step 0");
 
 		////////////////
 		// first step : round of selection of the intersected parcels

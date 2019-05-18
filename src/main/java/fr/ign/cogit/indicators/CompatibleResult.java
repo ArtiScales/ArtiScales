@@ -82,7 +82,7 @@ public class CompatibleResult extends Indicators {
 
 		CompatibleResult cr = new CompatibleResult(root, p, scenario, variant);
 		cr.complete();
-		// cr.complete("25410");
+		// cr.complete("25473");
 		cr.joinStatToCommunities("resume.csv");
 	}
 
@@ -236,8 +236,8 @@ public class CompatibleResult extends Indicators {
 		sp.selectAndDecompParcels(insee, true, parcelGen);
 
 		// generate new SimPLUSimu
-		SimPLUSimulator simPLU = new SimPLUSimulator(new File(rootFile, "paramFolder"), getIndicFile(), newGeoFile, new File(rootFile, "dataRegulation"),
-				tmpFile, parcelCity, p, newOutSimPLU);
+		SimPLUSimulator simPLU = new SimPLUSimulator(new File(rootFile, "paramFolder"), getIndicFile(), newGeoFile,
+				new File(rootFile, "dataRegulation"), tmpFile, parcelCity, p, newOutSimPLU);
 		System.out.println("number to fill : " + nbToFill);
 		int restObj = simPLU.run(nbToFill, parcelCity);
 		if (restObj > 0) {
