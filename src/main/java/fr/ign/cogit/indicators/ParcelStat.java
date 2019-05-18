@@ -54,8 +54,7 @@ public class ParcelStat extends Indicators {
 	public ParcelStat(SimpluParametersJSON p, File rootFile, String scenarName, String variantName) throws Exception {
 		super(p, rootFile, scenarName, variantName, indicName);
 		parcelOGFile = FromGeom.getParcels(new File(rootFile, "dataGeo"));
-		firstLine = "INSEE,nb_parcel_simulated,nb_parcel_simu_failed,surf_parcel_ignored,surf_parcel_simulated,surf_parcel_simulFailed,nbParcelSimulatedU,nbParcelSimulFailedU,nbParcelSimulatedAU,nbParcelSimulFailedAU,nbParcelSimulatedNC,nbParcelSimulFailedNC,nbParcelSimulatedCentre,nbParcelSimulFailedCentre,nbParcelSimulatedBanlieue,nbParcelSimulFailedBanlieue,nbParcelSimulatedPeriUrb,nbParcelSimulFailedPeriUrb,nbParcelSimulatedRural,nbParcelSimulFailedRural";
-		// ",surface_SDP_parcelle,surface_emprise_parcelle";
+		firstLine = "INSEE,nb_parcel_simulated,nb_parcel_simu_failed,surf_parcel_ignored,surf_parcel_simulated,surf_parcel_simulFailed,nbParcelSimulatedU,nbParcelSimulFailedU,nbParcelSimulatedAU,nbParcelSimulFailedAU,nbParcelSimulatedNC,nbParcelSimulFailedNC,nbParcelSimulatedCentre,nbParcelSimulFailedCentre,nbParcelSimulatedBanlieue,nbParcelSimulFailedBanlieue,nbParcelSimulatedPeriUrb,nbParcelSimulFailedPeriUrb,nbParcelSimulatedRural,nbParcelSimulFailedRural,surfParcelSimulatedU,surfParcelSimulFailedU,surfParcelSimulatedAU,surfParcelSimulFailedAU,surfParcelSimulatedNC,surfParcelSimulFailedNC,surfParcelSimulatedCentre,surfParcelSimulFailedCentre,surfParcelSimulatedBanlieue,surfParcelSimulFailedBanlieue,surfParcelSimulatedPeriUrb,surfParcelSimulFailedPeriUrb,surfParcelSimulatedRural,surfParcelSimulFailedRural";
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -69,37 +68,37 @@ public class ParcelStat extends Indicators {
 		lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterScenario.json"));
 
 		SimpluParametersJSON p = new SimpluParametersJSON(lF);
-		for (File f : (new File(rootFile, "SimPLUDepot/" + scenario + "/")).listFiles()) {
-			ParcelStat parc = new ParcelStat(p, rootFile, scenario, f.getName());
+		// for (File f : (new File(rootFile, "SimPLUDepot/" + scenario + "/")).listFiles()) {
+		// ParcelStat parc = new ParcelStat(p, rootFile, scenario, f.getName());
+		ParcelStat parc = new ParcelStat(p, rootFile, scenario, "variantMvData1");
+		SimpleFeatureCollection parcelStatSHP = parc.markSimuledParcels();
+		parc.caclulateStatParcel();
+		// parc.caclulateStatBatiParcel();
+		parc.writeLine("AllZone", "ParcelStat");
+		parc.setCountToZero();
+		List<String> listInsee = FromGeom.getInsee(new File(parc.rootFile, "/dataGeo/old/communities.shp"), "DEPCOM");
 
-			SimpleFeatureCollection parcelStatSHP = parc.markSimuledParcels();
-			parc.caclulateStatParcel();
-			// parc.caclulateStatBatiParcel();
-			parc.writeLine("AllZone", "ParcelStat");
+		for (String city : listInsee) {
+			SimpleFeatureCollection commParcel = ParcelFonction.getParcelByZip(parcelStatSHP, city);
+			System.out.println("city " + city);
+			parc.caclulateStatParcel(commParcel);
+			// parc.caclulateStatBatiParcel(commParcel);
+			parc.writeLine(city, "ParcelStat");
+			parc.toString();
 			parc.setCountToZero();
-			List<String> listInsee = FromGeom.getInsee(new File(parc.rootFile, "/dataGeo/old/communities.shp"), "DEPCOM");
-
-			for (String city : listInsee) {
-				SimpleFeatureCollection commParcel = ParcelFonction.getParcelByZip(parcelStatSHP, city);
-				System.out.println("city " + city);
-				parc.caclulateStatParcel(commParcel);
-				// parc.caclulateStatBatiParcel(commParcel);
-				parc.writeLine(city, "ParcelStat");
-				parc.toString();
-				parc.setCountToZero();
-			}
-			File commStatFile = parc.joinStatToCommunities();
-			parc.createMap(parc, commStatFile);
-			parc.createGraph(new File(parc.indicFile, "ParcelStat.csv"));
 		}
+		File commStatFile = parc.joinStatToCommunities();
+		parc.createMap(parc, commStatFile);
+		parc.createGraph(new File(parc.getIndicFile(), "ParcelStat.csv"));
 	}
+	// }
 
 	public void createMap(ParcelStat parc, File commStatFile) throws IOException, NoSuchAuthorityCodeException, FactoryException {
 		List<MapRenderer> allOfTheMaps = new ArrayList<MapRenderer>();
 		MapRenderer surfParcelSimulatedMap = new SurfParcelSimulatedMap(1000, 1000, new File(parc.rootFile, "mapStyle"), commStatFile,
-				parc.mapDepotFile);
+				parc.getMapDepotFile());
 		allOfTheMaps.add(surfParcelSimulatedMap);
-		MapRenderer surfParcelFailedMap = new SurfParcelFailedMap(1000, 1000, parc.mapStyle, commStatFile, parc.mapDepotFile);
+		MapRenderer surfParcelFailedMap = new SurfParcelFailedMap(1000, 1000, parc.getMapStyle(), commStatFile, parc.getMapDepotFile());
 		allOfTheMaps.add(surfParcelFailedMap);
 		// MapRenderer aParcelSDPSimuMap = new AParcelSDPSimuMap(1000, 1000,parc.mapStyle , commStatFile, parc.mapDepotFile);
 		// allOfTheMaps.add(aParcelSDPSimuMap);
@@ -131,12 +130,12 @@ public class ParcelStat extends Indicators {
 				"surfParcelSimulatedRural" };
 		String[][] xTypeSurf = { xTypeSimulatedSurf, xTypeSimulFailedSurf };
 		makeGraphDouble(distrib, graphDepotFile, "Scenario : " + scenarName + " - Variante : " + variantName, xTypeSurf, "typologie",
-				"Surface de parcelles");
+				"Surface de parcelles (km²)");
 		String[] xZoneSimulatedSurf = { "surfParcelSimulatedU", "surfParcelSimulatedAU", "surfParcelSimulatedNC" };
 		String[] xZoneSimulFailedSurf = { "surfParcelSimulFailedU", "surfParcelSimulFailedAU", "surfParcelSimulFailedNC" };
 		String[][] xZoneSurf = { xZoneSimulatedSurf, xZoneSimulFailedSurf };
 		makeGraphDouble(distrib, graphDepotFile, "Scenario : " + scenarName + " - Variante : " + variantName, xZoneSurf, "type de zone",
-				"Surface de parcelles");
+				"Surface de parcelles (km²)");
 
 	}
 
@@ -235,7 +234,7 @@ public class ParcelStat extends Indicators {
 	public File joinStatToCommunities() throws NoSuchAuthorityCodeException, IOException, FactoryException {
 		ShapefileDataStore communitiesSDS = new ShapefileDataStore((new File(rootFile, "/dataGeo/old/communities.shp")).toURI().toURL());
 		SimpleFeatureCollection communitiesOG = communitiesSDS.getFeatureSource().getFeatures();
-		File result = joinStatToSFC(communitiesOG, new File(indicFile, "ParcelStat.csv"), new File(indicFile, "commStat.shp"));
+		File result = joinStatToSFC(communitiesOG, new File(getIndicFile(), "ParcelStat.csv"), new File(getIndicFile(), "commStat.shp"));
 		communitiesSDS.dispose();
 		return result;
 	}
@@ -309,12 +308,18 @@ public class ParcelStat extends Indicators {
 	}
 
 	public String writeLine(String geoEntity, String nameFile) throws IOException {
-		String result = geoEntity + "," + nbParcelSimulated + "," + nbParcelSimulFailed + "," + surfParcelIgnored + "," + surfParcelSimulated + ","
-				+ surfParcelSimulFailed + nbParcelSimulatedU + "," + nbParcelSimulFailedU + "," + nbParcelSimulatedAU + "," + nbParcelSimulFailedAU
-				+ "," + nbParcelSimulatedNC + "," + nbParcelSimulFailedNC + "," + nbParcelSimulatedCentre + "," + nbParcelSimulFailedCentre + ","
-				+ nbParcelSimulatedBanlieue + "," + nbParcelSimulFailedBanlieue + "," + nbParcelSimulatedPeriUrb + "," + nbParcelSimulFailedPeriUrb
-				+ "," + nbParcelSimulatedRural + "," + nbParcelSimulFailedRural + "," + surfParcelIgnored + "," + surfParcelSimulated + ","
-				+ surfParcelSimulFailed;
+		String result = geoEntity + "," + nbParcelSimulated + "," + nbParcelSimulFailed + "," + round(surfParcelIgnored / 1000000, 3) + ","
+				+ round(surfParcelSimulated / 1000000, 3) + "," + round(surfParcelSimulFailed / 1000000, 3) + nbParcelSimulatedU + ","
+				+ nbParcelSimulFailedU + "," + nbParcelSimulatedAU + "," + nbParcelSimulFailedAU + "," + nbParcelSimulatedNC + ","
+				+ nbParcelSimulFailedNC + "," + nbParcelSimulatedCentre + "," + nbParcelSimulFailedCentre + "," + nbParcelSimulatedBanlieue + ","
+				+ nbParcelSimulFailedBanlieue + "," + nbParcelSimulatedPeriUrb + "," + nbParcelSimulFailedPeriUrb + "," + nbParcelSimulatedRural + ","
+				+ nbParcelSimulFailedRural + "," + round(surfParcelSimulatedU / 1000000, 3) + "," + round(surfParcelSimulFailedU / 1000000, 3) + ","
+				+ round(surfParcelSimulatedAU / 1000000, 3) + "," + round(surfParcelSimulFailedAU / 1000000, 3) + ","
+				+ round(surfParcelSimulatedNC / 1000000, 3) + "," + round(surfParcelSimulFailedNC / 1000000, 3) + ","
+				+ round(surfParcelSimulatedCentre / 1000000, 3) + "," + round(surfParcelSimulFailedCentre / 1000000, 3) + ","
+				+ round(surfParcelSimulatedBanlieue / 1000000, 3) + "," + round(surfParcelSimulFailedBanlieue / 1000000, 3) + ","
+				+ round(surfParcelSimulatedPeriUrb / 1000000, 3) + "," + round(surfParcelSimulFailedPeriUrb / 1000000, 3) + ","
+				+ round(surfParcelSimulatedRural / 1000000, 3) + "," + round(surfParcelSimulFailedRural / 1000000, 3);
 		// + "," + surfaceSDPParcelle + "," + surfaceEmpriseParcelle;
 		toGenCSV(nameFile, firstLine, result);
 		return result;
@@ -369,7 +374,7 @@ public class ParcelStat extends Indicators {
 	// }
 
 	public void caclulateStatParcel() throws IOException {
-		File parcelStatShapeFile = new File(indicFile, "parcelStatted.shp");
+		File parcelStatShapeFile = new File(getIndicFile(), "parcelStatted.shp");
 		if (!parcelStatShapeFile.exists()) {
 			markSimuledParcels();
 		}
@@ -507,7 +512,7 @@ public class ParcelStat extends Indicators {
 		} finally {
 			itParcel.close();
 		}
-		Vectors.exportSFC(result, new File(indicFile, "parcelStatted.shp"));
+		Vectors.exportSFC(result, new File(getIndicFile(), "parcelStatted.shp"));
 
 		parcelSimuledSDS.dispose();
 

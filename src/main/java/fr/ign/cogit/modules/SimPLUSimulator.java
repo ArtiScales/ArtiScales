@@ -494,12 +494,7 @@ public class SimPLUSimulator {
 		}
 
 		// loading the type of housing to build
-		
-		System.out.println(pUsed);
-		System.out.println(paramFile);
-		System.out.println(zoningFile);
-		System.out.println(communitiesFile);
-		System.out.println(parcelsFile);
+
 		RepartitionBuildingType housingUnit = new RepartitionBuildingType(pUsed, paramFile, zoningFile, communitiesFile, parcelsFile);
 		if (sectors.size() > 1) {
 			System.out.println("multiple zones in the same parcel lot : there's gon be approximations");

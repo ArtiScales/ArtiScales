@@ -45,9 +45,9 @@ public class CompVariant extends Indicators {
 
 		File commStatFile = parc.joinStatoBTHCommunities("compVariantbTHCityCoeffVar.csv");
 
-		parc.createGraph(new File(parc.indicFile, "compVariantbTHGen.csv"));
+		parc.createGraph(new File(parc.getIndicFile(), "compVariantbTHGen.csv"));
 
-		MapRenderer mapNbHUCV = new MapNbHUCV(1000, 1000, parc.mapStyle, commStatFile, parc.mapDepotFile);
+		MapRenderer mapNbHUCV = new MapNbHUCV(1000, 1000, parc.getMapStyle(), commStatFile, parc.getMapDepotFile());
 		mapNbHUCV.renderCityInfo();
 		mapNbHUCV.generateSVG();
 		allOfTheMaps.add(mapNbHUCV);
@@ -60,8 +60,8 @@ public class CompVariant extends Indicators {
 	public void createStat(String nameCompared, String nameFileStat) throws IOException {
 		String nameGen = indicName + nameCompared + "Gen.csv";
 		String nameCity = indicName + nameCompared + "City.csv";
-		CSVWriter csvWGen = new CSVWriter(new FileWriter(new File(indicFile, nameGen)), ',', '\u0000');
-		CSVWriter csvWCity = new CSVWriter(new FileWriter(new File(indicFile, nameCity)), ',', '\u0000');
+		CSVWriter csvWGen = new CSVWriter(new FileWriter(new File(getIndicFile(), nameGen)), ',', '\u0000');
+		CSVWriter csvWCity = new CSVWriter(new FileWriter(new File(getIndicFile(), nameCity)), ',', '\u0000');
 		boolean firstLine = true;
 		for (File f : (new File(super.rootFile, "indic/" + nameCompared + "/" + super.scenarName + "/")).listFiles()) {
 			File statFile = new File(f, nameFileStat);
@@ -111,13 +111,13 @@ public class CompVariant extends Indicators {
 	}
 
 	public void genCoeffVar(String nameGen, String nameCity) throws IOException {
-		CSVReader csvGen = new CSVReader(new FileReader(new File(indicFile, nameGen)));
+		CSVReader csvGen = new CSVReader(new FileReader(new File(getIndicFile(), nameGen)));
 		String[] fLine = csvGen.readNext();
-		CSVReader csvCity = new CSVReader(new FileReader(new File(indicFile, nameCity)));
+		CSVReader csvCity = new CSVReader(new FileReader(new File(getIndicFile(), nameCity)));
 		csvCity.readNext();
-		CSVWriter csvWGen = new CSVWriter(new FileWriter(new File(indicFile, nameGen.replace(".csv", "") + "CoeffVar.csv")), ',', '\u0000');
+		CSVWriter csvWGen = new CSVWriter(new FileWriter(new File(getIndicFile(), nameGen.replace(".csv", "") + "CoeffVar.csv")), ',', '\u0000');
 		csvWGen.writeNext(fLine);
-		CSVWriter csvWCity = new CSVWriter(new FileWriter(new File(indicFile, nameCity.replace(".csv", "") + "CoeffVar.csv")), ',', '\u0000');
+		CSVWriter csvWCity = new CSVWriter(new FileWriter(new File(getIndicFile(), nameCity.replace(".csv", "") + "CoeffVar.csv")), ',', '\u0000');
 		csvWCity.writeNext(fLine);
 		DescriptiveStatistics[] listStatGen = new DescriptiveStatistics[fLine.length - 4];
 		// boolean to get the existing DS

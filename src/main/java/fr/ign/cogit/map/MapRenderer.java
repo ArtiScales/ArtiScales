@@ -42,20 +42,20 @@ import org.opengis.referencing.NoSuchAuthorityCodeException;
 
 public class MapRenderer {
 	private Rectangle imageBounds;
-	protected File sdlFile, svgFile, rootMapStyle, toMapShapeFile, outFolder;
+	protected File sldFile, svgFile, rootMapStyle, toMapShapeFile, outFolder;
 
 	protected String mapName, text;
 
 	StyleFactory styleFactory = CommonFactoryFinder.getStyleFactory(null);
 	FilterFactory filterFactory = CommonFactoryFinder.getFilterFactory(null);
 
-	public MapRenderer(int imageWidth, int imageHeight, String mapname,String text, File rootMapstyle, File svgfile, File tomapshp, File outfolder) {
+	public MapRenderer(int imageWidth, int imageHeight, String mapname, String text, File rootMapstyle, File svgfile, File tomapshp, File outfolder) {
 		this.outFolder = outfolder;
 		this.mapName = mapname;
 		this.text = text;
 		this.imageBounds = new Rectangle(0, 0, imageWidth, imageHeight);
 		this.rootMapStyle = rootMapstyle;
-		this.sdlFile = new File(rootMapstyle, mapName + ".sld");
+		this.sldFile = new File(rootMapstyle, mapName + ".sld");
 		this.svgFile = svgfile;
 		this.toMapShapeFile = tomapshp;
 	}
@@ -254,14 +254,22 @@ public class MapRenderer {
 	//
 
 	public void renderCityInfo() throws MalformedURLException, IOException, NoSuchAuthorityCodeException, FactoryException {
+		renderCityInfo(new File(outFolder, mapName + "-map.png"));
+	}
+
+	public void renderCityInfo(String name) throws MalformedURLException, IOException, NoSuchAuthorityCodeException, FactoryException {
+		renderCityInfo(new File(outFolder, name + "-map.png"));
+	}
+
+	public void renderCityInfo(File out) throws MalformedURLException, IOException, NoSuchAuthorityCodeException, FactoryException {
 		MapContent map = new MapContent();
 
-		Style style = (new SLDParser(styleFactory, sdlFile.toURI().toURL())).readXML()[0];
+		Style style = (new SLDParser(styleFactory, sldFile.toURI().toURL())).readXML()[0];
 		Layer communityLayer = toLayer(toMapShapeFile, style);
 
-		if (communityLayer != null)
+		if (communityLayer != null) {
 			map.addLayer(communityLayer);
-
+		}
 		BufferedImage img = new BufferedImage(this.imageBounds.width, this.imageBounds.height, BufferedImage.TYPE_INT_ARGB);
 		GTRenderer renderer = new StreamingRenderer();
 		renderer.setJava2DHints(new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON));
@@ -277,7 +285,7 @@ public class MapRenderer {
 
 		renderer.paint(gr, this.imageBounds, communityLayer.getBounds());
 		map.dispose();
-		saveImage(img, new File(outFolder, mapName + "-map.png"));
+		saveImage(img, out);
 	}
 
 	public static BufferedImage joinBufferedImage(BufferedImage img1, BufferedImage img2) {
@@ -326,14 +334,16 @@ public class MapRenderer {
 	}
 
 	public File generateSVG() throws IOException {
+		return generateSVG(new File(outFolder, mapName + ".svg"), mapName);
+	}
 
-		File svgOutFile = new File(outFolder, mapName + ".svg");
+	public File generateSVG(File svgOutFile, String imgName) throws IOException {
 		BufferedReader br = new BufferedReader(new FileReader(svgFile));
 		BufferedWriter bw = new BufferedWriter(new FileWriter(svgOutFile));
 		StringBuffer sb = new StringBuffer();
 		for (Object line : br.lines().toArray()) {
 			if (((String) line).contains("sodipodi:absref=")) {
-				String newLine = "sodipodi:absref=\"" + outFolder.getAbsolutePath() + "/" + mapName + "-map.png\"";
+				String newLine = "sodipodi:absref=\"" + outFolder.getAbsolutePath() + "/" + imgName + "-map.png\"";
 				if (((String) line).contains("legend")) {
 					newLine = "sodipodi:absref=\"" + rootMapStyle.getAbsolutePath() + "/" + mapName + "-legend.png\"";
 				}
@@ -341,12 +351,10 @@ public class MapRenderer {
 			} else if (((String) line).contains("inkscape:export-filename")) {
 				String newLine = "inkscape:export-filename=\"" + "./" + mapName + ".png\"";
 				sb.append(newLine + "\n");
-			}
-			else if (((String) line).contains("> </flowPara>")) {
-				String newLine = ((String) line).replace("> </flowPara>", ">"+ text + "</flowPara>");
+			} else if (((String) line).contains("> </flowPara>")) {
+				String newLine = ((String) line).replace("> </flowPara>", ">" + text + "</flowPara>");
 				sb.append(newLine + "\n");
-			}
-			else {
+			} else {
 				sb.append(line + "\n");
 			}
 		}

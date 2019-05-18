@@ -15,7 +15,7 @@ public class DiffObjDensMap extends MapRenderer {
 
 	public DiffObjDensMap(int imageWidth, int imageHeight, File mapStyleFolder, File featureFile, File outFolder)
 			throws MalformedURLException, NoSuchAuthorityCodeException, IOException, FactoryException {
-		super(imageWidth, imageHeight, nameMap,text, mapStyleFolder, new File(mapStyleFolder, "svgModel.svg"), featureFile, outFolder);
+		super(imageWidth, imageHeight, nameMap, text, mapStyleFolder, new File(mapStyleFolder, "svgModel.svg"), featureFile, outFolder);
 	}
 
 	public static void main(String[] args) throws MalformedURLException, NoSuchAuthorityCodeException, IOException, FactoryException {

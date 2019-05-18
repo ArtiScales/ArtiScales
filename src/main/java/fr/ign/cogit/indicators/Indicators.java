@@ -5,6 +5,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
@@ -28,7 +30,14 @@ import fr.ign.cogit.util.SimuTool;
 
 public abstract class Indicators {
 	SimpluParametersJSON p;
-	protected File rootFile, paramFolder, mapStyle, mupOutputFile, parcelDepotGenFile, simPLUDepotGenFile, indicFile, mapDepotFile, graphDepotFile;
+	protected File rootFile, paramFolder;
+	private File mapStyle;
+	protected File mupOutputFile;
+	protected File parcelDepotGenFile;
+	protected File simPLUDepotGenFile;
+	private File indicFile;
+	private File mapDepotFile;
+	protected File graphDepotFile;
 	protected String scenarName, variantName, echelle, indicName;
 
 	boolean firstLineGen = true;
@@ -59,12 +68,12 @@ public abstract class Indicators {
 		}
 		// if there's a will of saving the infos
 		if (scenarname != "") {
-			indicFile = new File(rootFile, "indic/" + indicName + "/" + scenarName + "/" + variantName);
-			indicFile.mkdirs();
-			mapStyle = new File(rootFile, "mapStyle");
-			mapDepotFile = new File(indicFile, "mapDepot");
-			mapDepotFile.mkdir();
-			graphDepotFile = new File(indicFile, "graphDepot");
+			setIndicFile(new File(rootFile, "indic/" + indicName + "/" + scenarName + "/" + variantName));
+			getIndicFile().mkdirs();
+			setMapStyle(new File(rootFile, "mapStyle"));
+			setMapDepotFile(new File(getIndicFile(), "mapDepot"));
+			getMapDepotFile().mkdir();
+			graphDepotFile = new File(getIndicFile(), "graphDepot");
 			graphDepotFile.mkdir();
 		}
 	}
@@ -93,7 +102,7 @@ public abstract class Indicators {
 	 * @return the name of the selection's methods
 	 */
 	public String getIndicFolderName() {
-		return indicFile.getName();
+		return getIndicFile().getName();
 	}
 
 	/**
@@ -130,7 +139,7 @@ public abstract class Indicators {
 	 * @throws IOException
 	 */
 	public void toGenCSV(String indicName, String firstline, String line) throws IOException {
-		File fileName = new File(indicFile, indicName + ".csv");
+		File fileName = new File(getIndicFile(), indicName + ".csv");
 		FileWriter writer = new FileWriter(fileName, true);
 		// si l'on a pas encore inscrit la premiere ligne
 		if (firstLineGen) {
@@ -168,7 +177,7 @@ public abstract class Indicators {
 	public File joinStatoBTHCommunities(String nameFileToJoin) throws NoSuchAuthorityCodeException, IOException, FactoryException {
 		ShapefileDataStore communitiesOGSDS = new ShapefileDataStore((new File(rootFile, "/dataGeo/old/communities.shp")).toURI().toURL());
 		SimpleFeatureCollection communitiesOG = communitiesOGSDS.getFeatureSource().getFeatures();
-		File result = joinStatToBTHSFC(communitiesOG, new File(indicFile, nameFileToJoin), new File(indicFile, "commStat.shp"));
+		File result = joinStatToBTHSFC(communitiesOG, new File(getIndicFile(), nameFileToJoin), new File(getIndicFile(), "commStat.shp"));
 		communitiesOGSDS.dispose();
 		return result;
 	}
@@ -184,9 +193,14 @@ public abstract class Indicators {
 		sfTypeBuilder.setDefaultGeometry("the_geom");
 		sfTypeBuilder.add("INSEE", String.class);
 		sfTypeBuilder.add("SDPTot", Double.class);
+		sfTypeBuilder.add("empriseTot", Double.class);
 		sfTypeBuilder.add("iniDens", Double.class);
-		sfTypeBuilder.add("avDensite", Double.class);
-		sfTypeBuilder.add("SDDensite", Double.class);
+		sfTypeBuilder.add("avDensHU", Double.class);
+		sfTypeBuilder.add("SDDensHU", Double.class);
+		sfTypeBuilder.add("avDensSDP", Double.class);
+		sfTypeBuilder.add("SDDensSDP", Double.class);
+		sfTypeBuilder.add("avDensEmp", Double.class);
+		sfTypeBuilder.add("SDDensEmp", Double.class);
 		sfTypeBuilder.add("avSDPpHU", Double.class);
 		sfTypeBuilder.add("sdSDPpHU", Double.class);
 		sfTypeBuilder.add("difObjDens", Double.class);
@@ -214,9 +228,10 @@ public abstract class Indicators {
 				String insee = (String) featCity.getAttribute("DEPCOM");
 				CSVReader stat = new CSVReader(new FileReader(statFile), ',', '\0');
 				String[] firstLine = stat.readNext();
-				int inseeP = 0, SDPTotP = 0, iniDensP = 0, avDensiteP = 0, SDDensiteP = 0, avSDPpHUP = 0, sdSDPpHUP = 0, difObjDensP = 0,
-						nbBuildingP = 0, nbHUP = 0, difObjHUP = 0, nbSmallP = 0, nbDetachP = 0, nbFamHP = 0, nbSmallBkP = 0, nbMidBkP = 0, nbUP = 0,
-						nbAUP = 0, nbNCP = 0, nbCentrP = 0, nbBanlP = 0, nbPeriUP = 0, nbRurP = 0;
+				int inseeP = 0, SDPTotP = 0, empriseTotP = 0, iniDensP = 0, avDensiteHUP = 0, SDDensiteHUP = 0, avDensiteSDPP = 0, SDDensiteSDPP = 0,
+						avDensiteEmpriseP = 0, SDDensiteEmpriseP = 0, avSDPpHUP = 0, sdSDPpHUP = 0, difObjDensP = 0, nbBuildingP = 0, nbHUP = 0,
+						difObjHUP = 0, nbSmallP = 0, nbDetachP = 0, nbFamHP = 0, nbSmallBkP = 0, nbMidBkP = 0, nbUP = 0, nbAUP = 0, nbNCP = 0,
+						nbCentrP = 0, nbBanlP = 0, nbPeriUP = 0, nbRurP = 0;
 				for (int i = 0; i < firstLine.length; i++) {
 					switch (firstLine[i]) {
 					case "code":
@@ -225,14 +240,29 @@ public abstract class Indicators {
 					case "SDPTot":
 						SDPTotP = i;
 						break;
+					case "empriseTot":
+						empriseTotP = i;
+						break;
 					case "initial_densite":
 						iniDensP = i;
 						break;
-					case "average_densite":
-						avDensiteP = i;
+					case "average_densiteHU":
+						avDensiteHUP = i;
 						break;
-					case "standardDev_densite":
-						SDDensiteP = i;
+					case "standardDev_densiteHU":
+						SDDensiteHUP = i;
+						break;
+					case "average_densiteSDP":
+						avDensiteSDPP = i;
+						break;
+					case "standardDev_densiteSDP":
+						SDDensiteSDPP = i;
+						break;
+					case "average_densiteEmprise":
+						avDensiteEmpriseP = i;
+						break;
+					case "standardDev_densiteEmprise":
+						SDDensiteEmpriseP = i;
 						break;
 					case "diff_objectifSCOT_densite":
 						difObjDensP = i;
@@ -295,9 +325,14 @@ public abstract class Indicators {
 						builder.set("the_geom", featCity.getDefaultGeometry());
 						builder.set("INSEE", l[inseeP]);
 						builder.set("SDPTot", Double.valueOf(l[SDPTotP]));
+						builder.set("empriseTot", Double.valueOf(l[empriseTotP]));
 						builder.set("iniDens", Double.valueOf(l[iniDensP]));
-						builder.set("avDensite", Double.valueOf(l[avDensiteP]));
-						builder.set("SDDensite", Double.valueOf(l[SDDensiteP]));
+						builder.set("avDensHU", Double.valueOf(l[avDensiteHUP]));
+						builder.set("SDDensHU", Double.valueOf(l[SDDensiteHUP]));
+						builder.set("avDensSDP", Double.valueOf(l[avDensiteSDPP]));
+						builder.set("SDDensSDP", Double.valueOf(l[SDDensiteSDPP]));
+						builder.set("avDensEmp", Double.valueOf(l[avDensiteEmpriseP]));
+						builder.set("SDDensEmp", Double.valueOf(l[SDDensiteEmpriseP]));
 						builder.set("avSDPpHU", Double.valueOf(l[avSDPpHUP]));
 						builder.set("sdSDPpHU", Double.valueOf(l[sdSDPpHUP]));
 						builder.set("difObjDens", Double.valueOf(l[difObjDensP]));
@@ -360,33 +395,78 @@ public abstract class Indicators {
 			return "centre ville";
 		case "nbParcelSimulatedU":
 		case "nbParcelSimulFailedU":
+		case "surfParcelSimulatedU":
+		case "surfParcelSimulFailedU":
 			return "Urbanisable (U)";
 		case "nbParcelSimulatedAU":
 		case "nbParcelSimulFailedAU":
+		case "surfParcelSimulatedAU":
+		case "surfParcelSimulFailedAU":
 			return "À Urbaniser (AU)";
+		case "surfParcelSimulatedNC":
+		case "surfParcelSimulFailedNC":
 		case "nbParcelSimulatedNC":
 		case "nbParcelSimulFailedNC":
 			return "Non Urbanisable (NC)";
 		case "nbParcelSimulatedBanlieue":
 		case "nbParcelSimulFailedBanlieue":
+		case "surfParcelSimulFailedBanlieue":
+		case "surfParcelSimulatedBanlieue":
 			return "banlieue";
 		case "nbParcelSimulatedPeriUrb":
 		case "nbParcelSimulFailedPeriUrb":
+		case "surfParcelSimulatedPeriUrb":
+		case "surfParcelSimulFailedPeriUrb":
 			return "périurbaine";
 		case "nbParcelSimulatedRural":
 		case "nbParcelSimulFailedRural":
+		case "surfParcelSimulatedRural":
+		case "surfParcelSimulFailedRural":
 			return "rurale";
 		case "nbParcelSimulatedCentre":
 		case "nbParcelSimulFailedCentre":
+		case "surfParcelSimulatedCentre":
+		case "surfParcelSimulFailedCentre":
 			return "centre";
-		case "SDPTot": 
+		case "SDPTot":
 			return "Surface de plancher totale";
-		case "empriseTot": 
+		case "empriseTot":
 			return "Emprise totale";
 		}
-		
 
 		throw new FileNotFoundException("name not found");
+	}
+
+	public static double round(Double value, int place) {
+		return new BigDecimal(value).setScale(place, RoundingMode.HALF_UP).doubleValue();
+	}
+
+	public File getRootFile() {
+		return rootFile;
+	}
+
+	public File getIndicFile() {
+		return indicFile;
+	}
+
+	public void setIndicFile(File indicFile) {
+		this.indicFile = indicFile;
+	}
+
+	public File getMapStyle() {
+		return mapStyle;
+	}
+
+	public void setMapStyle(File mapStyle) {
+		this.mapStyle = mapStyle;
+	}
+
+	public File getMapDepotFile() {
+		return mapDepotFile;
+	}
+
+	public void setMapDepotFile(File mapDepotFile) {
+		this.mapDepotFile = mapDepotFile;
 	}
 
 	// public File joinStatToBhTSFC(SimpleFeatureCollection collec, File statFile, File outFile)

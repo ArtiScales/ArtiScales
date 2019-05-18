@@ -57,13 +57,13 @@ public class CompatibleResult extends Indicators {
 	public CompatibleResult(File rootFile, SimpluParametersJSON par, String scenarName, String variantName) throws Exception {
 		super(par, rootFile, scenarName, variantName, indicName);
 		fLine = "insee,objLgt,diffAfterSimu,diffAfterCompatibleResult,NumberBuildingsDifference,areaOfParcelDifference,Satisfies the objective of housing unit creation";
-		newGeoFile = new File(indicFile, "dataGeo");
+		newGeoFile = new File(getIndicFile(), "dataGeo");
 		newGeoFile.mkdirs();
-		newParcelDepot = new File(indicFile, "newParcelDepot");
+		newParcelDepot = new File(getIndicFile(), "newParcelDepot");
 		newParcelDepot.mkdir();
-		newOutSimPLU = new File(indicFile, "newSimPLUDepot");
+		newOutSimPLU = new File(getIndicFile(), "newSimPLUDepot");
 		newOutSimPLU.mkdirs();
-		tmpFile = new File(indicFile, "tmpFile");
+		tmpFile = new File(getIndicFile(), "tmpFile");
 		tmpFile.mkdirs();
 		prepareNewGeoFile();
 	}
@@ -84,14 +84,12 @@ public class CompatibleResult extends Indicators {
 		cr.complete();
 		// cr.complete("25410");
 		cr.joinStatToCommunities("resume.csv");
-
-		System.out.println("not possible to ok the construction objectives : " + cr.notPossibleToConstruct);
 	}
 
 	public File joinStatToCommunities(String nameFileToJoin) throws NoSuchAuthorityCodeException, IOException, FactoryException {
 		ShapefileDataStore communitiesOGSDS = new ShapefileDataStore((new File(rootFile, "/dataGeo/old/communities.shp")).toURI().toURL());
 		SimpleFeatureCollection communitiesOG = communitiesOGSDS.getFeatureSource().getFeatures();
-		File result = joinStatToSFC(communitiesOG, new File(indicFile, nameFileToJoin), new File(indicFile, "commStat.shp"));
+		File result = joinStatToSFC(communitiesOG, new File(getIndicFile(), nameFileToJoin), new File(getIndicFile(), "commStat.shp"));
 		communitiesOGSDS.dispose();
 		return result;
 	}
@@ -238,7 +236,7 @@ public class CompatibleResult extends Indicators {
 		sp.selectAndDecompParcels(insee, true, parcelGen);
 
 		// generate new SimPLUSimu
-		SimPLUSimulator simPLU = new SimPLUSimulator(new File(rootFile, "paramFolder"), indicFile, newGeoFile, new File(rootFile, "dataRegulation"),
+		SimPLUSimulator simPLU = new SimPLUSimulator(new File(rootFile, "paramFolder"), getIndicFile(), newGeoFile, new File(rootFile, "dataRegulation"),
 				tmpFile, parcelCity, p, newOutSimPLU);
 		System.out.println("number to fill : " + nbToFill);
 		int restObj = simPLU.run(nbToFill, parcelCity);
@@ -352,7 +350,7 @@ public class CompatibleResult extends Indicators {
 		ShapefileDataStore sds = new ShapefileDataStore(tmpBati.toURI().toURL());
 		SimpleFeatureCollection buildings = sds.getFeatureSource().getFeatures();
 
-		File csvResume = new File(indicFile, "resume.csv");
+		File csvResume = new File(getIndicFile(), "resume.csv");
 		FileWriter csvW = new FileWriter(csvResume, true);
 		csvW.append(fLine + "\n");
 		csvW.close();
@@ -380,7 +378,7 @@ public class CompatibleResult extends Indicators {
 
 	private Double calculateParcelTaken(String insee) throws Exception {
 		// get the newly simulated parcels code
-		for (File f : (new File(indicFile, "newSimPLUDepot")).listFiles()) {
+		for (File f : (new File(getIndicFile(), "newSimPLUDepot")).listFiles()) {
 			String name = f.getName();
 			if (name.startsWith("out") && name.endsWith(".shp") && name.contains(insee)) {
 				parcelTaken.add(name.split("_")[1].split(".shp")[0]);
