@@ -104,16 +104,16 @@ public class BuildingToHousingUnit extends Indicators {
 		// for (File f : (new File(rootFile, "SimPLUDepot/" + scenario + "/")).listFiles()) {
 		// BuildingToHousingUnit bhtU = new BuildingToHousingUnit(rootFile, p, scenario, f.getName());
 		BuildingToHousingUnit bhtU = new BuildingToHousingUnit(rootFile, p, scenario, variant);
-//		bhtU.distributionEstimate();
-//		bhtU.makeGenStat();
-//		bhtU.setCountToZero();
-//
-//		// for every cities
-//		List<String> listInsee = FromGeom.getInsee(new File(bhtU.getRootFile(), "/dataGeo/old/communities.shp"), "DEPCOM");
-//		for (String city : listInsee) {
-//			bhtU.makeGenStat(city);
-//			bhtU.setCountToZero();
-//		}
+		// bhtU.distributionEstimate();
+		// bhtU.makeGenStat();
+		// bhtU.setCountToZero();
+		//
+		// // for every cities
+		// List<String> listInsee = FromGeom.getInsee(new File(bhtU.getRootFile(), "/dataGeo/old/communities.shp"), "DEPCOM");
+		// for (String city : listInsee) {
+		// bhtU.makeGenStat(city);
+		// bhtU.setCountToZero();
+		// }
 		File parcelleStatFile = bhtU.joinStatoBTHParcels("housingUnits.csv");
 		bhtU.createGraphDensity(new File(bhtU.getIndicFile(), "housingUnits.csv"));
 		File commStatFile = bhtU.joinStatoBTHCommunities("genStat.csv");
@@ -794,6 +794,7 @@ public class BuildingToHousingUnit extends Indicators {
 	public HashMap<String, HashMap<String, Integer>> makeCollectiveHousingRepartition(SimpleFeature bati, BuildingType type, File paramFolder)
 			throws Exception {
 
+		int antiInfinity = 0;
 		SimpluParametersJSON pType = RepartitionBuildingType.getParamBuildingType(new File(paramFolder, "profileBuildingType"), type);
 
 		int minLgt = pType.getInteger("minHousingUnit");
@@ -807,7 +808,6 @@ public class BuildingToHousingUnit extends Indicators {
 		Double sizeMidDwellingMax = Double.valueOf(pType.getString("sizeMidDwelling").split("-")[1]);
 		Double sizeLargeDwellingMin = Double.valueOf(pType.getString("sizeLargeDwelling").split("-")[0]);
 		Double sizeLargeDwellingMax = Double.valueOf(pType.getString("sizeLargeDwelling").split("-")[1]);
-
 		Double freqSmallDwelling = pType.getDouble("freqSmallDwelling");
 		Double freqMidDwelling = pType.getDouble("freqMidDwelling");
 		Double freqLargeDwelling = pType.getDouble("freqLargeDwelling");
@@ -826,7 +826,6 @@ public class BuildingToHousingUnit extends Indicators {
 		while (doRepart) {
 
 			int nbLgtFinal = 0;
-
 			HashMap<String, Integer> smallHU = new HashMap<String, Integer>();
 			HashMap<String, Integer> midHU = new HashMap<String, Integer>();
 			HashMap<String, Integer> largeHU = new HashMap<String, Integer>();
@@ -858,9 +857,8 @@ public class BuildingToHousingUnit extends Indicators {
 					Object[] repart = doDwellingRepart(midHU, leftSDP, sizeMidDwellingMax, sizeMidDwellingMin);
 					midHU = (HashMap<String, Integer>) repart[0];
 					leftSDP = (double) repart[1];
-					boolean conti = (boolean) repart[2];
 					// if nothing has changed, it's time to end that
-					if (!conti) {
+					if (!(boolean) repart[2]) {
 						enoughSpace = false;
 						// System.out.println("same size");
 					} else {
@@ -886,7 +884,7 @@ public class BuildingToHousingUnit extends Indicators {
 			}
 			// if the limit of minimum housing units is outpassed
 			// System.out.println("minLgt : " + minLgt + " contre " + nbLgtFinal);
-			if (nbLgtFinal >= minLgt) {
+			if (nbLgtFinal >= minLgt || antiInfinity > 100) {
 				// System.out.println("it's enough");
 				doRepart = false;
 				result.put("smallHU", smallHU);
@@ -895,7 +893,12 @@ public class BuildingToHousingUnit extends Indicators {
 				HashMap<String, Integer> carac = new HashMap<String, Integer>();
 				carac.put("totHU", nbLgtFinal);
 				result.put("carac", carac);
+				if (antiInfinity > 100) {
+					System.out.println("too much loop - this shouldn't happend");
+				}
+
 			} else {
+				antiInfinity++;
 				// System.out.println("it's not enough");
 			}
 		}
