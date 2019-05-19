@@ -71,8 +71,11 @@ public class AllIndicators {
 			bhtU.makeGenStat(city);
 			bhtU.setCountToZero();
 		}
+		bhtU.joinStatoBTHParcels("housingUnits.csv");
+		bhtU.createGraphDensity(new File(bhtU.getIndicFile(), "housingUnits.csv"));
+		File parcelleStatFile = bhtU.joinStatoBTHParcels("housingUnits.csv");
 		File commStatFile = bhtU.joinStatoBTHCommunities("genStat.csv");
-		BuildingToHousingUnit.allOfTheMap(bhtU, commStatFile);
+		BuildingToHousingUnit.allOfTheMap(bhtU, commStatFile, parcelleStatFile);
 
 		// Parcel
 		ParcelStat parc = new ParcelStat(p, rootFile, scenario, "variantMvData1");

@@ -63,7 +63,7 @@ public class CompVariant extends Indicators {
 		CSVWriter csvWGen = new CSVWriter(new FileWriter(new File(getIndicFile(), nameGen)), ',', '\u0000');
 		CSVWriter csvWCity = new CSVWriter(new FileWriter(new File(getIndicFile(), nameCity)), ',', '\u0000');
 		boolean firstLine = true;
-		for (File f : (new File(super.rootFile, "indic/" + nameCompared + "/" + super.scenarName + "/")).listFiles()) {
+		for (File f : (new File(super.getRootFile(), "indic/" + nameCompared + "/" + super.scenarName + "/")).listFiles()) {
 			File statFile = new File(f, nameFileStat);
 			if (f.isDirectory() && statFile.exists()) {
 				CSVReader csvR = new CSVReader(new FileReader(statFile));
@@ -223,32 +223,32 @@ public class CompVariant extends Indicators {
 	// }
 
 	public void createGraph(File distrib) throws IOException {
-		makeGraph(distrib, graphDepotFile, "exemple on SDPTot", "nbVariant", "Variante", "SDPTot", "Surface De Plancher Totale");
-		makeGraph(distrib, graphDepotFile, "Nombre de logements simulés dans une commune de type rurale", "nbVariant", "Variante ", "nbHU_rural",
+		makeGraph(distrib, getGraphDepotFile(), "exemple on SDPTot", "nbVariant", "Variante", "SDPTot", "Surface De Plancher Totale");
+		makeGraph(distrib, getGraphDepotFile(), "Nombre de logements simulés dans une commune de type rurale", "nbVariant", "Variante ", "nbHU_rural",
 				"Nombre de logements simulés");
-		makeGraph(distrib, graphDepotFile, "Nombre de logements simulés dans une commune de type péri-urbain", "nbVariant", "Variante ",
+		makeGraph(distrib, getGraphDepotFile(), "Nombre de logements simulés dans une commune de type péri-urbain", "nbVariant", "Variante ",
 				"nbHU_periUrbain", "Nombre de logements simulés");
-		makeGraph(distrib, graphDepotFile, "Nombre de logements simulés dans un quartier de type banlieue", "nbVariant", "Variante ", "nbHU_banlieue",
+		makeGraph(distrib, getGraphDepotFile(), "Nombre de logements simulés dans un quartier de type banlieue", "nbVariant", "Variante ", "nbHU_banlieue",
 				"nombre de logements simulés");
-		makeGraph(distrib, graphDepotFile, "Nombre de logements simulés dans un quartier de type centre", "nbVariant", "Variante ", "nbHU_centre",
+		makeGraph(distrib, getGraphDepotFile(), "Nombre de logements simulés dans un quartier de type centre", "nbVariant", "Variante ", "nbHU_centre",
 				"Nombre de logements simulés");
-		makeGraph(distrib, graphDepotFile, "Nombre de logements simulés dans une zone non constructible (NC)", "nbVariant", "Variante ", "nbHU_NC",
+		makeGraph(distrib, getGraphDepotFile(), "Nombre de logements simulés dans une zone non constructible (NC)", "nbVariant", "Variante ", "nbHU_NC",
 				"Nombre de logements simulés");
-		makeGraph(distrib, graphDepotFile, "Nombre de logements simulés dans une zone à urbaniser (AU)", "nbVariant", "Variante ", "nbHU_AU",
+		makeGraph(distrib, getGraphDepotFile(), "Nombre de logements simulés dans une zone à urbaniser (AU)", "nbVariant", "Variante ", "nbHU_AU",
 				"Nombre de logements simulés");
-		makeGraph(distrib, graphDepotFile, "Nombre de logements simulés dans une zone urbanisable (U)", "nbVariant", "Variante ", "nbHU_U",
+		makeGraph(distrib, getGraphDepotFile(), "Nombre de logements simulés dans une zone urbanisable (U)", "nbVariant", "Variante ", "nbHU_U",
 				"Nombre de logements simulés");
-		makeGraph(distrib, graphDepotFile, "Nombre de logements simulés de type maison isolée", "nbVariant", "Variante ", "nbHU_detachedHouse",
+		makeGraph(distrib, getGraphDepotFile(), "Nombre de logements simulés de type maison isolée", "nbVariant", "Variante ", "nbHU_detachedHouse",
 				"Nombre de logements simulés");
-		makeGraph(distrib, graphDepotFile, "Nombre de logements simulés de type pavillon de lotissement", "nbVariant", "Variante ", "nbHU_smallHouse",
+		makeGraph(distrib, getGraphDepotFile(), "Nombre de logements simulés de type pavillon de lotissement", "nbVariant", "Variante ", "nbHU_smallHouse",
 				"Nombre de logements simulés");
-		makeGraph(distrib, graphDepotFile, "Nombre de logements simulés de type immeuble d'habitat intermédiaire", "nbVariant", "Variante ",
+		makeGraph(distrib, getGraphDepotFile(), "Nombre de logements simulés de type immeuble d'habitat intermédiaire", "nbVariant", "Variante ",
 				"nbHU_multiFamilyHouse", "Nombre de logements simulés");
-		makeGraph(distrib, graphDepotFile, "Nombre de logements simulés de type petit immeuble collectif", "nbVariant", "Variante ",
+		makeGraph(distrib, getGraphDepotFile(), "Nombre de logements simulés de type petit immeuble collectif", "nbVariant", "Variante ",
 				"nbHU_smallBlockFlat", "Nombre de logements simulés");
-		makeGraph(distrib, graphDepotFile, "Nombre de logements simulés de type immeuble collectif de taille moyenne", "nbVariant", "Variante ",
+		makeGraph(distrib, getGraphDepotFile(), "Nombre de logements simulés de type immeuble collectif de taille moyenne", "nbVariant", "Variante ",
 				"nbHU_midBlockFlat", "Nombre de logements simulés");
-		makeGraph(distrib, graphDepotFile, "Nombre de logements simulés par variantes", "nbVariant", "Variante ", "nb_housingUnit",
+		makeGraph(distrib, getGraphDepotFile(), "Nombre de logements simulés par variantes", "nbVariant", "Variante ", "nb_housingUnit",
 				"Nombre de logements simulés");
 	}
 

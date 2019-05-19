@@ -15,21 +15,42 @@ import org.geotools.data.DataUtilities;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
+import org.geotools.feature.DefaultFeatureCollection;
+import org.geotools.feature.simple.SimpleFeatureBuilder;
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
+import org.geotools.referencing.CRS;
 import org.knowm.xchart.BitmapEncoder;
 import org.knowm.xchart.BitmapEncoder.BitmapFormat;
 import org.knowm.xchart.CategoryChart;
 import org.knowm.xchart.CategoryChartBuilder;
+import org.knowm.xchart.Histogram;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.Polygon;
 
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
 import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.createGeom.DensIni;
+import fr.ign.cogit.map.MapRenderer;
 import fr.ign.cogit.map.theseMC.DensIniNewComp;
+import fr.ign.cogit.map.theseMC.DiffObjDensMap;
+import fr.ign.cogit.map.theseMC.DiffObjLgtMap;
+import fr.ign.cogit.map.theseMC.nbHU.NbHU;
+import fr.ign.cogit.map.theseMC.nbHU.NbHUAU;
+import fr.ign.cogit.map.theseMC.nbHU.NbHUDetachedHouse;
+import fr.ign.cogit.map.theseMC.nbHU.NbHUMidBlock;
+import fr.ign.cogit.map.theseMC.nbHU.NbHUMultiFamilyHouse;
+import fr.ign.cogit.map.theseMC.nbHU.NbHUSmallBlock;
+import fr.ign.cogit.map.theseMC.nbHU.NbHUSmallHouse;
+import fr.ign.cogit.map.theseMC.nbHU.NbHUU;
+import fr.ign.cogit.map.theseMC.parcelMaps.ParcelleDensEmprisepHec;
+import fr.ign.cogit.map.theseMC.parcelMaps.ParcelleDensHUpHec;
+import fr.ign.cogit.map.theseMC.parcelMaps.ParcelleDensSDPpHec;
 import fr.ign.cogit.rules.regulation.buildingType.BuildingType;
 import fr.ign.cogit.rules.regulation.buildingType.RepartitionBuildingType;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
@@ -54,7 +75,7 @@ public class BuildingToHousingUnit extends Indicators {
 		tmpFile = new File(getIndicFile(), "tmpFile");
 		tmpFile.mkdirs();
 
-		housingUnitFirstLine = "code_parcel," + "SDP," + "emprise," + "nb_housingUnit," + "type_HU," + "zone," + "typo_HU," + "averageSDPPerHU,"
+		housingUnitFirstLine = "codeParcel," + "SDP," + "emprise," + "nb_housingUnit," + "type_HU," + "zone," + "typo_HU," + "averageSDPPerHU,"
 				+ "HUpHectareDensity," + "SDPpHectareDensity," + "EmprisepHectareDensity";
 
 		genStatFirstLine = "code," + "SDPTot," + "empriseTot," + "initial_densite," + "average_densiteHU," + "standardDev_densiteHU,"
@@ -67,7 +88,7 @@ public class BuildingToHousingUnit extends Indicators {
 
 	public BuildingToHousingUnit(File batiFolder, File paramFile, SimpluParametersJSON par) throws Exception {
 		super(par, batiFolder, "", "", indicName);
-		super.paramFolder = paramFile;
+		setParamFolder(paramFile);
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -83,18 +104,20 @@ public class BuildingToHousingUnit extends Indicators {
 		// for (File f : (new File(rootFile, "SimPLUDepot/" + scenario + "/")).listFiles()) {
 		// BuildingToHousingUnit bhtU = new BuildingToHousingUnit(rootFile, p, scenario, f.getName());
 		BuildingToHousingUnit bhtU = new BuildingToHousingUnit(rootFile, p, scenario, variant);
-		// bhtU.distributionEstimate();
-		// bhtU.makeGenStat();
-		// bhtU.setCountToZero();
-		// // for every cities
-		// List<String> listInsee = FromGeom.getInsee(new File(bhtU.rootFile, "/dataGeo/old/communities.shp"), "DEPCOM");
-		// for (String city : listInsee) {
-		// bhtU.makeGenStat(city);
-		// bhtU.setCountToZero();
-		// }
+//		bhtU.distributionEstimate();
+//		bhtU.makeGenStat();
+//		bhtU.setCountToZero();
+//
+//		// for every cities
+//		List<String> listInsee = FromGeom.getInsee(new File(bhtU.getRootFile(), "/dataGeo/old/communities.shp"), "DEPCOM");
+//		for (String city : listInsee) {
+//			bhtU.makeGenStat(city);
+//			bhtU.setCountToZero();
+//		}
+		File parcelleStatFile = bhtU.joinStatoBTHParcels("housingUnits.csv");
+		bhtU.createGraphDensity(new File(bhtU.getIndicFile(), "housingUnits.csv"));
 		File commStatFile = bhtU.joinStatoBTHCommunities("genStat.csv");
-		allOfTheMap(bhtU, commStatFile);
-		//
+		allOfTheMap(bhtU, commStatFile, parcelleStatFile);
 
 		// bhtU.createGraphCount(new File(bhtU.indicFile, "genStat.csv"));
 	}
@@ -172,24 +195,63 @@ public class BuildingToHousingUnit extends Indicators {
 	}
 
 	public void createGraphDensity(File distrib) throws IOException {
-		String[] xType = { "HUpHectareDensity" };
-		makeGraph(distrib, graphDepotFile, "Scenario : " + scenarName + " - Variante : " + variantName, xType, "densité de logements par hectare",
-				"densité de logements par hectare");
+		makeGraphDens(distrib, getGraphDepotFile(), "Scenario : " + scenarName + " - Variante : " + variantName, "HUpHectareDensity",
+				"densité de logements par hectare", "nombre de parcelle", 0, 100);
+		makeGraphDens(distrib, getGraphDepotFile(), "Scenario : " + scenarName + " - Variante : " + variantName, "SDPpHectareDensity",
+				"densité de surface de plancher des bâtiments par hectare", "nombre de parcelle", 0, 6000);
+		makeGraphDens(distrib, getGraphDepotFile(), "Scenario : " + scenarName + " - Variante : " + variantName, "EmprisepHectareDensity",
+				"densité de l'emprise des bâtiments par hectare", "nombre de parcelle", 0, 6000);
 	}
 
 	public void createGraphCount(File distrib) throws IOException {
 		String[] xType = { "nbHU_detachedHouse", "nbHU_smallHouse", "nbHU_multiFamilyHouse", "nbHU_smallBlockFlat", "nbHU_midBlockFlat" };
-		makeGraph(distrib, graphDepotFile, "Scenario : " + scenarName + " - Variante : " + variantName, xType, "Type de bâtiment",
+		makeGraph(distrib, getGraphDepotFile(), "Scenario : " + scenarName + " - Variante : " + variantName, xType, "Type de bâtiment",
 				"Nombre de logements simulés");
 		String[] xTypo = { "nbHU_rural", "nbHU_periUrbain", "nbHU_banlieue", "nbHU_centre" };
-		makeGraph(distrib, graphDepotFile, "Scenario : " + scenarName + " - Variante : " + variantName, xTypo, "Typologie des communes",
+		makeGraph(distrib, getGraphDepotFile(), "Scenario : " + scenarName + " - Variante : " + variantName, xTypo, "Typologie des communes",
 				"Nombre de logements simulés");
 		String[] xZone = { "nbHU_U", "nbHU_AU", "nbHU_NC" };
-		makeGraph(distrib, graphDepotFile, "Scenario : " + scenarName + " - Variante : " + variantName, xZone, "Type de zonage",
+		makeGraph(distrib, getGraphDepotFile(), "Scenario : " + scenarName + " - Variante : " + variantName, xZone, "Type de zonage",
 				"Nombre de logements simulés");
 		String[] xConso = { "SDPTot", "empriseTot" };
-		makeGraph(distrib, graphDepotFile, "Scenario : " + scenarName + " - Variante : " + variantName, xConso,
+		makeGraph(distrib, getGraphDepotFile(), "Scenario : " + scenarName + " - Variante : " + variantName, xConso,
 				"Consommation surfacique des bâtiments simulés", "Surface (em km²)");
+	}
+
+	public static void makeGraphDens(File csv, File graphDepotFile, String title, String x, String xTitle, String yTitle, int xMin, int xMax)
+			throws IOException {
+		// Create Chart
+		List<Double> values = new ArrayList<Double>();
+
+		// List<Double> yS = new ArrayList<Double>();
+
+		// SeriesData csvData= CSVImporter.getSeriesDataFromCSVFile(csv, DataOrientation.Columns, s, y);
+		CSVReader csvR = new CSVReader(new FileReader(csv));
+		int iX = 0;
+		String[] fLine = csvR.readNext();
+		// get them first line
+		for (int i = 0; i < fLine.length; i++) {
+			if (fLine[i].equals(x))
+				iX = i;
+		}
+		for (String[] lines : csvR.readAll()) {
+			values.add(Double.valueOf(lines[iX]));
+		}
+
+		csvR.close();
+
+		Histogram histo = new Histogram(values, 20, xMin, xMax);
+		CategoryChart chart = new CategoryChartBuilder().width(800).height(600).title(title).xAxisTitle(xTitle).yAxisTitle(yTitle).build();
+		chart.addSeries(makeLabelPHDable(x), histo.getxAxisData(), histo.getyAxisData());
+
+		// Customize Chart
+		// chart.getStyler().setLegendPosition(LegendPosition.InsideNW);
+		chart.getStyler().setLegendVisible(false);
+		chart.getStyler().setHasAnnotations(false);
+		chart.getStyler().setXAxisLabelRotation(45);
+		chart.getStyler().setXAxisLogarithmicDecadeOnly(true);
+		BitmapEncoder.saveBitmap(chart, graphDepotFile + "/" + SimuTool.makeCamelWordOutOfPhrases(xTitle + yTitle), BitmapFormat.PNG);
+		// new SwingWrapper(chart).displayChart();
 	}
 
 	public static void makeGraph(File csv, File graphDepotFile, String title, String[] x, String xTitle, String yTitle) throws IOException {
@@ -231,37 +293,47 @@ public class BuildingToHousingUnit extends Indicators {
 		// new SwingWrapper(chart).displayChart();
 	}
 
-	public static void allOfTheMap(BuildingToHousingUnit bhtU, File commStatFile)
+	public static void allOfTheMap(BuildingToHousingUnit bhtU, File commStatFile, File parcelStatFile)
 			throws MalformedURLException, NoSuchAuthorityCodeException, IOException, FactoryException {
-		// List<MapRenderer> allOfTheMaps = new ArrayList<MapRenderer>();
-		// MapRenderer diffObjDensMap = new DiffObjDensMap(1000, 1000, bhtU.mapStyle, commStatFile, bhtU.mapDepotFile);
-		// allOfTheMaps.add(diffObjDensMap);
-		// MapRenderer diffObjLgtMap = new DiffObjLgtMap(1000, 1000, bhtU.mapStyle, commStatFile, bhtU.mapDepotFile);
-		// allOfTheMaps.add(diffObjLgtMap);
-		// MapRenderer nbHU = new NbHU(1000, 1000, bhtU.mapStyle, commStatFile, bhtU.mapDepotFile);
-		// allOfTheMaps.add(nbHU);
-		// MapRenderer nbHUDetachedHouse = new NbHUDetachedHouse(1000, 1000, bhtU.mapStyle, commStatFile, bhtU.mapDepotFile);
-		// allOfTheMaps.add(nbHUDetachedHouse);
-		// MapRenderer nbHUMidBlock = new NbHUMidBlock(1000, 1000, bhtU.mapStyle, commStatFile, bhtU.mapDepotFile);
-		// allOfTheMaps.add(nbHUMidBlock);
-		// MapRenderer nbHUSmallBlock = new NbHUSmallBlock(1000, 1000, bhtU.mapStyle, commStatFile, bhtU.mapDepotFile);
-		// allOfTheMaps.add(nbHUSmallBlock);
-		// MapRenderer nbHUSmallHouse = new NbHUSmallHouse(1000, 1000, bhtU.mapStyle, commStatFile, bhtU.mapDepotFile);
-		// allOfTheMaps.add(nbHUSmallHouse);
-		// MapRenderer nbHUMultiFamilyHouse = new NbHUMultiFamilyHouse(1000, 1000, bhtU.mapStyle, commStatFile, bhtU.mapDepotFile);
-		// allOfTheMaps.add(nbHUMultiFamilyHouse);
-		// MapRenderer nbHUU = new NbHUU(1000, 1000, bhtU.mapStyle, commStatFile, bhtU.mapDepotFile);
-		// allOfTheMaps.add(nbHUU);
-		// MapRenderer nbHUAU = new NbHUAU(1000, 1000, bhtU.mapStyle, commStatFile, bhtU.mapDepotFile);
-		// allOfTheMaps.add(nbHUAU);
-		//
-		// for (MapRenderer map : allOfTheMaps) {
-		// map.renderCityInfo();
-		// map.generateSVG();
-		// }
+		List<MapRenderer> allOfTheMaps = new ArrayList<MapRenderer>();
 
-		File file1 = bhtU.createNewDensity(new File(bhtU.rootFile, "dataGeo/base-ic-logement-2012.csv"),
-				new File(bhtU.rootFile, "dataGeo/old/communities.shp"), new File(bhtU.rootFile, "dataRegulation/zoning.shp"),
+		// buildings maps
+		MapRenderer diffObjDensMap = new DiffObjDensMap(1000, 1000, bhtU.getMapStyle(), commStatFile, bhtU.getMapDepotFile());
+		allOfTheMaps.add(diffObjDensMap);
+		MapRenderer diffObjLgtMap = new DiffObjLgtMap(1000, 1000, bhtU.getMapStyle(), commStatFile, bhtU.getMapDepotFile());
+		allOfTheMaps.add(diffObjLgtMap);
+		MapRenderer nbHU = new NbHU(1000, 1000, bhtU.getMapStyle(), commStatFile, bhtU.getMapDepotFile());
+		allOfTheMaps.add(nbHU);
+		MapRenderer nbHUDetachedHouse = new NbHUDetachedHouse(1000, 1000, bhtU.getMapStyle(), commStatFile, bhtU.getMapDepotFile());
+		allOfTheMaps.add(nbHUDetachedHouse);
+		MapRenderer nbHUMidBlock = new NbHUMidBlock(1000, 1000, bhtU.getMapStyle(), commStatFile, bhtU.getMapDepotFile());
+		allOfTheMaps.add(nbHUMidBlock);
+		MapRenderer nbHUSmallBlock = new NbHUSmallBlock(1000, 1000, bhtU.getMapStyle(), commStatFile, bhtU.getMapDepotFile());
+		allOfTheMaps.add(nbHUSmallBlock);
+		MapRenderer nbHUSmallHouse = new NbHUSmallHouse(1000, 1000, bhtU.getMapStyle(), commStatFile, bhtU.getMapDepotFile());
+		allOfTheMaps.add(nbHUSmallHouse);
+		MapRenderer nbHUMultiFamilyHouse = new NbHUMultiFamilyHouse(1000, 1000, bhtU.getMapStyle(), commStatFile, bhtU.getMapDepotFile());
+		allOfTheMaps.add(nbHUMultiFamilyHouse);
+		MapRenderer nbHUU = new NbHUU(1000, 1000, bhtU.getMapStyle(), commStatFile, bhtU.getMapDepotFile());
+		allOfTheMaps.add(nbHUU);
+		MapRenderer nbHUAU = new NbHUAU(1000, 1000, bhtU.getMapStyle(), commStatFile, bhtU.getMapDepotFile());
+		allOfTheMaps.add(nbHUAU);
+
+		// parcels maps
+		MapRenderer dHuHec = new ParcelleDensHUpHec(1000, 1000, bhtU.getMapStyle(), parcelStatFile, bhtU.getMapDepotFile());
+		allOfTheMaps.add(dHuHec);
+		MapRenderer dSDPHec = new ParcelleDensSDPpHec(1000, 1000, bhtU.getMapStyle(), parcelStatFile, bhtU.getMapDepotFile());
+		allOfTheMaps.add(dSDPHec);
+		MapRenderer dEmpHec = new ParcelleDensEmprisepHec(1000, 1000, bhtU.getMapStyle(), parcelStatFile, bhtU.getMapDepotFile());
+		allOfTheMaps.add(dEmpHec);
+
+		for (MapRenderer map : allOfTheMaps) {
+			map.renderCityInfo();
+			map.generateSVG();
+		}
+
+		File file1 = bhtU.createNewDensity(new File(bhtU.getRootFile(), "dataGeo/base-ic-logement-2012.csv"),
+				new File(bhtU.getRootFile(), "dataGeo/old/communities.shp"), new File(bhtU.getRootFile(), "dataRegulation/zoning.shp"),
 				new File(bhtU.getMapDepotFile(), "commNewDens.shp"), "P12_LOG", "COM");
 
 		DensIniNewComp map = new DensIniNewComp(1000, 1000, bhtU.getMapStyle(), file1, bhtU.getMapDepotFile());
@@ -302,7 +374,7 @@ public class BuildingToHousingUnit extends Indicators {
 			while (commIt.hasNext()) {
 				SimpleFeature feat = commIt.next();
 				if (feat.getAttribute("DEPCOM").equals(code)) {
-					iniDens = (Double) feat.getAttribute("iniDens");
+					iniDens = (Double) feat.getAttribute("densIni");
 				}
 			}
 		} catch (Exception problem) {
@@ -312,16 +384,13 @@ public class BuildingToHousingUnit extends Indicators {
 		}
 
 		if (iniDens == 0.0) {
-			System.out.println("iniDens's missing");
-
+			System.out.println("densIni's missing");
 			ShapefileDataStore parcelSDS = new ShapefileDataStore(parcelsFile.toURI().toURL());
 			SimpleFeatureCollection parcelSFC = DataUtilities
 					.collection(ParcelFonction.getParcelByZip(parcelSDS.getFeatureSource().getFeatures(), code));
-
 			ShapefileDataStore buildingSDS = new ShapefileDataStore(buildingFile.toURI().toURL());
 			SimpleFeatureCollection buildingSFC = DataUtilities
 					.collection(Vectors.snapDatas(buildingSDS.getFeatureSource().getFeatures(), Vectors.unionSFC(parcelSFC)));
-
 			buildingSDS.dispose();
 			parcelSDS.dispose();
 			iniDens = existingBuildingDensity(buildingSFC, code, parcelSFC);
@@ -436,7 +505,7 @@ public class BuildingToHousingUnit extends Indicators {
 	public void makeGenStat(String code) throws Exception {
 		System.out.println();
 		System.out.println("city " + code);
-		File geoFile = new File(rootFile, "dataGeo");
+		File geoFile = new File(getRootFile(), "dataGeo");
 		double iniDensite = existingBuildingDensity(FromGeom.getBuild(geoFile), FromGeom.getParcels(geoFile), FromGeom.getCommunities(geoFile), code);
 		String insee = code.substring(0, 5);
 		setCountToZero();
@@ -451,7 +520,7 @@ public class BuildingToHousingUnit extends Indicators {
 				sDPpHectareDensityP = 0, emprisepHectareDensityP = 0;
 		for (int i = 0; i < firstLine.length; i++) {
 			switch (firstLine[i]) {
-			case "code_parcel":
+			case "codeParcel":
 				codeParcelP = i;
 				break;
 			case "SDP":
@@ -494,13 +563,13 @@ public class BuildingToHousingUnit extends Indicators {
 				densitySDPStat.addValue(Double.valueOf(l[sDPpHectareDensityP]));
 				densityEmpriseStat.addValue(Double.valueOf(l[emprisepHectareDensityP]));
 				empriseTot = empriseTot + Double.valueOf(l[empriseP]);
-				objDens = SimuTool.getDensityGoal(new File(rootFile, "dataGeo"), insee);
-				objHU = SimuTool.getHousingUnitsGoal(new File(rootFile, "dataGeo"), insee);
+				objDens = SimuTool.getDensityGoal(new File(getRootFile(), "dataGeo"), insee);
+				objHU = SimuTool.getHousingUnitsGoal(new File(getRootFile(), "dataGeo"), insee);
 				if (insee.equals("ALLLL")) {
 					// calculating a sum of the objectives
-					List<String> listInsee = FromGeom.getInsee(new File(rootFile, "/dataGeo/communities.shp"), "DEPCOM");
+					List<String> listInsee = FromGeom.getInsee(new File(getRootFile(), "/dataGeo/communities.shp"), "DEPCOM");
 					for (String in : listInsee) {
-						objHU = objHU + SimuTool.getDensityGoal(new File(rootFile, "dataGeo"), in);
+						objHU = objHU + SimuTool.getDensityGoal(new File(getRootFile(), "dataGeo"), in);
 					}
 				}
 				// typo
@@ -566,7 +635,7 @@ public class BuildingToHousingUnit extends Indicators {
 		double diffDens = objDens - averageDensiteHU;
 		double diffObj = objHU - nbHU;
 
-		String line = insee + "," + round(sDPtot / 1000000, 3) + "," + round(empriseTot / 1000000, 3) + "," + iniDensite + "," + averageDensiteHU
+		String line = insee + "," + round(sDPtot / 1000000, 6) + "," + round(empriseTot / 1000000, 6) + "," + iniDensite + "," + averageDensiteHU
 				+ "," + standDevDensiteHU + "," + averageDensiteSDP + "," + standDevDensiteSDP + "," + averageDensiteEmprise + ","
 				+ +standDevDensiteEmprise + "," + objDens + "," + diffDens + "," + averageSDPpHU + "," + standDevSDPpHU + "," + nbBuildings + ","
 				+ nbHU + "," + objHU + "," + diffObj + "," + nbDetachedHouse + "," + nbSmallHouse + "," + nbMultifamilyHouse + "," + nbSmallBlockFlat
@@ -577,7 +646,7 @@ public class BuildingToHousingUnit extends Indicators {
 	}
 
 	public int distributionEstimate() throws IOException {
-		ShapefileDataStore batiSimuledSDS = new ShapefileDataStore(simPLUDepotGenFile.toURI().toURL());
+		ShapefileDataStore batiSimuledSDS = new ShapefileDataStore(getSimPLUDepotGenFile().toURI().toURL());
 		SimpleFeatureCollection batiSimuled = batiSimuledSDS.getFeatureSource().getFeatures();
 		int lgt = distributionEstimate(batiSimuled);
 		batiSimuledSDS.dispose();
@@ -601,7 +670,7 @@ public class BuildingToHousingUnit extends Indicators {
 					break;
 				// for collective buildings
 				default:
-					repartition = makeCollectiveHousingRepartition(ftBati, type, paramFolder);
+					repartition = makeCollectiveHousingRepartition(ftBati, type, getParamFolder());
 					nbHU = repartition.get("carac").get("totHU");
 				}
 			}
@@ -620,7 +689,7 @@ public class BuildingToHousingUnit extends Indicators {
 
 					// typo of the zone
 					// String typo = FromGeom.parcelInTypo(FromGeom.getCommunitiesIris(new File(rootFile, "dataGeo")), ftBati).toUpperCase();
-					String typo = FromGeom.getTypo(FromGeom.getCommunitiesIris(new File(rootFile, "dataGeo")),
+					String typo = FromGeom.getTypo(FromGeom.getCommunitiesIris(new File(getRootFile(), "dataGeo")),
 							(Geometry) ftBati.getDefaultGeometry());
 					BuildingType type = BuildingType.valueOf((String) ftBati.getAttribute("BUILDTYPE"));
 					boolean collectiveHousing = false;
@@ -637,7 +706,7 @@ public class BuildingToHousingUnit extends Indicators {
 					// for collective buildings
 					default:
 						collectiveHousing = true;
-						repartition = makeCollectiveHousingRepartition(ftBati, type, paramFolder);
+						repartition = makeCollectiveHousingRepartition(ftBati, type, getParamFolder());
 						nbHU = repartition.get("carac").get("totHU");
 						averageSDPpHU = sDPLgt / nbHU;
 					}
@@ -892,6 +961,80 @@ public class BuildingToHousingUnit extends Indicators {
 		result[1] = leftSDP;
 		result[2] = conti;
 		return result;
+	}
+
+	public File joinStatoBTHParcels(String nameFileToJoin) throws NoSuchAuthorityCodeException, IOException, FactoryException {
+		ShapefileDataStore communitiesOGSDS = new ShapefileDataStore(getParcelDepotGenFile().toURI().toURL());
+		SimpleFeatureCollection communitiesOG = communitiesOGSDS.getFeatureSource().getFeatures();
+		File result = joinStatToBTHParcel(communitiesOG, new File(getIndicFile(), nameFileToJoin), new File(getIndicFile(), "parcStat.shp"));
+		communitiesOGSDS.dispose();
+		return result;
+	}
+
+	public File joinStatToBTHParcel(SimpleFeatureCollection collec, File statFile, File outFile)
+			throws IOException, NoSuchAuthorityCodeException, FactoryException {
+		DefaultFeatureCollection result = new DefaultFeatureCollection();
+		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
+		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
+		sfTypeBuilder.setName("parcels");
+		sfTypeBuilder.setCRS(sourceCRS);
+		sfTypeBuilder.add("the_geom", Polygon.class);
+		sfTypeBuilder.setDefaultGeometry("the_geom");
+		sfTypeBuilder.add("INSEE", String.class);
+		sfTypeBuilder.add("codeParcel", String.class);
+		sfTypeBuilder.add("densHUpHe", Double.class);
+		sfTypeBuilder.add("densSDPpHe", Double.class);
+		sfTypeBuilder.add("densEmppHe", Double.class);
+
+		SimpleFeatureBuilder builder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
+		SimpleFeatureIterator it = collec.features();
+
+		int codeParcelP = 0, densHUpHeP = 0, densSDPpHeP = 0, densEmppHeP = 0;
+		CSVReader stat = new CSVReader(new FileReader(statFile), ',', '\0');
+		String[] firstLine = stat.readNext();
+		for (int i = 0; i < firstLine.length; i++) {
+			switch (firstLine[i]) {
+			case "codeParcel":
+				codeParcelP = i;
+				break;
+			case "HUpHectareDensity":
+				densHUpHeP = i;
+				break;
+			case "SDPpHectareDensity":
+				densSDPpHeP = i;
+				break;
+			case "EmprisepHectareDensity":
+				densEmppHeP = i;
+				break;
+			}
+		}
+		List<String[]> totLines = stat.readAll();
+		stat.close();
+		// set first names
+		try {
+			while (it.hasNext()) {
+				SimpleFeature featCity = it.next();
+				String insee = (String) featCity.getAttribute("CODE");
+				for (String[] l : totLines) {
+					if (l[codeParcelP].equals(insee)) {
+						builder.set("the_geom", featCity.getDefaultGeometry());
+						builder.set("INSEE", l[codeParcelP].substring(0, 5));
+						builder.set("codeParcel", l[codeParcelP]);
+						builder.set("densHUpHe", Double.valueOf(l[densHUpHeP]));
+						builder.set("densSDPpHe", Double.valueOf(l[densSDPpHeP]));
+						builder.set("densEmppHe", Double.valueOf(l[densEmppHeP]));
+						result.add(builder.buildFeature(null));
+						break;
+					}
+				}
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			it.close();
+		}
+
+		return Vectors.exportSFC(result, outFile);
 	}
 
 	// public String setBuildingType(int nbLgt) {

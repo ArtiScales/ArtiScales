@@ -87,7 +87,7 @@ public class CompatibleResult extends Indicators {
 	}
 
 	public File joinStatToCommunities(String nameFileToJoin) throws NoSuchAuthorityCodeException, IOException, FactoryException {
-		ShapefileDataStore communitiesOGSDS = new ShapefileDataStore((new File(rootFile, "/dataGeo/old/communities.shp")).toURI().toURL());
+		ShapefileDataStore communitiesOGSDS = new ShapefileDataStore((new File(getRootFile(), "/dataGeo/old/communities.shp")).toURI().toURL());
 		SimpleFeatureCollection communitiesOG = communitiesOGSDS.getFeatureSource().getFeatures();
 		File result = joinStatToSFC(communitiesOG, new File(getIndicFile(), nameFileToJoin), new File(getIndicFile(), "commStat.shp"));
 		communitiesOGSDS.dispose();
@@ -201,12 +201,12 @@ public class CompatibleResult extends Indicators {
 	}
 
 	public void prepareNewGeoFile() throws Exception {
-		copyAll((new File(rootFile, "dataGeo")), newGeoFile);
+		copyAll((new File(getRootFile(), "dataGeo")), newGeoFile);
 		// paste new parcels
-		Vectors.copyShp("parcelGenExport", parcelDepotGenFile.getParentFile(), newGeoFile);
+		Vectors.copyShp("parcelGenExport", getParcelDepotGenFile().getParentFile(), newGeoFile);
 
 		// merge simulated buildings
-		List<File> lBuilding = Arrays.asList(new File(newGeoFile, "building.shp"), simPLUDepotGenFile);
+		List<File> lBuilding = Arrays.asList(new File(newGeoFile, "building.shp"), getSimPLUDepotGenFile());
 		Vectors.mergeVectFiles(lBuilding, new File(newGeoFile, "building.shp"));
 	}
 
@@ -231,13 +231,13 @@ public class CompatibleResult extends Indicators {
 			sds.dispose();
 		}
 
-		SelectParcels sp = new SelectParcels(rootFile, newParcelDepot, mupOutputFile, p);
+		SelectParcels sp = new SelectParcels(getRootFile(), newParcelDepot, getMupOutputFile(), p);
 		sp.setGeoFile(newGeoFile);
 		sp.selectAndDecompParcels(insee, true, parcelGen);
 
 		// generate new SimPLUSimu
-		SimPLUSimulator simPLU = new SimPLUSimulator(new File(rootFile, "paramFolder"), getIndicFile(), newGeoFile,
-				new File(rootFile, "dataRegulation"), tmpFile, parcelCity, p, newOutSimPLU);
+		SimPLUSimulator simPLU = new SimPLUSimulator(new File(getRootFile(), "paramFolder"), getIndicFile(), newGeoFile,
+				new File(getRootFile(), "dataRegulation"), tmpFile, parcelCity, p, newOutSimPLU);
 		System.out.println("number to fill : " + nbToFill);
 		int restObj = simPLU.run(nbToFill, parcelCity);
 		if (restObj > 0) {
@@ -338,14 +338,14 @@ public class CompatibleResult extends Indicators {
 	 * @throws Exception
 	 */
 	public void complete(String insee) throws Exception {
-		File geoFile = new File(rootFile, "dataGeo");
+		File geoFile = new File(getRootFile(), "dataGeo");
 
 		// bth indicator to get the total building shapefile and do the estimation of household
-		BuildingToHousingUnit bht = new BuildingToHousingUnit(rootFile, p, scenarName, variantName);
+		BuildingToHousingUnit bht = new BuildingToHousingUnit(getRootFile(), p, scenarName, variantName);
 		// get the building file and affect it an evaluation according to MUP-City's cells
 		File tmpBati = new File(tmpFile, "batiment.shp");
 		if (!tmpBati.exists()) {
-			Vectors.exportSFC(SimuTool.giveEvalToBuilding(bht.getBuildingTotalFile(), bht.mupOutputFile), tmpBati);
+			Vectors.exportSFC(SimuTool.giveEvalToBuilding(bht.getBuildingTotalFile(), bht.getMupOutputFile()), tmpBati);
 		}
 		ShapefileDataStore sds = new ShapefileDataStore(tmpBati.toURI().toURL());
 		SimpleFeatureCollection buildings = sds.getFeatureSource().getFeatures();
@@ -365,7 +365,7 @@ public class CompatibleResult extends Indicators {
 	 * @throws Exception
 	 */
 	public void complete() throws Exception {
-		File geoFile = new File(rootFile, "dataGeo");
+		File geoFile = new File(getRootFile(), "dataGeo");
 
 		// list of all insee we analyse
 		List<String> listInsee = FromGeom.getInsee(FromGeom.getCommunities(geoFile), "DEPCOM");

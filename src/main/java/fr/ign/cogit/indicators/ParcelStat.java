@@ -76,7 +76,7 @@ public class ParcelStat extends Indicators {
 		// parc.caclulateStatBatiParcel();
 		parc.writeLine("AllZone", "ParcelStat");
 		parc.setCountToZero();
-		List<String> listInsee = FromGeom.getInsee(new File(parc.rootFile, "/dataGeo/old/communities.shp"), "DEPCOM");
+		List<String> listInsee = FromGeom.getInsee(new File(parc.getRootFile(), "/dataGeo/old/communities.shp"), "DEPCOM");
 
 		for (String city : listInsee) {
 			SimpleFeatureCollection commParcel = ParcelFonction.getParcelByZip(parcelStatSHP, city);
@@ -95,7 +95,7 @@ public class ParcelStat extends Indicators {
 
 	public void createMap(ParcelStat parc, File commStatFile) throws IOException, NoSuchAuthorityCodeException, FactoryException {
 		List<MapRenderer> allOfTheMaps = new ArrayList<MapRenderer>();
-		MapRenderer surfParcelSimulatedMap = new SurfParcelSimulatedMap(1000, 1000, new File(parc.rootFile, "mapStyle"), commStatFile,
+		MapRenderer surfParcelSimulatedMap = new SurfParcelSimulatedMap(1000, 1000, new File(parc.getRootFile(), "mapStyle"), commStatFile,
 				parc.getMapDepotFile());
 		allOfTheMaps.add(surfParcelSimulatedMap);
 		MapRenderer surfParcelFailedMap = new SurfParcelFailedMap(1000, 1000, parc.getMapStyle(), commStatFile, parc.getMapDepotFile());
@@ -115,12 +115,12 @@ public class ParcelStat extends Indicators {
 		String[] xTypeSimulFailed = { "nbParcelSimulFailedCentre", "nbParcelSimulFailedBanlieue", "nbParcelSimulFailedPeriUrb",
 				"nbParcelSimulatedRural" };
 		String[][] xType = { xTypeSimulated, xTypeSimulFailed };
-		makeGraphDouble(distrib, graphDepotFile, "Scenario : " + scenarName + " - Variante : " + variantName, xType, "typologie",
+		makeGraphDouble(distrib, getGraphDepotFile(), "Scenario : " + scenarName + " - Variante : " + variantName, xType, "typologie",
 				"Nombre de parcelles");
 		String[] xZoneSimulated = { "nbParcelSimulatedU", "nbParcelSimulatedAU", "nbParcelSimulatedNC" };
 		String[] xZoneSimulFailed = { "nbParcelSimulFailedU", "nbParcelSimulFailedAU", "nbParcelSimulFailedNC" };
 		String[][] xZone = { xZoneSimulated, xZoneSimulFailed };
-		makeGraphDouble(distrib, graphDepotFile, "Scenario : " + scenarName + " - Variante : " + variantName, xZone, "type de zone",
+		makeGraphDouble(distrib, getGraphDepotFile(), "Scenario : " + scenarName + " - Variante : " + variantName, xZone, "type de zone",
 				"Nombre de parcelles");
 
 		// Surface
@@ -129,12 +129,12 @@ public class ParcelStat extends Indicators {
 		String[] xTypeSimulFailedSurf = { "surfParcelSimulFailedCentre", "surfParcelSimulFailedBanlieue", "surfParcelSimulFailedPeriUrb",
 				"surfParcelSimulatedRural" };
 		String[][] xTypeSurf = { xTypeSimulatedSurf, xTypeSimulFailedSurf };
-		makeGraphDouble(distrib, graphDepotFile, "Scenario : " + scenarName + " - Variante : " + variantName, xTypeSurf, "typologie",
+		makeGraphDouble(distrib, getGraphDepotFile(), "Scenario : " + scenarName + " - Variante : " + variantName, xTypeSurf, "typologie",
 				"Surface de parcelles (km²)");
 		String[] xZoneSimulatedSurf = { "surfParcelSimulatedU", "surfParcelSimulatedAU", "surfParcelSimulatedNC" };
 		String[] xZoneSimulFailedSurf = { "surfParcelSimulFailedU", "surfParcelSimulFailedAU", "surfParcelSimulFailedNC" };
 		String[][] xZoneSurf = { xZoneSimulatedSurf, xZoneSimulFailedSurf };
-		makeGraphDouble(distrib, graphDepotFile, "Scenario : " + scenarName + " - Variante : " + variantName, xZoneSurf, "type de zone",
+		makeGraphDouble(distrib, getGraphDepotFile(), "Scenario : " + scenarName + " - Variante : " + variantName, xZoneSurf, "type de zone",
 				"Surface de parcelles (km²)");
 
 	}
@@ -232,7 +232,7 @@ public class ParcelStat extends Indicators {
 	}
 
 	public File joinStatToCommunities() throws NoSuchAuthorityCodeException, IOException, FactoryException {
-		ShapefileDataStore communitiesSDS = new ShapefileDataStore((new File(rootFile, "/dataGeo/old/communities.shp")).toURI().toURL());
+		ShapefileDataStore communitiesSDS = new ShapefileDataStore((new File(getRootFile(), "/dataGeo/old/communities.shp")).toURI().toURL());
 		SimpleFeatureCollection communitiesOG = communitiesSDS.getFeatureSource().getFeatures();
 		File result = joinStatToSFC(communitiesOG, new File(getIndicFile(), "ParcelStat.csv"), new File(getIndicFile(), "commStat.shp"));
 		communitiesSDS.dispose();
@@ -414,7 +414,7 @@ public class ParcelStat extends Indicators {
 						nbParcelSimulatedNC++;
 					}
 					// System.out.println(FromGeom.getTypo(FromGeom.getCommunitiesIris(new File(rootFile, "dataGeo")), (Geometry) ft.getDefaultGeometry()));
-					switch (FromGeom.getTypo(FromGeom.getCommunitiesIris(new File(rootFile, "dataGeo")), (Geometry) ft.getDefaultGeometry())) {
+					switch (FromGeom.getTypo(FromGeom.getCommunitiesIris(new File(getRootFile(), "dataGeo")), (Geometry) ft.getDefaultGeometry())) {
 					case "rural":
 						nbParcelSimulatedRural++;
 						surfParcelSimulatedRural = surfParcelSimulatedRural + area;
@@ -452,7 +452,7 @@ public class ParcelStat extends Indicators {
 						nbParcelSimulFailedNC++;
 						surfParcelSimulFailedNC = surfParcelSimulFailedNC + area;
 					}
-					switch (FromGeom.getTypo(FromGeom.getCommunitiesIris(new File(rootFile, "dataGeo")), (Geometry) ft.getDefaultGeometry())) {
+					switch (FromGeom.getTypo(FromGeom.getCommunitiesIris(new File(getRootFile(), "dataGeo")), (Geometry) ft.getDefaultGeometry())) {
 					case "rural":
 						nbParcelSimulFailedRural++;
 						surfParcelSimulFailedRural = surfParcelSimulFailedRural + area;
@@ -489,7 +489,7 @@ public class ParcelStat extends Indicators {
 	 */
 	public SimpleFeatureCollection markSimuledParcels() throws IOException {
 
-		ShapefileDataStore parcelSimuledSDS = new ShapefileDataStore(parcelDepotGenFile.toURI().toURL());
+		ShapefileDataStore parcelSimuledSDS = new ShapefileDataStore(getParcelDepotGenFile().toURI().toURL());
 		SimpleFeatureCollection parcelSimuled = parcelSimuledSDS.getFeatureSource().getFeatures();
 		SimpleFeatureIterator itParcel = parcelSimuled.features();
 
@@ -525,7 +525,7 @@ public class ParcelStat extends Indicators {
 	 * @throws Exception
 	 */
 	public boolean isParcelReallySimulated(SimpleFeature parcel) throws Exception {
-		File simuBuildFiles = new File(super.rootFile + "/SimPLUDepot" + "/" + scenarName + "/" + variantName + "/TotBatSimuFill.shp");
+		File simuBuildFiles = new File(super.getRootFile() + "/SimPLUDepot" + "/" + scenarName + "/" + variantName + "/TotBatSimuFill.shp");
 		ShapefileDataStore batiSDS = new ShapefileDataStore(simuBuildFiles.toURI().toURL());
 		SimpleFeatureCollection batiColl = batiSDS.getFeatureSource().getFeatures();
 
@@ -626,7 +626,7 @@ public class ParcelStat extends Indicators {
 		SimpleFeatureCollection parcelOG = parcelOGSDS.getFeatureSource().getFeatures();
 		List<String> oGCode = ParcelFonction.getCodeParcels(parcelOG);
 
-		ShapefileDataStore parcelSimuledSDS = new ShapefileDataStore(parcelDepotGenFile.toURI().toURL());
+		ShapefileDataStore parcelSimuledSDS = new ShapefileDataStore(getParcelDepotGenFile().toURI().toURL());
 		SimpleFeatureCollection parcelSimuled = parcelSimuledSDS.getFeatureSource().getFeatures();
 		List<String> simuledCode = ParcelFonction.getCodeParcels(parcelSimuled);
 

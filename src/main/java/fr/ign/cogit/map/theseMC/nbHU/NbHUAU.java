@@ -15,6 +15,7 @@ public class NbHUAU extends MapRenderer {
 
 	public NbHUAU(int imageWidth, int imageHeight, File rootMapstyle, File tomapshp, File outfolder) {
 		super(imageWidth, imageHeight, nameMap, text, rootMapstyle, new File(rootMapstyle, "svgModel.svg"), tomapshp, outfolder);
+		legendName = "nbHUCategorie";
 	}
 
 	public static void main(String[] args) throws MalformedURLException, NoSuchAuthorityCodeException, IOException, FactoryException {

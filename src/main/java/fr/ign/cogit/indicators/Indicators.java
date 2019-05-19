@@ -30,14 +30,7 @@ import fr.ign.cogit.util.SimuTool;
 
 public abstract class Indicators {
 	SimpluParametersJSON p;
-	protected File rootFile, paramFolder;
-	private File mapStyle;
-	protected File mupOutputFile;
-	protected File parcelDepotGenFile;
-	protected File simPLUDepotGenFile;
-	private File indicFile;
-	private File mapDepotFile;
-	protected File graphDepotFile;
+	private File rootFile, paramFolder, mupOutputFile, parcelDepotGenFile, simPLUDepotGenFile, mapStyle, graphDepotFile, indicFile, mapDepotFile;
 	protected String scenarName, variantName, echelle, indicName;
 
 	boolean firstLineGen = true;
@@ -49,20 +42,20 @@ public abstract class Indicators {
 		this.rootFile = rootfile;
 		this.scenarName = scenarname;
 		this.variantName = variantname;
-		this.paramFolder = new File(rootFile, "paramFolder");
+		this.setParamFolder(new File(rootFile, "paramFolder"));
 		// we're not sure what's the name of MUp-City's outputs
 		if ((new File(rootFile, "MupCityDepot/" + scenarName + "/" + variantName + "/")).exists()) {
 			for (File f : (new File(rootFile, "MupCityDepot/" + scenarName + "/" + variantName + "/")).listFiles()) {
 				if (f.getName().endsWith(".shp")) {
-					this.mupOutputFile = f;
+					this.setMupOutputFile(f);
 					break;
 				}
 			}
 		}
-		this.parcelDepotGenFile = new File(rootFile, "ParcelSelectionDepot/" + scenarName + "/" + variantName + "/parcelGenExport.shp");
-		this.simPLUDepotGenFile = new File(rootFile, "SimPLUDepot/" + scenarName + "/" + variantName + "/TotBatSimuFill.shp");
-		if (!simPLUDepotGenFile.exists() && !scenarname.equals("") && !variantname.equals("")) {
-			File buildingFile = FromGeom.mergeBatis(simPLUDepotGenFile.getParentFile());
+		this.setParcelDepotGenFile(new File(rootFile, "ParcelSelectionDepot/" + scenarName + "/" + variantName + "/parcelGenExport.shp"));
+		this.setSimPLUDepotGenFile(new File(rootFile, "SimPLUDepot/" + scenarName + "/" + variantName + "/TotBatSimuFill.shp"));
+		if (!getSimPLUDepotGenFile().exists() && !scenarname.equals("") && !variantname.equals("")) {
+			File buildingFile = FromGeom.mergeBatis(getSimPLUDepotGenFile().getParentFile());
 			// TODO the nex treatement is made for the simu that puts zones into a wrong order and will be deleted one day
 			SimuTool.fixBuildingForZone(buildingFile, new File(rootFile, "/dataRegulation/zoning.shp"), true);
 		}
@@ -73,8 +66,8 @@ public abstract class Indicators {
 			setMapStyle(new File(rootFile, "mapStyle"));
 			setMapDepotFile(new File(getIndicFile(), "mapDepot"));
 			getMapDepotFile().mkdir();
-			graphDepotFile = new File(getIndicFile(), "graphDepot");
-			graphDepotFile.mkdir();
+			setGraphDepotFile(new File(getIndicFile(), "graphDepot"));
+			getGraphDepotFile().mkdir();
 		}
 	}
 
@@ -91,7 +84,7 @@ public abstract class Indicators {
 	}
 
 	public File getBuildingTotalFile() {
-		return simPLUDepotGenFile;
+		return getSimPLUDepotGenFile();
 	}
 
 	/**
@@ -177,12 +170,12 @@ public abstract class Indicators {
 	public File joinStatoBTHCommunities(String nameFileToJoin) throws NoSuchAuthorityCodeException, IOException, FactoryException {
 		ShapefileDataStore communitiesOGSDS = new ShapefileDataStore((new File(rootFile, "/dataGeo/old/communities.shp")).toURI().toURL());
 		SimpleFeatureCollection communitiesOG = communitiesOGSDS.getFeatureSource().getFeatures();
-		File result = joinStatToBTHSFC(communitiesOG, new File(getIndicFile(), nameFileToJoin), new File(getIndicFile(), "commStat.shp"));
+		File result = joinStatToBTHCommunities(communitiesOG, new File(getIndicFile(), nameFileToJoin), new File(getIndicFile(), "commStat.shp"));
 		communitiesOGSDS.dispose();
 		return result;
 	}
 
-	public File joinStatToBTHSFC(SimpleFeatureCollection collec, File statFile, File outFile)
+	public File joinStatToBTHCommunities(SimpleFeatureCollection collec, File statFile, File outFile)
 			throws IOException, NoSuchAuthorityCodeException, FactoryException {
 		DefaultFeatureCollection result = new DefaultFeatureCollection();
 		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
@@ -432,8 +425,13 @@ public abstract class Indicators {
 			return "Surface de plancher totale";
 		case "empriseTot":
 			return "Emprise totale";
+		case "HUpHectareDensity":
+			return "Densité de logement par hectare";
+		case "EmprisepHectareDensity":
+			return "Densité de l'emprise des bâtiments par hectare";
+		case "SDPpHectareDensity":
+			return "Densité de la surface de plancher par hectare";
 		}
-
 		throw new FileNotFoundException("name not found");
 	}
 
@@ -467,6 +465,46 @@ public abstract class Indicators {
 
 	public void setMapDepotFile(File mapDepotFile) {
 		this.mapDepotFile = mapDepotFile;
+	}
+
+	public File getGraphDepotFile() {
+		return graphDepotFile;
+	}
+
+	public void setGraphDepotFile(File graphDepotFile) {
+		this.graphDepotFile = graphDepotFile;
+	}
+
+	public File getParcelDepotGenFile() {
+		return parcelDepotGenFile;
+	}
+
+	public void setParcelDepotGenFile(File parcelDepotGenFile) {
+		this.parcelDepotGenFile = parcelDepotGenFile;
+	}
+
+	public File getSimPLUDepotGenFile() {
+		return simPLUDepotGenFile;
+	}
+
+	public void setSimPLUDepotGenFile(File simPLUDepotGenFile) {
+		this.simPLUDepotGenFile = simPLUDepotGenFile;
+	}
+
+	public File getMupOutputFile() {
+		return mupOutputFile;
+	}
+
+	public void setMupOutputFile(File mupOutputFile) {
+		this.mupOutputFile = mupOutputFile;
+	}
+
+	public File getParamFolder() {
+		return paramFolder;
+	}
+
+	public void setParamFolder(File paramFolder) {
+		this.paramFolder = paramFolder;
 	}
 
 	// public File joinStatToBhTSFC(SimpleFeatureCollection collec, File statFile, File outFile)

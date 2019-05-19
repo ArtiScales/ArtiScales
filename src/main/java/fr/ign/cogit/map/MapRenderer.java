@@ -44,7 +44,7 @@ public class MapRenderer {
 	private Rectangle imageBounds;
 	protected File sldFile, svgFile, rootMapStyle, toMapShapeFile, outFolder;
 
-	protected String mapName, text;
+	protected String mapName, text, legendName;
 
 	StyleFactory styleFactory = CommonFactoryFinder.getStyleFactory(null);
 	FilterFactory filterFactory = CommonFactoryFinder.getFilterFactory(null);
@@ -58,6 +58,7 @@ public class MapRenderer {
 		this.sldFile = new File(rootMapstyle, mapName + ".sld");
 		this.svgFile = svgfile;
 		this.toMapShapeFile = tomapshp;
+		this.legendName = mapname;
 	}
 
 	private static String format(int v) {
@@ -345,7 +346,7 @@ public class MapRenderer {
 			if (((String) line).contains("sodipodi:absref=")) {
 				String newLine = "sodipodi:absref=\"" + outFolder.getAbsolutePath() + "/" + imgName + "-map.png\"";
 				if (((String) line).contains("legend")) {
-					newLine = "sodipodi:absref=\"" + rootMapStyle.getAbsolutePath() + "/" + mapName + "-legend.png\"";
+					newLine = "sodipodi:absref=\"" + rootMapStyle.getAbsolutePath() + "/" + legendName + "-legend.png\"";
 				}
 				sb.append(newLine + "\n");
 			} else if (((String) line).contains("inkscape:export-filename")) {
