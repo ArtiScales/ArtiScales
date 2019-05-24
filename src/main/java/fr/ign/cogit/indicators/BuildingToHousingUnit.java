@@ -57,6 +57,7 @@ import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.cogit.util.FromGeom;
 import fr.ign.cogit.util.ParcelFonction;
 import fr.ign.cogit.util.SimuTool;
+import javassist.runtime.Desc;
 
 public class BuildingToHousingUnit extends Indicators {
 
@@ -64,7 +65,7 @@ public class BuildingToHousingUnit extends Indicators {
 	int nbBuildings, nbHU, nbStairs, nbDetachedHouse, nbSmallHouse, nbMultifamilyHouse, nbSmallBlockFlat, nbMidBlockFlat, nbU, nbAU, nbNC, nbCentre,
 			nbBanlieue, nbPeriUrbain, nbRural, objHU, diffHU;
 	double sDPtot, empriseTot, averageDensiteHU, averageDensiteSDP, standDevDensiteSDP, averageDensiteEmprise, standDevDensiteEmprise,
-			standDevDensiteHU, objDens, diffDens, averageSDPpHU, standDevSDPpHU;
+			standDevDensiteHU, objDens, diffDens, averageSDPpHU, standDevSDPpHU, eval, averageEval, standDevEval;
 	String housingUnitFirstLine, genFirstLine, genStatFirstLine, numeroParcel;
 	File tmpFile;
 	static String indicName = "bTH";
@@ -76,14 +77,14 @@ public class BuildingToHousingUnit extends Indicators {
 		tmpFile.mkdirs();
 
 		housingUnitFirstLine = "codeParcel," + "SDP," + "emprise," + "nb_housingUnit," + "type_HU," + "zone," + "typo_HU," + "averageSDPPerHU,"
-				+ "HUpHectareDensity," + "SDPpHectareDensity," + "EmprisepHectareDensity";
+				+ "HUpHectareDensity," + "SDPpHectareDensity," + "EmprisepHectareDensity,"+"eval";
 
 		genStatFirstLine = "code," + "SDPTot," + "empriseTot," + "initial_densite," + "average_densiteHU," + "standardDev_densiteHU,"
 				+ "average_densiteSDP," + "standardDev_densiteSDP," + "average_densiteEmprise," + "standardDev_densiteEmprise,"
 				+ "objectifSCOT_densite," + "diff_objectifSCOT_densite," + "average_SDP_per_HU," + "standardDev_SDP_per_HU," + "nb_building,"
 				+ "nb_housingUnit," + "objectifPLH_housingUnit," + "diff_objectifPLH_housingUnit," + "nbHU_detachedHouse," + "nbHU_smallHouse,"
 				+ "nbHU_multiFamilyHouse," + "nbHU_smallBlockFlat," + "nbHU_midBlockFlat," + "nbHU_U," + "nbHU_AU," + "nbHU_NC," + "nbHU_centre,"
-				+ "nbHU_banlieue," + "nbHU_periUrbain," + "nbHU_rural";
+				+ "nbHU_banlieue," + "nbHU_periUrbain," + "nbHU_rural,"+"averageEval,"+"standardDevEval";
 	}
 
 	public BuildingToHousingUnit(File batiFolder, File paramFile, SimpluParametersJSON par) throws Exception {
@@ -104,16 +105,17 @@ public class BuildingToHousingUnit extends Indicators {
 		// for (File f : (new File(rootFile, "SimPLUDepot/" + scenario + "/")).listFiles()) {
 		// BuildingToHousingUnit bhtU = new BuildingToHousingUnit(rootFile, p, scenario, f.getName());
 		BuildingToHousingUnit bhtU = new BuildingToHousingUnit(rootFile, p, scenario, variant);
-		// bhtU.distributionEstimate();
-		// bhtU.makeGenStat();
-		// bhtU.setCountToZero();
-		//
-		// // for every cities
-		// List<String> listInsee = FromGeom.getInsee(new File(bhtU.getRootFile(), "/dataGeo/old/communities.shp"), "DEPCOM");
-		// for (String city : listInsee) {
-		// bhtU.makeGenStat(city);
-		// bhtU.setCountToZero();
-		// }
+		bhtU.distributionEstimate();
+		bhtU.makeGenStat();
+		bhtU.setCountToZero();
+
+		// for every cities
+		List<String> listInsee = FromGeom.getInsee(new File(bhtU.getRootFile(), "/dataGeo/old/communities.shp"),
+				"DEPCOM");
+		for (String city : listInsee) {
+			bhtU.makeGenStat(city);
+			bhtU.setCountToZero();
+		}
 		File parcelleStatFile = bhtU.joinStatoBTHParcels("housingUnits.csv");
 		bhtU.createGraphDensity(new File(bhtU.getIndicFile(), "housingUnits.csv"));
 		File commStatFile = bhtU.joinStatoBTHCommunities("genStat.csv");
@@ -201,6 +203,8 @@ public class BuildingToHousingUnit extends Indicators {
 				"densité de surface de plancher des bâtiments par hectare", "nombre de parcelle", 0, 6000);
 		makeGraphDens(distrib, getGraphDepotFile(), "Scenario : " + scenarName + " - Variante : " + variantName, "EmprisepHectareDensity",
 				"densité de l'emprise des bâtiments par hectare", "nombre de parcelle", 0, 6000);
+		makeGraphDens(distrib, getGraphDepotFile(), "Scenario : " + scenarName + " - Variante : " + variantName, "eval",
+				"évaluation de l'intêret à être urbanisé", "nombre de parcelle", 0, 1);
 	}
 
 	public void createGraphCount(File distrib) throws IOException {
@@ -515,9 +519,10 @@ public class BuildingToHousingUnit extends Indicators {
 		DescriptiveStatistics densitySDPStat = new DescriptiveStatistics();
 		DescriptiveStatistics densityEmpriseStat = new DescriptiveStatistics();
 		DescriptiveStatistics sDPPerHUStat = new DescriptiveStatistics();
+		DescriptiveStatistics evalStat = new DescriptiveStatistics();
 
 		int codeParcelP = 0, sdpP = 0, empriseP = 0, nbHousingUnitP = 0, typeHUP = 0, zoneP = 0, hUpHectareDensityP = 0, typoP = 0,
-				sDPpHectareDensityP = 0, emprisepHectareDensityP = 0;
+				sDPpHectareDensityP = 0, emprisepHectareDensityP = 0, evalP = 0;
 		for (int i = 0; i < firstLine.length; i++) {
 			switch (firstLine[i]) {
 			case "codeParcel":
@@ -550,6 +555,9 @@ public class BuildingToHousingUnit extends Indicators {
 			case "EmprisepHectareDensity":
 				emprisepHectareDensityP = i;
 				break;
+			case "eval":
+				evalP = i;
+				break;
 			}
 		}
 
@@ -562,6 +570,7 @@ public class BuildingToHousingUnit extends Indicators {
 				densityHUStat.addValue(Double.valueOf(l[hUpHectareDensityP]));
 				densitySDPStat.addValue(Double.valueOf(l[sDPpHectareDensityP]));
 				densityEmpriseStat.addValue(Double.valueOf(l[emprisepHectareDensityP]));
+				evalStat.addValue(Double.valueOf(l[evalP]));
 				empriseTot = empriseTot + Double.valueOf(l[empriseP]);
 				objDens = SimuTool.getDensityGoal(new File(getRootFile(), "dataGeo"), insee);
 				objHU = SimuTool.getHousingUnitsGoal(new File(getRootFile(), "dataGeo"), insee);
@@ -631,6 +640,8 @@ public class BuildingToHousingUnit extends Indicators {
 		standDevDensiteEmprise = densityEmpriseStat.getStandardDeviation();
 		averageSDPpHU = sDPPerHUStat.getMean();
 		standDevSDPpHU = sDPPerHUStat.getStandardDeviation();
+		averageEval = evalStat.getMean();
+		standDevEval = evalStat.getStandardDeviation();
 
 		double diffDens = objDens - averageDensiteHU;
 		double diffObj = objHU - nbHU;
@@ -639,7 +650,8 @@ public class BuildingToHousingUnit extends Indicators {
 				+ "," + standDevDensiteHU + "," + averageDensiteSDP + "," + standDevDensiteSDP + "," + averageDensiteEmprise + ","
 				+ +standDevDensiteEmprise + "," + objDens + "," + diffDens + "," + averageSDPpHU + "," + standDevSDPpHU + "," + nbBuildings + ","
 				+ nbHU + "," + objHU + "," + diffObj + "," + nbDetachedHouse + "," + nbSmallHouse + "," + nbMultifamilyHouse + "," + nbSmallBlockFlat
-				+ "," + nbMidBlockFlat + "," + nbU + "," + nbAU + "," + nbNC + "," + nbCentre + "," + nbBanlieue + "," + nbPeriUrbain + "," + nbRural;
+				+ "," + nbMidBlockFlat + "," + nbU + "," + nbAU + "," + nbNC + "," + nbCentre + "," + nbBanlieue + "," + nbPeriUrbain + "," + nbRural 
+				+ "," + averageEval + "," + standDevEval;
 
 		toGenCSV("genStat", genStatFirstLine, line);
 		stat.close();
@@ -686,7 +698,7 @@ public class BuildingToHousingUnit extends Indicators {
 				SimpleFeature ftBati = it.next();
 				String code = (String) ftBati.getAttribute("CODE");
 				if (!buildingCode.contains(code)) {
-
+					eval = (double) ftBati.getAttribute("eval");
 					// typo of the zone
 					// String typo = FromGeom.parcelInTypo(FromGeom.getCommunitiesIris(new File(rootFile, "dataGeo")), ftBati).toUpperCase();
 					String typo = FromGeom.getTypo(FromGeom.getCommunitiesIris(new File(getRootFile(), "dataGeo")),
@@ -728,7 +740,7 @@ public class BuildingToHousingUnit extends Indicators {
 						String lineParticular = numeroParcel + "," + sDPLgt + "," + ftBati.getAttribute("SurfaceSol") + "," + String.valueOf(nbHU)
 								+ "," + type + "," + ftBati.getAttribute("TYPEZONE") + "," + typo + "," + String.valueOf(averageSDPpHU) + ","
 								+ String.valueOf(averageDensiteHU) + "," + String.valueOf(averageDensiteSDP) + ","
-								+ String.valueOf(averageDensiteEmprise);
+								+ String.valueOf(averageDensiteEmprise) + "," + String.valueOf(eval);
 
 						toParticularCSV(getIndicFile(), "housingUnits.csv", getFirstlinePartCsv(), lineParticular);
 					}
@@ -988,11 +1000,13 @@ public class BuildingToHousingUnit extends Indicators {
 		sfTypeBuilder.add("densHUpHe", Double.class);
 		sfTypeBuilder.add("densSDPpHe", Double.class);
 		sfTypeBuilder.add("densEmppHe", Double.class);
+		sfTypeBuilder.add("eval", Double.class);
 
+		
 		SimpleFeatureBuilder builder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
 		SimpleFeatureIterator it = collec.features();
 
-		int codeParcelP = 0, densHUpHeP = 0, densSDPpHeP = 0, densEmppHeP = 0;
+		int codeParcelP = 0, densHUpHeP = 0, densSDPpHeP = 0, densEmppHeP = 0, evalP = 0;
 		CSVReader stat = new CSVReader(new FileReader(statFile), ',', '\0');
 		String[] firstLine = stat.readNext();
 		for (int i = 0; i < firstLine.length; i++) {
@@ -1007,6 +1021,9 @@ public class BuildingToHousingUnit extends Indicators {
 				densSDPpHeP = i;
 				break;
 			case "EmprisepHectareDensity":
+				densEmppHeP = i;
+				break;
+			case "eval":
 				densEmppHeP = i;
 				break;
 			}
@@ -1026,6 +1043,7 @@ public class BuildingToHousingUnit extends Indicators {
 						builder.set("densHUpHe", Double.valueOf(l[densHUpHeP]));
 						builder.set("densSDPpHe", Double.valueOf(l[densSDPpHeP]));
 						builder.set("densEmppHe", Double.valueOf(l[densEmppHeP]));
+						builder.set("eval", Double.valueOf(l[evalP]));
 						result.add(builder.buildFeature(null));
 						break;
 					}
@@ -1167,7 +1185,7 @@ public class BuildingToHousingUnit extends Indicators {
 
 	public void setCountToZero() {
 		nbBuildings = nbHU = nbStairs = nbDetachedHouse = nbSmallHouse = nbMultifamilyHouse = nbSmallBlockFlat = objHU = diffHU = nbMidBlockFlat = nbU = nbAU = nbNC = nbCentre = nbBanlieue = nbPeriUrbain = nbRural = 0;
-		sDPtot = empriseTot = averageSDPpHU = standDevSDPpHU = averageDensiteHU = standDevDensiteHU = averageDensiteSDP = standDevDensiteSDP = averageDensiteEmprise = standDevDensiteEmprise = objDens = diffDens = 0.0;
+		averageEval = standDevEval = sDPtot = empriseTot = averageSDPpHU = standDevSDPpHU = averageDensiteHU = standDevDensiteHU = averageDensiteSDP = standDevDensiteSDP = averageDensiteEmprise = standDevDensiteEmprise = objDens = diffDens = eval = 0.0;
 	}
 
 }

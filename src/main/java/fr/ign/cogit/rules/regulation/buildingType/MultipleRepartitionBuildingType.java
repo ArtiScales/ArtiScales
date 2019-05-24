@@ -28,14 +28,14 @@ public class MultipleRepartitionBuildingType extends RepartitionBuildingType {
 	public MultipleRepartitionBuildingType(SimpluParametersJSON p, File paramFolder, File zoningFile, File communeFile, File parcelFile)
 			throws NoSuchElementException, Exception {
 		super(p, paramFolder, zoningFile, communeFile, parcelFile);
-		p = addRepartitionToParameters(p, zoningFile, communeFile, parcelles.get(0), new File(paramFolder, "locationBuildingType"));
+		p = addRepartitionToParameters(p, this.zoningFile, this.communeFile, parcelles.get(0), new File(paramFolder, "locationBuildingType"));
 
 		// we put all of the parcels into different lists regarding to their zones
 		parcelsInZone = new HashMap<String, List<String>>();
 		for (IFeature parcel : parcelles) {
 			if (parcel.getAttribute("CODE") != null) {
 				String bigZone = FromGeom.affectZoneAndTypoToLocation(p.getString("useRepartition"), p.getString("scenarioPMSP3D"), parcel,
-						zoningFile, communeFile, true);
+						this.zoningFile, this.communeFile, true);
 				if (parcelsInZone.containsKey(bigZone)) {
 					List<String> tmpList = parcelsInZone.get(bigZone);
 					tmpList.add((String) parcel.getAttribute("CODE"));

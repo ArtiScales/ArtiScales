@@ -817,20 +817,27 @@ public class SimuTool {
 		return result;
 	}
 
-	public static void digForPackWithoutSimu(File fPack, File fSimu, File fOut) throws IOException {
-		boolean fLine = true;
+/**
+ * dig for SimPLUPackager folders that are uninteresting to be simulated
+ * Put them in a csv file ?!
+ * Do we copy/delete them? 
+ * 
+ * @param fPack
+ * @param fSimu
+ * @param fOut
+ * @throws IOException
+ */
+	public static void digForUselessPacks(File fPack, File fSimu, File fOut) throws IOException {
 		List<String[]> lL = new ArrayList<String[]>();
+		String[] fl = { "SuperPack", "Pack" };
+		lL.add(fl);		
 		for (File superPack : fPack.listFiles()) {
 			String superP = superPack.getName();
 			for (File pack : superPack.listFiles()) {
 				String p = pack.getName();
 				for (File f : pack.listFiles()) {
+					//if there is a parcel shapefile
 					if (f.getName().equals("parcelle.shp")) {
-						if (fLine) {
-							String[] fl = { "SuperPack", "Pack" };
-							lL.add(fl);
-							fLine = false;
-						}
 						ShapefileDataStore parcelleSDS = new ShapefileDataStore(f.toURI().toURL());
 						SimpleFeatureCollection parcelleOG = parcelleSDS.getFeatureSource().getFeatures();
 						SimpleFeatureIterator it = parcelleOG.features();
@@ -839,7 +846,56 @@ public class SimuTool {
 							SimpleFeature feat = it.next();
 							if (feat.getAttribute("DoWeSimul").equals("true"))
 								add = true;
+								break;
 						}
+						if (add) {
+							String[] l = { superP, p };
+							lL.add(l);
+						}
+						it.close();
+						parcelleSDS.dispose();
+					}
+				}
+			}
+		}
+		CSVWriter csv = new CSVWriter(new FileWriter(fOut));
+
+		csv.writeAll(lL);
+
+		csv.close();
+	}
+
+	
+	
+	/**
+	 * create a .csv file from a Folder that contains superPacks that contains Packs from SimPLUPackager 
+	 * @param fPack
+	 * @param fSimu
+	 * @param fOut
+	 * @throws IOException
+	 */
+	public static void digForPackWithoutSimu(File fPack, File fSimu, File fOut) throws IOException {
+		List<String[]> lL = new ArrayList<String[]>();
+		String[] fl = { "SuperPack", "Pack" };
+		lL.add(fl);
+		for (File superPack : fPack.listFiles()) {
+			String superP = superPack.getName();
+			for (File pack : superPack.listFiles()) {
+				String p = pack.getName();
+				for (File f : pack.listFiles()) {
+					if (f.getName().equals("parcelle.shp")) {
+						ShapefileDataStore parcelleSDS = new ShapefileDataStore(f.toURI().toURL());
+						SimpleFeatureCollection parcelleOG = parcelleSDS.getFeatureSource().getFeatures();
+						SimpleFeatureIterator it = parcelleOG.features();
+						boolean add = false;
+						while (it.hasNext()) {
+							SimpleFeature feat = it.next();
+							if (feat.getAttribute("DoWeSimul").equals("true")) {
+								add = true;
+								break;
+							}
+						}
+						it.close();
 						if (add) {
 							File simuFile = new File(fSimu, superP + "/" + p + "/");
 							if (!simuFile.exists()) {
@@ -863,7 +919,6 @@ public class SimuTool {
 							String[] l = { superP, p };
 							lL.add(l);
 						}
-						it.close();
 						parcelleSDS.dispose();
 					}
 				}
