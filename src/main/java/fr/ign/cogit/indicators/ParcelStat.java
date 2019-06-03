@@ -41,7 +41,9 @@ public class ParcelStat extends Indicators {
 	File parcelOGFile;
 	int nbParcelIgnored, nbParcelSimulated, nbParcelSimulFailed, nbParcelSimulatedU, nbParcelSimulFailedU, nbParcelSimulatedAU, nbParcelSimulFailedAU,
 			nbParcelSimulatedNC, nbParcelSimulFailedNC, nbParcelSimulatedCentre, nbParcelSimulFailedCentre, nbParcelSimulatedBanlieue,
-			nbParcelSimulFailedBanlieue, nbParcelSimulatedPeriUrb, nbParcelSimulFailedPeriUrb, nbParcelSimulatedRural, nbParcelSimulFailedRural;
+			nbParcelSimulFailedBanlieue, nbParcelSimulatedPeriUrb, nbParcelSimulFailedPeriUrb, nbParcelSimulatedRural, nbParcelSimulFailedRural,
+			simuledFromOriginal, simuledFromDensification, simuledFromTotalRecomp, simuledFromZoneCut, simuledFromPartRecomp, failedFromOriginal,
+			failedFromZoneCut, failedFromDensification, failedFromTotalRecomp, failedFromPartRecomp;
 	double surfParcelIgnored, surfParcelSimulated, surfParcelSimulFailed, surfParcelSimulatedU, surfParcelSimulFailedU, surfParcelSimulatedAU,
 			surfParcelSimulFailedAU, surfParcelSimulatedNC, surfParcelSimulFailedNC, surfParcelSimulatedCentre, surfParcelSimulFailedCentre,
 			surfParcelSimulatedBanlieue, surfParcelSimulFailedBanlieue, surfParcelSimulatedPeriUrb, surfParcelSimulFailedPeriUrb,
@@ -54,51 +56,49 @@ public class ParcelStat extends Indicators {
 	public ParcelStat(SimpluParametersJSON p, File rootFile, String scenarName, String variantName) throws Exception {
 		super(p, rootFile, scenarName, variantName, indicName);
 		parcelOGFile = FromGeom.getParcels(new File(rootFile, "dataGeo"));
-		firstLine = "INSEE,nb_parcel_simulated,nb_parcel_simu_failed,surf_parcel_ignored,surf_parcel_simulated,surf_parcel_simulFailed,nbParcelSimulatedU,nbParcelSimulFailedU,nbParcelSimulatedAU,nbParcelSimulFailedAU,nbParcelSimulatedNC,nbParcelSimulFailedNC,nbParcelSimulatedCentre,nbParcelSimulFailedCentre,nbParcelSimulatedBanlieue,nbParcelSimulFailedBanlieue,nbParcelSimulatedPeriUrb,nbParcelSimulFailedPeriUrb,nbParcelSimulatedRural,nbParcelSimulFailedRural,surfParcelSimulatedU,surfParcelSimulFailedU,surfParcelSimulatedAU,surfParcelSimulFailedAU,surfParcelSimulatedNC,surfParcelSimulFailedNC,surfParcelSimulatedCentre,surfParcelSimulFailedCentre,surfParcelSimulatedBanlieue,surfParcelSimulFailedBanlieue,surfParcelSimulatedPeriUrb,surfParcelSimulFailedPeriUrb,surfParcelSimulatedRural,surfParcelSimulFailedRural";
+		firstLine = "INSEE,nb_parcel_simulated,nb_parcel_simu_failed,surf_parcel_ignored,surf_parcel_simulated,surf_parcel_simulFailed,nbParcelSimulatedU,nbParcelSimulFailedU,nbParcelSimulatedAU,nbParcelSimulFailedAU,nbParcelSimulatedNC,nbParcelSimulFailedNC,nbParcelSimulatedCentre,nbParcelSimulFailedCentre,nbParcelSimulatedBanlieue,nbParcelSimulFailedBanlieue,nbParcelSimulatedPeriUrb,nbParcelSimulFailedPeriUrb,nbParcelSimulatedRural,nbParcelSimulFailedRural,surfParcelSimulatedU,surfParcelSimulFailedU,surfParcelSimulatedAU,surfParcelSimulFailedAU,surfParcelSimulatedNC,surfParcelSimulFailedNC,surfParcelSimulatedCentre,surfParcelSimulFailedCentre,surfParcelSimulatedBanlieue,surfParcelSimulFailedBanlieue,surfParcelSimulatedPeriUrb,surfParcelSimulFailedPeriUrb,surfParcelSimulatedRural,surfParcelSimulFailedRural,simuledFromOriginal,simuledFromDensification,simuledFromTotalRecomp,simuledFromPartRecomp,simuledFromZoneCut,failedFromOriginal,failedFromDensification,failedFromTotalRecomp,failedFromPartRecomp,failedFromZoneCut";
 	}
 
 	public static void main(String[] args) throws Exception {
 		File rootFile = new File("./result2903/");
 		File rootParam = new File(rootFile, "paramFolder");
 		List<File> lF = new ArrayList<>();
-		String scenario = "CDense";
+		String scenario = "CPeuDense";
 		// String variant = "base";
 
 		lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterTechnic.json"));
 		lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterScenario.json"));
 
 		SimpluParametersJSON p = new SimpluParametersJSON(lF);
-		// for (File f : (new File(rootFile, "SimPLUDepot/" + scenario + "/")).listFiles()) {
-		// ParcelStat parc = new ParcelStat(p, rootFile, scenario, f.getName());
-		ParcelStat parc = new ParcelStat(p, rootFile, scenario, "variantMvData1");
-		SimpleFeatureCollection parcelStatSHP = parc.markSimuledParcels();
-		parc.caclulateStatParcel();
-		// parc.caclulateStatBatiParcel();
-		parc.writeLine("AllZone", "ParcelStat");
-		parc.setCountToZero();
-		List<String> listInsee = FromGeom.getInsee(new File(parc.getRootFile(), "/dataGeo/old/communities.shp"), "DEPCOM");
-
-		for (String city : listInsee) {
-			SimpleFeatureCollection commParcel = ParcelFonction.getParcelByZip(parcelStatSHP, city);
-			System.out.println("city " + city);
-			parc.caclulateStatParcel(commParcel);
-			// parc.caclulateStatBatiParcel(commParcel);
-			parc.writeLine(city, "ParcelStat");
-			parc.toString();
+		for (File f : (new File(rootFile, "SimPLUDepot/" + scenario + "/")).listFiles()) {
+			ParcelStat parc = new ParcelStat(p, rootFile, scenario, f.getName());
+			// ParcelStat parc = new ParcelStat(p, rootFile, scenario, "variantMvData1");
+			SimpleFeatureCollection parcelStatSHP = parc.markSimuledParcels();
+			parc.caclulateStatParcel();
+			parc.writeLine("AllZone", "ParcelStat");
 			parc.setCountToZero();
+			List<String> listInsee = FromGeom.getInsee(new File(parc.getRootFile(), "/dataGeo/old/communities.shp"), "DEPCOM");
+
+			for (String city : listInsee) {
+				SimpleFeatureCollection commParcel = ParcelFonction.getParcelByZip(parcelStatSHP, city);
+				System.out.println("city " + city);
+				parc.calculateStatParcel(commParcel);
+				parc.writeLine(city, "ParcelStat");
+				parc.toString();
+				parc.setCountToZero();
+			}
+			File commStatFile = parc.joinStatToCommunities();
+			parc.createMap(parc, commStatFile);
+			parc.createGraph(new File(parc.getIndicFolder(), "ParcelStat.csv"));
 		}
-		File commStatFile = parc.joinStatToCommunities();
-		parc.createMap(parc, commStatFile);
-		parc.createGraph(new File(parc.getIndicFile(), "ParcelStat.csv"));
 	}
-	// }
 
 	public void createMap(ParcelStat parc, File commStatFile) throws IOException, NoSuchAuthorityCodeException, FactoryException {
 		List<MapRenderer> allOfTheMaps = new ArrayList<MapRenderer>();
 		MapRenderer surfParcelSimulatedMap = new SurfParcelSimulatedMap(1000, 1000, new File(parc.getRootFile(), "mapStyle"), commStatFile,
-				parc.getMapDepotFile());
+				parc.getMapDepotFolder());
 		allOfTheMaps.add(surfParcelSimulatedMap);
-		MapRenderer surfParcelFailedMap = new SurfParcelFailedMap(1000, 1000, parc.getMapStyle(), commStatFile, parc.getMapDepotFile());
+		MapRenderer surfParcelFailedMap = new SurfParcelFailedMap(1000, 1000, parc.getMapStyle(), commStatFile, parc.getMapDepotFolder());
 		allOfTheMaps.add(surfParcelFailedMap);
 		// MapRenderer aParcelSDPSimuMap = new AParcelSDPSimuMap(1000, 1000,parc.mapStyle , commStatFile, parc.mapDepotFile);
 		// allOfTheMaps.add(aParcelSDPSimuMap);
@@ -111,17 +111,24 @@ public class ParcelStat extends Indicators {
 
 	public void createGraph(File distrib) throws IOException {
 		// Number
+
 		String[] xTypeSimulated = { "nbParcelSimulatedCentre", "nbParcelSimulatedBanlieue", "nbParcelSimulatedPeriUrb", "nbParcelSimulatedRural" };
 		String[] xTypeSimulFailed = { "nbParcelSimulFailedCentre", "nbParcelSimulFailedBanlieue", "nbParcelSimulFailedPeriUrb",
 				"nbParcelSimulatedRural" };
 		String[][] xType = { xTypeSimulated, xTypeSimulFailed };
-		makeGraphDouble(distrib, getGraphDepotFile(), "Scenario : " + scenarName + " - Variante : " + variantName, xType, "typologie",
+		makeGraphDouble(distrib, getGraphDepotFolder(), "Scenario : " + scenarName + " - Variante : " + variantName, xType, "typologie",
 				"Nombre de parcelles");
 		String[] xZoneSimulated = { "nbParcelSimulatedU", "nbParcelSimulatedAU", "nbParcelSimulatedNC" };
 		String[] xZoneSimulFailed = { "nbParcelSimulFailedU", "nbParcelSimulFailedAU", "nbParcelSimulFailedNC" };
 		String[][] xZone = { xZoneSimulated, xZoneSimulFailed };
-		makeGraphDouble(distrib, getGraphDepotFile(), "Scenario : " + scenarName + " - Variante : " + variantName, xZone, "type de zone",
+		makeGraphDouble(distrib, getGraphDepotFolder(), "Scenario : " + scenarName + " - Variante : " + variantName, xZone, "type de zone",
 				"Nombre de parcelles");
+
+		String[] xRecompSimulated = { "simuledFromOriginal", "simuledFromDensification", "simuledFromTotalRecomp", "simuledFromZoneCut" };
+		String[] xRecompSimulFailed = { "failedFromOriginal", "failedFromDensification", "failedFromTotalRecomp", "failedFromZoneCut" };
+		String[][] xRecomp = { xRecompSimulated, xRecompSimulFailed };
+		makeGraphDouble(distrib, getGraphDepotFolder(), "Scenario : " + scenarName + " - Variante : " + variantName, xRecomp,
+				"processus de recomposition des parcelles", "Nombre de parcelles");
 
 		// Surface
 		String[] xTypeSimulatedSurf = { "surfParcelSimulatedCentre", "surfParcelSimulatedBanlieue", "surfParcelSimulatedPeriUrb",
@@ -129,14 +136,13 @@ public class ParcelStat extends Indicators {
 		String[] xTypeSimulFailedSurf = { "surfParcelSimulFailedCentre", "surfParcelSimulFailedBanlieue", "surfParcelSimulFailedPeriUrb",
 				"surfParcelSimulatedRural" };
 		String[][] xTypeSurf = { xTypeSimulatedSurf, xTypeSimulFailedSurf };
-		makeGraphDouble(distrib, getGraphDepotFile(), "Scenario : " + scenarName + " - Variante : " + variantName, xTypeSurf, "typologie",
+		makeGraphDouble(distrib, getGraphDepotFolder(), "Scenario : " + scenarName + " - Variante : " + variantName, xTypeSurf, "typologie",
 				"Surface de parcelles (km²)");
 		String[] xZoneSimulatedSurf = { "surfParcelSimulatedU", "surfParcelSimulatedAU", "surfParcelSimulatedNC" };
 		String[] xZoneSimulFailedSurf = { "surfParcelSimulFailedU", "surfParcelSimulFailedAU", "surfParcelSimulFailedNC" };
 		String[][] xZoneSurf = { xZoneSimulatedSurf, xZoneSimulFailedSurf };
-		makeGraphDouble(distrib, getGraphDepotFile(), "Scenario : " + scenarName + " - Variante : " + variantName, xZoneSurf, "type de zone",
+		makeGraphDouble(distrib, getGraphDepotFolder(), "Scenario : " + scenarName + " - Variante : " + variantName, xZoneSurf, "type de zone",
 				"Surface de parcelles (km²)");
-
 	}
 
 	public static void makeGraphDouble(File csv, File graphDepotFile, String title, String[][] xes, String xTitle, String yTitle) throws IOException {
@@ -234,7 +240,7 @@ public class ParcelStat extends Indicators {
 	public File joinStatToCommunities() throws NoSuchAuthorityCodeException, IOException, FactoryException {
 		ShapefileDataStore communitiesSDS = new ShapefileDataStore((new File(getRootFile(), "/dataGeo/old/communities.shp")).toURI().toURL());
 		SimpleFeatureCollection communitiesOG = communitiesSDS.getFeatureSource().getFeatures();
-		File result = joinStatToSFC(communitiesOG, new File(getIndicFile(), "ParcelStat.csv"), new File(getIndicFile(), "commStat.shp"));
+		File result = joinStatToSFC(communitiesOG, new File(getIndicFolder(), "ParcelStat.csv"), new File(getIndicFolder(), "commStat.shp"));
 		communitiesSDS.dispose();
 		return result;
 	}
@@ -309,7 +315,7 @@ public class ParcelStat extends Indicators {
 
 	public String writeLine(String geoEntity, String nameFile) throws IOException {
 		String result = geoEntity + "," + nbParcelSimulated + "," + nbParcelSimulFailed + "," + round(surfParcelIgnored / 1000000, 3) + ","
-				+ round(surfParcelSimulated / 1000000, 3) + "," + round(surfParcelSimulFailed / 1000000, 3) + nbParcelSimulatedU + ","
+				+ round(surfParcelSimulated / 1000000, 3) + "," + round(surfParcelSimulFailed / 1000000, 3) + "," + nbParcelSimulatedU + ","
 				+ nbParcelSimulFailedU + "," + nbParcelSimulatedAU + "," + nbParcelSimulFailedAU + "," + nbParcelSimulatedNC + ","
 				+ nbParcelSimulFailedNC + "," + nbParcelSimulatedCentre + "," + nbParcelSimulFailedCentre + "," + nbParcelSimulatedBanlieue + ","
 				+ nbParcelSimulFailedBanlieue + "," + nbParcelSimulatedPeriUrb + "," + nbParcelSimulFailedPeriUrb + "," + nbParcelSimulatedRural + ","
@@ -319,7 +325,11 @@ public class ParcelStat extends Indicators {
 				+ round(surfParcelSimulatedCentre / 1000000, 3) + "," + round(surfParcelSimulFailedCentre / 1000000, 3) + ","
 				+ round(surfParcelSimulatedBanlieue / 1000000, 3) + "," + round(surfParcelSimulFailedBanlieue / 1000000, 3) + ","
 				+ round(surfParcelSimulatedPeriUrb / 1000000, 3) + "," + round(surfParcelSimulFailedPeriUrb / 1000000, 3) + ","
-				+ round(surfParcelSimulatedRural / 1000000, 3) + "," + round(surfParcelSimulFailedRural / 1000000, 3);
+				+ round(surfParcelSimulatedRural / 1000000, 3) + "," + round(surfParcelSimulFailedRural / 1000000, 3) + "," + simuledFromOriginal
+				+ "," + simuledFromDensification + "," + simuledFromTotalRecomp + "," + simuledFromPartRecomp + "," + simuledFromZoneCut + ","
+				+ failedFromOriginal + "," + failedFromDensification + "," + failedFromTotalRecomp + "," + failedFromPartRecomp + ","
+				+ failedFromZoneCut;
+		;
 		// + "," + surfaceSDPParcelle + "," + surfaceEmpriseParcelle;
 		toGenCSV(nameFile, firstLine, result);
 		return result;
@@ -374,17 +384,17 @@ public class ParcelStat extends Indicators {
 	// }
 
 	public void caclulateStatParcel() throws IOException {
-		File parcelStatShapeFile = new File(getIndicFile(), "parcelStatted.shp");
+		File parcelStatShapeFile = new File(getIndicFolder(), "parcelStatted.shp");
 		if (!parcelStatShapeFile.exists()) {
 			markSimuledParcels();
 		}
 		ShapefileDataStore parcelSimuledSDS = new ShapefileDataStore(parcelStatShapeFile.toURI().toURL());
 		SimpleFeatureCollection parcelSimuled = parcelSimuledSDS.getFeatureSource().getFeatures();
-		caclulateStatParcel(parcelSimuled);
+		calculateStatParcel(parcelSimuled);
 		parcelSimuledSDS.dispose();
 	}
 
-	public void caclulateStatParcel(SimpleFeatureCollection parcelSimuled) throws IOException {
+	public void calculateStatParcel(SimpleFeatureCollection parcelSimuled) throws IOException {
 
 		SimpleFeatureIterator itParcel = parcelSimuled.features();
 		// nbParcelSimulatedCentre, nbParcelSimulFailedCentre, nbParcelSimulatedPeriUrb,
@@ -393,6 +403,7 @@ public class ParcelStat extends Indicators {
 			while (itParcel.hasNext()) {
 				SimpleFeature ft = itParcel.next();
 				double area = ((Geometry) ft.getDefaultGeometry()).getArea();
+				String code = (String) ft.getAttribute("CODE");
 				switch ((String) ft.getAttribute("DoWeSimul")) {
 				case "noSelection":
 					surfParcelIgnored = surfParcelIgnored + area;
@@ -404,17 +415,15 @@ public class ParcelStat extends Indicators {
 					if ((boolean) ft.getAttribute("U")) {
 						surfParcelSimulatedU = surfParcelSimulatedU + area;
 						nbParcelSimulatedU++;
-					}
-					if ((boolean) ft.getAttribute("AU")) {
+					} else if ((boolean) ft.getAttribute("AU")) {
 						surfParcelSimulatedAU = surfParcelSimulatedAU + area;
 						nbParcelSimulatedAU++;
-					}
-					if ((boolean) ft.getAttribute("NC")) {
+					} else if ((boolean) ft.getAttribute("NC")) {
 						surfParcelSimulatedNC = surfParcelSimulatedNC + area;
 						nbParcelSimulatedNC++;
 					}
 					// System.out.println(FromGeom.getTypo(FromGeom.getCommunitiesIris(new File(rootFile, "dataGeo")), (Geometry) ft.getDefaultGeometry()));
-					switch (FromGeom.getTypo(FromGeom.getCommunitiesIris(new File(getRootFile(), "dataGeo")), (Geometry) ft.getDefaultGeometry())) {
+					switch (FromGeom.parcelInTypo(FromGeom.getCommunitiesIris(new File(getRootFile(), "dataGeo")), ft)) {
 					case "rural":
 						nbParcelSimulatedRural++;
 						surfParcelSimulatedRural = surfParcelSimulatedRural + area;
@@ -436,6 +445,20 @@ public class ParcelStat extends Indicators {
 
 						break;
 					}
+
+					// determine the production source of the parcel
+					if (code.contains("div")) {
+						simuledFromDensification++;
+					} else if (code.contains("New") && code.contains("Section")) {
+						simuledFromTotalRecomp++;
+					} else if (code.contains("newSection") && code.contains("Natural")) {
+						simuledFromPartRecomp++;
+					} else if (code.contains("bis")) {
+						simuledFromZoneCut++;
+					} else {
+						simuledFromOriginal++;
+					}
+
 					break;
 				case "simuFailed":
 					surfParcelSimulFailed = surfParcelSimulFailed + area;
@@ -443,16 +466,14 @@ public class ParcelStat extends Indicators {
 					if ((boolean) ft.getAttribute("U")) {
 						nbParcelSimulFailedU++;
 						surfParcelSimulFailedU = surfParcelSimulFailedU + area;
-					}
-					if ((boolean) ft.getAttribute("AU")) {
+					} else if ((boolean) ft.getAttribute("AU")) {
 						nbParcelSimulFailedAU++;
 						surfParcelSimulFailedAU = surfParcelSimulFailedAU + area;
-					}
-					if ((boolean) ft.getAttribute("NC")) {
+					} else if ((boolean) ft.getAttribute("NC")) {
 						nbParcelSimulFailedNC++;
 						surfParcelSimulFailedNC = surfParcelSimulFailedNC + area;
 					}
-					switch (FromGeom.getTypo(FromGeom.getCommunitiesIris(new File(getRootFile(), "dataGeo")), (Geometry) ft.getDefaultGeometry())) {
+					switch (FromGeom.parcelInTypo(FromGeom.getCommunitiesIris(new File(getRootFile(), "dataGeo")), ft)) {
 					case "rural":
 						nbParcelSimulFailedRural++;
 						surfParcelSimulFailedRural = surfParcelSimulFailedRural + area;
@@ -469,6 +490,18 @@ public class ParcelStat extends Indicators {
 						nbParcelSimulFailedBanlieue++;
 						surfParcelSimulFailedBanlieue = surfParcelSimulFailedBanlieue + area;
 						break;
+					}
+					// determine the production source of the parcel
+					if (code.contains("div")) {
+						failedFromDensification++;
+					} else if (code.contains("New") && code.contains("Section")) {
+						failedFromTotalRecomp++;
+					} else if (code.contains("newSection") && code.contains("Natural")) {
+						failedFromPartRecomp++;
+					} else if (code.contains("bis")) {
+						failedFromZoneCut++;
+					} else {
+						failedFromOriginal++;
 					}
 					break;
 				}
@@ -512,7 +545,7 @@ public class ParcelStat extends Indicators {
 		} finally {
 			itParcel.close();
 		}
-		Vectors.exportSFC(result, new File(getIndicFile(), "parcelStatted.shp"));
+		Vectors.exportSFC(result, new File(getIndicFolder(), "parcelStatted.shp"));
 
 		parcelSimuledSDS.dispose();
 
@@ -536,7 +569,7 @@ public class ParcelStat extends Indicators {
 		try {
 			while (batiFeaturesIt.hasNext()) {
 				SimpleFeature bati = batiFeaturesIt.next();
-				if (((Geometry) bati.getDefaultGeometry()).intersects(parcelGeometry)) {
+				if (((Geometry) bati.getDefaultGeometry()).buffer(-0.5).intersects(parcelGeometry)) {
 					return true;
 				}
 			}
@@ -549,65 +582,8 @@ public class ParcelStat extends Indicators {
 		return false;
 	}
 
-	// public void run() throws IOException, NoSuchAuthorityCodeException, FactoryException {
-	//
-	// for (String city : FromGeom.getInsee(parcelDepotGenFile)) {
-	// double surfSelect = 0;
-	// double surfSelectU = 0;
-	// double surfSelectAU = 0;
-	// double surfSelectNC = 0;
-	//
-	// double surfSimulated = 0;
-	// double surfSimulatedU = 0;
-	// double surfSimulatedAU = 0;
-	// double surfSimulatedNC = 0;
-	// ShapefileDataStore parcelSDS = new ShapefileDataStore(parcelDepotGenFile.toURI().toURL());
-	// SimpleFeatureIterator parcelFeaturesIt = parcelSDS.getFeatureSource().getFeatures().features();
-	// try {
-	// while (parcelFeaturesIt.hasNext()) {
-	// SimpleFeature feature = parcelFeaturesIt.next();
-	// if (city.equals((String) feature.getAttribute("INSEE"))) {
-	// if (((String) feature.getAttribute("DoWeSimul")).equals("true")) {
-	// double area = ((Geometry) feature.getDefaultGeometry()).getArea();
-	// surfSelect = surfSelect + area;
-	// if ((boolean) feature.getAttribute("U")) {
-	// surfSelectU = surfSelectU + area;
-	// } else if ((boolean) feature.getAttribute("AU")) {
-	// surfSelectAU = surfSelectAU + area;
-	// } else if ((boolean) feature.getAttribute("NC")) {
-	// surfSelectNC = surfSelectNC + area;
-	// }
-	// }
-	// if ((boolean) feature.getAttribute("IsBuild")) {
-	// double area = ((Geometry) feature.getDefaultGeometry()).getArea();
-	// surfSimulated = surfSimulated + area;
-	// if ((boolean) feature.getAttribute("U")) {
-	// surfSimulatedU = surfSimulatedU + area;
-	// } else if ((boolean) feature.getAttribute("AU")) {
-	// surfSimulatedAU = surfSimulatedAU + area;
-	// } else if ((boolean) feature.getAttribute("NC")) {
-	// surfSimulatedNC = surfSimulatedNC + area;
-	// }
-	// }
-	// }
-	// }
-	// } catch (Exception problem) {
-	// problem.printStackTrace();
-	// } finally {
-	// parcelFeaturesIt.close();
-	// }
-	// parcelSDS.dispose();
-	// if (surfSelect > 0) {
-	// String line = city + "," + surfSelect + "," + surfSelectU + "," + surfSelectAU + "," + surfSelectNC + "," + surfSimulated + ","
-	// + surfSimulatedU + "," + surfSimulatedAU + "," + surfSimulatedNC;
-	// System.out.println(line);
-	// toGenCSV("parcelStat", firstLine, line);
-	// }
-	// }
-	// }
-
 	public void setCountToZero() {
-		nbParcelIgnored = nbParcelSimulated = nbParcelSimulFailed = nbParcelSimulatedU = nbParcelSimulFailedU = nbParcelSimulatedAU = nbParcelSimulFailedAU = nbParcelSimulatedNC = nbParcelSimulFailedNC = nbParcelSimulatedCentre = nbParcelSimulFailedCentre = nbParcelSimulatedBanlieue = nbParcelSimulFailedBanlieue = nbParcelSimulatedPeriUrb = nbParcelSimulFailedPeriUrb = nbParcelSimulatedRural = nbParcelSimulFailedRural = 0;
+		simuledFromZoneCut = failedFromZoneCut = failedFromOriginal = failedFromDensification = failedFromTotalRecomp = failedFromPartRecomp = simuledFromOriginal = simuledFromDensification = simuledFromTotalRecomp = simuledFromPartRecomp = nbParcelIgnored = nbParcelSimulated = nbParcelSimulFailed = nbParcelSimulatedU = nbParcelSimulFailedU = nbParcelSimulatedAU = nbParcelSimulFailedAU = nbParcelSimulatedNC = nbParcelSimulFailedNC = nbParcelSimulatedCentre = nbParcelSimulFailedCentre = nbParcelSimulatedBanlieue = nbParcelSimulFailedBanlieue = nbParcelSimulatedPeriUrb = nbParcelSimulFailedPeriUrb = nbParcelSimulatedRural = nbParcelSimulFailedRural = 0;
 		surfParcelIgnored = surfParcelSimulated = surfParcelSimulFailed = surfParcelSimulatedU = surfParcelSimulFailedU = surfParcelSimulatedAU = surfParcelSimulFailedAU = surfParcelSimulatedNC = surfParcelSimulFailedNC = surfParcelSimulatedCentre = surfParcelSimulFailedCentre = surfParcelSimulatedBanlieue = surfParcelSimulFailedBanlieue = surfParcelSimulatedPeriUrb = surfParcelSimulFailedPeriUrb = surfParcelSimulatedRural = surfParcelSimulFailedRural = 0;
 		// surfaceSDPParcelle = surfaceEmpriseParcelle =
 	}

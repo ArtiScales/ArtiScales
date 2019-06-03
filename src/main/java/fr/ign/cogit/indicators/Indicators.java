@@ -30,7 +30,7 @@ import fr.ign.cogit.util.SimuTool;
 
 public abstract class Indicators {
 	SimpluParametersJSON p;
-	private File rootFile, paramFolder, mupOutputFile, parcelDepotGenFile, simPLUDepotGenFile, mapStyle, graphDepotFile, indicFile, mapDepotFile;
+	private File rootFile, paramFolder, mupOutputFile, parcelDepotGenFile, simPLUDepotGenFile, mapStyle, graphDepotFolder, indicFile, mapDepotFolder;
 	protected String scenarName, variantName, echelle, indicName;
 
 	boolean firstLineGen = true;
@@ -62,12 +62,12 @@ public abstract class Indicators {
 		// if there's a will of saving the infos
 		if (scenarname != "") {
 			setIndicFile(new File(rootFile, "indic/" + indicName + "/" + scenarName + "/" + variantName));
-			getIndicFile().mkdirs();
+			getIndicFolder().mkdirs();
 			setMapStyle(new File(rootFile, "mapStyle"));
-			setMapDepotFile(new File(getIndicFile(), "mapDepot"));
-			getMapDepotFile().mkdir();
-			setGraphDepotFile(new File(getIndicFile(), "graphDepot"));
-			getGraphDepotFile().mkdir();
+			setMapDepotFolder(new File(getIndicFolder(), "mapDepot"));
+			getMapDepotFolder().mkdir();
+			setGraphDepotFolder(new File(getIndicFolder(), "graphDepot"));
+			getGraphDepotFolder().mkdir();
 		}
 	}
 
@@ -95,7 +95,7 @@ public abstract class Indicators {
 	 * @return the name of the selection's methods
 	 */
 	public String getIndicFolderName() {
-		return getIndicFile().getName();
+		return getIndicFolder().getName();
 	}
 
 	/**
@@ -132,7 +132,7 @@ public abstract class Indicators {
 	 * @throws IOException
 	 */
 	public void toGenCSV(String indicName, String firstline, String line) throws IOException {
-		File fileName = new File(getIndicFile(), indicName + ".csv");
+		File fileName = new File(getIndicFolder(), indicName + ".csv");
 		FileWriter writer = new FileWriter(fileName, true);
 		// si l'on a pas encore inscrit la premiere ligne
 		if (firstLineGen) {
@@ -167,10 +167,10 @@ public abstract class Indicators {
 		writer.close();
 	}
 
-	public File joinStatoBTHCommunities(String nameFileToJoin) throws NoSuchAuthorityCodeException, IOException, FactoryException {
+	public File joinStatBTHtoCommunities(String nameFileToJoin) throws NoSuchAuthorityCodeException, IOException, FactoryException {
 		ShapefileDataStore communitiesOGSDS = new ShapefileDataStore((new File(rootFile, "/dataGeo/old/communities.shp")).toURI().toURL());
 		SimpleFeatureCollection communitiesOG = communitiesOGSDS.getFeatureSource().getFeatures();
-		File result = joinStatToBTHCommunities(communitiesOG, new File(getIndicFile(), nameFileToJoin), new File(getIndicFile(), "commStat.shp"));
+		File result = joinStatToBTHCommunities(communitiesOG, new File(getIndicFolder(), nameFileToJoin), new File(getIndicFolder(), "commStat.shp"));
 		communitiesOGSDS.dispose();
 		return result;
 	}
@@ -187,7 +187,6 @@ public abstract class Indicators {
 		sfTypeBuilder.add("INSEE", String.class);
 		sfTypeBuilder.add("SDPTot", Double.class);
 		sfTypeBuilder.add("empriseTot", Double.class);
-		sfTypeBuilder.add("iniDens", Double.class);
 		sfTypeBuilder.add("avDensHU", Double.class);
 		sfTypeBuilder.add("SDDensHU", Double.class);
 		sfTypeBuilder.add("avDensSDP", Double.class);
@@ -199,6 +198,7 @@ public abstract class Indicators {
 		sfTypeBuilder.add("difObjDens", Double.class);
 		sfTypeBuilder.add("nbBuilding", Double.class);
 		sfTypeBuilder.add("nbHU", Double.class);
+		sfTypeBuilder.add("objHU", Double.class);
 		sfTypeBuilder.add("difObjHU", Double.class);
 		sfTypeBuilder.add("nbDetach", Double.class);
 		sfTypeBuilder.add("nbSmall", Double.class);
@@ -221,10 +221,10 @@ public abstract class Indicators {
 				String insee = (String) featCity.getAttribute("DEPCOM");
 				CSVReader stat = new CSVReader(new FileReader(statFile), ',', '\0');
 				String[] firstLine = stat.readNext();
-				int inseeP = 0, SDPTotP = 0, empriseTotP = 0, iniDensP = 0, avDensiteHUP = 0, SDDensiteHUP = 0, avDensiteSDPP = 0, SDDensiteSDPP = 0,
+				int inseeP = 0, SDPTotP = 0, empriseTotP = 0, avDensiteHUP = 0, SDDensiteHUP = 0, avDensiteSDPP = 0, SDDensiteSDPP = 0,
 						avDensiteEmpriseP = 0, SDDensiteEmpriseP = 0, avSDPpHUP = 0, sdSDPpHUP = 0, difObjDensP = 0, nbBuildingP = 0, nbHUP = 0,
-						difObjHUP = 0, nbSmallP = 0, nbDetachP = 0, nbFamHP = 0, nbSmallBkP = 0, nbMidBkP = 0, nbUP = 0, nbAUP = 0, nbNCP = 0,
-						nbCentrP = 0, nbBanlP = 0, nbPeriUP = 0, nbRurP = 0;
+						objHUP = 0, difObjHUP = 0, nbSmallP = 0, nbDetachP = 0, nbFamHP = 0, nbSmallBkP = 0, nbMidBkP = 0, nbUP = 0, nbAUP = 0,
+						nbNCP = 0, nbCentrP = 0, nbBanlP = 0, nbPeriUP = 0, nbRurP = 0;
 				for (int i = 0; i < firstLine.length; i++) {
 					switch (firstLine[i]) {
 					case "code":
@@ -235,9 +235,6 @@ public abstract class Indicators {
 						break;
 					case "empriseTot":
 						empriseTotP = i;
-						break;
-					case "initial_densite":
-						iniDensP = i;
 						break;
 					case "average_densiteHU":
 						avDensiteHUP = i;
@@ -272,6 +269,8 @@ public abstract class Indicators {
 					case "nb_housingUnit":
 						nbHUP = i;
 						break;
+					case "objectifPLH_housingUnit":
+						objHUP = i;
 					case "diff_objectifPLH_housingUnit":
 						difObjHUP = i;
 						break;
@@ -319,7 +318,6 @@ public abstract class Indicators {
 						builder.set("INSEE", l[inseeP]);
 						builder.set("SDPTot", Double.valueOf(l[SDPTotP]));
 						builder.set("empriseTot", Double.valueOf(l[empriseTotP]));
-						builder.set("iniDens", Double.valueOf(l[iniDensP]));
 						builder.set("avDensHU", Double.valueOf(l[avDensiteHUP]));
 						builder.set("SDDensHU", Double.valueOf(l[SDDensiteHUP]));
 						builder.set("avDensSDP", Double.valueOf(l[avDensiteSDPP]));
@@ -331,6 +329,7 @@ public abstract class Indicators {
 						builder.set("difObjDens", Double.valueOf(l[difObjDensP]));
 						builder.set("nbBuilding", Double.valueOf(l[nbBuildingP]));
 						builder.set("nbHU", Double.valueOf(l[nbHUP]));
+						builder.set("objHU", Double.valueOf(l[objHUP]));
 						builder.set("difObjHU", Double.valueOf(l[difObjHUP]));
 						builder.set("nbDetach", Double.valueOf(l[nbDetachP]));
 						builder.set("nbSmall", Double.valueOf(l[nbSmallP]));
@@ -431,6 +430,20 @@ public abstract class Indicators {
 			return "Densité de l'emprise des bâtiments par hectare";
 		case "SDPpHectareDensity":
 			return "Densité de la surface de plancher par hectare";
+		case "eval":
+			return "Valeur d'intérêt de la parcelle à être urbanisée selon les évaluations de MUP-City";
+		case "simuledFromOriginal":
+		case "failedFromOriginal":		
+			return "pas de modification";
+		case "simuledFromDensification":
+		case "failedFromDensification":
+			return "densification";
+		case "failedFromTotalRecomp":
+		case "simuledFromTotalRecomp":
+			return "recomposition totale d'une zone";
+		case "failedFromZoneCut":
+		case "simuledFromZoneCut":
+			return "découapge en fonction du zonage";
 		}
 		throw new FileNotFoundException("name not found");
 	}
@@ -443,7 +456,7 @@ public abstract class Indicators {
 		return rootFile;
 	}
 
-	public File getIndicFile() {
+	public File getIndicFolder() {
 		return indicFile;
 	}
 
@@ -459,20 +472,20 @@ public abstract class Indicators {
 		this.mapStyle = mapStyle;
 	}
 
-	public File getMapDepotFile() {
-		return mapDepotFile;
+	public File getMapDepotFolder() {
+		return mapDepotFolder;
 	}
 
-	public void setMapDepotFile(File mapDepotFile) {
-		this.mapDepotFile = mapDepotFile;
+	public void setMapDepotFolder(File mapDepotFile) {
+		this.mapDepotFolder = mapDepotFile;
 	}
 
-	public File getGraphDepotFile() {
-		return graphDepotFile;
+	public File getGraphDepotFolder() {
+		return graphDepotFolder;
 	}
 
-	public void setGraphDepotFile(File graphDepotFile) {
-		this.graphDepotFile = graphDepotFile;
+	public void setGraphDepotFolder(File graphDepotFile) {
+		this.graphDepotFolder = graphDepotFile;
 	}
 
 	public File getParcelDepotGenFile() {
@@ -506,164 +519,4 @@ public abstract class Indicators {
 	public void setParamFolder(File paramFolder) {
 		this.paramFolder = paramFolder;
 	}
-
-	// public File joinStatToBhTSFC(SimpleFeatureCollection collec, File statFile, File outFile)
-	// throws IOException, NoSuchAuthorityCodeException, FactoryException {
-	// DefaultFeatureCollection result = new DefaultFeatureCollection();
-	// SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
-	// CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
-	// sfTypeBuilder.setName("communities");
-	// sfTypeBuilder.setCRS(sourceCRS);
-	// sfTypeBuilder.add("the_geom", Polygon.class);
-	// sfTypeBuilder.setDefaultGeometry("the_geom");
-	// sfTypeBuilder.add("INSEE", String.class);
-	// sfTypeBuilder.add("SDPTot", Double.class);
-	// sfTypeBuilder.add("iniDens", Double.class);
-	// sfTypeBuilder.add("avDensite", Double.class);
-	// sfTypeBuilder.add("SDDensite", Double.class);
-	// sfTypeBuilder.add("avSDPpHU", Double.class);
-	// sfTypeBuilder.add("sdSDPpHU", Double.class);
-	// sfTypeBuilder.add("difObjDens", Double.class);
-	// sfTypeBuilder.add("nbBuilding", Integer.class);
-	// sfTypeBuilder.add("nbHU", Integer.class);
-	// sfTypeBuilder.add("difObjHU", Integer.class);
-	// sfTypeBuilder.add("nbDetach", Integer.class);
-	// sfTypeBuilder.add("nbSmall", Integer.class);
-	// sfTypeBuilder.add("nbFamH", Integer.class);
-	// sfTypeBuilder.add("nbSmallBk", Integer.class);
-	// sfTypeBuilder.add("nbMidBk", Integer.class);
-	// sfTypeBuilder.add("nbU", Integer.class);
-	// sfTypeBuilder.add("nbAU", Integer.class);
-	// sfTypeBuilder.add("nbNC", Integer.class);
-	// sfTypeBuilder.add("nbCentr", Integer.class);
-	// sfTypeBuilder.add("nbBanl", Integer.class);
-	// sfTypeBuilder.add("nbPeriU", Integer.class);
-	// sfTypeBuilder.add("nbRur", Integer.class);
-	// SimpleFeatureBuilder builder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
-	// SimpleFeatureIterator it = collec.features();
-	//
-	// try {
-	// while (it.hasNext()) {
-	// SimpleFeature featCity = it.next();
-	// String insee = (String) featCity.getAttribute("DEPCOM");
-	// CSVReader stat = new CSVReader(new FileReader(statFile), ',', '\0');
-	// String[] firstLine = stat.readNext();
-	// int inseeP = 0, SDPTotP = 0, iniDens = 0, avDensiteP = 0, SDDensiteP = 0, avSDPpHUP = 0, sdSDPpHUP = 0, difObjDensP = 0,
-	// nbBuildingP = 0, nbHUP = 0, difObjHUP = 0, nbSmallP = 0, nbDetachP = 0, nbFamHP = 0, nbSmallBkP = 0, nbMidBkP = 0, nbUP = 0,
-	// nbAUP = 0, nbNCP = 0, nbCentrP = 0, nbBanlP = 0, nbPeriUP = 0, nbRurP = 0;
-	// for (int i = 0; i < firstLine.length; i++) {
-	// System.out.println(firstLine[i]);
-	//
-	// switch (firstLine[i]) {
-	// case "code":
-	// inseeP = i;
-	// break;
-	// case "SDPTot":
-	// SDPTotP = i;
-	// break;
-	// case "initial_densite":
-	// iniDens = i;
-	// break;
-	// case "average_densite":
-	// avDensiteP = i;
-	// break;
-	// case "standardDev_densite":
-	// SDDensiteP = i;
-	// break;
-	// case "diff_objectifSCOT_densite":
-	// difObjDensP = i;
-	// break;
-	// case "average_SDP_per_HU":
-	// avSDPpHUP = i;
-	// break;
-	// case "standardDev_SDP_per_HU":
-	// sdSDPpHUP = i;
-	// break;
-	// case "nb_building":
-	// nbBuildingP = i;
-	// break;
-	// case "nb_housingUnit":
-	// nbHUP = i;
-	// break;
-	// case "diff_objectifPLH_housingUnit":
-	// difObjHUP = i;
-	// break;
-	// case "nbHU_detachedHouse":
-	// nbDetachP = i;
-	// break;
-	// case "nbHU_smallHouse":
-	// nbSmallP = i;
-	// break;
-	// case "nbHU_multiFamilyHouse":
-	// nbFamHP = i;
-	// break;
-	// case "nbHU_smallBlockFlat":
-	// nbSmallBkP = i;
-	// break;
-	// case "nbHU_midBlockFlat":
-	// nbMidBkP = i;
-	// break;
-	// case "nbHU_U":
-	// nbUP = i;
-	// break;
-	// case "nbHU_AU":
-	// nbAUP = i;
-	// break;
-	// case "nbHU_NC":
-	// nbNCP = i;
-	// break;
-	// case "nbHU_centre":
-	// nbCentrP = i;
-	// break;
-	// case "nbHU_banlieue":
-	// nbBanlP = i;
-	// break;
-	// case "nbHU_periUrbain":
-	// nbPeriUP = i;
-	// break;
-	// case "nbHU_rural":
-	// nbRurP = i;
-	// break;
-	// }
-	// }
-	//
-	// for (String[] l : stat.readAll()) {
-	// if (l[inseeP].equals(insee)) {
-	// builder.set("the_geom", featCity.getDefaultGeometry());
-	// builder.set("INSEE", l[inseeP]);
-	// builder.set("SDPTot", Double.valueOf(l[SDPTotP]));
-	// builder.set("iniDens", Double.valueOf(l[iniDens]));
-	// builder.set("avDensite", Double.valueOf(l[avDensiteP]));
-	// builder.set("SDDensite", Double.valueOf(l[SDDensiteP]));
-	// builder.set("avSDPpHU", Double.valueOf(l[avSDPpHUP]));
-	// builder.set("sdSDPpHU", Double.valueOf(l[sdSDPpHUP]));
-	// builder.set("difObjDens", Double.valueOf(l[difObjDensP]));
-	// builder.set("nbBuilding", Integer.valueOf(l[nbBuildingP]));
-	// builder.set("nbHU", Integer.valueOf(l[nbHUP]));
-	// builder.set("difObjHU", Double.valueOf(l[difObjHUP]));
-	// builder.set("nbDetach", Integer.valueOf(l[nbDetachP]));
-	// builder.set("nbSmall", Integer.valueOf(l[nbSmallP]));
-	// builder.set("nbFamH", Integer.valueOf(l[nbFamHP]));
-	// builder.set("nbSmallBk", Integer.valueOf(l[nbSmallBkP]));
-	// builder.set("nbMidBk", Integer.valueOf(l[nbMidBkP]));
-	// builder.set("nbU", Integer.valueOf(l[nbUP]));
-	// builder.set("nbAU", Integer.valueOf(l[nbAUP]));
-	// builder.set("nbNC", Integer.valueOf(l[nbNCP]));
-	// builder.set("nbCentr", Integer.valueOf(l[nbCentrP]));
-	// builder.set("nbBanl", Integer.valueOf(l[nbBanlP]));
-	// builder.set("nbPeriU", Integer.valueOf(l[nbPeriUP]));
-	// builder.set("nbRur", Integer.valueOf(l[nbRurP]));
-	// result.add(builder.buildFeature(null));
-	// break;
-	// }
-	// }
-	// stat.close();
-	// }
-	// } catch (Exception problem) {
-	// problem.printStackTrace();
-	// } finally {
-	// it.close();
-	// }
-	// return Vectors.exportSFC(result, outFile);
-	// }
 }

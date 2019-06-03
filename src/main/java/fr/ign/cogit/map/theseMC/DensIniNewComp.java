@@ -19,14 +19,32 @@ public class DensIniNewComp extends MapRenderer {
 		super(imageWidth, imageHeight, nameMap, text, mapStyleFolder, new File(mapStyleFolder, "svgModel.svg"), featureFile, outFolder);
 	}
 
-	public void makeIniMap(File otherFeatureFile) {
-		text = "densités de logements par hectare initiale";
-		sldFile = new File(sldFile.getParentFile(), "DensIniComp.sld");
+	public void makeDensIniNetMap(File otherFeatureFile) {
+		text = "densités nettes initiale de logements par hectare";
+		sldFile = new File(sldFile.getParentFile(), "DensIniNet.sld");
+		toMapShapeFile = otherFeatureFile;
+	}
+
+	public void makeDensNewNetMap(File otherFeatureFile) {
+		text = "densités nettes de logements par hectare après simulation";
+		sldFile = new File(sldFile.getParentFile(), "DensNewNet.sld");
+		toMapShapeFile = otherFeatureFile;
+	}
+
+	public void makeDensIniBrutMap(File otherFeatureFile) {
+		text = "densités brutes initiale de logements par hectare";
+		sldFile = new File(sldFile.getParentFile(), "DensIniBrt.sld");
+		toMapShapeFile = otherFeatureFile;
+	}
+
+	public void makeDensNewBrutMap(File otherFeatureFile) {
+		text = "densités brutes de logements par hectare après simulation";
+		sldFile = new File(sldFile.getParentFile(), "DensNewBrt.sld");
 		toMapShapeFile = otherFeatureFile;
 	}
 
 	public void makeObjMap(File otherFeatureFile) {
-		text = "objectif de densités de logements par hectare fixé par le SCoT";
+		text = "objectif de densités nettes de logements par hectare fixé par le SCoT";
 		sldFile = new File(sldFile.getParentFile(), "DensObj.sld");
 		toMapShapeFile = otherFeatureFile;
 	}

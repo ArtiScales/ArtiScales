@@ -56,9 +56,8 @@ public class FakeWorldGenerator {
 
 		(new File(folderOut)).mkdirs();
 
-		in = new FileWriter(new File(folderOut + "snapPredicate.csv"));
+		in = new FileWriter(new File(folderOut, "snapPredicate.csv"));
 		in.write(fLine + "\n");
-
 		// The list of regulation for which building generation will be testsed
 		List<ArtiScalesRegulation> regulations = new ArrayList<ArtiScalesRegulation>();
 		ArtiScalesRegulation regulationDefault = new ArtiScalesRegulation(fLine, RNURow);
@@ -585,7 +584,6 @@ public class FakeWorldGenerator {
 		for (ArtiScalesRegulation regulation : regulationList) {
 			// We create a zone with the right name
 			FakeZone fZ = new FakeZone(count, regulation.getLibelle_de_dul(), 817195.2, 6488529.3);
-
 			// We export the regulation
 			in.write(regulation.toCSVLine() + "\n");
 

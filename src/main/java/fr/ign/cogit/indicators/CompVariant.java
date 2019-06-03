@@ -12,10 +12,10 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.knowm.xchart.BitmapEncoder;
 import org.knowm.xchart.BitmapEncoder.BitmapFormat;
 import org.knowm.xchart.CSVImporter;
-import org.knowm.xchart.CSVImporter.DataOrientation;
-import org.knowm.xchart.CSVImporter.SeriesData;
 import org.knowm.xchart.CategoryChart;
 import org.knowm.xchart.CategoryChartBuilder;
+import org.knowm.xchart.CategorySeries;
+import org.knowm.xchart.internal.series.Series.DataType;
 
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
@@ -43,11 +43,11 @@ public class CompVariant extends Indicators {
 		parc.createStat("bTH", "genStat.csv");
 		List<MapRenderer> allOfTheMaps = new ArrayList<MapRenderer>();
 
-		File commStatFile = parc.joinStatoBTHCommunities("compVariantbTHCityCoeffVar.csv");
+		File commStatFile = parc.joinStatBTHtoCommunities("compVariantbTHCityCoeffVar.csv");
 
-		parc.createGraph(new File(parc.getIndicFile(), "compVariantbTHGen.csv"));
+		parc.createGraph(new File(parc.getIndicFolder(), "compVariantbTHGen.csv"));
 
-		MapRenderer mapNbHUCV = new MapNbHUCV(1000, 1000, parc.getMapStyle(), commStatFile, parc.getMapDepotFile());
+		MapRenderer mapNbHUCV = new MapNbHUCV(1000, 1000, parc.getMapStyle(), commStatFile, parc.getMapDepotFolder());
 		mapNbHUCV.renderCityInfo();
 		mapNbHUCV.generateSVG();
 		allOfTheMaps.add(mapNbHUCV);
@@ -60,8 +60,8 @@ public class CompVariant extends Indicators {
 	public void createStat(String nameCompared, String nameFileStat) throws IOException {
 		String nameGen = indicName + nameCompared + "Gen.csv";
 		String nameCity = indicName + nameCompared + "City.csv";
-		CSVWriter csvWGen = new CSVWriter(new FileWriter(new File(getIndicFile(), nameGen)), ',', '\u0000');
-		CSVWriter csvWCity = new CSVWriter(new FileWriter(new File(getIndicFile(), nameCity)), ',', '\u0000');
+		CSVWriter csvWGen = new CSVWriter(new FileWriter(new File(getIndicFolder(), nameGen)), ',', '\u0000');
+		CSVWriter csvWCity = new CSVWriter(new FileWriter(new File(getIndicFolder(), nameCity)), ',', '\u0000');
 		boolean firstLine = true;
 		for (File f : (new File(super.getRootFile(), "indic/" + nameCompared + "/" + super.scenarName + "/")).listFiles()) {
 			File statFile = new File(f, nameFileStat);
@@ -111,13 +111,13 @@ public class CompVariant extends Indicators {
 	}
 
 	public void genCoeffVar(String nameGen, String nameCity) throws IOException {
-		CSVReader csvGen = new CSVReader(new FileReader(new File(getIndicFile(), nameGen)));
+		CSVReader csvGen = new CSVReader(new FileReader(new File(getIndicFolder(), nameGen)));
 		String[] fLine = csvGen.readNext();
-		CSVReader csvCity = new CSVReader(new FileReader(new File(getIndicFile(), nameCity)));
+		CSVReader csvCity = new CSVReader(new FileReader(new File(getIndicFolder(), nameCity)));
 		csvCity.readNext();
-		CSVWriter csvWGen = new CSVWriter(new FileWriter(new File(getIndicFile(), nameGen.replace(".csv", "") + "CoeffVar.csv")), ',', '\u0000');
+		CSVWriter csvWGen = new CSVWriter(new FileWriter(new File(getIndicFolder(), nameGen.replace(".csv", "") + "CoeffVar.csv")), ',', '\u0000');
 		csvWGen.writeNext(fLine);
-		CSVWriter csvWCity = new CSVWriter(new FileWriter(new File(getIndicFile(), nameCity.replace(".csv", "") + "CoeffVar.csv")), ',', '\u0000');
+		CSVWriter csvWCity = new CSVWriter(new FileWriter(new File(getIndicFolder(), nameCity.replace(".csv", "") + "CoeffVar.csv")), ',', '\u0000');
 		csvWCity.writeNext(fLine);
 		DescriptiveStatistics[] listStatGen = new DescriptiveStatistics[fLine.length - 4];
 		// boolean to get the existing DS
@@ -223,42 +223,45 @@ public class CompVariant extends Indicators {
 	// }
 
 	public void createGraph(File distrib) throws IOException {
-		makeGraph(distrib, getGraphDepotFile(), "exemple on SDPTot", "nbVariant", "Variante", "SDPTot", "Surface De Plancher Totale");
-		makeGraph(distrib, getGraphDepotFile(), "Nombre de logements simulés dans une commune de type rurale", "nbVariant", "Variante ", "nbHU_rural",
-				"Nombre de logements simulés");
-		makeGraph(distrib, getGraphDepotFile(), "Nombre de logements simulés dans une commune de type péri-urbain", "nbVariant", "Variante ",
+		makeGraph(distrib, getGraphDepotFolder(), "exemple on SDPTot", "nbVariant", "Variante", "SDPTot", "Surface De Plancher Totale");
+		makeGraph(distrib, getGraphDepotFolder(), "Nombre de logements simulés dans une commune de type rurale", "nameVariant", "Variante ",
+				"nbHU_rural", "Nombre de logements simulés");
+		makeGraph(distrib, getGraphDepotFolder(), "Nombre de logements simulés dans une commune de type péri-urbain", "nameVariant", "Variante ",
 				"nbHU_periUrbain", "Nombre de logements simulés");
-		makeGraph(distrib, getGraphDepotFile(), "Nombre de logements simulés dans un quartier de type banlieue", "nbVariant", "Variante ", "nbHU_banlieue",
-				"nombre de logements simulés");
-		makeGraph(distrib, getGraphDepotFile(), "Nombre de logements simulés dans un quartier de type centre", "nbVariant", "Variante ", "nbHU_centre",
+		makeGraph(distrib, getGraphDepotFolder(), "Nombre de logements simulés dans un quartier de type banlieue", "nameVariant", "Variante ",
+				"nbHU_banlieue", "nombre de logements simulés");
+		makeGraph(distrib, getGraphDepotFolder(), "Nombre de logements simulés dans un quartier de type centre", "nameVariant", "Variante ",
+				"nbHU_centre", "Nombre de logements simulés");
+		makeGraph(distrib, getGraphDepotFolder(), "Nombre de logements simulés dans une zone non constructible (NC)", "nameVariant", "Variante ",
+				"nbHU_NC", "Nombre de logements simulés");
+		makeGraph(distrib, getGraphDepotFolder(), "Nombre de logements simulés dans une zone à urbaniser (AU)", "nameVariant", "Variante ", "nbHU_AU",
 				"Nombre de logements simulés");
-		makeGraph(distrib, getGraphDepotFile(), "Nombre de logements simulés dans une zone non constructible (NC)", "nbVariant", "Variante ", "nbHU_NC",
+		makeGraph(distrib, getGraphDepotFolder(), "Nombre de logements simulés dans une zone urbanisable (U)", "nameVariant", "Variante ", "nbHU_U",
 				"Nombre de logements simulés");
-		makeGraph(distrib, getGraphDepotFile(), "Nombre de logements simulés dans une zone à urbaniser (AU)", "nbVariant", "Variante ", "nbHU_AU",
+		makeGraph(distrib, getGraphDepotFolder(), "Nombre de logements simulés de type maison isolée", "nameVariant", "Variante ", "nbHU_detachedHouse",
 				"Nombre de logements simulés");
-		makeGraph(distrib, getGraphDepotFile(), "Nombre de logements simulés dans une zone urbanisable (U)", "nbVariant", "Variante ", "nbHU_U",
-				"Nombre de logements simulés");
-		makeGraph(distrib, getGraphDepotFile(), "Nombre de logements simulés de type maison isolée", "nbVariant", "Variante ", "nbHU_detachedHouse",
-				"Nombre de logements simulés");
-		makeGraph(distrib, getGraphDepotFile(), "Nombre de logements simulés de type pavillon de lotissement", "nbVariant", "Variante ", "nbHU_smallHouse",
-				"Nombre de logements simulés");
-		makeGraph(distrib, getGraphDepotFile(), "Nombre de logements simulés de type immeuble d'habitat intermédiaire", "nbVariant", "Variante ",
+		makeGraph(distrib, getGraphDepotFolder(), "Nombre de logements simulés de type pavillon de lotissement", "nameVariant", "Variante ",
+				"nbHU_smallHouse", "Nombre de logements simulés");
+		makeGraph(distrib, getGraphDepotFolder(), "Nombre de logements simulés de type immeuble d'habitat intermédiaire", "nameVariant", "Variante ",
 				"nbHU_multiFamilyHouse", "Nombre de logements simulés");
-		makeGraph(distrib, getGraphDepotFile(), "Nombre de logements simulés de type petit immeuble collectif", "nbVariant", "Variante ",
+		makeGraph(distrib, getGraphDepotFolder(), "Nombre de logements simulés de type petit immeuble collectif", "nameVariant", "Variante ",
 				"nbHU_smallBlockFlat", "Nombre de logements simulés");
-		makeGraph(distrib, getGraphDepotFile(), "Nombre de logements simulés de type immeuble collectif de taille moyenne", "nbVariant", "Variante ",
-				"nbHU_midBlockFlat", "Nombre de logements simulés");
-		makeGraph(distrib, getGraphDepotFile(), "Nombre de logements simulés par variantes", "nbVariant", "Variante ", "nb_housingUnit",
+		makeGraph(distrib, getGraphDepotFolder(), "Nombre de logements simulés de type immeuble collectif de taille moyenne", "nameVariant",
+				"Variante ", "nbHU_midBlockFlat", "Nombre de logements simulés");
+		makeGraph(distrib, getGraphDepotFolder(), "Nombre de logements simulés par variantes", "nameVariant", "Variante ", "nb_housingUnit",
 				"Nombre de logements simulés");
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static void makeGraph(File csv, File graphDepotFile, String title, String x, String xTitle, String y, String yTitle) throws IOException {
 
-		SeriesData csvData = CSVImporter.getSeriesDataFromCSVFile(csv, DataOrientation.Columns, x, y);
-
+		// SeriesData csvDaa = CSVImporter.getSeriesDataFromCSVFile(csv, DataOrientation.Columns, x, y);
+		CategorySeries csvData = CSVImporter.getCategorySeriesFromCSVFile(csv, x, y, yTitle + "-" + xTitle, DataType.String);
 		// Create Chart
 		CategoryChart chart = new CategoryChartBuilder().width(800).height(600).title(title).xAxisTitle(xTitle).yAxisTitle(yTitle).build();
-		chart.addSeries(yTitle, csvData.getxAxisData(), csvData.getyAxisData());
+		// chart.addSeries(yTitle, csvDaa.getxAxisData(), csvDaa.getyAxisData());
+
+		chart.addSeries(yTitle, (List) csvData.getXData(), (List) csvData.getYData());
 		// Customize Chart
 		chart.getStyler().setLegendVisible(false);
 		chart.getStyler().setHasAnnotations(true);

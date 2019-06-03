@@ -5,8 +5,11 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -45,7 +48,67 @@ public class SimuTool {
 		// digForPackWithoutSimu(new File("/media/ubuntu/saintmande/Packager/CDense/base/"),
 		// new File("/home/ubuntu/boulot/these/result2903/tmp/SimPLUDepot/CDense/base/"), new File("/tmp/missingFromCDenseBase.csv"));
 
-		getStatDenial(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/CDense/variantMvData1"), new File("/tmp/salut"));
+		getStatDenialCuboid(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/DDense/base"), new File("/tmp/salut2"));
+
+		// File folderOut = new File("/media/ubuntu/saintmande/Packager/");
+		// for (File scenarFolder : folderOut.listFiles()) {
+		// if (scenarFolder.isDirectory()) {
+		// String scenarName = scenarFolder.getName();
+		// System.out.println(scenarFolder);
+		// for (File variantFolder : scenarFolder.listFiles()) {
+		// if (variantFolder.isDirectory()) {
+		// File out = new File(folderOut, scenarName + "-" + variantFolder.getName());
+		// System.out.println(out);
+		// if (out.exists()) {
+		// System.out.println("continuie");
+		// continue;
+		// }
+		// digForUselessPacks(variantFolder, out);
+		// }
+		// }
+		// }
+		// }
+
+		// digToCopyCsvFolders(new File("/home/ubuntu/boulot/these/missingFromCDenseBase.csv"),
+		// new File("/media/ubuntu/saintmande/Packager/CDense/base/"), new File("/home/ubuntu/boulot/these/missing/"));
+
+	}
+
+	private static void copyDir(String src, String dest, boolean overwrite) {
+		try {
+			Files.walk(Paths.get(src)).forEach(a -> {
+				Path b = Paths.get(dest, a.toString().substring(src.length()));
+				try {
+					if (!a.toString().equals(src))
+						Files.copy(a, b, overwrite ? new CopyOption[] { StandardCopyOption.REPLACE_EXISTING } : new CopyOption[] {});
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			});
+		} catch (IOException e) {
+			// permission issue
+			e.printStackTrace();
+		}
+	}
+
+	public static File digToCopyCsvFolders(File csvFolder, File variantFile, File toContainsCopies) throws IOException {
+
+		if (!toContainsCopies.exists()) {
+			toContainsCopies.mkdir();
+		}
+
+		CSVReader csvReader = new CSVReader(new FileReader(csvFolder));
+		csvReader.readNext();
+		for (String[] ss : csvReader.readAll()) {
+			String packa = variantFile + "/" + ss[0] + "/" + ss[1];
+			System.out.println("packageFile " + packa);
+			File to = new File(toContainsCopies.toString() + "/" + ss[0] + "/" + ss[1]);
+			to.mkdirs();
+			copyDir(packa, to.toString(), true);
+		}
+
+		csvReader.close();
+		return csvFolder;
 
 	}
 	// getSimuInfo(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/CDense/"), "25056000NTdiv590");
@@ -56,7 +119,15 @@ public class SimuTool {
 	// File("/home/ubuntu/boulot/these/result2903/tmp/SimPLUDepot/CDense/base/TotBatSimuFillEval.shp"));
 
 	// }
-
+	/**
+	 * transform sentences to erase 'space's and replace with AllCaps First Letters
+	 * 
+	 * TransformSentencesToEraseSpacesAndReplaceWithAllCapsFirstLetters
+	 * 
+	 * @param in
+	 *            : sentence to transform
+	 * @return sentanceTransformed
+	 */
 	public static String makeCamelWordOutOfPhrases(String in) {
 		String result = "";
 		String[] tab = in.split(" ");
@@ -463,6 +534,16 @@ public class SimuTool {
 		writer.close();
 	}
 
+	/**
+	 * return true if the community is only ruled by the Règlement National d'Urbanisme (RNU)
+	 * 
+	 * @param zoningFile
+	 *            : Zoning file of the area
+	 * @param insee
+	 *            : insee number of the community
+	 * @return
+	 * @throws IOException
+	 */
 	public static boolean isCommunityRNU(File zoningFile, String insee) throws IOException {
 		boolean answer = false;
 		ShapefileDataStore zoningSDS = new ShapefileDataStore(zoningFile.toURI().toURL());
@@ -656,10 +737,64 @@ public class SimuTool {
 	 * @return
 	 * @throws IOException
 	 */
-	public static File getStatDenial(File fIn, File fOut) throws IOException {
+	public static File getStatDenialCuboid(File fIn, File fOut) throws IOException {
 		HashMap<String, Long> result = new HashMap<String, Long>();
-		String str = getStatDenial(fIn, result).toString();
-		System.out.println(str);
+		String str = getStatDenialCuboid(fIn, result).toString();
+		System.out.println("StatDenialCuboid : " + str);
+		str = str.replace("{", "").replace("}", "").replace(" ", "");
+		CSVWriter csv = new CSVWriter(new FileWriter(fOut));
+
+		for (String st : str.split(",")) {
+			String[] s = st.split("=");
+			s[0] = makeDenialCuboidPHDable(s[0]);
+			csv.writeNext(s);
+		}
+		csv.close();
+		return fOut;
+	}
+
+	/**
+	 * make the statistics about simPLU denials with a recursive search of file within folders
+	 * 
+	 * @param fIn
+	 *            where to start the recursive search
+	 * @param result
+	 *            list of it for the recursive algorithm
+	 * @return
+	 * @throws IOException
+	 */
+	public static HashMap<String, Long> getStatDenialCuboid(File fIn, HashMap<String, Long> result) throws IOException {
+		for (File f : fIn.listFiles()) {
+			if (f.isDirectory()) {
+				result = getStatDenialCuboid(f, result);
+			} else if (f.getName().equals("importantInfo")) {
+				CSVReader read = new CSVReader(new FileReader(f), ';');
+				for (String[] l : read.readAll()) {
+					if (l[0].startsWith("denial reasons : {")) {
+						String reasons = l[0].replace("denial reasons : {", "").replace("}", "");
+						if (reasons.contains("=")) {
+							for (String reason : reasons.split(",")) {
+								reason = reason.replace(" ", "");
+								String topic = reason.split("=")[0];
+								long val = Integer.valueOf(reason.split("=")[1]);
+								Long tmp = result.putIfAbsent(topic, val);
+								if (tmp != null) {
+									result.replace(topic, tmp, tmp + val);
+								}
+							}
+						}
+					}
+				}
+				read.close();
+			}
+		}
+		return result;
+	}
+
+	public static File getStatDenialBuildingType(File fIn, File fOut) throws IOException {
+		HashMap<String, Integer> result = new HashMap<String, Integer>();
+		String str = getStatDenialBuildingType(fIn, result).toString();
+		System.out.println("StatDenialBuildingType : " + str);
 		str = str.replace("{", "").replace("}", "").replace(" ", "");
 		CSVWriter csv = new CSVWriter(new FileWriter(fOut));
 
@@ -681,25 +816,21 @@ public class SimuTool {
 	 * @return
 	 * @throws IOException
 	 */
-	public static HashMap<String, Long> getStatDenial(File fIn, HashMap<String, Long> result) throws IOException {
+	public static HashMap<String, Integer> getStatDenialBuildingType(File fIn, HashMap<String, Integer> result) throws IOException {
 		for (File f : fIn.listFiles()) {
 			if (f.isDirectory()) {
-				result = getStatDenial(f, result);
+				result = getStatDenialBuildingType(f, result);
 			} else if (f.getName().equals("importantInfo")) {
 				CSVReader read = new CSVReader(new FileReader(f), ';');
+				String antType = "";
 				for (String[] l : read.readAll()) {
-					if (l[0].startsWith("denial reasons : {")) {
-						String reasons = l[0].replace("denial reasons : {", "").replace("}", "");
-						if (reasons.contains("=")) {
-							for (String reason : reasons.split(",")) {
-								reason = reason.replace(" ", "");
-								String topic = reason.split("=")[0];								
-								long val = Integer.valueOf(reason.split("=")[1]);
-								Long tmp = result.putIfAbsent(topic, val);
-								if (tmp != null) {
-									result.replace(topic, tmp, tmp + val);
-								}
-							}
+					if (l[0].startsWith("simulation d'un ")) {
+						antType = l[0].replace("simulation d'un ", "").replace(" ", "");
+					}
+					if (l[0].startsWith("SDP is too small")) {
+						Integer tmp = result.putIfAbsent(antType, 1);
+						if (tmp != null) {
+							result.replace(antType, tmp, tmp + 1);
 						}
 					}
 				}
@@ -817,42 +948,48 @@ public class SimuTool {
 		return result;
 	}
 
-/**
- * dig for SimPLUPackager folders that are uninteresting to be simulated
- * Put them in a csv file ?!
- * Do we copy/delete them? 
- * 
- * @param fPack
- * @param fSimu
- * @param fOut
- * @throws IOException
- */
-	public static void digForUselessPacks(File fPack, File fSimu, File fOut) throws IOException {
+	/**
+	 * dig for SimPLUPackager folders that are uninteresting to be simulated Put them in a csv file ?! Do we copy/delete them?
+	 * 
+	 * @param fPack
+	 * @param fSimu
+	 * @param fOut
+	 * @throws IOException
+	 */
+	public static void digForUselessPacks(File fPack, File fOut) throws IOException {
 		List<String[]> lL = new ArrayList<String[]>();
 		String[] fl = { "SuperPack", "Pack" };
-		lL.add(fl);		
+		lL.add(fl);
 		for (File superPack : fPack.listFiles()) {
 			String superP = superPack.getName();
 			for (File pack : superPack.listFiles()) {
 				String p = pack.getName();
 				for (File f : pack.listFiles()) {
-					//if there is a parcel shapefile
+					// if there is a parcel shapefile
 					if (f.getName().equals("parcelle.shp")) {
+						boolean add = true;
 						ShapefileDataStore parcelleSDS = new ShapefileDataStore(f.toURI().toURL());
 						SimpleFeatureCollection parcelleOG = parcelleSDS.getFeatureSource().getFeatures();
 						SimpleFeatureIterator it = parcelleOG.features();
-						boolean add = false;
-						while (it.hasNext()) {
-							SimpleFeature feat = it.next();
-							if (feat.getAttribute("DoWeSimul").equals("true"))
-								add = true;
-								break;
+						try {
+							while (it.hasNext()) {
+								SimpleFeature feat = it.next();
+								if (feat.getAttribute("DoWeSimul").equals("true")) {
+									add = false;
+									break;
+								}
+							}
+						} catch (Exception problem) {
+							System.out.println("problem for " + f);
+							problem.printStackTrace();
+						} finally {
+							it.close();
 						}
+						it.close();
 						if (add) {
 							String[] l = { superP, p };
 							lL.add(l);
 						}
-						it.close();
 						parcelleSDS.dispose();
 					}
 				}
@@ -865,11 +1002,11 @@ public class SimuTool {
 		csv.close();
 	}
 
-	
-	
 	/**
-	 * create a .csv file from a Folder that contains superPacks that contains Packs from SimPLUPackager 
+	 * create a .csv file from a Folder that contains superPacks that contains Packs from SimPLUPackager
+	 * 
 	 * @param fPack
+	 *            :rootPack
 	 * @param fSimu
 	 * @param fOut
 	 * @throws IOException
@@ -1019,7 +1156,6 @@ public class SimuTool {
 				} finally {
 					zoneIt.close();
 				}
-				System.out.println(building);
 			}
 		} catch (Exception problem) {
 			problem.printStackTrace();
@@ -1080,6 +1216,45 @@ public class SimuTool {
 			stringResult = "NC";
 		}
 		return stringResult;
+	}
+
+	public static String makeDenialCuboidPHDable(String s) throws FileNotFoundException {
+		switch (s) {
+		case "art72||74":
+			return "article 7 (limites séparatives)";
+		case "buildingNb":
+			return "nombre de bâtiments";
+		case "art72||74bis":
+			return "article 7 (limites séparatives ou alignées)";
+		case "art71":
+			return "article 7 (limites de fond de parcelle)";
+		case "maxSDP":
+			return "surface de plancher maximale";
+		case "art73||74":
+			return "article 7 (limites de fond de parcelle ou alignées)";
+		case "art6-":
+			return "article 6 (règle utilisant un minimum et un maximum)";
+		case "buildWitdh":
+			return "largeur des bâtiments";
+		case "art8":
+			return "article 8 (distance entre deux bâtiments)";
+		case "nbCuboid":
+			return "nombre de boites";
+		case "art6-10":
+			return "article 6 (déclinaison alignée à la limite ou avec un retrait)";
+		case "art6-44":
+			return "article 6 (déclinaison en fonction de la hauteur des bâtiments de l'autre côté de la route)";
+		case "art9":
+			return "article 9 (coefficient d'emprise au sol)";
+		case "art6":
+			return "article 6 (règle par défaut)";
+		case "art5":
+			return "article 5 (surface nécessaire à l'implantation d'une fosse septique)";
+		case "art12":
+			return "article 12 (surface nécessaire au stationnement)";
+
+		}
+		return s;
 	}
 
 }

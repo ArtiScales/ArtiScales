@@ -209,28 +209,6 @@ public class FromGeom {
 		return result;
 	}
 
-	public static String getTypo(File communitiesFile, Geometry geom) throws IOException {
-		String result = "";
-		ShapefileDataStore sds = new ShapefileDataStore(communitiesFile.toURI().toURL());
-		SimpleFeatureIterator it = sds.getFeatureSource().getFeatures().features();
-		try {
-			while (it.hasNext()) {
-				SimpleFeature sf = it.next();
-				if (((Geometry) sf.getDefaultGeometry()).contains(geom)) {
-					result = (String) sf.getAttribute("typo");
-					break;
-				}
-
-			}
-		} catch (Exception problem) {
-			problem.printStackTrace();
-		} finally {
-			it.close();
-		}
-		sds.dispose();
-		return result;
-	}
-
 	public static String getBigZone(String unbigZone) {
 		switch (unbigZone) {
 		case "ZC":
@@ -539,12 +517,19 @@ public class FromGeom {
 				(Geometry) parcelIn.getDefaultGeometry());
 
 		SimpleFeatureIterator featuresZones = shpDSZoneReduced.features();
+
+		// objects for crossed zones
+		boolean twoZones = false;
+		HashMap<String, Double> repart = new HashMap<String, Double>();
+
 		try {
 			zone: while (featuresZones.hasNext()) {
 				SimpleFeature feat = featuresZones.next();
+				Geometry parcelInGeometry = (Geometry) parcelIn.getDefaultGeometry();
+				Geometry featGeometry = (Geometry) feat.getDefaultGeometry();
 				// TODO if same typo in two different typo, won't fall into that trap =>
 				// create a big zone shapefile instead?
-				if (((Geometry) feat.getDefaultGeometry()).buffer(1).contains((Geometry) parcelIn.getDefaultGeometry())) {
+				if (featGeometry.buffer(1).contains(parcelInGeometry)) {
 					switch ((String) feat.getAttribute("typo")) {
 					case "rural":
 						result.add("rural");
@@ -572,21 +557,39 @@ public class FromGeom {
 						break zone;
 					}
 				}
-				// maybe the parcel is in between two cities (that must be rare)
-				else if (((Geometry) feat.getDefaultGeometry()).intersects((Geometry) parcelIn.getDefaultGeometry())) {
+				// maybe the parcel is in between two cities
+				else if (featGeometry.intersects(parcelInGeometry)) {
+					twoZones = true;
+					double area = Vectors.scaledGeometryReductionIntersection(Arrays.asList(featGeometry, parcelInGeometry)).getArea();
 					switch ((String) feat.getAttribute("typo")) {
 					case "rural":
-						result.add("rural");
-						break zone;
-					case "periUrbain":
-						result.add("periUrbain");
-						break zone;
-					case "banlieue":
-						result.add("banlieue");
-						break zone;
+						if (repart.containsKey("rural")) {
+							repart.put("rural", repart.get("rural") + area);
+						} else {
+							repart.put("rural", area);
+						}
+						break;
 					case "centre":
-						result.add("centre");
-						break zone;
+						if (repart.containsKey("centre")) {
+							repart.put("centre", repart.get("centre") + area);
+						} else {
+							repart.put("centre", area);
+						}
+						break;
+					case "banlieue":
+						if (repart.containsKey("banlieue")) {
+							repart.put("banlieue", repart.get("banlieue") + area);
+						} else {
+							repart.put("banlieue", area);
+						}
+						break;
+					case "periUrbain":
+						if (repart.containsKey("periUrbain")) {
+							repart.put("periUrbain", repart.get("periUrbain") + area);
+						} else {
+							repart.put("periUrbain", area);
+						}
+						break;
 					}
 				}
 			}
@@ -596,16 +599,26 @@ public class FromGeom {
 			featuresZones.close();
 		}
 
-		// TODO sort from the most represented to the less
-		if (result.size() > 1) {
-			System.out.println("parcel " + parcelIn.getAttribute("CODE_COM") + parcelIn.getAttribute("SECTION") + parcelIn.getAttribute("NUMERO")
-					+ "is IN BETWEEN TWO CITIES OF DIFFERENT TYPOLOGIES");
-			System.out.println("thats very rare");
-			System.out.println("we randomly use " + result.get(0));
+		if (twoZones == true) {
+			List<Entry<String, Double>> entryList = new ArrayList<Entry<String, Double>>(repart.entrySet());
+			Collections.sort(entryList, new Comparator<Entry<String, Double>>() {
+				@Override
+				public int compare(Entry<String, Double> obj1, Entry<String, Double> obj2) {
+					return obj2.getValue().compareTo(obj1.getValue());
+				}
+			});
+
+			for (Entry<String, Double> s : entryList) {
+				result.add(s.getKey());
+			}
 		}
 
 		shpDSZone.dispose();
 
+		if (result.isEmpty()) {
+			result.add("null");
+		}
+		
 		return result;
 
 	}

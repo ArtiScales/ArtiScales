@@ -84,18 +84,16 @@ public class FakeWorldSimulator {
 		// Line to change to select the right scenario
 
 		File paramFile = new File(rootFolderFile, "/paramFolder");
-		 TransformXMLToJSON.convert(paramFile);
+		TransformXMLToJSON.convert(paramFile);
 		lF.add(new File(paramFile + "/paramSet/DDense/parameterScenario.json"));
 		lF.add(new File(paramFile + "/paramSet/DDense/parameterTechnic.json"));
 
 		List<File> lFTemp = new ArrayList<>();
-
 		File folderProfileBuildingType = new File(paramFile, "/profileBuildingType/");
 
 		for (File buildingTypeFile : folderProfileBuildingType.listFiles()) {
 
-			if (buildingTypeFile.getName().endsWith(".json") ) {
-
+			if (buildingTypeFile.getName().endsWith(".json")) {
 				lFTemp.add(buildingTypeFile);
 			}
 		}
@@ -104,7 +102,6 @@ public class FakeWorldSimulator {
 			try {
 				launchSimulation(rootFolderFile, outputFolder, x, lF, paramFile);
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		});
@@ -112,10 +109,9 @@ public class FakeWorldSimulator {
 
 	private static void launchSimulation(File rootFolderFile, File outputFolder, File buildingTypeFile, List<File> lF, File paramFile)
 			throws Exception {
-
-		// if (!type.equals("smallBlockFlat")) {
-		// continue;
-		// }
+		if (!buildingTypeFile.getName().equals("smallBlockFlat.json") && !buildingTypeFile.getName().equals("midBlockFlat.json")) {
+			return;
+		}
 		SimpluParametersJSON p = new SimpluParametersJSON(lF);
 		AttribNames.setATT_CODE_PARC("CODE");
 		outputFolder = new File(outputFolder, buildingTypeFile.getName());

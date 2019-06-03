@@ -20,7 +20,6 @@ import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
-import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.filter.Filter;
@@ -1732,13 +1731,23 @@ public class ParcelFonction {
 	 * @throws Exception
 	 */
 	public static boolean isParcelBuilt(SimpleFeature parcelIn, File geoFile) throws Exception {
+		return isParcelBuilt(FromGeom.getBuild(geoFile), parcelIn);
+	}
 
-		ShapefileDataStore shpDSBati = new ShapefileDataStore(FromGeom.getBuild(geoFile).toURI().toURL());
+	public static boolean isParcelBuilt(File batiFile, SimpleFeature parcelIn) throws Exception {
+		ShapefileDataStore shpDSBati = new ShapefileDataStore(batiFile.toURI().toURL());
 		SimpleFeatureCollection batiCollection = shpDSBati.getFeatureSource().getFeatures();
 		batiCollection = Vectors.snapDatas(batiCollection, (Geometry) parcelIn.getDefaultGeometry());
-		Geometry emprise = Vectors.unionSFC(batiCollection);
-
-		return isParcelBuilt(parcelIn, emprise, geoFile);
+		Geometry emprise;
+		try {
+			emprise = Vectors.unionSFC(batiCollection);
+		} catch (ClassCastException cce) {
+			System.out.println("isParceBuilt.batiCollection : " + batiCollection.size());
+			emprise = (Geometry) batiCollection.features().next().getDefaultGeometry();
+		}
+		boolean result = isParcelBuilt(batiFile, parcelIn, emprise);
+		shpDSBati.dispose();
+		return result;
 	}
 
 	/**
@@ -1748,12 +1757,21 @@ public class ParcelFonction {
 	 * @throws Exception
 	 */
 	public static boolean isParcelBuilt(SimpleFeature parcelIn, Geometry emprise, File geoFile) throws Exception {
+		return isParcelBuilt(FromGeom.getBuild(geoFile), parcelIn, emprise);
+	}
 
+	public static boolean isParcelBuilt(File batiFile, SimpleFeature parcelIn, Geometry emprise) throws Exception {
 		// couche de batiment
-		ShapefileDataStore shpDSBati = new ShapefileDataStore(FromGeom.getBuild(geoFile).toURI().toURL());
+		ShapefileDataStore shpDSBati = new ShapefileDataStore(batiFile.toURI().toURL());
 		SimpleFeatureCollection batiCollection = shpDSBati.getFeatureSource().getFeatures();
 		// on snap la couche de batiment et la met dans une géométrie unique
-		Geometry batiUnion = Vectors.unionSFC(Vectors.snapDatas(batiCollection, emprise));
+		Geometry batiUnion;
+		try {
+			batiUnion = Vectors.unionSFC(batiCollection);
+		} catch (ClassCastException cce) {
+			System.out.println("isParceBuilt.batiCollection : " + batiCollection.size());
+			batiUnion = (Geometry) batiCollection.features().next().getDefaultGeometry();
+		}
 		shpDSBati.dispose();
 		// if (((Geometry) parcelIn.getDefaultGeometry()).contains(batiUnion)) {
 		if (((Geometry) parcelIn.getDefaultGeometry()).intersects(batiUnion.buffer(-0.5))) {
@@ -1762,15 +1780,37 @@ public class ParcelFonction {
 		return false;
 	}
 
-	public static boolean isAlreadyBuilt(Feature feature, File geoFile) throws IOException {
+	/**
+	 * same as just up but in a different way TODO compare perf
+	 * 
+	 * @param feature
+	 * @param geoFile
+	 * @return
+	 * @throws IOException
+	 */
+	public static boolean isAlreadyBuilt(SimpleFeature feature, File geoFile) throws IOException {
+		return isAlreadyBuilt(FromGeom.getBuild(geoFile), feature);
+	}
+
+	public static boolean isAlreadyBuilt(File batiFile, SimpleFeature feature) throws IOException {
+		ShapefileDataStore batiSDS = new ShapefileDataStore(batiFile.toURI().toURL());
+		SimpleFeatureCollection batiFeatures = batiSDS.getFeatureSource().getFeatures();
+		boolean result = isAlreadyBuilt(batiFeatures, feature);
+		batiSDS.dispose();
+		return result;
+	}
+
+	public static boolean isAlreadyBuilt(SimpleFeatureCollection batiSFC, SimpleFeature feature) throws IOException {
+		return isAlreadyBuilt(batiSFC, feature, 0.0);
+	}
+
+	public static boolean isAlreadyBuilt(SimpleFeatureCollection batiSFC, SimpleFeature feature, double bufferBati) throws IOException {
 		boolean isContent = false;
-		ShapefileDataStore bati_datastore = new ShapefileDataStore(FromGeom.getBuild(geoFile).toURI().toURL());
-		SimpleFeatureCollection batiFeatures = bati_datastore.getFeatureSource().getFeatures();
-		SimpleFeatureIterator iterator = batiFeatures.features();
+		SimpleFeatureIterator iterator = batiSFC.features();
 		try {
 			while (iterator.hasNext()) {
 				SimpleFeature batiFeature = iterator.next();
-				if (feature.getDefaultGeometryProperty().getBounds().contains(batiFeature.getDefaultGeometryProperty().getBounds())) {
+				if (((Geometry) feature.getDefaultGeometry()).intersects(((Geometry) batiFeature.getDefaultGeometry()).buffer(bufferBati))) {
 					isContent = true;
 					break;
 				}
@@ -1780,7 +1820,6 @@ public class ParcelFonction {
 		} finally {
 			iterator.close();
 		}
-		bati_datastore.dispose();
 		return isContent;
 	}
 

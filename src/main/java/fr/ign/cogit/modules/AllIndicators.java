@@ -15,6 +15,7 @@ import fr.ign.cogit.map.theseMC.compVariant.MapNbHUCV;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.cogit.util.FromGeom;
 import fr.ign.cogit.util.ParcelFonction;
+import fr.ign.cogit.util.SimuTool;
 
 public class AllIndicators {
 
@@ -41,11 +42,11 @@ public class AllIndicators {
 			parc.createStat("bTH", "genStat.csv");
 			List<MapRenderer> allOfTheMaps = new ArrayList<MapRenderer>();
 
-			File commStatFile = parc.joinStatoBTHCommunities("compVariantbTHCityCoeffVar.csv");
+			File commStatFile = parc.joinStatBTHtoCommunities("compVariantbTHCityCoeffVar.csv");
 
-			parc.createGraph(new File(parc.getIndicFile(), "compVariantbTHGen.csv"));
+			parc.createGraph(new File(parc.getIndicFolder(), "compVariantbTHGen.csv"));
 
-			MapRenderer mapNbHUCV = new MapNbHUCV(1000, 1000, parc.getMapStyle(), commStatFile, parc.getMapDepotFile());
+			MapRenderer mapNbHUCV = new MapNbHUCV(1000, 1000, parc.getMapStyle(), commStatFile, parc.getMapDepotFolder());
 			mapNbHUCV.renderCityInfo();
 			mapNbHUCV.generateSVG();
 
@@ -62,20 +63,37 @@ public class AllIndicators {
 		}
 		// BHT
 		BuildingToHousingUnit bhtU = new BuildingToHousingUnit(rootFile, p, scenario, variant);
+
+		// statistics about denials
+		SimuTool.getStatDenialBuildingType(bhtU.getSimPLUDepotGenFile().getParentFile(),
+				new File(bhtU.getIndicFolder(), "StatDenialBuildingType.csv"));
+		SimuTool.getStatDenialCuboid(bhtU.getSimPLUDepotGenFile().getParentFile(), new File(bhtU.getIndicFolder(), "StatDenialCuboid.csv"));
+
+		// main general statistics
 		bhtU.distributionEstimate();
 		bhtU.makeGenStat();
 		bhtU.setCountToZero();
+
 		// for every cities
 		List<String> listInsee = FromGeom.getInsee(new File(bhtU.getRootFile(), "/dataGeo/old/communities.shp"), "DEPCOM");
 		for (String city : listInsee) {
 			bhtU.makeGenStat(city);
 			bhtU.setCountToZero();
 		}
-		bhtU.joinStatoBTHParcels("housingUnits.csv");
-		bhtU.createGraphDensity(new File(bhtU.getIndicFile(), "housingUnits.csv"));
-		File parcelleStatFile = bhtU.joinStatoBTHParcels("housingUnits.csv");
-		File commStatFile = bhtU.joinStatoBTHCommunities("genStat.csv");
-		BuildingToHousingUnit.allOfTheMap(bhtU, commStatFile, parcelleStatFile);
+
+		// new shapefile with stats
+		File parcelleStatFile = bhtU.joinStatBTHtoParcels("housingUnits.csv");
+		File commStatFile = bhtU.joinStatBTHtoCommunities("genStat.csv");
+		File newDensityFile = bhtU.createDensityCommunities(new File(bhtU.getRootFile(), "dataGeo/base-ic-logement-2012.csv"),
+				new File(bhtU.getRootFile(), "dataGeo/old/communities.shp"), bhtU.getRootFile(),
+				new File(bhtU.getIndicFolder(), "commNewBrutDens.shp"), "P12_LOG", "COM", "DEPCOM");
+
+		// graphs
+		bhtU.createGraphNetDensity(new File(bhtU.getIndicFolder(), "housingUnits.csv"));
+		bhtU.createGraphCount(new File(bhtU.getIndicFolder(), "genStat.csv"));
+
+		// maps
+		BuildingToHousingUnit.allOfTheMap(bhtU, commStatFile, parcelleStatFile, newDensityFile);
 
 		// Parcel
 		ParcelStat parc = new ParcelStat(p, rootFile, scenario, "variantMvData1");
@@ -88,7 +106,7 @@ public class AllIndicators {
 		for (String city : listInsee) {
 			SimpleFeatureCollection commParcel = ParcelFonction.getParcelByZip(parcelStatSHP, city);
 			System.out.println("city " + city);
-			parc.caclulateStatParcel(commParcel);
+			parc.calculateStatParcel(commParcel);
 			// parc.caclulateStatBatiParcel(commParcel);
 			parc.writeLine(city, "ParcelStat");
 			parc.toString();
@@ -96,7 +114,7 @@ public class AllIndicators {
 		}
 		File commStatParcelFile = parc.joinStatToCommunities();
 		parc.createMap(parc, commStatParcelFile);
-		parc.createGraph(new File(parc.getIndicFile(), "ParcelStat.csv"));
+		parc.createGraph(new File(parc.getIndicFolder(), "ParcelStat.csv"));
 	}
 
 }
