@@ -370,6 +370,10 @@ public class MapRenderer {
 		return svgFile;
 	}
 
+	public String getText() {
+		return text;
+	}
+	
 	// public static void main(String[] args) throws MalformedURLException, IOException, NoSuchAuthorityCodeException, FactoryException {
 	//
 	//

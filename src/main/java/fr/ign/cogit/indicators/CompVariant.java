@@ -6,6 +6,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
@@ -39,15 +41,15 @@ public class CompVariant extends Indicators {
 
 		SimpluParametersJSON p = new SimpluParametersJSON(lF);
 
-		CompVariant parc = new CompVariant(p, rootFile, scenario);
-		parc.createStat("bTH", "genStat.csv");
+		CompVariant compVar = new CompVariant(p, rootFile, scenario);
+		compVar.createStat("bTH", "genStat.csv");
 		List<MapRenderer> allOfTheMaps = new ArrayList<MapRenderer>();
 
-		File commStatFile = parc.joinStatBTHtoCommunities("compVariantbTHCityCoeffVar.csv");
+		compVar.setCommStatFile(compVar.joinStatBTHtoCommunities("compVariantbTHCityCoeffVar.csv"));
 
-		parc.createGraph(new File(parc.getIndicFolder(), "compVariantbTHGen.csv"));
+		compVar.createGraph(new File(compVar.getIndicFolder(), "compVariantbTHGen.csv"));
 
-		MapRenderer mapNbHUCV = new MapNbHUCV(1000, 1000, parc.getMapStyle(), commStatFile, parc.getMapDepotFolder());
+		MapRenderer mapNbHUCV = new MapNbHUCV(1000, 1000, compVar.getMapStyle(), compVar.getCommStatFile(), compVar.getMapDepotFolder());
 		mapNbHUCV.renderCityInfo();
 		mapNbHUCV.generateSVG();
 		allOfTheMaps.add(mapNbHUCV);
@@ -223,7 +225,6 @@ public class CompVariant extends Indicators {
 	// }
 
 	public void createGraph(File distrib) throws IOException {
-		makeGraph(distrib, getGraphDepotFolder(), "exemple on SDPTot", "nbVariant", "Variante", "SDPTot", "Surface De Plancher Totale");
 		makeGraph(distrib, getGraphDepotFolder(), "Nombre de logements simulés dans une commune de type rurale", "nameVariant", "Variante ",
 				"nbHU_rural", "Nombre de logements simulés");
 		makeGraph(distrib, getGraphDepotFolder(), "Nombre de logements simulés dans une commune de type péri-urbain", "nameVariant", "Variante ",
@@ -238,8 +239,8 @@ public class CompVariant extends Indicators {
 				"Nombre de logements simulés");
 		makeGraph(distrib, getGraphDepotFolder(), "Nombre de logements simulés dans une zone urbanisable (U)", "nameVariant", "Variante ", "nbHU_U",
 				"Nombre de logements simulés");
-		makeGraph(distrib, getGraphDepotFolder(), "Nombre de logements simulés de type maison isolée", "nameVariant", "Variante ", "nbHU_detachedHouse",
-				"Nombre de logements simulés");
+		makeGraph(distrib, getGraphDepotFolder(), "Nombre de logements simulés de type maison isolée", "nameVariant", "Variante ",
+				"nbHU_detachedHouse", "Nombre de logements simulés");
 		makeGraph(distrib, getGraphDepotFolder(), "Nombre de logements simulés de type pavillon de lotissement", "nameVariant", "Variante ",
 				"nbHU_smallHouse", "Nombre de logements simulés");
 		makeGraph(distrib, getGraphDepotFolder(), "Nombre de logements simulés de type immeuble d'habitat intermédiaire", "nameVariant", "Variante ",
@@ -260,8 +261,14 @@ public class CompVariant extends Indicators {
 		// Create Chart
 		CategoryChart chart = new CategoryChartBuilder().width(800).height(600).title(title).xAxisTitle(xTitle).yAxisTitle(yTitle).build();
 		// chart.addSeries(yTitle, csvDaa.getxAxisData(), csvDaa.getyAxisData());
-
-		chart.addSeries(yTitle, (List) csvData.getXData(), (List) csvData.getYData());
+		List<String> goodNames = new LinkedList<String>();
+		Iterator<?> it = csvData.getXData().iterator();
+		while (it.hasNext()) {
+			String s = ((String) it.next()).replace("variant", "");
+			System.out.println("position varianteComp" + s);
+			goodNames.add(s);
+		}
+		chart.addSeries(yTitle, goodNames, (List) csvData.getYData());
 		// Customize Chart
 		chart.getStyler().setLegendVisible(false);
 		chart.getStyler().setHasAnnotations(true);

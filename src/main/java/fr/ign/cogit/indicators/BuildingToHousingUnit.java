@@ -63,7 +63,7 @@ public class BuildingToHousingUnit extends Indicators {
 			nbPeriUrbain, nbRural, objHU, diffHU;
 	double sDPtot, empriseTot, averageDensiteHU, averageDensiteSDP, standDevDensiteSDP, averageDensiteEmprise, standDevDensiteEmprise,
 			standDevDensiteHU, objDens, diffDens, averageSDPpHU, standDevSDPpHU, averageEval, standDevEval;
-	String housingUnitFirstLine, genFirstLine, genStatFirstLine, numeroParcel;
+	String housingUnitFirstLine, genStatFirstLine, numeroParcel;
 	File tmpFile;
 	static String indicName = "bTH";
 
@@ -92,37 +92,56 @@ public class BuildingToHousingUnit extends Indicators {
 	public static void main(String[] args) throws Exception {
 		File rootFile = new File("./result2903/");
 		File rootParam = new File(rootFile, "paramFolder");
-		String scenario = "CPeuDense";
+		// String scenario = "CPeuDense";
 		String variant = "base";
+
 		List<File> lF = new ArrayList<>();
-		lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterTechnic.json"));
-		lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterScenario.json"));
+//		String[] scenarios = { "CDense", "CPeuDense", "DDense", "DPeuDense" };
+		 String[] scenarios = { "CDense" };
 
-		SimpluParametersJSON p = new SimpluParametersJSON(lF);
-		// for (File f : (new File(rootFile, "SimPLUDepot/" + scenario + "/")).listFiles()) {
-		// BuildingToHousingUnit bhtU = new BuildingToHousingUnit(rootFile, p, scenario, f.getName());
-		BuildingToHousingUnit bhtU = new BuildingToHousingUnit(rootFile, p, scenario, variant);
+		for (String scenario : scenarios) {
+			// for (File f : (new File(rootFile, "SimPLUDepot/" + scenario + "/")).listFiles()) {
+			// variant = f.getName();
+			// if (variant.equals("base")) {
+			// continue;
+			// }
+			lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterTechnic.json"));
+			lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterScenario.json"));
 
-		// statistics about denials
-		SimuTool.getStatDenialBuildingType(bhtU.getSimPLUDepotGenFile().getParentFile(),
-				new File(bhtU.getIndicFolder(), "StatDenialBuildingType.csv"));
-		SimuTool.getStatDenialCuboid(bhtU.getSimPLUDepotGenFile().getParentFile(), new File(bhtU.getIndicFolder(), "StatDenialCuboid.csv"));
-
-		// main general statistics
-		bhtU.distributionEstimate();
-		bhtU.makeGenStat();
-		bhtU.setCountToZero();
-
-		// for every cities
-		List<String> listInsee = FromGeom.getInsee(new File(bhtU.getRootFile(), "/dataGeo/old/communities.shp"), "DEPCOM");
-		for (String city : listInsee) {
-			bhtU.makeGenStat(city);
-			bhtU.setCountToZero();
+			SimpluParametersJSON p = new SimpluParametersJSON(lF);
+			System.out.println("run " + scenario + " variant: " + variant);
+			run(p, rootFile, scenario, variant);
 		}
+	}
 
-		// new shapefile with stats
-		File parcelleStatFile = bhtU.joinStatBTHtoParcels("housingUnits.csv");
-		File commStatFile = bhtU.joinStatBTHtoCommunities("genStat.csv");
+	// }
+
+	public static void run(SimpluParametersJSON p, File rootFile, String scenario, String variant) throws Exception {
+
+		BuildingToHousingUnit bhtU = new BuildingToHousingUnit(rootFile, p, scenario, variant);
+		// BuildingToHousingUnit bhtU = new BuildingToHousingUnit(rootFile, p, scenario, variant);
+
+		// // statistics about denials
+		// SimuTool.getStatDenialBuildingType(bhtU.getSimPLUDepotGenFile().getParentFile(),
+		// new File(bhtU.getIndicFolder(), "StatDenialBuildingType.csv"));
+		// SimuTool.getStatDenialCuboid(bhtU.getSimPLUDepotGenFile().getParentFile(), new File(bhtU.getIndicFolder(), "StatDenialCuboid.csv"));
+		//
+		// // main general statistics
+		// bhtU.distributionEstimate();
+		// bhtU.makeGenStat();
+		// bhtU.setCountToZero();
+		//
+		// // for every cities
+		// List<String> listInsee = FromGeom.getInsee(new File(bhtU.getRootFile(), "/dataGeo/old/communities.shp"), "DEPCOM");
+		// for (String city : listInsee) {
+		// bhtU.makeGenStat(city);
+		// bhtU.setCountToZero();
+		// }
+		//
+		// // new shapefile with stats
+		bhtU.setParcelStatFile(bhtU.joinStatBTHtoParcels("housingUnits.csv"));
+		bhtU.setCommStatFile(bhtU.joinStatBTHtoCommunities("genStat.csv"));
+
 		File newDensityFile = bhtU.createDensityCommunities(new File(bhtU.getRootFile(), "dataGeo/base-ic-logement-2012.csv"),
 				new File(bhtU.getRootFile(), "dataGeo/old/communities.shp"), bhtU.getRootFile(),
 				new File(bhtU.getIndicFolder(), "commNewBrutDens.shp"), "P12_LOG", "COM", "DEPCOM");
@@ -132,7 +151,7 @@ public class BuildingToHousingUnit extends Indicators {
 		bhtU.createGraphCount(new File(bhtU.getIndicFolder(), "genStat.csv"));
 
 		// maps
-		allOfTheMap(bhtU, commStatFile, parcelleStatFile, newDensityFile);
+		allOfTheMap(bhtU, newDensityFile);
 
 	}
 	// }
@@ -229,33 +248,38 @@ public class BuildingToHousingUnit extends Indicators {
 	}
 
 	public void createGraphNetDensity(File statFile) throws IOException {
-		makeGraphDens(statFile, getGraphDepotFolder(), "Scenario : " + scenarName + " - Variante : " + variantName, "HUpHectareDensity",
-				"densité nette de logements par hectare", "nombre de parcelle", 0, 100);
-		makeGraphDens(statFile, getGraphDepotFolder(), "Scenario : " + scenarName + " - Variante : " + variantName, "SDPpHectareDensity",
-				"densité nette de surface de plancher des bâtiments par hectare", "nombre de parcelle", 0, 6000);
-		makeGraphDens(statFile, getGraphDepotFolder(), "Scenario : " + scenarName + " - Variante : " + variantName, "EmprisepHectareDensity",
-				"densité nette de l'emprise des bâtiments par hectare", "nombre de parcelle", 0, 6000);
-		makeGraphDens(statFile, getGraphDepotFolder(), "Scenario : " + scenarName + " - Variante : " + variantName, "eval",
-				"évaluation de l'intêret à être urbanisé", "nombre de parcelle", 0, 1);
+		makeGraphDens(statFile, getGraphDepotFolder(), SimuTool.makeWordPHDable(scenarName) + " - Variante : " + variantName, "HUpHectareDensity",
+				"Densité nette de logements par hectare", "Nombre de parcelle", 0, 100);
+		makeGraphDens(statFile, getGraphDepotFolder(), SimuTool.makeWordPHDable(scenarName) + " - Variante : " + variantName, "SDPpHectareDensity",
+				"Densité nette de surface de plancher des bâtiments par hectare", "Nombre de parcelle", 0, 6000);
+		makeGraphDens(statFile, getGraphDepotFolder(), SimuTool.makeWordPHDable(scenarName) + " - Variante : " + variantName,
+				"EmprisepHectareDensity", "Densité nette de l'emprise des bâtiments par hectare", "Nombre de parcelle", 0, 6000);
+		makeGraphDens(statFile, getGraphDepotFolder(), SimuTool.makeWordPHDable(scenarName) + " - Variante : " + variantName, "eval",
+				"Évaluation de l'intêret à être urbanisé", "Nombre de parcelle", 0, 1, 10);
 	}
 
 	public void createGraphCount(File statFile) throws IOException {
 		String[] xType = { "nbHU_detachedHouse", "nbHU_smallHouse", "nbHU_multiFamilyHouse", "nbHU_smallBlockFlat", "nbHU_midBlockFlat" };
-		makeGraph(statFile, getGraphDepotFolder(), "Scenario : " + scenarName + " - Variante : " + variantName, xType, "Type de bâtiment",
+		makeGraph(statFile, getGraphDepotFolder(), SimuTool.makeWordPHDable(scenarName) + " - Variante : " + variantName, xType, "Type de bâtiment",
 				"Nombre de logements simulés");
 		String[] xTypo = { "nbHU_rural", "nbHU_periUrbain", "nbHU_banlieue", "nbHU_centre" };
-		makeGraph(statFile, getGraphDepotFolder(), "Scenario : " + scenarName + " - Variante : " + variantName, xTypo, "Typologie des communes",
-				"Nombre de logements simulés");
+		makeGraph(statFile, getGraphDepotFolder(), SimuTool.makeWordPHDable(scenarName) + " - Variante : " + variantName, xTypo,
+				"Typologie des communes", "Nombre de logements simulés");
 		String[] xZone = { "nbHU_U", "nbHU_AU", "nbHU_NC" };
-		makeGraph(statFile, getGraphDepotFolder(), "Scenario : " + scenarName + " - Variante : " + variantName, xZone, "Type de zonage",
+		makeGraph(statFile, getGraphDepotFolder(), SimuTool.makeWordPHDable(scenarName) + " - Variante : " + variantName, xZone, "Type de zonage",
 				"Nombre de logements simulés");
 		String[] xConso = { "SDPTot", "empriseTot" };
-		makeGraph(statFile, getGraphDepotFolder(), "Scenario : " + scenarName + " - Variante : " + variantName, xConso,
+		makeGraph(statFile, getGraphDepotFolder(), SimuTool.makeWordPHDable(scenarName) + " - Variante : " + variantName, xConso,
 				"Consommation surfacique des bâtiments simulés", "Surface (em km²)");
 	}
 
 	public static void makeGraphDens(File csv, File graphDepotFile, String title, String x, String xTitle, String yTitle, int xMin, int xMax)
 			throws IOException {
+		makeGraphDens(csv, graphDepotFile, title, x, xTitle, yTitle, xMin, xMax, 20);
+	}
+
+	public static void makeGraphDens(File csv, File graphDepotFile, String title, String x, String xTitle, String yTitle, int xMin, int xMax,
+			int range) throws IOException {
 		// Create Chart
 		List<Double> values = new ArrayList<Double>();
 
@@ -276,7 +300,7 @@ public class BuildingToHousingUnit extends Indicators {
 
 		csvR.close();
 
-		Histogram histo = new Histogram(values, 20, xMin, xMax);
+		Histogram histo = new Histogram(values, range, xMin, xMax);
 		CategoryChart chart = new CategoryChartBuilder().width(800).height(600).title(title).xAxisTitle(xTitle).yAxisTitle(yTitle).build();
 		chart.addSeries(makeLabelPHDable(x), histo.getxAxisData(), histo.getyAxisData());
 
@@ -329,37 +353,34 @@ public class BuildingToHousingUnit extends Indicators {
 		// new SwingWrapper(chart).displayChart();
 	}
 
-	public static void allOfTheMap(BuildingToHousingUnit bhtU, File commStatFile, File parcelStatFile, File newBrutDensityFile)
+	public static void allOfTheMap(BuildingToHousingUnit bhtU, File newBrutDensityFile)
 			throws MalformedURLException, NoSuchAuthorityCodeException, IOException, FactoryException {
 		List<MapRenderer> allOfTheMaps = new ArrayList<MapRenderer>();
 		// buildings maps
-		// MapRenderer diffObjDensMap = new DiffObjDensMap(1000, 1000, bhtU.getMapStyle(), commStatFile, bhtU.getMapDepotFolder());
-		// allOfTheMaps.add(diffObjDensMap);
-		MapRenderer diffObjLgtMap = new DiffObjLgtMap(1000, 1000, bhtU.getMapStyle(), commStatFile, bhtU.getMapDepotFolder());
+		MapRenderer diffObjLgtMap = new DiffObjLgtMap(1000, 1000, bhtU.getMapStyle(), bhtU.getCommStatFile(), bhtU.getMapDepotFolder());
 		allOfTheMaps.add(diffObjLgtMap);
-		MapRenderer nbHU = new NbHU(1000, 1000, bhtU.getMapStyle(), commStatFile, bhtU.getMapDepotFolder());
+		MapRenderer nbHU = new NbHU(1000, 1000, bhtU.getMapStyle(), bhtU.getCommStatFile(), bhtU.getMapDepotFolder());
 		allOfTheMaps.add(nbHU);
-		MapRenderer nbHUDetachedHouse = new NbHUDetachedHouse(1000, 1000, bhtU.getMapStyle(), commStatFile, bhtU.getMapDepotFolder());
+		MapRenderer nbHUDetachedHouse = new NbHUDetachedHouse(1000, 1000, bhtU.getMapStyle(), bhtU.getCommStatFile(), bhtU.getMapDepotFolder());
 		allOfTheMaps.add(nbHUDetachedHouse);
-		MapRenderer nbHUMidBlock = new NbHUMidBlock(1000, 1000, bhtU.getMapStyle(), commStatFile, bhtU.getMapDepotFolder());
+		MapRenderer nbHUMidBlock = new NbHUMidBlock(1000, 1000, bhtU.getMapStyle(), bhtU.getCommStatFile(), bhtU.getMapDepotFolder());
 		allOfTheMaps.add(nbHUMidBlock);
-		MapRenderer nbHUSmallBlock = new NbHUSmallBlock(1000, 1000, bhtU.getMapStyle(), commStatFile, bhtU.getMapDepotFolder());
+		MapRenderer nbHUSmallBlock = new NbHUSmallBlock(1000, 1000, bhtU.getMapStyle(), bhtU.getCommStatFile(), bhtU.getMapDepotFolder());
 		allOfTheMaps.add(nbHUSmallBlock);
-		MapRenderer nbHUSmallHouse = new NbHUSmallHouse(1000, 1000, bhtU.getMapStyle(), commStatFile, bhtU.getMapDepotFolder());
+		MapRenderer nbHUSmallHouse = new NbHUSmallHouse(1000, 1000, bhtU.getMapStyle(), bhtU.getCommStatFile(), bhtU.getMapDepotFolder());
 		allOfTheMaps.add(nbHUSmallHouse);
-		MapRenderer nbHUMultiFamilyHouse = new NbHUMultiFamilyHouse(1000, 1000, bhtU.getMapStyle(), commStatFile, bhtU.getMapDepotFolder());
+		MapRenderer nbHUMultiFamilyHouse = new NbHUMultiFamilyHouse(1000, 1000, bhtU.getMapStyle(), bhtU.getCommStatFile(), bhtU.getMapDepotFolder());
 		allOfTheMaps.add(nbHUMultiFamilyHouse);
-		MapRenderer nbHUU = new NbHUU(1000, 1000, bhtU.getMapStyle(), commStatFile, bhtU.getMapDepotFolder());
+		MapRenderer nbHUU = new NbHUU(1000, 1000, bhtU.getMapStyle(), bhtU.getCommStatFile(), bhtU.getMapDepotFolder());
 		allOfTheMaps.add(nbHUU);
-		MapRenderer nbHUAU = new NbHUAU(1000, 1000, bhtU.getMapStyle(), commStatFile, bhtU.getMapDepotFolder());
+		MapRenderer nbHUAU = new NbHUAU(1000, 1000, bhtU.getMapStyle(), bhtU.getCommStatFile(), bhtU.getMapDepotFolder());
 		allOfTheMaps.add(nbHUAU);
-
 		// parcels maps
-		MapRenderer dHuHec = new ParcelleDensHUpHec(1000, 1000, bhtU.getMapStyle(), parcelStatFile, bhtU.getMapDepotFolder());
+		MapRenderer dHuHec = new ParcelleDensHUpHec(1000, 1000, bhtU.getMapStyle(), bhtU.getParcelStatFile(), bhtU.getMapDepotFolder());
 		allOfTheMaps.add(dHuHec);
-		MapRenderer dSDPHec = new ParcelleDensSDPpHec(1000, 1000, bhtU.getMapStyle(), parcelStatFile, bhtU.getMapDepotFolder());
+		MapRenderer dSDPHec = new ParcelleDensSDPpHec(1000, 1000, bhtU.getMapStyle(), bhtU.getParcelStatFile(), bhtU.getMapDepotFolder());
 		allOfTheMaps.add(dSDPHec);
-		MapRenderer dEmpHec = new ParcelleDensEmprisepHec(1000, 1000, bhtU.getMapStyle(), parcelStatFile, bhtU.getMapDepotFolder());
+		MapRenderer dEmpHec = new ParcelleDensEmprisepHec(1000, 1000, bhtU.getMapStyle(), bhtU.getParcelStatFile(), bhtU.getMapDepotFolder());
 		allOfTheMaps.add(dEmpHec);
 
 		for (MapRenderer map : allOfTheMaps) {
@@ -368,7 +389,7 @@ public class BuildingToHousingUnit extends Indicators {
 		}
 
 		// net density maps
-		DensIniNewComp map = new DensIniNewComp(1000, 1000, bhtU.getMapStyle(), commStatFile, bhtU.getMapDepotFolder());
+		DensIniNewComp map = new DensIniNewComp(1000, 1000, bhtU.getMapStyle(), bhtU.getCommStatFile(), bhtU.getMapDepotFolder());
 		map.makeDensIniNetMap(newBrutDensityFile);
 		map.renderCityInfo("DensNetIni");
 		map.generateSVG(new File(bhtU.getMapDepotFolder(), "DensNetIni.svg"), "DensNetIni");
@@ -467,13 +488,6 @@ public class BuildingToHousingUnit extends Indicators {
 	 */
 	public String getFirstlinePartCsv() {
 		return housingUnitFirstLine;
-	}
-
-	/**
-	 * Surcharge des fonction de générations de csv
-	 */
-	public String getFirstlineGenCsv() {
-		return super.getFirstlineCsv() + genFirstLine;
 	}
 
 	public void makeGenStat() throws Exception {

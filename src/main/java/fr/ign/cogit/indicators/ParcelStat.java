@@ -63,42 +63,52 @@ public class ParcelStat extends Indicators {
 		File rootFile = new File("./result2903/");
 		File rootParam = new File(rootFile, "paramFolder");
 		List<File> lF = new ArrayList<>();
-		String scenario = "CPeuDense";
-		// String variant = "base";
+		// String scenario= "DPeuDense";
+		String[] scenarios = { "CDense", "CPeuDense", "DDense", "DPeuDense" };
 
-		lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterTechnic.json"));
-		lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterScenario.json"));
+		String variant = "base";
 
-		SimpluParametersJSON p = new SimpluParametersJSON(lF);
-		for (File f : (new File(rootFile, "SimPLUDepot/" + scenario + "/")).listFiles()) {
-			ParcelStat parc = new ParcelStat(p, rootFile, scenario, f.getName());
-			// ParcelStat parc = new ParcelStat(p, rootFile, scenario, "variantMvData1");
-			SimpleFeatureCollection parcelStatSHP = parc.markSimuledParcels();
-			parc.caclulateStatParcel();
-			parc.writeLine("AllZone", "ParcelStat");
-			parc.setCountToZero();
-			List<String> listInsee = FromGeom.getInsee(new File(parc.getRootFile(), "/dataGeo/old/communities.shp"), "DEPCOM");
+		for (String scenario : scenarios) {
+			lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterTechnic.json"));
+			lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterScenario.json"));
 
-			for (String city : listInsee) {
-				SimpleFeatureCollection commParcel = ParcelFonction.getParcelByZip(parcelStatSHP, city);
-				System.out.println("city " + city);
-				parc.calculateStatParcel(commParcel);
-				parc.writeLine(city, "ParcelStat");
-				parc.toString();
-				parc.setCountToZero();
-			}
-			File commStatFile = parc.joinStatToCommunities();
-			parc.createMap(parc, commStatFile);
-			parc.createGraph(new File(parc.getIndicFolder(), "ParcelStat.csv"));
+			SimpluParametersJSON p = new SimpluParametersJSON(lF);
+			run(p, rootFile, scenario, variant);
 		}
+		// for (File f : (new File(rootFile, "SimPLUDepot/" + scenario + "/")).listFiles()) {
+
 	}
 
-	public void createMap(ParcelStat parc, File commStatFile) throws IOException, NoSuchAuthorityCodeException, FactoryException {
+	public static void run(SimpluParametersJSON p, File rootFile, String scenario, String variant) throws Exception {
+
+		// ParcelStat parc = new ParcelStat(p, rootFile, scenario, f.getName());
+		ParcelStat parc = new ParcelStat(p, rootFile, scenario, variant);
+		// SimpleFeatureCollection parcelStatSHP = parc.markSimuledParcels();
+		// parc.caclulateStatParcel();
+		// parc.writeLine("AllZone", "ParcelStat");
+		// parc.setCountToZero();
+		// List<String> listInsee = FromGeom.getInsee(new File(parc.getRootFile(), "/dataGeo/old/communities.shp"), "DEPCOM");
+		//
+		// for (String city : listInsee) {
+		// SimpleFeatureCollection commParcel = ParcelFonction.getParcelByZip(parcelStatSHP, city);
+		// System.out.println("city " + city);
+		// parc.calculateStatParcel(commParcel);
+		// parc.writeLine(city, "ParcelStat");
+		// parc.toString();
+		// parc.setCountToZero();
+		// }
+		parc.setCommStatFile(parc.joinStatToCommunities());
+		parc.createMap(parc);
+		parc.createGraph(new File(parc.getIndicFolder(), "ParcelStat.csv"));
+		// }
+	}
+
+	public void createMap(ParcelStat parc) throws IOException, NoSuchAuthorityCodeException, FactoryException {
 		List<MapRenderer> allOfTheMaps = new ArrayList<MapRenderer>();
-		MapRenderer surfParcelSimulatedMap = new SurfParcelSimulatedMap(1000, 1000, new File(parc.getRootFile(), "mapStyle"), commStatFile,
+		MapRenderer surfParcelSimulatedMap = new SurfParcelSimulatedMap(1000, 1000, new File(parc.getRootFile(), "mapStyle"), getCommStatFile(),
 				parc.getMapDepotFolder());
 		allOfTheMaps.add(surfParcelSimulatedMap);
-		MapRenderer surfParcelFailedMap = new SurfParcelFailedMap(1000, 1000, parc.getMapStyle(), commStatFile, parc.getMapDepotFolder());
+		MapRenderer surfParcelFailedMap = new SurfParcelFailedMap(1000, 1000, parc.getMapStyle(), getCommStatFile(), parc.getMapDepotFolder());
 		allOfTheMaps.add(surfParcelFailedMap);
 		// MapRenderer aParcelSDPSimuMap = new AParcelSDPSimuMap(1000, 1000,parc.mapStyle , commStatFile, parc.mapDepotFile);
 		// allOfTheMaps.add(aParcelSDPSimuMap);
@@ -111,24 +121,24 @@ public class ParcelStat extends Indicators {
 
 	public void createGraph(File distrib) throws IOException {
 		// Number
-
 		String[] xTypeSimulated = { "nbParcelSimulatedCentre", "nbParcelSimulatedBanlieue", "nbParcelSimulatedPeriUrb", "nbParcelSimulatedRural" };
 		String[] xTypeSimulFailed = { "nbParcelSimulFailedCentre", "nbParcelSimulFailedBanlieue", "nbParcelSimulFailedPeriUrb",
-				"nbParcelSimulatedRural" };
+				"nbParcelSimulFailedRural" };
 		String[][] xType = { xTypeSimulated, xTypeSimulFailed };
-		makeGraphDouble(distrib, getGraphDepotFolder(), "Scenario : " + scenarName + " - Variante : " + variantName, xType, "typologie",
+		makeGraphDouble(distrib, getGraphDepotFolder(), SimuTool.makeWordPHDable(scenarName) + " - Variante : " + variantName, xType, "typologie",
 				"Nombre de parcelles");
+		
 		String[] xZoneSimulated = { "nbParcelSimulatedU", "nbParcelSimulatedAU", "nbParcelSimulatedNC" };
 		String[] xZoneSimulFailed = { "nbParcelSimulFailedU", "nbParcelSimulFailedAU", "nbParcelSimulFailedNC" };
 		String[][] xZone = { xZoneSimulated, xZoneSimulFailed };
-		makeGraphDouble(distrib, getGraphDepotFolder(), "Scenario : " + scenarName + " - Variante : " + variantName, xZone, "type de zone",
+		makeGraphDouble(distrib, getGraphDepotFolder(), SimuTool.makeWordPHDable(scenarName) + " - Variante : " + variantName, xZone, "type de zone",
 				"Nombre de parcelles");
 
 		String[] xRecompSimulated = { "simuledFromOriginal", "simuledFromDensification", "simuledFromTotalRecomp", "simuledFromZoneCut" };
 		String[] xRecompSimulFailed = { "failedFromOriginal", "failedFromDensification", "failedFromTotalRecomp", "failedFromZoneCut" };
 		String[][] xRecomp = { xRecompSimulated, xRecompSimulFailed };
-		makeGraphDouble(distrib, getGraphDepotFolder(), "Scenario : " + scenarName + " - Variante : " + variantName, xRecomp,
-				"processus de recomposition des parcelles", "Nombre de parcelles");
+		makeGraphDouble(distrib, getGraphDepotFolder(), SimuTool.makeWordPHDable(scenarName) + " - Variante : " + variantName, xRecomp,
+				"Processus de recomposition des parcelles", "Nombre de parcelles");
 
 		// Surface
 		String[] xTypeSimulatedSurf = { "surfParcelSimulatedCentre", "surfParcelSimulatedBanlieue", "surfParcelSimulatedPeriUrb",
@@ -136,13 +146,14 @@ public class ParcelStat extends Indicators {
 		String[] xTypeSimulFailedSurf = { "surfParcelSimulFailedCentre", "surfParcelSimulFailedBanlieue", "surfParcelSimulFailedPeriUrb",
 				"surfParcelSimulatedRural" };
 		String[][] xTypeSurf = { xTypeSimulatedSurf, xTypeSimulFailedSurf };
-		makeGraphDouble(distrib, getGraphDepotFolder(), "Scenario : " + scenarName + " - Variante : " + variantName, xTypeSurf, "typologie",
+		makeGraphDouble(distrib, getGraphDepotFolder(), SimuTool.makeWordPHDable(scenarName) + " - Variante : " + variantName, xTypeSurf, "typologie",
 				"Surface de parcelles (km²)");
+		
 		String[] xZoneSimulatedSurf = { "surfParcelSimulatedU", "surfParcelSimulatedAU", "surfParcelSimulatedNC" };
 		String[] xZoneSimulFailedSurf = { "surfParcelSimulFailedU", "surfParcelSimulFailedAU", "surfParcelSimulFailedNC" };
 		String[][] xZoneSurf = { xZoneSimulatedSurf, xZoneSimulFailedSurf };
-		makeGraphDouble(distrib, getGraphDepotFolder(), "Scenario : " + scenarName + " - Variante : " + variantName, xZoneSurf, "type de zone",
-				"Surface de parcelles (km²)");
+		makeGraphDouble(distrib, getGraphDepotFolder(), SimuTool.makeWordPHDable(scenarName) + " - Variante : " + variantName, xZoneSurf,
+				"type de zone", "Surface de parcelles (km²)");
 	}
 
 	public static void makeGraphDouble(File csv, File graphDepotFile, String title, String[][] xes, String xTitle, String yTitle) throws IOException {
@@ -590,7 +601,7 @@ public class ParcelStat extends Indicators {
 
 	/**
 	 * this method aims to select the simulated parcels, the parcel that haven't been selected and if no building have been simulated on the selected and/or cuted parcel, get the
-	 * older ones. This is not finished nor working
+	 * older ones. This is not finished nor working TODO finish to have beautiful results
 	 * 
 	 * @return
 	 * @throws IOException

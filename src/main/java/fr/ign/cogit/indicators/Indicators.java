@@ -30,9 +30,9 @@ import fr.ign.cogit.util.SimuTool;
 
 public abstract class Indicators {
 	SimpluParametersJSON p;
-	private File rootFile, paramFolder, mupOutputFile, parcelDepotGenFile, simPLUDepotGenFile, mapStyle, graphDepotFolder, indicFile, mapDepotFolder;
+	private File rootFile, paramFolder, mupOutputFile, parcelDepotGenFile, simPLUDepotGenFile, mapStyle, graphDepotFolder, indicFile, mapDepotFolder, commStatFile, parcelStatFile;;
 	protected String scenarName, variantName, echelle, indicName;
-
+	
 	boolean firstLineGen = true;
 	boolean firstLineSimu = true;
 	boolean particularExists = false;
@@ -433,17 +433,17 @@ public abstract class Indicators {
 		case "eval":
 			return "Valeur d'intérêt de la parcelle à être urbanisée selon les évaluations de MUP-City";
 		case "simuledFromOriginal":
-		case "failedFromOriginal":		
+		case "failedFromOriginal":
 			return "pas de modification";
 		case "simuledFromDensification":
 		case "failedFromDensification":
 			return "densification";
 		case "failedFromTotalRecomp":
 		case "simuledFromTotalRecomp":
-			return "recomposition totale d'une zone";
+			return "totale";
 		case "failedFromZoneCut":
 		case "simuledFromZoneCut":
-			return "découapge en fonction du zonage";
+			return "zonage";
 		}
 		throw new FileNotFoundException("name not found");
 	}
@@ -518,5 +518,21 @@ public abstract class Indicators {
 
 	public void setParamFolder(File paramFolder) {
 		this.paramFolder = paramFolder;
+	}
+
+	public File getCommStatFile() {
+		return commStatFile;
+	}
+
+	public void setCommStatFile(File commStatFile) {
+		this.commStatFile = commStatFile;
+	}
+
+	public File getParcelStatFile() {
+		return parcelStatFile;
+	}
+
+	public void setParcelStatFile(File parcelStatFile) {
+		this.parcelStatFile = parcelStatFile;
 	}
 }

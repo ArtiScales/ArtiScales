@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 
@@ -23,28 +24,29 @@ import fr.ign.cogit.map.MapRenderer;
 import fr.ign.cogit.map.theseMC.compVariant.MapNbHUCV;
 
 public class CompScenario extends Indicators {
-	int nbScenario = 0;
 	String[] baseScenario;
 	String indicStatFile;
 	static String variante = "base";
 	static String indicName = "compScenario";
 
 	public static void main(String[] args) throws Exception {
-		File rootFile = new File("./result2903/");
-
-		CompScenario parc = new CompScenario(rootFile);
-
-		parc.createStat("bTH", "genStat.csv");
-		List<MapRenderer> allOfTheMaps = new ArrayList<MapRenderer>();
-
-		File commStatFile = parc.joinStatBTHtoCommunities("compScenariobTHCity.csv");
-
-		parc.createGraph(new File(parc.getIndicFolder(), "compScenariobTHGen.csv"));
-
-		MapRenderer mapNbHUCV = new MapNbHUCV(1000, 1000, parc.getMapStyle(), commStatFile, parc.getMapDepotFolder());
-		mapNbHUCV.renderCityInfo();
-		mapNbHUCV.generateSVG();
-		allOfTheMaps.add(mapNbHUCV);
+//		File rootFile = new File("./result2903/");
+//
+//		CompScenario compScen = new CompScenario(rootFile);
+//
+//		compScen.createStat("bTH", "genStat.csv");
+//		List<MapRenderer> allOfTheMaps = new ArrayList<MapRenderer>();
+//
+//		compScen.setCommStatFile(compScen.joinStatBTHtoCommunities("compScenariobTHCity.csv"));
+//
+//		compScen.createGraph(new File(compScen.getIndicFolder(), "compScenariobTHGen.csv"));
+//
+//		MapRenderer mapNbHUCV = new MapNbHUCV(1000, 1000, compScen.getMapStyle(), compScen.getCommStatFile(), compScen.getMapDepotFolder());
+//		mapNbHUCV.renderCityInfo();
+//		mapNbHUCV.generateSVG();
+//		allOfTheMaps.add(mapNbHUCV);
+		
+		mergeDenialStat(new File("/home/ubuntu/boulot/these/result2903/indic/bTH/"), "base", new File("/tmp/stat"));
 	}
 
 	public CompScenario(File rootfile) throws Exception {
@@ -63,6 +65,7 @@ public class CompScenario extends Indicators {
 		String nameCity = indicName + nameCompared + "City.csv";
 		CSVWriter csvWGen = new CSVWriter(new FileWriter(new File(getIndicFolder(), nameGen)), ',', '\u0000');
 		CSVWriter csvWCity = new CSVWriter(new FileWriter(new File(getIndicFolder(), nameCity)), ',', '\u0000');
+		boolean firstLine = true;
 		for (File fRetarded : (new File(super.getRootFile(), "indic/" + nameCompared + "/")).listFiles()) {
 			File indicFile = new File(fRetarded, variante);
 			if (indicFile.exists()) {
@@ -70,31 +73,27 @@ public class CompScenario extends Indicators {
 				if (indicFile.isDirectory() && statFile.exists()) {
 					CSVReader csvR = new CSVReader(new FileReader(statFile));
 					String[] fLine = csvR.readNext();
-					csvWGen.writeNext(fLine);
-					csvWCity.writeNext(fLine);
+					if (firstLine) {
+						csvWGen.writeNext(fLine);
+						csvWCity.writeNext(fLine);
+						firstLine = false;
+					}
+
 					for (String[] l : csvR.readAll()) {
 						String insee = l[2];
-						String lineTmp = "";
-						for (String s : l) {
-							lineTmp = lineTmp + s + ",";
-						}
-						// System.out.println(insee + ",");
-						// System.out.println(insee + "," + String.valueOf(nbScenario) + ",");
-						String[] line = lineTmp.replace(insee + ",", insee + "," + String.valueOf(nbScenario) + ",").split(",");
 						if (insee.equals("AllZone") || insee.equals("ALLLL")) {
-							csvWGen.writeNext(line);
+							csvWGen.writeNext(l);
 						} else {
-							csvWCity.writeNext(line);
+							csvWCity.writeNext(l);
 						}
 					}
 					csvR.close();
 				}
-				nbScenario++;
 			}
 		}
 		csvWGen.close();
 		csvWCity.close();
-//		genCoeffVar(nameGen, nameCity);
+		// genCoeffVar(nameGen, nameCity);
 	}
 
 	public void genCoeffVar(String nameGen, String nameCity) throws IOException {
@@ -106,17 +105,17 @@ public class CompScenario extends Indicators {
 		csvWGen.writeNext(fLine);
 		CSVWriter csvWCity = new CSVWriter(new FileWriter(new File(getIndicFolder(), nameCity.replace(".csv", "") + "CoeffVar.csv")), ',', '\u0000');
 		csvWCity.writeNext(fLine);
-		DescriptiveStatistics[] listStatGen = new DescriptiveStatistics[fLine.length - 4];
+		DescriptiveStatistics[] listStatGen = new DescriptiveStatistics[fLine.length - 3];
 		// boolean to get the existing DS
 		boolean ini = true;
 		for (String[] l : csvGen.readAll()) {
-			for (int i = 4; i < fLine.length; i++) {
+			for (int i = 3; i < fLine.length; i++) {
 				DescriptiveStatistics ds = new DescriptiveStatistics();
 				if (!ini) {
-					ds = listStatGen[i - 4];
+					ds = listStatGen[i - 3];
 				}
 				ds.addValue(Double.valueOf(l[i]));
-				listStatGen[i - 4] = ds;
+				listStatGen[i - 3] = ds;
 			}
 			ini = false;
 		}
@@ -124,9 +123,8 @@ public class CompScenario extends Indicators {
 		line[0] = scenarName;
 		line[1] = "AllScenario";
 		line[2] = "AllZone";
-		line[3] = String.valueOf(nbScenario);
-		for (int i = 4; i < fLine.length; i++) {
-			line[i] = String.valueOf(listStatGen[i - 4].getStandardDeviation() / listStatGen[i - 4].getMean());
+		for (int i = 3; i < fLine.length; i++) {
+			line[i] = String.valueOf(listStatGen[i - 3].getStandardDeviation() / listStatGen[i - 3].getMean());
 		}
 		csvWGen.writeNext(line);
 
@@ -136,18 +134,18 @@ public class CompScenario extends Indicators {
 			String city = l[2];
 			if (listStatCity.containsKey(city)) {
 				DescriptiveStatistics[] listStat = listStatCity.remove(city);
-				for (int i = 4; i < fLine.length; i++) {
-					DescriptiveStatistics ds = listStat[i - 4];
+				for (int i = 3; i < fLine.length; i++) {
+					DescriptiveStatistics ds = listStat[i - 3];
 					ds.addValue(Double.valueOf(l[i]));
-					listStat[i - 4] = ds;
+					listStat[i - 3] = ds;
 				}
 				listStatCity.put(city, listStat);
 			} else {
-				DescriptiveStatistics[] newListStat = new DescriptiveStatistics[fLine.length - 4];
-				for (int i = 4; i < fLine.length; i++) {
+				DescriptiveStatistics[] newListStat = new DescriptiveStatistics[fLine.length - 3];
+				for (int i = 3; i < fLine.length; i++) {
 					DescriptiveStatistics ds = new DescriptiveStatistics();
 					ds.addValue(Double.valueOf(l[i]));
-					newListStat[i - 4] = ds;
+					newListStat[i - 3] = ds;
 				}
 				listStatCity.put(city, newListStat);
 			}
@@ -157,10 +155,9 @@ public class CompScenario extends Indicators {
 			lineCity[0] = scenarName;
 			lineCity[1] = "AllScenario";
 			lineCity[2] = city;
-			line[3] = String.valueOf(nbScenario);
 			DescriptiveStatistics[] cityStat = listStatCity.get(city);
-			for (int i = 4; i < fLine.length; i++) {
-				lineCity[i] = String.valueOf(cityStat[i - 4].getStandardDeviation() / cityStat[i - 4].getMean());
+			for (int i = 3; i < fLine.length; i++) {
+				lineCity[i] = String.valueOf(cityStat[i - 3].getStandardDeviation() / cityStat[i - 3].getMean());
 			}
 			csvWCity.writeNext(lineCity);
 		}
@@ -217,5 +214,29 @@ public class CompScenario extends Indicators {
 		BitmapEncoder.saveBitmap(chart, graphDepotFile + "/" + y, BitmapFormat.PNG);
 
 		// new SwingWrapper(chart).displayChart();
+	}
+
+	public static void mergeDenialStat(File indicFile, String variant, File outFile) throws IOException {
+		HashMap<String, Long> tot = new HashMap<String, Long>();
+		
+		System.out.println(indicFile);
+		for (File f : indicFile.listFiles()) {
+			System.out.println(new File(f, variant + "/StatDenialCuboid.csv"));
+			CSVReader read = new CSVReader(new FileReader(new File(f, variant + "/StatDenialCuboid.csv")), ',', '\u0000');
+			for (String[] l : read.readAll()) {
+				if (tot.containsKey(l[0])) {
+					Long tmp = tot.remove(l[0]);
+					tot.put(l[0], tmp + Long.valueOf(l[1].replace("\"", "")));
+				} else {
+					tot.put(l[0], Long.valueOf(l[1].replace("\"", "")));
+				}
+			}
+			read.close();
+		}
+		FileWriter w = new FileWriter(outFile);
+		for (String s : tot.keySet()) {
+			w.write(s+","+tot.get(s)+"\n");
+		}
+		w.close();
 	}
 }

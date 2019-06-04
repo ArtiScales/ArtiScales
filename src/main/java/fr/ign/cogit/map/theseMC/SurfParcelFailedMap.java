@@ -11,7 +11,7 @@ import fr.ign.cogit.map.MapRenderer;
 
 public class SurfParcelFailedMap extends MapRenderer {
 	static String nameMap = "surfParcelFailed";
-	static String text = "Surface des parcelles où le modèle n'a pas pu simuler de bâtiment";
+	static String text = "Somme de la surface des parcelles pour lesquelles un bâtiment a été simulé mais dont la simulation a échouée (km²)";
 
 
 	public SurfParcelFailedMap(int imageWidth, int imageHeight, File rootMapstyle, File tomapshp, File outfolder) {

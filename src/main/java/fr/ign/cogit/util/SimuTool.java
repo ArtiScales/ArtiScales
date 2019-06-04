@@ -48,8 +48,8 @@ public class SimuTool {
 		// digForPackWithoutSimu(new File("/media/ubuntu/saintmande/Packager/CDense/base/"),
 		// new File("/home/ubuntu/boulot/these/result2903/tmp/SimPLUDepot/CDense/base/"), new File("/tmp/missingFromCDenseBase.csv"));
 
-		getStatDenialCuboid(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/DDense/base"), new File("/tmp/salut2"));
-
+//		getStatDenialCuboid(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/CDense/variantMvGrid2"), new File("/tmp/variantMvGrid2"));
+		digForACity(new File("/media/ubuntu/saintmande/Packager/CDense/base/"), "25245");
 		// File folderOut = new File("/media/ubuntu/saintmande/Packager/");
 		// for (File scenarFolder : folderOut.listFiles()) {
 		// if (scenarFolder.isDirectory()) {
@@ -1245,7 +1245,7 @@ public class SimuTool {
 		case "art6-44":
 			return "article 6 (déclinaison en fonction de la hauteur des bâtiments de l'autre côté de la route)";
 		case "art9":
-			return "article 9 (coefficient d'emprise au sol)";
+			return "article 9 et 13 (coefficient d'emprise au sol ou de biotope)";
 		case "art6":
 			return "article 6 (règle par défaut)";
 		case "art5":
@@ -1256,5 +1256,19 @@ public class SimuTool {
 		}
 		return s;
 	}
+	
+	public static String makeWordPHDable(String s) throws FileNotFoundException {
+		switch (s) {
+		case "CDense":
+			return "Scénario c - Paramétrage forte densité";
+		case "CPeuDense":
+			return "Scénario c - Paramétrage densité modérée";
+		case "DDense":
+			return "Scénario d - Paramétrage forte densité";
+		case "DPeuDense":
+			return "Scénario d - Paramétrage densité modérée";
 
+		}
+		return s ;
+	}
 }

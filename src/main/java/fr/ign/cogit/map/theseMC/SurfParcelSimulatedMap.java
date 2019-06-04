@@ -11,7 +11,7 @@ import fr.ign.cogit.map.MapRenderer;
 
 public class SurfParcelSimulatedMap extends MapRenderer {
 	static String nameMap = "surfParcelSimulated";
-	static String text = "Surface de parcelles où le modèle a simulé un bâtiment";
+	static String text = "Somme de la surface des parcelles pour lesquelles un bâtiment a été simulé (km²)";
 
 
 	public SurfParcelSimulatedMap(int imageWidth, int imageHeight, File rootMapstyle, File tomapshp, File outfolder) {

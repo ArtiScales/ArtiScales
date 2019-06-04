@@ -591,11 +591,12 @@ public abstract class CommonPredicateArtiScales<O extends AbstractSimpleBuilding
 
 		List<List<O>> groupList = groupCreator.createGroup(lAllCuboids, 0.1);
 
-		//number of building. Doesn't apply for collective buildings
-//		if (!RepartitionBuildingType.hasCommonParts(BuildingType.valueOf(p.getString("nameBuildingType").toUpperCase())) && !cRO.numberMaxOfBuilding(groupList, 1)) {
-		if (!cRO.numberMaxOfBuilding(groupList, 1)) {
+		// number of building. Doesn't apply for collective buildings
+		if (!RepartitionBuildingType.hasCommonParts(BuildingType.valueOf(p.getString("nameBuildingType").toUpperCase()))
+				&& !cRO.numberMaxOfBuilding(groupList, 1)) {
+			// if (!cRO.numberMaxOfBuilding(groupList, 1)) {
 
-		denial = SimuTool.increm(denial, "buildingNb");
+			denial = SimuTool.increm(denial, "buildingNb");
 			return false;
 		}
 
