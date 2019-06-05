@@ -1927,7 +1927,6 @@ public class ParcelFonction {
 				}
 				distBuffer = distBuffer + 5;
 			}
-
 		}
 		return bestEval;
 	}
@@ -1945,7 +1944,6 @@ public class ParcelFonction {
 				if (((Geometry) cell.getDefaultGeometry()).intersects(((Geometry) parcelIn.getDefaultGeometry()))) {
 					return true;
 				}
-
 			}
 		} catch (Exception problem) {
 			problem.printStackTrace();
@@ -1953,7 +1951,6 @@ public class ParcelFonction {
 			cellsCollectionIt.close();
 		}
 		return false;
-
 	}
 
 	/**
@@ -1982,7 +1979,6 @@ public class ParcelFonction {
 				SimpleFeature clean = itClean.next();
 
 				Filter filter = ff.bbox(pName, clean.getBounds());
-
 				SimpleFeatureIterator itUnclean = parcelUnclean.subCollection(filter).features();
 				try {
 					while (itUnclean.hasNext()) {
@@ -2040,13 +2036,22 @@ public class ParcelFonction {
 	 *            : Folder where every temporary file is saved
 	 * @param zip
 	 *            : Community code that must be simulated.
+	 * @param preCutParcels
+	 *            : if cut all parcels regarding to the zoning file
 	 * @return the ready to deal with the selection process parcels under a SimpleFeatureCollection format. Also saves it on the tmpFile on a shapeFile format
 	 * @throws Exception
 	 */
 	public static File getParcels(File geoFile, File regulFile, File tmpFile, String zip, boolean preCutParcels) throws Exception {
 		List<String> lZip = new ArrayList<String>();
 		lZip.add(zip);
-		return getParcels(geoFile, regulFile, tmpFile, lZip, preCutParcels);
+		return getParcels(geoFile, regulFile, tmpFile, lZip, null, preCutParcels);
+	}
+
+	public static File getParcels(File geoFile, File regulFile, File tmpFile, String zip, File specificParcelsToSimul, boolean preCutParcels)
+			throws Exception {
+		List<String> lZip = new ArrayList<String>();
+		lZip.add(zip);
+		return getParcels(geoFile, regulFile, tmpFile, lZip, specificParcelsToSimul, preCutParcels);
 	}
 
 	/**
@@ -2065,7 +2070,7 @@ public class ParcelFonction {
 	 * @throws Exception
 	 */
 	public static File getParcels(File geoFile, File regulFile, File tmpFile, List<String> listZip) throws Exception {
-		return getParcels(geoFile, regulFile, tmpFile, listZip, true);
+		return getParcels(geoFile, regulFile, tmpFile, listZip, null, true);
 	}
 
 	/**
@@ -2079,12 +2084,15 @@ public class ParcelFonction {
 	 *            : Folder where every temporary file is saved
 	 * @param listZip
 	 *            : List of all the communities codes that must be simulated. If empty, we work on every cities contained into the parcel file
+	 * @param specificParcelsToSimul
+	 *            : shapeFile of specific parcel that will be simulated. If empty, will simulate all parcels
 	 * @param preCutParcels
 	 *            : if cut all parcels regarding to the zoning file
 	 * @return the ready to deal with the selection process parcels under a SimpleFeatureCollection format. Also saves it on the tmpFile on a shapeFile format
 	 * @throws Exception
 	 */
-	public static File getParcels(File geoFile, File regulFile, File tmpFile, List<String> listZip, boolean preCutParcels) throws Exception {
+	public static File getParcels(File geoFile, File regulFile, File tmpFile, List<String> listZip, File specificParcelsToSimul,
+			boolean preCutParcels) throws Exception {
 
 		DirectPosition.PRECISION = 3;
 
@@ -2096,18 +2104,26 @@ public class ParcelFonction {
 		}
 
 		ShapefileDataStore parcelSDS = new ShapefileDataStore(result.toURI().toURL());
-		SimpleFeatureCollection parcels = parcelSDS.getFeatureSource().getFeatures();
+		SimpleFeatureCollection parcelsSFC = parcelSDS.getFeatureSource().getFeatures();
 
 		ShapefileDataStore shpDSBati = new ShapefileDataStore(FromGeom.getBuild(geoFile).toURI().toURL());
 
+		// if we decided to work on a set of parcels
+		if (specificParcelsToSimul != null && specificParcelsToSimul.exists()) {
+			ShapefileDataStore parcelSpecificSDS = new ShapefileDataStore(specificParcelsToSimul.toURI().toURL());
+			parcelsSFC = DataUtilities.collection(parcelSpecificSDS.getFeatureSource().getFeatures());
+			parcelSpecificSDS.dispose();
+		}
 		// if we decided to work on a set of cities
-		if (!listZip.isEmpty()) {
+		else if (!listZip.isEmpty()) {
 			FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
 			DefaultFeatureCollection df = new DefaultFeatureCollection();
 			for (String zip : listZip) {
 
 				// could have been nicer, but Filters are some pain in the socks and doesn't
 				// work in I factor the code
+
+				// if the zip contains Bensançons's Section parts
 				if (zip.length() > 5) {
 					// those zip are containing the Section value too
 					String codep = zip.substring(0, 2);
@@ -2117,21 +2133,21 @@ public class ParcelFonction {
 					Filter filterDep = ff.like(ff.property("CODE_DEP"), codep);
 					Filter filterCom = ff.like(ff.property("CODE_COM"), cocom);
 					Filter filterSection = ff.like(ff.property("SECTION"), section);
-					df.addAll(parcels.subCollection(filterDep).subCollection(filterCom).subCollection(filterSection));
+					df.addAll(parcelsSFC.subCollection(filterDep).subCollection(filterCom).subCollection(filterSection));
 				} else {
 					String codep = zip.substring(0, 2);
 					String cocom = zip.substring(2, 5);
 					Filter filterDep = ff.like(ff.property("CODE_DEP"), codep);
 					Filter filterCom = ff.like(ff.property("CODE_COM"), cocom);
-					df.addAll(parcels.subCollection(filterDep).subCollection(filterCom));
+					df.addAll(parcelsSFC.subCollection(filterDep).subCollection(filterCom));
 				}
 			}
-			parcels = df.collection();
+			parcelsSFC = df.collection();
 		}
 
 		// if we cut all the parcel regarding to the zoning code
 		if (preCutParcels) {
-			File tmpParcel = Vectors.exportSFC(parcels, new File(tmpFile, "tmpParcel.shp"));
+			File tmpParcel = Vectors.exportSFC(parcelsSFC, new File(tmpFile, "tmpParcel.shp"));
 			File[] polyFiles = { tmpParcel, FromGeom.getZoning(regulFile) };
 			List<Polygon> polygons = FeaturePolygonizer.getPolygons(polyFiles);
 
@@ -2147,7 +2163,7 @@ public class ParcelFonction {
 			for (Geometry poly : polygons) {
 				// for every parcels around the polygon
 
-				SimpleFeatureCollection snaped = Vectors.snapDatas(parcels, poly.getBoundary());
+				SimpleFeatureCollection snaped = Vectors.snapDatas(parcelsSFC, poly.getBoundary());
 				SimpleFeatureIterator parcelIt = snaped.features();
 				try {
 					while (parcelIt.hasNext()) {
@@ -2200,10 +2216,10 @@ public class ParcelFonction {
 					parcelIt.close();
 				}
 			}
-			parcels = write.collection();
+			parcelsSFC = write.collection();
 		}
 		// under the carpet
-		ReferencedEnvelope carpet = parcels.getBounds();
+		ReferencedEnvelope carpet = parcelsSFC.getBounds();
 		Coordinate[] coord = { new Coordinate(carpet.getMaxX(), carpet.getMaxY()), new Coordinate(carpet.getMaxX(), carpet.getMinY()),
 				new Coordinate(carpet.getMinX(), carpet.getMinY()), new Coordinate(carpet.getMinX(), carpet.getMaxY()),
 				new Coordinate(carpet.getMaxX(), carpet.getMaxY()) };
@@ -2221,7 +2237,7 @@ public class ParcelFonction {
 		DefaultFeatureCollection newParcel = new DefaultFeatureCollection();
 
 		// int tot = parcels.size();
-		SimpleFeatureIterator parcelIt = parcels.features();
+		SimpleFeatureIterator parcelIt = parcelsSFC.features();
 		try {
 			parc: while (parcelIt.hasNext()) {
 				SimpleFeature feat = parcelIt.next();

@@ -97,8 +97,8 @@ public class ParcelStat extends Indicators {
 		// parc.toString();
 		// parc.setCountToZero();
 		// }
-		parc.setCommStatFile(parc.joinStatToCommunities());
-		parc.createMap(parc);
+		// parc.setCommStatFile(parc.joinStatToCommunities());
+		// parc.createMap(parc);
 		parc.createGraph(new File(parc.getIndicFolder(), "ParcelStat.csv"));
 		// }
 	}
@@ -110,8 +110,6 @@ public class ParcelStat extends Indicators {
 		allOfTheMaps.add(surfParcelSimulatedMap);
 		MapRenderer surfParcelFailedMap = new SurfParcelFailedMap(1000, 1000, parc.getMapStyle(), getCommStatFile(), parc.getMapDepotFolder());
 		allOfTheMaps.add(surfParcelFailedMap);
-		// MapRenderer aParcelSDPSimuMap = new AParcelSDPSimuMap(1000, 1000,parc.mapStyle , commStatFile, parc.mapDepotFile);
-		// allOfTheMaps.add(aParcelSDPSimuMap);
 
 		for (MapRenderer map : allOfTheMaps) {
 			map.renderCityInfo();
@@ -127,7 +125,7 @@ public class ParcelStat extends Indicators {
 		String[][] xType = { xTypeSimulated, xTypeSimulFailed };
 		makeGraphDouble(distrib, getGraphDepotFolder(), SimuTool.makeWordPHDable(scenarName) + " - Variante : " + variantName, xType, "typologie",
 				"Nombre de parcelles");
-		
+
 		String[] xZoneSimulated = { "nbParcelSimulatedU", "nbParcelSimulatedAU", "nbParcelSimulatedNC" };
 		String[] xZoneSimulFailed = { "nbParcelSimulFailedU", "nbParcelSimulFailedAU", "nbParcelSimulFailedNC" };
 		String[][] xZone = { xZoneSimulated, xZoneSimulFailed };
@@ -148,7 +146,7 @@ public class ParcelStat extends Indicators {
 		String[][] xTypeSurf = { xTypeSimulatedSurf, xTypeSimulFailedSurf };
 		makeGraphDouble(distrib, getGraphDepotFolder(), SimuTool.makeWordPHDable(scenarName) + " - Variante : " + variantName, xTypeSurf, "typologie",
 				"Surface de parcelles (km²)");
-		
+
 		String[] xZoneSimulatedSurf = { "surfParcelSimulatedU", "surfParcelSimulatedAU", "surfParcelSimulatedNC" };
 		String[] xZoneSimulFailedSurf = { "surfParcelSimulFailedU", "surfParcelSimulFailedAU", "surfParcelSimulFailedNC" };
 		String[][] xZoneSurf = { xZoneSimulatedSurf, xZoneSimulFailedSurf };
@@ -158,7 +156,7 @@ public class ParcelStat extends Indicators {
 
 	public static void makeGraphDouble(File csv, File graphDepotFile, String title, String[][] xes, String xTitle, String yTitle) throws IOException {
 		// Create Chart
-		CategoryChart chart = new CategoryChartBuilder().width(800).height(600).title(title).xAxisTitle(xTitle).yAxisTitle(yTitle).build();
+		CategoryChart chart = new CategoryChartBuilder().width(600).height(600).title(title).xAxisTitle(xTitle).yAxisTitle(yTitle).build();
 		int count = 0;
 		for (String[] x : xes) {
 			List<String> label = new ArrayList<String>();
@@ -206,6 +204,9 @@ public class ParcelStat extends Indicators {
 		chart.getStyler().setHasAnnotations(true);
 		chart.getStyler().setXAxisLabelRotation(45);
 		BitmapEncoder.saveBitmap(chart, graphDepotFile + "/" + SimuTool.makeCamelWordOutOfPhrases(xTitle + yTitle), BitmapFormat.PNG);
+		chart.getStyler().setLegendVisible(false);
+		BitmapEncoder.saveBitmap(chart, graphDepotFile + "/" + SimuTool.makeCamelWordOutOfPhrases(xTitle + yTitle) + "-headless", BitmapFormat.PNG);
+
 		// new SwingWrapper(chart).displayChart();
 	}
 

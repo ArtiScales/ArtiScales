@@ -30,9 +30,10 @@ import fr.ign.cogit.util.SimuTool;
 
 public abstract class Indicators {
 	SimpluParametersJSON p;
-	private File rootFile, paramFolder, mupOutputFile, parcelDepotGenFile, simPLUDepotGenFile, mapStyle, graphDepotFolder, indicFile, mapDepotFolder, commStatFile, parcelStatFile;;
+	private File rootFile, paramFolder, mupOutputFile, parcelDepotGenFile, simPLUDepotGenFile, mapStyle, graphDepotFolder, indicFile, mapDepotFolder,
+			commStatFile, parcelStatFile;;
 	protected String scenarName, variantName, echelle, indicName;
-	
+
 	boolean firstLineGen = true;
 	boolean firstLineSimu = true;
 	boolean particularExists = false;
@@ -212,6 +213,8 @@ public abstract class Indicators {
 		sfTypeBuilder.add("nbBanl", Double.class);
 		sfTypeBuilder.add("nbPeriU", Double.class);
 		sfTypeBuilder.add("nbRur", Double.class);
+		sfTypeBuilder.add("ratioHUcol", Double.class);
+		sfTypeBuilder.add("ratioHUind", Double.class);
 		SimpleFeatureBuilder builder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
 		SimpleFeatureIterator it = collec.features();
 
@@ -224,7 +227,7 @@ public abstract class Indicators {
 				int inseeP = 0, SDPTotP = 0, empriseTotP = 0, avDensiteHUP = 0, SDDensiteHUP = 0, avDensiteSDPP = 0, SDDensiteSDPP = 0,
 						avDensiteEmpriseP = 0, SDDensiteEmpriseP = 0, avSDPpHUP = 0, sdSDPpHUP = 0, difObjDensP = 0, nbBuildingP = 0, nbHUP = 0,
 						objHUP = 0, difObjHUP = 0, nbSmallP = 0, nbDetachP = 0, nbFamHP = 0, nbSmallBkP = 0, nbMidBkP = 0, nbUP = 0, nbAUP = 0,
-						nbNCP = 0, nbCentrP = 0, nbBanlP = 0, nbPeriUP = 0, nbRurP = 0;
+						nbNCP = 0, nbCentrP = 0, nbBanlP = 0, nbPeriUP = 0, nbRurP = 0, ratioHUcolP = 0, ratioHUindP = 0;
 				for (int i = 0; i < firstLine.length; i++) {
 					switch (firstLine[i]) {
 					case "code":
@@ -310,6 +313,12 @@ public abstract class Indicators {
 					case "nbHU_rural":
 						nbRurP = i;
 						break;
+					case "ratioHUcol":
+						ratioHUcolP = i;
+						break;
+					case "ratioHUind":
+						ratioHUindP = i;
+						break;
 					}
 				}
 				for (String[] l : stat.readAll()) {
@@ -343,6 +352,8 @@ public abstract class Indicators {
 						builder.set("nbBanl", Double.valueOf(l[nbBanlP]));
 						builder.set("nbPeriU", Double.valueOf(l[nbPeriUP]));
 						builder.set("nbRur", Double.valueOf(l[nbRurP]));
+						builder.set("ratioHUcol", Double.valueOf(l[ratioHUcolP]));
+						builder.set("ratioHUind", Double.valueOf(l[ratioHUindP]));
 						result.add(builder.buildFeature(null));
 						break;
 					}

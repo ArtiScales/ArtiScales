@@ -82,8 +82,8 @@ public class AllIndicators {
 		}
 
 		// new shapefile with stats
-		File parcelleStatFile = bhtU.joinStatBTHtoParcels("housingUnits.csv");
-		File commStatFile = bhtU.joinStatBTHtoCommunities("genStat.csv");
+		bhtU.setParcelStatFile(bhtU.joinStatBTHtoParcels("housingUnits.csv"));
+		bhtU.setCommStatFile(bhtU.joinStatBTHtoCommunities("genStat.csv"));
 		File newDensityFile = bhtU.createDensityCommunities(new File(bhtU.getRootFile(), "dataGeo/base-ic-logement-2012.csv"),
 				new File(bhtU.getRootFile(), "dataGeo/old/communities.shp"), bhtU.getRootFile(),
 				new File(bhtU.getIndicFolder(), "commNewBrutDens.shp"), "P12_LOG", "COM", "DEPCOM");
@@ -93,7 +93,7 @@ public class AllIndicators {
 		bhtU.createGraphCount(new File(bhtU.getIndicFolder(), "genStat.csv"));
 
 		// maps
-		BuildingToHousingUnit.allOfTheMap(bhtU, commStatFile, parcelleStatFile, newDensityFile);
+		BuildingToHousingUnit.allOfTheMap(bhtU, newDensityFile);
 
 		// Parcel
 		ParcelStat parc = new ParcelStat(p, rootFile, scenario, "variantMvData1");
@@ -112,8 +112,8 @@ public class AllIndicators {
 			parc.toString();
 			parc.setCountToZero();
 		}
-		File commStatParcelFile = parc.joinStatToCommunities();
-		parc.createMap(parc, commStatParcelFile);
+		parc.setCommStatFile(parc.joinStatToCommunities());
+		parc.createMap(parc);
 		parc.createGraph(new File(parc.getIndicFolder(), "ParcelStat.csv"));
 	}
 

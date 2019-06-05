@@ -40,8 +40,21 @@ public class SelectParcels {
 	float moyEval;
 
 	public static void main(String[] args) throws Exception {
-		aggregateParcelsFromZips(new File("/home/ubuntu/workspace/ArtiScales/result2903/"),
-				new File("/home/ubuntu/workspace/ArtiScales/result2903/tmp/"), "ParcelManager");
+		// aggregateParcelsFromZips(new File("/home/ubuntu/workspace/ArtiScales/result2903/"),
+		// new File("/home/ubuntu/workspace/ArtiScales/result2903/tmp/"), "ParcelManager");
+
+		List<File> lF = new ArrayList<>();
+		lF.add(new File("/home/ubuntu/boulot/these/result2903/rattrapage/paramFolder/paramSet/CDense/parameterTechnic.json"));
+		lF.add(new File("/home/ubuntu/boulot/these/result2903/rattrapage/paramFolder/paramSet/CDense/parameterScenario.json"));
+
+		SimpluParametersJSON p = new SimpluParametersJSON(lF);
+
+		File rootFile = new File("/home/ubuntu/boulot/these/result2903/rattrapage/");
+		File fileOut = new File("/home/ubuntu/boulot/these/result2903/rattrapage/depotParcel");
+		File varianteSpatialConf = new File(
+				"/home/ubuntu/boulot/these/result2903/rattrapage/MupCityDepot/CDense/base/CDense--N6_St_Moy_ahpE_seed_42-evalAnal-20.0.shp");
+		SelectParcels selecPar = new SelectParcels(rootFile, fileOut, varianteSpatialConf, p);
+		selecPar.run(new File("/home/ubuntu/boulot/these/result2903/rattrapage/parcelMissing.shp"));
 	}
 
 	public SelectParcels(File rootfile, File outfile, File spatialconfiguration, SimpluParametersJSON par) throws Exception {
@@ -63,6 +76,15 @@ public class SelectParcels {
 	}
 
 	public File run() throws Exception {
+		return run(null);
+	}
+
+	/**
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	public File run(File specificFile) throws Exception {
 
 		File parcGen = new File(outFile, "parcelGenExport.shp");
 
@@ -71,7 +93,11 @@ public class SelectParcels {
 
 		// we loop on every cities
 		for (String zip : listZip) {
-			selectAndDecompParcels(zip, true, parcGen);
+			if (specificFile != null && specificFile.exists()) {
+				selectAndDecompParcels(zip, true, parcGen, specificFile);
+			} else {
+				selectAndDecompParcels(zip, true, parcGen);
+			}
 		}
 
 		////////////////
@@ -97,6 +123,10 @@ public class SelectParcels {
 	}
 
 	public void selectAndDecompParcels(String zip, Boolean mergeParcels, File mergeFile) throws Exception {
+		selectAndDecompParcels(zip, mergeParcels, mergeFile, null);
+	}
+
+	public void selectAndDecompParcels(String zip, Boolean mergeParcels, File mergeFile, File listSpecificParcel) throws Exception {
 
 		File tmpFile = new File(mergeFile.getParentFile(), "tmpFile");
 		tmpFile.mkdirs();
@@ -107,8 +137,11 @@ public class SelectParcels {
 		System.out.println();
 		System.out.println("for the " + zip + " city");
 		System.out.println();
-		parcelFile = ParcelFonction.getParcels(geoFile, regulFile, tmpFile, zip, p.getBoolean("preCutParcels"));
-
+		if (listSpecificParcel != null && listSpecificParcel.exists()) {
+			parcelFile = ParcelFonction.getParcels(geoFile, regulFile, tmpFile, zip, listSpecificParcel, p.getBoolean("preCutParcels"));
+		} else {
+			parcelFile = ParcelFonction.getParcels(geoFile, regulFile, tmpFile, zip, p.getBoolean("preCutParcels"));
+		}
 		ShapefileDataStore shpDSparcel = new ShapefileDataStore((parcelFile).toURI().toURL());
 		SimpleFeatureCollection parcelCollection = DataUtilities.collection(shpDSparcel.getFeatureSource().getFeatures());
 		shpDSparcel.dispose();

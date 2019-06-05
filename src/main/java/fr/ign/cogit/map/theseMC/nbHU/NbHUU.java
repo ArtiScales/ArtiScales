@@ -19,11 +19,12 @@ public class NbHUU extends MapRenderer {
 	}
 
 	public static void main(String[] args) throws MalformedURLException, NoSuchAuthorityCodeException, IOException, FactoryException {
-		File rootMapStyle = new File("/home/ubuntu/boulot/these/result0308/mapStyle/");
-		File outMap = new File("/home/ubuntu/boulot/these/result0308/indic/parcelStat/DDense/variante0/map/");
+		File rootMapStyle = new File("/home/ubuntu/boulot/these/result2903/mapStyle/");
+		File rootIndic = new File("/home/ubuntu/boulot/these/result2903/indic/bTH/CPeuDense/base");
+		File outMap = new File(rootIndic, "mapDepot");
 		outMap.mkdirs();
 		MapRenderer mpR = new NbHUU(1000, 1000, rootMapStyle,
-				new File("/home/ubuntu/boulot/these/result0308/indic/parcelStat/DDense/variante0/commStat.shp"), outMap);
+				new File(rootIndic,"commStat.shp"), outMap);
 		mpR.renderCityInfo();
 		mpR.generateSVG();
 	}
