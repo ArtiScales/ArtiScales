@@ -98,7 +98,7 @@ public class BuildingToHousingUnit extends Indicators {
 
 		List<File> lF = new ArrayList<>();
 		String[] scenarios = { "CDense", "CPeuDense", "DDense", "DPeuDense" };
-		// String[] scenarios = { "CDense" };
+		// String[] scenarios = { "CPeuDense" };
 
 		for (String scenario : scenarios) {
 			// for (File f : (new File(rootFile, "SimPLUDepot/" + scenario + "/")).listFiles()) {
@@ -144,8 +144,8 @@ public class BuildingToHousingUnit extends Indicators {
 		bhtU.setCommStatFile(bhtU.joinStatBTHtoCommunities("genStat.csv"));
 
 		File newDensityFile = bhtU.createDensityCommunities(new File(bhtU.getRootFile(), "dataGeo/base-ic-logement-2012.csv"),
-				new File(bhtU.getRootFile(), "dataGeo/old/communities.shp"), bhtU.getRootFile(),
-				new File(bhtU.getIndicFolder(), "commNewBrutDens.shp"), "P12_LOG", "COM", "DEPCOM");
+				new File(bhtU.getRootFile(), "dataGeo/old/communities.shp"), bhtU.getRootFile(), new File(bhtU.getIndicFolder(), "commNewDens.shp"),
+				"P12_LOG", "COM", "DEPCOM");
 
 		// graphs
 		bhtU.createGraphNetDensity(new File(bhtU.getIndicFolder(), "housingUnits.csv"));
@@ -153,7 +153,7 @@ public class BuildingToHousingUnit extends Indicators {
 
 		// maps
 		allOfTheMap(bhtU, newDensityFile);
-
+		// allOfTheMap(bhtU);
 	}
 	// }
 
@@ -354,6 +354,11 @@ public class BuildingToHousingUnit extends Indicators {
 		// new SwingWrapper(chart).displayChart();
 	}
 
+	public static void allOfTheMap(BuildingToHousingUnit bhtU)
+			throws MalformedURLException, NoSuchAuthorityCodeException, IOException, FactoryException {
+		allOfTheMap(bhtU, new File(bhtU.getIndicFolder(), "commNewDens.shp"));
+	}
+
 	public static void allOfTheMap(BuildingToHousingUnit bhtU, File newBrutDensityFile)
 			throws MalformedURLException, NoSuchAuthorityCodeException, IOException, FactoryException {
 		List<MapRenderer> allOfTheMaps = new ArrayList<MapRenderer>();
@@ -379,7 +384,6 @@ public class BuildingToHousingUnit extends Indicators {
 		MapRenderer buildingCollRatio = new BuildingCollRatio(1000, 1000, bhtU.getMapStyle(), bhtU.getCommStatFile(), bhtU.getMapDepotFolder());
 		allOfTheMaps.add(buildingCollRatio);
 
-		
 		// parcels maps
 		MapRenderer dHuHec = new ParcelleDensHUpHec(1000, 1000, bhtU.getMapStyle(), bhtU.getParcelStatFile(), bhtU.getMapDepotFolder());
 		allOfTheMaps.add(dHuHec);
@@ -388,36 +392,36 @@ public class BuildingToHousingUnit extends Indicators {
 		MapRenderer dEmpHec = new ParcelleDensEmprisepHec(1000, 1000, bhtU.getMapStyle(), bhtU.getParcelStatFile(), bhtU.getMapDepotFolder());
 		allOfTheMaps.add(dEmpHec);
 
-		
 		for (MapRenderer map : allOfTheMaps) {
 			map.renderCityInfo();
 			map.generateSVG();
 		}
 
 		// net density maps
-		DensIniNewComp map = new DensIniNewComp(1000, 1000, bhtU.getMapStyle(), bhtU.getCommStatFile(), bhtU.getMapDepotFolder());
-		map.makeDensIniNetMap(newBrutDensityFile);
+		DensIniNewComp map = new DensIniNewComp(1000, 1000, bhtU.getMapStyle(), newBrutDensityFile, bhtU.getMapDepotFolder());
+		map.makeDensIniNetMap();
 		map.renderCityInfo("DensNetIni");
 		map.generateSVG(new File(bhtU.getMapDepotFolder(), "DensNetIni.svg"), "DensNetIni");
 
-		map.makeDensNewNetMap(newBrutDensityFile);
+		map.makeDensNewNetMap();
 		map.renderCityInfo("DensNetNew");
 		map.generateSVG(new File(bhtU.getMapDepotFolder(), "DensNetNew.svg"), "DensNetNew");
 
-		map.makeObjMap(newBrutDensityFile);
+		map.makeObjMap();
 		map.renderCityInfo("DensObj");
 		map.generateSVG(new File(bhtU.getMapDepotFolder(), "DensObj.svg"), "DensObj");
 
-		// brut density maps
-		DensIniNewComp mapBrutDensity = new DensIniNewComp(1000, 1000, bhtU.getMapStyle(), newBrutDensityFile, bhtU.getMapDepotFolder());
+		map.makeDensIniBrutMap();
+		map.renderCityInfo("DensBrtIni");
+		map.generateSVG(new File(bhtU.getMapDepotFolder(), "DensBrtIni.svg"), "DensBrtIni");
 
-		mapBrutDensity.makeDensIniBrutMap(newBrutDensityFile);
-		mapBrutDensity.renderCityInfo("DensBrtIni");
-		mapBrutDensity.generateSVG(new File(bhtU.getMapDepotFolder(), "DensBrtIni.svg"), "DensBrtIni");
+		map.makeDensNewBrutMap();
+		map.renderCityInfo("DensBrtNew");
+		map.generateSVG(new File(bhtU.getMapDepotFolder(), "DensBrtNew.svg"), "DensBrtNew");
 
-		mapBrutDensity.makeDensNewBrutMap(newBrutDensityFile);
-		mapBrutDensity.renderCityInfo("DensBrtNew");
-		mapBrutDensity.generateSVG(new File(bhtU.getMapDepotFolder(), "DensBrtNew.svg"), "DensBrtNew");
+		map.makeDiffObjMap();
+		map.renderCityInfo("DifDObjN");
+		map.generateSVG(new File(bhtU.getMapDepotFolder(), "DifDObjN.svg"), "DifDObjN");
 	}
 
 	public int getEstimationForACity(String insee) throws IOException {
@@ -619,10 +623,10 @@ public class BuildingToHousingUnit extends Indicators {
 
 		// ratio collective and individual buildings
 		try {
-			int col = (nbMidBlockFlat + nbSmallBlockFlat+ nbMultifamilyHouse);
-			int indiv = ( nbSmallHouse + nbDetachedHouse );
+			int col = (nbMidBlockFlat + nbSmallBlockFlat + nbMultifamilyHouse);
+			int indiv = (nbSmallHouse + nbDetachedHouse);
 			int tot = (nbMidBlockFlat + nbSmallBlockFlat + nbMultifamilyHouse + nbSmallHouse + nbDetachedHouse);
-			ratioHUcol =  ((double) col) / ((double) tot);
+			ratioHUcol = ((double) col) / ((double) tot);
 			ratioHUind = ((double) indiv) / ((double) tot);
 		} catch (ArithmeticException divZero) {
 			ratioHUcol = -1;

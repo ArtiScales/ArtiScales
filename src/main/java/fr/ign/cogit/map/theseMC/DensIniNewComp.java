@@ -19,42 +19,64 @@ public class DensIniNewComp extends MapRenderer {
 		super(imageWidth, imageHeight, nameMap, text, mapStyleFolder, new File(mapStyleFolder, "svgModel.svg"), featureFile, outFolder);
 	}
 
-	public void makeDensIniNetMap(File otherFeatureFile) {
-		text = "densités nettes initiale de logements par hectare";
-		sldFile = new File(sldFile.getParentFile(), "DensIniNet.sld");
-		toMapShapeFile = otherFeatureFile;
+	public void makeDensIniNetMap() {
+		super.text = "densités nettes initiale de logements par hectare";
+		super.sldFile = new File(sldFile.getParentFile(), "DensIniNet.sld");
 	}
 
-	public void makeDensNewNetMap(File otherFeatureFile) {
-		text = "densités nettes de logements par hectare après simulation";
-		sldFile = new File(sldFile.getParentFile(), "DensNewNet.sld");
-		toMapShapeFile = otherFeatureFile;
+	public void makeDensNewNetMap() {
+		super.text = "densités nettes de logements par hectare après simulation";
+		super.sldFile = new File(sldFile.getParentFile(), "DensNewNet.sld");
 	}
 
-	public void makeDensIniBrutMap(File otherFeatureFile) {
-		text = "densités brutes initiale de logements par hectare";
-		sldFile = new File(sldFile.getParentFile(), "DensIniBrt.sld");
-		toMapShapeFile = otherFeatureFile;
+	public void makeDensIniBrutMap() {
+		super.text = "densités brutes initiale de logements par hectare";
+		super.sldFile = new File(sldFile.getParentFile(), "DensIniBrt.sld");
 	}
 
-	public void makeDensNewBrutMap(File otherFeatureFile) {
-		text = "densités brutes de logements par hectare après simulation";
-		sldFile = new File(sldFile.getParentFile(), "DensNewBrt.sld");
-		toMapShapeFile = otherFeatureFile;
+	public void makeDensNewBrutMap() {
+		super.text = "densités brutes de logements par hectare après simulation";
+		super.sldFile = new File(sldFile.getParentFile(), "DensNewBrt.sld");
 	}
 
-	public void makeObjMap(File otherFeatureFile) {
-		text = "objectif de densités nettes de logements par hectare fixé par le SCoT";
-		sldFile = new File(sldFile.getParentFile(), "DensObj.sld");
-		toMapShapeFile = otherFeatureFile;
+	public void makeObjMap() {
+		super.text = "objectif de densités nettes de logements par hectare fixé par le SCoT";
+		super.sldFile = new File(sldFile.getParentFile(), "DensObj.sld");
 	}
 
+	public void makeDiffObjMap() {
+		super.text = "différence entre les objectif de densités de logements et la densité simulée des communes";
+		super.sldFile = new File(sldFile.getParentFile(), "DifDObjN.sld");
+	}
+	
 	public static void main(String[] args) throws MalformedURLException, NoSuchAuthorityCodeException, IOException, FactoryException {
-		File rootMapStyle = new File("/home/ubuntu/boulot/these/result2903/mapStyle/");
-		MapRenderer mpR = new DensIniNewComp(1000, 1000, rootMapStyle,
-				new File("/home/ubuntu/boulot/these/result2903/indic/bTH/CDense/variantMvData1/mapDepot/commNewDens.shp"),
-				new File(rootMapStyle, "out/"));
-		mpR.renderCityInfo();
-		mpR.generateSVG();
+		File rootIndic = new File("/home/ubuntu/boulot/these/result2903/indic/bTH/DPeuDense/base/");
+		DensIniNewComp map = new DensIniNewComp(1000, 1000, new File("/home/ubuntu/boulot/these/result2903/mapStyle/"),
+				new File(rootIndic, "commNewDens.shp"), new File(rootIndic, "mapDepot/"));
+		
+		map.makeDensIniNetMap();
+		map.renderCityInfo("DensNetIni");
+		map.generateSVG(new File(rootIndic, "mapDepot/DensNetIni.svg"), "DensNetIni");
+
+		map.makeDensNewNetMap();
+		map.renderCityInfo("DensNetNew");
+		map.generateSVG(new File(rootIndic, "mapDepot/DensNetNew.svg"), "DensNetNew");
+
+		map.makeObjMap();
+		map.renderCityInfo("DensObj");
+		map.generateSVG(new File(rootIndic, "mapDepot/DensObj.svg"), "DensObj");
+
+		map.makeDensIniBrutMap();
+		map.renderCityInfo("DensBrtIni");
+		map.generateSVG(new File(rootIndic, "mapDepot/DensBrtIni.svg"), "DensBrtIni");
+
+		map.makeDensNewBrutMap();
+		map.renderCityInfo("DensBrtNew");
+		map.generateSVG(new File(rootIndic, "mapDepot/DensBrtNew.svg"), "DensBrtNew");
+		
+		map.makeDiffObjMap();
+		map.renderCityInfo("DifDObjN");
+		map.generateSVG(new File(rootIndic, "mapDepot/DifDObjN.svg"), "DifDObjN");
+		
 	}
 }

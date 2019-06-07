@@ -57,140 +57,6 @@ public class Density {
 	// }
 
 	/**
-	 * Merge all the zones with a main libelle code that are potentially containing housing units
-	 * 
-	 * Overload with defaults sub classes of zones U and AU that contains industries, activites, equipments, are excluded, which are :
-	 * <ul>
-	 * <li>X</li>
-	 * <li>Y</li>
-	 * <li>Z</li>
-	 * <li>E</li>
-	 * <li>L</li>
-	 * </ul>
-	 * 
-	 * @param zoningFile
-	 *            : File containing the zoning plan
-	 * @param typeOfZoneToAdd
-	 *            : main libelle to add in the constructed zone
-	 * @return
-	 * @throws IOException
-	 * @throws NoSuchAuthorityCodeException
-	 * @throws FactoryException
-	 */
-	public static SimpleFeatureCollection mergeConstructedZone(File zoningFile, String typeOfZoneToAdd)
-			throws IOException, NoSuchAuthorityCodeException, FactoryException {
-		List<String> string = new ArrayList<String>();
-		string.add(typeOfZoneToAdd);
-		return mergeConstructedZone(zoningFile, string);
-	}
-
-	/**
-	 * Merge all the zones with main libelle codes that are potentially containing housing units
-	 * 
-	 * Overload with defaults sub classes of zones U and AU that contains industries, activites, equipments, are excluded, which are :
-	 * <ul>
-	 * <li>X</li>
-	 * <li>Y</li>
-	 * <li>Z</li>
-	 * <li>E</li>
-	 * <li>L</li>
-	 * </ul>
-	 * 
-	 * @param zoningFile
-	 *            : File containing the zoning plan
-	 * @param typeOfZoneToAdd
-	 *            : main libelles to add in the constructed zone
-	 * @return
-	 * @throws IOException
-	 * @throws NoSuchAuthorityCodeException
-	 * @throws FactoryException
-	 */
-	public static SimpleFeatureCollection mergeConstructedZone(File zoningFile, List<String> typeOfZoneToAdd)
-			throws IOException, NoSuchAuthorityCodeException, FactoryException {
-
-		String[] tmpTab = { "X", "Y", "Z", "E", "L" };
-		return mergeConstructedZone(zoningFile, typeOfZoneToAdd, Arrays.asList(tmpTab));
-	}
-
-	/**
-	 * Merge all the zones with main libelle codes that are potentially containing housing units and exclude sub_libelle that cannot contain housing units
-	 * 
-	 * @param zoningFile
-	 *            : File containing the zoning plan
-	 * @param typeOfZoneToAdd
-	 *            : main libelles to add in the constructed zone
-	 * @param libelleToExclude
-	 *            : list of sub-libellle to exclude
-	 * 
-	 * @return
-	 * @throws IOException
-	 * @throws NoSuchAuthorityCodeException
-	 * @throws FactoryException
-	 */
-	public static SimpleFeatureCollection mergeConstructedZone(File zoningFile, List<String> typeOfZoneToAdd, List<String> libelleToExclude)
-			throws IOException, NoSuchAuthorityCodeException, FactoryException {
-		ShapefileDataStore zoningSDS = new ShapefileDataStore(zoningFile.toURI().toURL());
-		SimpleFeatureIterator zoneIt = zoningSDS.getFeatureSource().getFeatures().features();
-		HashMap<String, SimpleFeatureCollection> list = new HashMap<String, SimpleFeatureCollection>();
-		while (zoneIt.hasNext()) {
-			SimpleFeature feat = zoneIt.next();
-			if (typeOfZoneToAdd.contains(feat.getAttribute("TYPEZONE"))
-					&& !libelleLookLike(libelleToExclude, (String) feat.getAttribute("LIBELLE"))) {
-
-				String insee = (String) feat.getAttribute("INSEE");
-				if (list.containsKey(insee)) {
-					DefaultFeatureCollection tmp = new DefaultFeatureCollection();
-					tmp.addAll(list.remove(insee));
-					tmp.add(feat);
-					list.put(insee, tmp.collection());
-				} else {
-					DefaultFeatureCollection add = new DefaultFeatureCollection();
-					add.add(feat);
-					list.put(insee, add.collection());
-				}
-			}
-		}
-		zoneIt.close();
-		zoningSDS.dispose();
-
-		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
-		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
-		sfTypeBuilder.setName("testType");
-		sfTypeBuilder.setCRS(sourceCRS);
-		sfTypeBuilder.add("the_geom", MultiPolygon.class);
-		sfTypeBuilder.setDefaultGeometry("the_geom");
-		sfTypeBuilder.add("INSEE", String.class);
-		SimpleFeatureBuilder builder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
-		DefaultFeatureCollection zones = new DefaultFeatureCollection();
-		for (String com : list.keySet()) {
-			builder.set("the_geom", Vectors.unionSFC(list.get(com)));
-			builder.set("INSEE", com);
-			zones.add(builder.buildFeature(null));
-		}
-		// Vectors.exportSFC(zones, new File("/tmp/step1.shp"));
-		return zones;
-	}
-
-	/**
-	 * Simple tool to announce is the libelle looks like one in the list Non-dependent to the case
-	 * 
-	 * @param list
-	 *            : list of libelle
-	 * @param libelle
-	 *            : main libelle
-	 * @return true if main libelle is inside the list
-	 */
-	private static boolean libelleLookLike(List<String> list, String libelle) {
-		boolean result = false;
-		for (String s : list) {
-			if (libelle.toUpperCase().contains(s.toUpperCase()) && !libelle.toUpperCase().startsWith("ZC")) {
-				return true;
-			}
-		}
-		return result;
-	}
-
-	/**
 	 * compute the brut densities (containing all the extra space of parcels - road and common space)
 	 * 
 	 * @param areaSFC
@@ -483,12 +349,15 @@ public class Density {
 		b.setSuperType((SimpleFeatureType) schema.getSuper());
 		b.addAll(schema.getAttributeDescriptors());
 		b.add(typeOfDensFieldName, Double.class);
+		b.add("DifDObj" + typeOfDensFieldName.subSequence(7, 8), Double.class);
 		SimpleFeatureType nSchema = b.buildFeatureType();
 		while (inIt.hasNext()) {
 			SimpleFeature feat = inIt.next();
 			SimpleFeature featFin = DataUtilities.reType(nSchema, feat);
 			if (iniDensVal.containsKey(featFin.getAttribute(nameInseeFileOut))) {
 				featFin.setAttribute(typeOfDensFieldName, iniDensVal.get(feat.getAttribute(nameInseeFileOut)));
+				featFin.setAttribute("DifDObj" + typeOfDensFieldName.subSequence(7, 8),
+						((int) feat.getAttribute("objDens") - iniDensVal.get(feat.getAttribute(nameInseeFileOut))));
 				result.add(featFin);
 			}
 		}
@@ -561,8 +430,142 @@ public class Density {
 		}
 		parcelIt.close();
 		parcelSDS.dispose();
-		// Vectors.exportSFC(tmp, new File("/tmp/exported.shp"));
+		// Vectors.exportSFC(tmp, new File("/tmp/exportedParcels.shp"));
 
 		return surfPerCommunity;
+	}
+
+	/**
+	 * Merge all the zones with a main libelle code that are potentially containing housing units
+	 * 
+	 * Overload with defaults sub classes of zones U and AU that contains industries, activites, equipments, are excluded, which are :
+	 * <ul>
+	 * <li>X</li>
+	 * <li>Y</li>
+	 * <li>Z</li>
+	 * <li>E</li>
+	 * <li>L</li>
+	 * </ul>
+	 * 
+	 * @param zoningFile
+	 *            : File containing the zoning plan
+	 * @param typeOfZoneToAdd
+	 *            : main libelle to add in the constructed zone
+	 * @return
+	 * @throws IOException
+	 * @throws NoSuchAuthorityCodeException
+	 * @throws FactoryException
+	 */
+	public static SimpleFeatureCollection mergeConstructedZone(File zoningFile, String typeOfZoneToAdd)
+			throws IOException, NoSuchAuthorityCodeException, FactoryException {
+		List<String> string = new ArrayList<String>();
+		string.add(typeOfZoneToAdd);
+		return mergeConstructedZone(zoningFile, string);
+	}
+
+	/**
+	 * Merge all the zones with main libelle codes that are potentially containing housing units
+	 * 
+	 * Overload with defaults sub classes of zones U and AU that contains industries, activites, equipments, are excluded, which are :
+	 * <ul>
+	 * <li>X</li>
+	 * <li>Y</li>
+	 * <li>Z</li>
+	 * <li>E</li>
+	 * <li>L</li>
+	 * </ul>
+	 * 
+	 * @param zoningFile
+	 *            : File containing the zoning plan
+	 * @param typeOfZoneToAdd
+	 *            : main libelles to add in the constructed zone
+	 * @return
+	 * @throws IOException
+	 * @throws NoSuchAuthorityCodeException
+	 * @throws FactoryException
+	 */
+	public static SimpleFeatureCollection mergeConstructedZone(File zoningFile, List<String> typeOfZoneToAdd)
+			throws IOException, NoSuchAuthorityCodeException, FactoryException {
+
+		String[] tmpTab = { "X", "Y", "Z", "E", "L" };
+		return mergeConstructedZone(zoningFile, typeOfZoneToAdd, Arrays.asList(tmpTab));
+	}
+
+	/**
+	 * Merge all the zones with main libelle codes that are potentially containing housing units and exclude sub_libelle that cannot contain housing units
+	 * 
+	 * @param zoningFile
+	 *            : File containing the zoning plan
+	 * @param typeOfZoneToAdd
+	 *            : main libelles to add in the constructed zone
+	 * @param libelleToExclude
+	 *            : list of sub-libellle to exclude
+	 * 
+	 * @return
+	 * @throws IOException
+	 * @throws NoSuchAuthorityCodeException
+	 * @throws FactoryException
+	 */
+	public static SimpleFeatureCollection mergeConstructedZone(File zoningFile, List<String> typeOfZoneToAdd, List<String> libelleToExclude)
+			throws IOException, NoSuchAuthorityCodeException, FactoryException {
+		ShapefileDataStore zoningSDS = new ShapefileDataStore(zoningFile.toURI().toURL());
+		SimpleFeatureIterator zoneIt = zoningSDS.getFeatureSource().getFeatures().features();
+		HashMap<String, SimpleFeatureCollection> list = new HashMap<String, SimpleFeatureCollection>();
+		while (zoneIt.hasNext()) {
+			SimpleFeature feat = zoneIt.next();
+			if (typeOfZoneToAdd.contains(feat.getAttribute("TYPEZONE"))
+					&& !libelleLookLike(libelleToExclude, (String) feat.getAttribute("LIBELLE"))) {
+
+				String insee = (String) feat.getAttribute("INSEE");
+				if (list.containsKey(insee)) {
+					DefaultFeatureCollection tmp = new DefaultFeatureCollection();
+					tmp.addAll(list.remove(insee));
+					tmp.add(feat);
+					list.put(insee, tmp.collection());
+				} else {
+					DefaultFeatureCollection add = new DefaultFeatureCollection();
+					add.add(feat);
+					list.put(insee, add.collection());
+				}
+			}
+		}
+		zoneIt.close();
+		zoningSDS.dispose();
+
+		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
+		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
+		sfTypeBuilder.setName("testType");
+		sfTypeBuilder.setCRS(sourceCRS);
+		sfTypeBuilder.add("the_geom", MultiPolygon.class);
+		sfTypeBuilder.setDefaultGeometry("the_geom");
+		sfTypeBuilder.add("INSEE", String.class);
+		SimpleFeatureBuilder builder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
+		DefaultFeatureCollection zones = new DefaultFeatureCollection();
+		for (String com : list.keySet()) {
+			builder.set("the_geom", Vectors.unionSFC(list.get(com)));
+			builder.set("INSEE", com);
+			zones.add(builder.buildFeature(null));
+		}
+		// Vectors.exportSFC(zones, new File("/tmp/mergeZone.shp"));
+		return zones;
+	}
+
+	/**
+	 * Simple tool to announce is the libelle looks like one in the list Non-dependent to the case
+	 * 
+	 * @param list
+	 *            : list of libelle
+	 * @param libelle
+	 *            : main libelle
+	 * @return true if main libelle is inside the list
+	 */
+	private static boolean libelleLookLike(List<String> list, String libelle) {
+		boolean result = false;
+		for (String s : list) {
+			if (libelle.toUpperCase().contains(s.toUpperCase()) && !libelle.toUpperCase().startsWith("ZC")) {
+				return true;
+			}
+		}
+		return result;
 	}
 }
