@@ -2,7 +2,6 @@ package fr.ign.cogit.util;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,7 +38,6 @@ import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.geom.PrecisionModel;
 import com.vividsolutions.jts.precision.GeometryPrecisionReducer;
 
-import au.com.bytecode.opencsv.CSVReader;
 import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
 import fr.ign.cogit.geoxygene.util.conversion.AdapterFactory;
@@ -225,27 +223,24 @@ public class FromGeom {
 		return "nutin";
 	}
 
-	public static List<String> rnuZip(File regulFile) throws IOException {
+	public static List<String> getZipByTypeDoc(File regulFile, String typeDoc) throws IOException {
+		ShapefileDataStore sds = new ShapefileDataStore(FromGeom.getZoning(regulFile).toURI().toURL());
+		SimpleFeatureIterator cityIt = sds.getFeatureSource().getFeatures().features();
 		List<String> result = new ArrayList<String>();
-		File fCsv = new File("");
 		try {
-			for (File f : regulFile.listFiles()) {
-				if (f.getName().equals("listCommunitiesRNU.csv")) {
-					fCsv = f;
-					break;
+			while (cityIt.hasNext()) {
+				SimpleFeature city = cityIt.next();
+				String typlan = (String) city.getAttribute("TYPEPLAN");
+				String insee = (String) city.getAttribute("INSEE");
+				if (typlan.equals(typeDoc) && !result.contains(insee)) {
+					result.add(insee);
 				}
 			}
-		} catch (NullPointerException np) {
-			System.out.println("no RNU list");
-			return null;
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			cityIt.close();
 		}
-		CSVReader read = new CSVReader(new FileReader(fCsv));
-		// entete
-		read.readNext();
-		for (String[] line : read.readAll()) {
-			result.add(line[1]);
-		}
-		read.close();
 		return result;
 	}
 
@@ -290,14 +285,14 @@ public class FromGeom {
 		return tmpRes;
 	}
 
-	public static boolean isBuilt(SimpleFeature parcel, SimpleFeatureCollection batiSFC) {
+	public static boolean isBuilt(SimpleFeature parcel, SimpleFeatureCollection batiSFC) throws Exception {
 		return isBuilt(parcel, batiSFC, 0.0);
 	}
 
-	public static boolean isBuilt(SimpleFeature parcel, SimpleFeatureCollection batiSFC, double bufferParcel) {
-
+	public static boolean isBuilt(SimpleFeature parcel, SimpleFeatureCollection batiSFC, double bufferParcel) throws Exception {
+		SimpleFeatureCollection batiCollec = Vectors.snapDatas(batiSFC, (Geometry) parcel.getDefaultGeometry());
 		boolean isBuild = false;
-		SimpleFeatureIterator batiCollectionIt = batiSFC.features();
+		SimpleFeatureIterator batiCollectionIt = batiCollec.features();
 		try {
 			while (batiCollectionIt.hasNext()) {
 				if (((Geometry) parcel.getDefaultGeometry()).buffer(bufferParcel)
@@ -618,7 +613,7 @@ public class FromGeom {
 		if (result.isEmpty()) {
 			result.add("null");
 		}
-		
+
 		return result;
 
 	}

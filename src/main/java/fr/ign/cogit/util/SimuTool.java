@@ -43,36 +43,36 @@ import fr.ign.cogit.simplu3d.util.SimpluParameters;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 
 public class SimuTool {
-	public static void main(String[] args) throws Exception {
-		// digForRepportOnACity(new File("/home/ubuntu/boulot/these/result2903/tmp/outCompMai9"), "25245", new File("/tmp/ville"));
-		// digForPackWithoutSimu(new File("/media/ubuntu/saintmande/Packager/CDense/base/"),
-		// new File("/home/ubuntu/boulot/these/result2903/tmp/SimPLUDepot/CDense/base/"), new File("/tmp/missingFromCDenseBase.csv"));
-
-//		getStatDenialCuboid(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/CDense/variantMvGrid2"), new File("/tmp/variantMvGrid2"));
-		digForACity(new File("/media/ubuntu/saintmande/Packager/CDense/base/"), "25245");
-		// File folderOut = new File("/media/ubuntu/saintmande/Packager/");
-		// for (File scenarFolder : folderOut.listFiles()) {
-		// if (scenarFolder.isDirectory()) {
-		// String scenarName = scenarFolder.getName();
-		// System.out.println(scenarFolder);
-		// for (File variantFolder : scenarFolder.listFiles()) {
-		// if (variantFolder.isDirectory()) {
-		// File out = new File(folderOut, scenarName + "-" + variantFolder.getName());
-		// System.out.println(out);
-		// if (out.exists()) {
-		// System.out.println("continuie");
-		// continue;
-		// }
-		// digForUselessPacks(variantFolder, out);
-		// }
-		// }
-		// }
-		// }
-
-		// digToCopyCsvFolders(new File("/home/ubuntu/boulot/these/missingFromCDenseBase.csv"),
-		// new File("/media/ubuntu/saintmande/Packager/CDense/base/"), new File("/home/ubuntu/boulot/these/missing/"));
-
-	}
+	// public static void main(String[] args) throws Exception {
+	// // digForRepportOnACity(new File("/home/ubuntu/boulot/these/result2903/tmp/outCompMai9"), "25245", new File("/tmp/ville"));
+	// // digForPackWithoutSimu(new File("/media/ubuntu/saintmande/Packager/CDense/base/"),
+	// // new File("/home/ubuntu/boulot/these/result2903/tmp/SimPLUDepot/CDense/base/"), new File("/tmp/missingFromCDenseBase.csv"));
+	//
+	// getStatDenialCuboid(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/CDense/variantMvGrid2"), new File("/tmp/variantMvGrid2"));
+	// digForACity(new File("/media/ubuntu/saintmande/Packager/CDense/base/"), "25245");
+	// // File folderOut = new File("/media/ubuntu/saintmande/Packager/");
+	// // for (File scenarFolder : folderOut.listFiles()) {
+	// // if (scenarFolder.isDirectory()) {
+	// // String scenarName = scenarFolder.getName();
+	// // System.out.println(scenarFolder);
+	// // for (File variantFolder : scenarFolder.listFiles()) {
+	// // if (variantFolder.isDirectory()) {
+	// // File out = new File(folderOut, scenarName + "-" + variantFolder.getName());
+	// // System.out.println(out);
+	// // if (out.exists()) {
+	// // System.out.println("continuie");
+	// // continue;
+	// // }
+	// // digForUselessPacks(variantFolder, out);
+	// // }
+	// // }
+	// // }
+	// // }
+	//
+	// // digToCopyCsvFolders(new File("/home/ubuntu/boulot/these/missingFromCDenseBase.csv"),
+	// // new File("/media/ubuntu/saintmande/Packager/CDense/base/"), new File("/home/ubuntu/boulot/these/missing/"));
+	//
+	// }
 
 	private static void copyDir(String src, String dest, boolean overwrite) {
 		try {
@@ -138,6 +138,24 @@ public class SimuTool {
 
 	}
 
+	public static File getBuildingByZip(File buildingIn, List<String> zips, File fileOut) throws IOException {
+		ShapefileDataStore sds = new ShapefileDataStore(buildingIn.toURI().toURL());
+		SimpleFeatureCollection sfc = sds.getFeatureSource().getFeatures();
+		SimpleFeatureCollection result = getBuildingByZip(sfc, zips);
+		sds.dispose();
+		return Vectors.exportSFC(result, fileOut);
+
+	}
+
+	public static SimpleFeatureCollection getBuildingByZip(SimpleFeatureCollection buildingIn, List<String> zips) throws IOException {
+
+		DefaultFeatureCollection result = new DefaultFeatureCollection();
+		for (String zip : zips) {
+			result.addAll(getBuildingByZip(buildingIn, zip));
+		}
+		return result.collection();
+	}
+
 	/**
 	 * return a collection of buildings sharing the same zipcode (using the field "CODE")
 	 * 
@@ -175,6 +193,10 @@ public class SimuTool {
 
 	public static SimpleFeatureCollection giveEvalToBuilding(File buildingFile, File mupOutputFile)
 			throws IOException, NoSuchAuthorityCodeException, FactoryException {
+		if (!buildingFile.exists()) {
+			System.err.println(buildingFile + " is empty");
+			return null;
+		}
 		ShapefileDataStore buildSDS = new ShapefileDataStore(buildingFile.toURI().toURL());
 		SimpleFeatureCollection building = buildSDS.getFeatureSource().getFeatures();
 
@@ -404,7 +426,15 @@ public class SimuTool {
 	 * @return
 	 * @throws Exception
 	 */
-	public static List<String> getIntrestingCommunities(SimpluParameters p, File geoFile, File regulFile, File variantFile) throws Exception {
+	public static List<String> getIntrestingCommunities(SimpluParameters p, File geoFile, File regulFile, File variantFile, File specificFile)
+			throws Exception {
+		if (specificFile != null && specificFile.exists()) {
+			ShapefileDataStore sds = new ShapefileDataStore(specificFile.toURI().toURL());
+			List<String> result = ParcelFonction.getInseeParcels(sds.getFeatureSource().getFeatures());
+			sds.dispose();
+			return result;
+		}
+
 		List<String> result = new ArrayList<String>();
 		if (p.getString("singleCity").equals("true")) {
 			String zips = p.getString("zip");
@@ -1118,6 +1148,10 @@ public class SimuTool {
 	 * @throws IOException
 	 */
 	public static SimpleFeatureCollection fixBuildingForZone(File buildingFile, File zoningFile, boolean replace) throws IOException {
+		if (!buildingFile.exists()) {
+			System.err.println(buildingFile + " is empty");
+			return null;
+		}
 		ShapefileDataStore bSDS = new ShapefileDataStore(buildingFile.toURI().toURL());
 		ShapefileDataStore zSDS = new ShapefileDataStore(zoningFile.toURI().toURL());
 		SimpleFeatureCollection buildings = bSDS.getFeatureSource().getFeatures();
@@ -1256,7 +1290,7 @@ public class SimuTool {
 		}
 		return s;
 	}
-	
+
 	public static String makeWordPHDable(String s) throws FileNotFoundException {
 		switch (s) {
 		case "CDense":
@@ -1269,6 +1303,6 @@ public class SimuTool {
 			return "Scénario d - Paramétrage densité modérée";
 
 		}
-		return s ;
+		return s;
 	}
 }

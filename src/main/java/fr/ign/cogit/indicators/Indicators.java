@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.List;
 
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
@@ -26,6 +27,7 @@ import au.com.bytecode.opencsv.CSVReader;
 import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.cogit.util.FromGeom;
+import fr.ign.cogit.util.ParcelFonction;
 import fr.ign.cogit.util.SimuTool;
 
 public abstract class Indicators {
@@ -38,7 +40,33 @@ public abstract class Indicators {
 	boolean firstLineSimu = true;
 	boolean particularExists = false;
 
+	/**
+	 * constructor for all the results
+	 * 
+	 * @param p
+	 * @param rootfile
+	 * @param scenarname
+	 * @param variantname
+	 * @param indicName
+	 * @throws Exception
+	 */
 	public Indicators(SimpluParametersJSON p, File rootfile, String scenarname, String variantname, String indicName) throws Exception {
+		this(p, rootfile, scenarname, variantname, indicName, null);
+	}
+
+	/**
+	 * constructor to select only a set of cities
+	 * 
+	 * @param p
+	 * @param rootfile
+	 * @param scenarname
+	 * @param variantname
+	 * @param indicName
+	 * @param specificCities
+	 * @throws Exception
+	 */
+	public Indicators(SimpluParametersJSON p, File rootfile, String scenarname, String variantname, String indicName, List<String> specificCities)
+			throws Exception {
 		this.p = p;
 		this.rootFile = rootfile;
 		this.scenarName = scenarname;
@@ -53,13 +81,7 @@ public abstract class Indicators {
 				}
 			}
 		}
-		this.setParcelDepotGenFile(new File(rootFile, "ParcelSelectionDepot/" + scenarName + "/" + variantName + "/parcelGenExport.shp"));
-		this.setSimPLUDepotGenFile(new File(rootFile, "SimPLUDepot/" + scenarName + "/" + variantName + "/TotBatSimuFill.shp"));
-		if (!getSimPLUDepotGenFile().exists() && !scenarname.equals("") && !variantname.equals("")) {
-			File buildingFile = FromGeom.mergeBatis(getSimPLUDepotGenFile().getParentFile());
-			// TODO the nex treatement is made for the simu that puts zones into a wrong order and will be deleted one day
-			SimuTool.fixBuildingForZone(buildingFile, new File(rootFile, "/dataRegulation/zoning.shp"), true);
-		}
+
 		// if there's a will of saving the infos
 		if (scenarname != "") {
 			setIndicFile(new File(rootFile, "indic/" + indicName + "/" + scenarName + "/" + variantName));
@@ -69,6 +91,32 @@ public abstract class Indicators {
 			getMapDepotFolder().mkdir();
 			setGraphDepotFolder(new File(getIndicFolder(), "graphDepot"));
 			getGraphDepotFolder().mkdir();
+
+		}
+
+		if (specificCities != null && !specificCities.isEmpty()) {
+
+			// sorting of the parcels
+			File parcelSorted = new File(indicFile, "ParcelSorted.shp");
+			ParcelFonction.getParcelByZip((new File(rootFile, "ParcelSelectionDepot/" + scenarName + "/" + variantName + "/parcelGenExport.shp")),
+					specificCities, parcelSorted);
+			this.setParcelDepotGenFile(parcelSorted);
+
+			// sorting of the buildings
+			File buildingsSorted = new File(indicFile, "BuildingsSorted.shp");
+			SimuTool.getBuildingByZip((new File(rootFile, "SimPLUDepot/" + scenarName + "/" + variantName + "/TotBatSimuFill.shp")), specificCities,
+					buildingsSorted);
+			this.setSimPLUDepotGenFile(buildingsSorted);
+
+		} else {
+			this.setParcelDepotGenFile(new File(rootFile, "ParcelSelectionDepot/" + scenarName + "/" + variantName + "/parcelGenExport.shp"));
+			this.setSimPLUDepotGenFile(new File(rootFile, "SimPLUDepot/" + scenarName + "/" + variantName + "/TotBatSimuFill.shp"));
+		}
+
+		if (!getSimPLUDepotGenFile().exists() && !scenarname.equals("") && !variantname.equals("")) {
+			File buildingFile = FromGeom.mergeBatis(getSimPLUDepotGenFile().getParentFile());
+			// TODO the nex treatement is made for the simu that puts zones into a wrong order and will be deleted one day
+			SimuTool.fixBuildingForZone(buildingFile, new File(rootFile, "/dataRegulation/zoning.shp"), true);
 		}
 	}
 

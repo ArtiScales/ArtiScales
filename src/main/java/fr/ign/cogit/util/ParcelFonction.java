@@ -18,7 +18,6 @@ import org.geotools.factory.GeoTools;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
-import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
@@ -29,10 +28,8 @@ import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
-import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryCollection;
-import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.geom.PrecisionModel;
@@ -228,6 +225,10 @@ public class ParcelFonction {
 	public static String makeParcelCode(SimpleFeature feat) {
 		return ((String) feat.getAttribute("CODE_DEP")) + ((String) feat.getAttribute("CODE_COM")) + ((String) feat.getAttribute("COM_ABS"))
 				+ ((String) feat.getAttribute("SECTION")) + ((String) feat.getAttribute("NUMERO"));
+	}
+
+	public static String makeINSEECode(SimpleFeature feat) {
+		return ((String) feat.getAttribute("CODE_DEP")) + ((String) feat.getAttribute("CODE_COM"));
 	}
 
 	public static File makeCommunitiesFromParcels(File communitiesFile, File parcelFile, File outFile)
@@ -2217,22 +2218,24 @@ public class ParcelFonction {
 				}
 			}
 			parcelsSFC = write.collection();
+			Vectors.exportSFC(parcelsSFC, new File("/tmp/dqsdf.shp"));
 		}
 		// under the carpet
-		ReferencedEnvelope carpet = parcelsSFC.getBounds();
-		Coordinate[] coord = { new Coordinate(carpet.getMaxX(), carpet.getMaxY()), new Coordinate(carpet.getMaxX(), carpet.getMinY()),
-				new Coordinate(carpet.getMinX(), carpet.getMinY()), new Coordinate(carpet.getMinX(), carpet.getMaxY()),
-				new Coordinate(carpet.getMaxX(), carpet.getMaxY()) };
-
-		GeometryFactory gf = new GeometryFactory();
-		Polygon bbox = gf.createPolygon(coord);
-		SimpleFeatureCollection batiSFC = Vectors.snapDatas(shpDSBati.getFeatureSource().getFeatures(), bbox);
+		// ReferencedEnvelope carpet = parcelsSFC.getBounds();
+		// Coordinate[] coord = { new Coordinate(carpet.getMaxX(), carpet.getMaxY()), new Coordinate(carpet.getMaxX(), carpet.getMinY()),
+		// new Coordinate(carpet.getMinX(), carpet.getMinY()), new Coordinate(carpet.getMinX(), carpet.getMaxY()),
+		// new Coordinate(carpet.getMaxX(), carpet.getMaxY()) };
+		//
+		// GeometryFactory gf = new GeometryFactory();
+		// Polygon bbox = gf.createPolygon(coord);
+		// SimpleFeatureCollection batiSFC = Vectors.snapDatas(shpDSBati.getFeatureSource().getFeatures(), bbox);
+		SimpleFeatureCollection batiSFC = shpDSBati.getFeatureSource().getFeatures();
 
 		// SimpleFeatureCollection batiSFC =
 		// Vectors.snapDatas(shpDSBati.getFeatureSource().getFeatures(),
 		// Vectors.unionSFC(parcels));
 
-		SimpleFeatureBuilder sfBuilder = FromGeom.getParcelSFBuilder();
+		SimpleFeatureBuilder finalParcelBuilder = FromGeom.getParcelSFBuilder();
 
 		DefaultFeatureCollection newParcel = new DefaultFeatureCollection();
 
@@ -2244,7 +2247,6 @@ public class ParcelFonction {
 				Geometry geom = (Geometry) feat.getDefaultGeometry();
 				if (geom.getArea() > 5.0) {
 					// put the best cell evaluation into the parcel
-					String INSEE = ((String) feat.getAttribute("CODE_DEP")) + ((String) feat.getAttribute("CODE_COM"));
 					// say if the parcel intersects a particular zoning type
 					boolean u = false;
 					boolean au = false;
@@ -2263,14 +2265,22 @@ public class ParcelFonction {
 						}
 					}
 
-					Object[] attr = { ParcelFonction.makeParcelCode(feat), feat.getAttribute("CODE_DEP"), feat.getAttribute("CODE_COM"),
-							feat.getAttribute("COM_ABS"), feat.getAttribute("SECTION"), feat.getAttribute("NUMERO"), INSEE, 0, "false",
-							FromGeom.isBuilt(feat, batiSFC), u, au, nc };
+					finalParcelBuilder.set("the_geom", geom);
+					finalParcelBuilder.set("CODE", ParcelFonction.makeParcelCode(feat));
+					finalParcelBuilder.set("CODE_DEP", feat.getAttribute("CODE_DEP"));
+					finalParcelBuilder.set("CODE_COM", feat.getAttribute("CODE_COM"));
+					finalParcelBuilder.set("COM_ABS", feat.getAttribute("COM_ABS"));
+					finalParcelBuilder.set("SECTION", feat.getAttribute("SECTION"));
+					finalParcelBuilder.set("NUMERO", feat.getAttribute("NUMERO"));
+					finalParcelBuilder.set("INSEE", ((String) feat.getAttribute("CODE_DEP")) + ((String) feat.getAttribute("CODE_COM")));
+					finalParcelBuilder.set("eval", 0);
+					finalParcelBuilder.set("DoWeSimul", false);
+					finalParcelBuilder.set("IsBuild", FromGeom.isBuilt(feat, batiSFC));
+					finalParcelBuilder.set("U", u);
+					finalParcelBuilder.set("AU", au);
+					finalParcelBuilder.set("NC", nc);
 
-					sfBuilder.add(geom);
-
-					SimpleFeature feature = sfBuilder.buildFeature(null, attr);
-					newParcel.add(feature);
+					newParcel.add(finalParcelBuilder.buildFeature(null));
 				}
 			}
 
@@ -2286,6 +2296,12 @@ public class ParcelFonction {
 		return Vectors.exportSFC(newParcel.collection(), new File(tmpFile, "parcelProcessed.shp"));
 	}
 
+	/**
+	 * get the parcel codes (Attribute CODE of the given SimpleFeatureCollection)
+	 * 
+	 * @param parcels
+	 * @return
+	 */
 	public static List<String> getCodeParcels(SimpleFeatureCollection parcels) {
 		List<String> result = new ArrayList<String>();
 		SimpleFeatureIterator parcelIt = parcels.features();
@@ -2307,6 +2323,31 @@ public class ParcelFonction {
 		return result;
 	}
 
+	public static List<String> getInseeParcels(SimpleFeatureCollection parcels) {
+		List<String> result = new ArrayList<String>();
+		SimpleFeatureIterator parcelIt = parcels.features();
+		try {
+			while (parcelIt.hasNext()) {
+				SimpleFeature feat = parcelIt.next();
+				String code = ((String) feat.getAttribute("INSEE"));
+				if (code != null && !code.isEmpty()) {
+					result.add(code);
+				} else {
+					String c = makeINSEECode(feat);
+					if (!result.contains(c)) {
+						result.add(makeINSEECode(feat));
+					}
+				}
+
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			parcelIt.close();
+		}
+		return result;
+	}
+
 	public static IFeatureCollection<IFeature> getParcelByCode(IFeatureCollection<IFeature> parcelles, List<String> parcelsWanted)
 			throws IOException {
 		IFeatureCollection<IFeature> result = new FT_FeatureCollection<>();
@@ -2318,6 +2359,22 @@ public class ParcelFonction {
 			}
 		}
 		return result;
+	}
+
+	public static File getParcelByZip(File parcelIn, List<String> vals, File fileOut) throws IOException {
+		ShapefileDataStore sds = new ShapefileDataStore(parcelIn.toURI().toURL());
+		SimpleFeatureCollection sfc = sds.getFeatureSource().getFeatures();
+		SimpleFeatureCollection result = getParcelByZip(sfc, vals);
+		sds.dispose();
+		return Vectors.exportSFC(result, fileOut);
+	}
+
+	public static SimpleFeatureCollection getParcelByZip(SimpleFeatureCollection parcelIn, List<String> vals) throws IOException {
+		DefaultFeatureCollection result = new DefaultFeatureCollection();
+		for (String val : vals) {
+			result.addAll(getParcelByZip(parcelIn, val));
+		}
+		return result.collection();
 	}
 
 	public static SimpleFeatureCollection getParcelByZip(SimpleFeatureCollection parcelIn, String val) throws IOException {

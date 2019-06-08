@@ -70,7 +70,16 @@ public class BuildingToHousingUnit extends Indicators {
 
 	public BuildingToHousingUnit(File rootFile, SimpluParametersJSON par, String scenarName, String variantName) throws Exception {
 		super(par, rootFile, scenarName, variantName, indicName);
+		setBasics();
+	}
 
+	public BuildingToHousingUnit(File rootFile, SimpluParametersJSON par, String scenarName, String variantName, List<String> listCities)
+			throws Exception {
+		super(par, rootFile, scenarName, variantName, indicName, listCities);
+		setBasics();
+	}
+
+	private void setBasics() {
 		tmpFile = new File(getIndicFolder(), "tmpFile");
 		tmpFile.mkdirs();
 
@@ -95,31 +104,44 @@ public class BuildingToHousingUnit extends Indicators {
 		File rootParam = new File(rootFile, "paramFolder");
 		// String scenario = "CPeuDense";
 		String variant = "base";
+		String[] typeDocs = { "RNU", "PLU" };
+		for (String typeDoc : typeDocs) {
+			indicName = "bTH-" + typeDoc;
+			List<String> listRNU = FromGeom.getZipByTypeDoc(new File(rootFile, "dataRegulation"), typeDoc);
+			System.out.println("list " + typeDoc + " : " + listRNU);
+			List<File> lF = new ArrayList<>();
+			// String[] scenarios = { "CDense", "CPeuDense", "DDense", "DPeuDense" };
+			String[] scenarios = { "CPeuDense" };
 
-		List<File> lF = new ArrayList<>();
-		String[] scenarios = { "CDense", "CPeuDense", "DDense", "DPeuDense" };
-		// String[] scenarios = { "CPeuDense" };
+			for (String scenario : scenarios) {
+				// for (File f : (new File(rootFile, "SimPLUDepot/" + scenario + "/")).listFiles()) {
+				// variant = f.getName();
+				// if (variant.equals("base")) {
+				// continue;
+				// }
+				lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterTechnic.json"));
+				lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterScenario.json"));
 
-		for (String scenario : scenarios) {
-			// for (File f : (new File(rootFile, "SimPLUDepot/" + scenario + "/")).listFiles()) {
-			// variant = f.getName();
-			// if (variant.equals("base")) {
-			// continue;
-			// }
-			lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterTechnic.json"));
-			lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterScenario.json"));
-
-			SimpluParametersJSON p = new SimpluParametersJSON(lF);
-			System.out.println("run " + scenario + " variant: " + variant);
-			run(p, rootFile, scenario, variant);
+				SimpluParametersJSON p = new SimpluParametersJSON(lF);
+				System.out.println("run " + scenario + " variant: " + variant);
+				run(p, rootFile, scenario, variant, listRNU);
+			}
 		}
 	}
 
 	// }
-
 	public static void run(SimpluParametersJSON p, File rootFile, String scenario, String variant) throws Exception {
+		run(p, rootFile, scenario, variant, null);
+	}
 
-		BuildingToHousingUnit bhtU = new BuildingToHousingUnit(rootFile, p, scenario, variant);
+	public static void run(SimpluParametersJSON p, File rootFile, String scenario, String variant, List<String> listCities) throws Exception {
+
+		BuildingToHousingUnit bhtU;
+		if (listCities != null && !listCities.isEmpty()) {
+			bhtU = new BuildingToHousingUnit(rootFile, p, scenario, variant, listCities);
+		} else {
+			bhtU = new BuildingToHousingUnit(rootFile, p, scenario, variant);
+		}
 		// BuildingToHousingUnit bhtU = new BuildingToHousingUnit(rootFile, p, scenario, variant);
 
 		// statistics about denials
