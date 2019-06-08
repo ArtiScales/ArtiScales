@@ -1,6 +1,7 @@
 package fr.ign.cogit.rules.regulation.buildingType;
 
 import java.io.File;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -120,16 +121,16 @@ public class RepartitionBuildingType {
 
 		// this.parcelles = parcelles;
 
-		makeParcelRepartition();
+		makeParcelDistribution();
 
 		System.out.println("Household unit distribution : " + distribution);
 	}
 
-	private void makeParcelRepartition() {
-		makeParcelRepartition(parcelles);
+	private void makeParcelDistribution() {
+		makeParcelDistribution(parcelles);
 	}
 
-	private void makeParcelRepartition(IFeatureCollection<IFeature> parcels) {
+	private void makeParcelDistribution(IFeatureCollection<IFeature> parcels) {
 		DescriptiveStatistics distribEval = new DescriptiveStatistics();
 
 		for (IFeature parcel : parcels) {
@@ -144,26 +145,26 @@ public class RepartitionBuildingType {
 		dsc = distribEval;
 
 		List<Double> toBeQuantile = new ArrayList<Double>();
-
+		  DecimalFormat decimalFormat = new DecimalFormat("0.0000000000");
 		toBeQuantile.add(pSmallHouse);
-		String distribSmallHouse = distribEval.getPercentile(0.00000001) + "-" + distribEval.getPercentile(safeQuantile(toBeQuantile));
+		String distribSmallHouse = decimalFormat.format(distribEval.getPercentile(0.00000001)) + "-" + decimalFormat.format(distribEval.getPercentile(safeQuantile(toBeQuantile)));
 
 		double tmpInfValue = safeQuantile(toBeQuantile);
 		toBeQuantile.add(pDetachedHouse);
-		String distribDetachedHouse = distribEval.getPercentile(tmpInfValue) + "-" + distribEval.getPercentile(safeQuantile(toBeQuantile));
+		String distribDetachedHouse = decimalFormat.format(distribEval.getPercentile(tmpInfValue)) + "-" + decimalFormat.format(distribEval.getPercentile(safeQuantile(toBeQuantile)));
 
 		tmpInfValue = safeQuantile(toBeQuantile);
 		toBeQuantile.add(pMultifamilyHouse);
-		String distribMultifamilyHouse = String.valueOf(distribEval.getPercentile(tmpInfValue)).concat("-")
-				.concat(String.valueOf(distribEval.getPercentile(safeQuantile(toBeQuantile))));
+		String distribMultifamilyHouse = decimalFormat.format(distribEval.getPercentile(tmpInfValue)).concat("-")
+				.concat(decimalFormat.format(distribEval.getPercentile(safeQuantile(toBeQuantile))));
 
 		tmpInfValue = safeQuantile(toBeQuantile);
 		toBeQuantile.add(pSmallBlockFlat);
-		String distribSmallBlockFlat = distribEval.getPercentile(tmpInfValue) + "-" + distribEval.getPercentile(safeQuantile(toBeQuantile));
+		String distribSmallBlockFlat = decimalFormat.format(distribEval.getPercentile(tmpInfValue)) + "-" + decimalFormat.format(distribEval.getPercentile(safeQuantile(toBeQuantile)));
 
 		tmpInfValue = safeQuantile(toBeQuantile);
 		toBeQuantile.add(pMidBlockFlat);
-		String distribMidBlockFlat = distribEval.getPercentile(tmpInfValue) + "-" + distribEval.getPercentile(safeQuantile(toBeQuantile));
+		String distribMidBlockFlat = decimalFormat.format(distribEval.getPercentile(tmpInfValue)) + "-" + decimalFormat.format(distribEval.getPercentile(safeQuantile(toBeQuantile)));
 
 		HashMap<BuildingType, String> distrib = new HashMap<BuildingType, String>();
 		distrib.put(BuildingType.SMALLHOUSE, distribSmallHouse);
@@ -195,8 +196,8 @@ public class RepartitionBuildingType {
 		System.out.println("interest : " + interest);
 		for (BuildingType type : distribution.keySet()) {
 			String val = distribution.get(type);
-			Double inf = Double.valueOf(val.split("-")[0]);
-			Double sup = Double.valueOf(val.split("-")[1]);
+			Double inf = Double.valueOf(val.split("-")[0].replace(",","."));
+			Double sup = Double.valueOf(val.split("-")[1].replace(",","."));
 
 			if (interest >= inf && interest <= sup) {
 				if (repartition.get(type) > 0.0) {

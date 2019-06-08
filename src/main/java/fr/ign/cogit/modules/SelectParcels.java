@@ -89,8 +89,7 @@ public class SelectParcels {
 		File parcGen = new File(outFile, "parcelGenExport.shp");
 
 		// if we simul on one city (debug) or the whole area
-		List<String> listZip = SimuTool.getIntrestingCommunities(p, geoFile, regulFile, outFile);
-
+		List<String> listZip = SimuTool.getIntrestingCommunities(p, geoFile, regulFile, outFile, specificFile);
 		// we loop on every cities
 		for (String zip : listZip) {
 			if (specificFile != null && specificFile.exists()) {

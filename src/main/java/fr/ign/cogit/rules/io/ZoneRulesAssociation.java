@@ -41,8 +41,8 @@ public class ZoneRulesAssociation {
 			String finalLibelle = zone.getLibelle() + "-" + insee;
 
 			// if the city is at the rnu, insee code's the same
-			if (SimuTool.isCommunityRNU(zoningFile, insee)) {
-				System.out.println("city follows RNU");
+			if (SimuTool.isCommunityRuledByRNU(zoningFile, insee)) {
+				System.out.println("city follows RNU or CC");
 				finalLibelle = zone.getLibelle() + "-" + "7";
 			}
 

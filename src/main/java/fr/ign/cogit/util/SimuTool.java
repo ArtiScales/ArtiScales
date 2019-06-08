@@ -43,44 +43,73 @@ import fr.ign.cogit.simplu3d.util.SimpluParameters;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 
 public class SimuTool {
-	// public static void main(String[] args) throws Exception {
-	// // digForRepportOnACity(new File("/home/ubuntu/boulot/these/result2903/tmp/outCompMai9"), "25245", new File("/tmp/ville"));
-	// // digForPackWithoutSimu(new File("/media/ubuntu/saintmande/Packager/CDense/base/"),
-	// // new File("/home/ubuntu/boulot/these/result2903/tmp/SimPLUDepot/CDense/base/"), new File("/tmp/missingFromCDenseBase.csv"));
-	//
-	// getStatDenialCuboid(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/CDense/variantMvGrid2"), new File("/tmp/variantMvGrid2"));
-	// digForACity(new File("/media/ubuntu/saintmande/Packager/CDense/base/"), "25245");
-	// // File folderOut = new File("/media/ubuntu/saintmande/Packager/");
-	// // for (File scenarFolder : folderOut.listFiles()) {
-	// // if (scenarFolder.isDirectory()) {
-	// // String scenarName = scenarFolder.getName();
-	// // System.out.println(scenarFolder);
-	// // for (File variantFolder : scenarFolder.listFiles()) {
-	// // if (variantFolder.isDirectory()) {
-	// // File out = new File(folderOut, scenarName + "-" + variantFolder.getName());
-	// // System.out.println(out);
-	// // if (out.exists()) {
-	// // System.out.println("continuie");
-	// // continue;
-	// // }
-	// // digForUselessPacks(variantFolder, out);
-	// // }
-	// // }
-	// // }
-	// // }
-	//
-	// // digToCopyCsvFolders(new File("/home/ubuntu/boulot/these/missingFromCDenseBase.csv"),
-	// // new File("/media/ubuntu/saintmande/Packager/CDense/base/"), new File("/home/ubuntu/boulot/these/missing/"));
-	//
-	// }
+	public static void main(String[] args) throws Exception {
+		// digForRepportOnACity(new File("/home/ubuntu/boulot/these/result2903/tmp/outCompMai9"), "25245", new File("/tmp/ville"));
+		// digForPackWithoutSimu(new File("/media/ubuntu/saintmande/Packager/CDense/base/"),
+		// new File("/home/ubuntu/boulot/these/result2903/tmp/SimPLUDepot/CDense/base/"), new File("/tmp/missingFromCDenseBase.csv"));
+
+		// getStatDenialCuboid(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/CDense/variantMvGrid2"), new File("/tmp/variantMvGrid2"));
+		String[] scenars = { "DDense" };
+		String[] zips = { "25576", "25371", "25509", "25444", "25427", "25438", "25628", "25418" };
+
+		for (String scenar : scenars) {
+			for (String zip : zips) {
+				List<String> listPath = new ArrayList<String>();
+				List<String> listPack = digForACity(new File("/media/ubuntu/mtr/" + scenar + "/base/"), zip, listPath);
+				for (String pack : listPack) {
+					copyDir(new File(pack), new File("/home/ubuntu/boulot/these/result2903/rattrapage/cc/" + scenar + "/"));
+				}
+			}
+		}
+		// File folderOut = new File("/media/ubuntu/saintmande/Packager/");
+		// for (File scenarFolder : folderOut.listFiles()) {
+		// if (scenarFolder.isDirectory()) {
+		// String scenarName = scenarFolder.getName();
+		// System.out.println(scenarFolder);
+		// for (File variantFolder : scenarFolder.listFiles()) {
+		// if (variantFolder.isDirectory()) {
+		// File out = new File(folderOut, scenarName + "-" + variantFolder.getName());
+		// System.out.println(out);
+		// if (out.exists()) {
+		// System.out.println("continuie");
+		// continue;
+		// }
+		// digForUselessPacks(variantFolder, out);
+		// }
+		// }
+		// }
+		// }
+
+		// digToCopyCsvFolders(new File("/home/ubuntu/boulot/these/missingFromCDenseBase.csv"),
+		// new File("/media/ubuntu/saintmande/Packager/CDense/base/"), new File("/home/ubuntu/boulot/these/missing/"));
+
+	}
+
+	private static void copyDir(File src, File dest) throws IOException {
+		if (src.isDirectory()) {
+			for (File f : src.listFiles()) {
+				File destDir = new File(dest, src.getName());
+				destDir.mkdirs();
+				copyDir(f, destDir);
+			}
+		} else {
+			new File(dest, src.getName()).mkdirs();
+			Files.copy(src.toPath(), new File(dest, src.getName()).toPath(), new CopyOption[] { StandardCopyOption.REPLACE_EXISTING });
+		}
+
+	}
 
 	private static void copyDir(String src, String dest, boolean overwrite) {
 		try {
 			Files.walk(Paths.get(src)).forEach(a -> {
 				Path b = Paths.get(dest, a.toString().substring(src.length()));
 				try {
-					if (!a.toString().equals(src))
+
+					if (!a.toString().equals(src)) {
+						// Files.createDirectory(dir, attrs)
 						Files.copy(a, b, overwrite ? new CopyOption[] { StandardCopyOption.REPLACE_EXISTING } : new CopyOption[] {});
+					}
+
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -574,7 +603,7 @@ public class SimuTool {
 	 * @return
 	 * @throws IOException
 	 */
-	public static boolean isCommunityRNU(File zoningFile, String insee) throws IOException {
+	public static boolean isCommunityRuledByRNU(File zoningFile, String insee) throws IOException {
 		boolean answer = false;
 		ShapefileDataStore zoningSDS = new ShapefileDataStore(zoningFile.toURI().toURL());
 		SimpleFeatureIterator it = zoningSDS.getFeatureSource().getFeatures().features();
@@ -582,7 +611,7 @@ public class SimuTool {
 			while (it.hasNext() && !answer) {
 				SimpleFeature feat = it.next();
 				if (feat.getAttribute("INSEE") != null && feat.getAttribute("INSEE").equals(insee) && feat.getAttribute("TYPEPLAN") != null
-						&& feat.getAttribute("TYPEPLAN").equals("RNU")) {
+						&& (feat.getAttribute("TYPEPLAN").equals("RNU") || feat.getAttribute("TYPEPLAN").equals("CC"))) {
 					answer = true;
 					break;
 				}
@@ -921,33 +950,43 @@ public class SimuTool {
 		}
 	}
 
-	public static void digForACity(File fIn, String thisCity) throws IOException {
+	public static List<String> digForACity(File fIn, String thisCity, List<String> listPath) throws IOException {
 		for (File f : fIn.listFiles()) {
 			if (f.isDirectory()) {
-				digForACity(f, thisCity);
+				listPath = digForACity(f, thisCity, listPath);
 			}
-			if (f.getName().equals("parcelle.shp")) {
+			if (f.getName().equals("parcelle.shp") && !f.getAbsolutePath().contains("DPeuDense/base/0/311/parcelle.shp")) {
 				ShapefileDataStore communitiesSDS = new ShapefileDataStore(f.toURI().toURL());
 				SimpleFeatureCollection communitiesOG = communitiesSDS.getFeatureSource().getFeatures();
 				SimpleFeatureIterator it = communitiesOG.features();
 				int toto = 0;
-				while (it.hasNext()) {
-					SimpleFeature feat = it.next();
-					String insee = (String) feat.getAttribute("INSEE");
-					if (insee != null && insee.equals(thisCity)) {
-						if (feat.getAttribute("DoWeSimul").equals("true")) {
-							toto++;
-						}
+				try {
+					while (it.hasNext()) {
+						SimpleFeature feat = it.next();
+						String insee = (String) feat.getAttribute("INSEE");
+						if (insee != null && insee.equals(thisCity)) {
+							if (feat.getAttribute("DoWeSimul").equals("true")) {
+								toto++;
+							}
 
+						}
 					}
-				}
-				it.close();
-				communitiesSDS.dispose();
-				if (toto > 3) {
+					it.close();
+					communitiesSDS.dispose();
+					if (toto > 1) {
+						System.out.println(f.getParent());
+						listPath.add(f.getParent());
+					}
+				} catch (Exception problem) {
 					System.out.println(f);
+					problem.printStackTrace();
+					continue;
+				} finally {
+					it.close();
 				}
 			}
 		}
+		return listPath;
 	}
 
 	public static String digForRepportOnACity(File fIn, String insee, File outFile) throws IOException {

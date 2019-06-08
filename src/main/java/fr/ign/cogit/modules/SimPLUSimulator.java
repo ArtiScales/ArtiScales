@@ -146,24 +146,29 @@ public class SimPLUSimulator {
 		// // SimPLUSimulator.fillSelectedParcels(new File(rootFolder), geoFile,
 		// // pluFile, selectedParcels, 50, "25495", p);
 
-		String nameMainFolder = "result2903/tmp";
-		File paramFolder = new File("./" + nameMainFolder + "/paramFolder");
-		TransformXMLToJSON.convert(paramFolder);
-		List<File> lF = new ArrayList<>();
-		lF.add(new File(paramFolder, "paramSet/CDense/parameterTechnic.json"));
-		lF.add(new File(paramFolder, "paramSet/CDense/parameterScenario.json"));
-		SimpluParametersJSON p = new SimpluParametersJSON(lF);
-		// AttribNames.setATT_CODE_PARC("CODE");
-		// USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
-		File pack = new File("./" + nameMainFolder + "/testSimPLU");
-		File fOut = new File(pack, "result");
+		String[] scenars = { "DDense", "CPeuDense", "DPeuDense", "CDense" };
+		File rootFile = new File("/home/ubuntu/boulot/these/result2903/rattrapage");
+		for (String scenar : scenars) {
+			for (File f : new File(rootFile,"/cc/" + scenar).listFiles()) {
+				File paramFolder = new File(rootFile, "paramFolder");
+				System.out.println(paramFolder);
+				TransformXMLToJSON.convert(paramFolder);
+				List<File> lF = new ArrayList<>();
+				lF.add(new File(paramFolder, "paramSet/"+scenar+"/parameterTechnic.json"));
+				lF.add(new File(paramFolder, "paramSet/"+scenar+"/parameterScenario.json"));
+				SimpluParametersJSON p = new SimpluParametersJSON(lF);
+				// AttribNames.setATT_CODE_PARC("CODE");
+				// USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
+				File fOut = new File(rootFile + "/cc/" + scenar + "/result/");
+				fOut.mkdirs();
+				System.out.println("start pack " + f);
+				SimPLUSimulator sim = new SimPLUSimulator(paramFolder, f, p, fOut);
+				sim.run();
 
-		System.out.println("start pack " + pack);
-		SimPLUSimulator sim = new SimPLUSimulator(paramFolder, pack, p, fOut);
-		sim.run();
+				System.out.println("done with pack " + f.getName());
 
-		System.out.println("done with pack " + pack.getName());
-
+			}
+		}
 		// File f = new File("./" + nameMainFolder + "/ParcelSelectionDepot/DDense/variante0/");
 		// File fOut = new File("." + nameMainFolder + "/ArtiScalesTest/SimPLUDepot/DDense/variante0/");
 		// List<File> listBatiSimu = new ArrayList<File>();
