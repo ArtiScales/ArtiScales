@@ -43,49 +43,58 @@ import fr.ign.cogit.simplu3d.util.SimpluParameters;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 
 public class SimuTool {
-	public static void main(String[] args) throws Exception {
-		// digForRepportOnACity(new File("/home/ubuntu/boulot/these/result2903/tmp/outCompMai9"), "25245", new File("/tmp/ville"));
-		// digForPackWithoutSimu(new File("/media/ubuntu/saintmande/Packager/CDense/base/"),
-		// new File("/home/ubuntu/boulot/these/result2903/tmp/SimPLUDepot/CDense/base/"), new File("/tmp/missingFromCDenseBase.csv"));
+	// public static void main(String[] args) throws Exception {
+	// digForRepportOnACity(new File("/home/ubuntu/boulot/these/result2903/tmp/outCompMai9"), "25245", new File("/tmp/ville"));
+	// digForPackWithoutSimu(new File("/media/ubuntu/saintmande/Packager/CDense/base/"),
+	// new File("/home/ubuntu/boulot/these/result2903/tmp/SimPLUDepot/CDense/base/"), new File("/tmp/missingFromCDenseBase.csv"));
 
-		// getStatDenialCuboid(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/CDense/variantMvGrid2"), new File("/tmp/variantMvGrid2"));
-		String[] scenars = { "DDense" };
-		String[] zips = { "25576", "25371", "25509", "25444", "25427", "25438", "25628", "25418" };
+	// getStatDenialCuboid(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/CDense/variantMvGrid2"), new File("/tmp/variantMvGrid2"));
+	// deleteUselessPacks(new File("/home/ubuntu/boulot/these/result2903/rattrapage/depotParcel/Pack"));
 
-		for (String scenar : scenars) {
-			for (String zip : zips) {
-				List<String> listPath = new ArrayList<String>();
-				List<String> listPack = digForACity(new File("/media/ubuntu/mtr/" + scenar + "/base/"), zip, listPath);
-				for (String pack : listPack) {
-					copyDir(new File(pack), new File("/home/ubuntu/boulot/these/result2903/rattrapage/cc/" + scenar + "/"));
-				}
-			}
-		}
-		// File folderOut = new File("/media/ubuntu/saintmande/Packager/");
-		// for (File scenarFolder : folderOut.listFiles()) {
-		// if (scenarFolder.isDirectory()) {
-		// String scenarName = scenarFolder.getName();
-		// System.out.println(scenarFolder);
-		// for (File variantFolder : scenarFolder.listFiles()) {
-		// if (variantFolder.isDirectory()) {
-		// File out = new File(folderOut, scenarName + "-" + variantFolder.getName());
-		// System.out.println(out);
-		// if (out.exists()) {
-		// System.out.println("continuie");
-		// continue;
-		// }
-		// digForUselessPacks(variantFolder, out);
-		// }
-		// }
-		// }
-		// }
+	// // get CC communities
+	// String[] scenars = { "CDense" };
+	// String[] zips = { "25576", "25371", "25509", "25444", "25427", "25438", "25628", "25418" };
+	//
+	// for (String scenar : scenars) {
+	// for (String zip : zips) {
+	// for (File f : (new File("/media/ubuntu/saintmande/Packager/" + scenar).listFiles())) {
+	// // if(f.isDirectory())
+	// if (f.getName().equals("base")) {
+	// continue;
+	// }
+	// List<String> listPack = digForACity(f, zip, new ArrayList<String>());
+	// for (String pack : listPack) {
+	// copyDir(new File(pack), new File("/home/ubuntu/boulot/these/result2903/rattrapage/cc/" + scenar + "/" + f.getName() + "/"));
+	// }
+	// }
+	// }
+	// }
 
-		// digToCopyCsvFolders(new File("/home/ubuntu/boulot/these/missingFromCDenseBase.csv"),
-		// new File("/media/ubuntu/saintmande/Packager/CDense/base/"), new File("/home/ubuntu/boulot/these/missing/"));
+	// File folderOut = new File("/media/ubuntu/saintmande/Packager/");
+	// for (File scenarFolder : folderOut.listFiles()) {
+	// if (scenarFolder.isDirectory()) {
+	// String scenarName = scenarFolder.getName();
+	// System.out.println(scenarFolder);
+	// for (File variantFolder : scenarFolder.listFiles()) {
+	// if (variantFolder.isDirectory()) {
+	// File out = new File(folderOut, scenarName + "-" + variantFolder.getName());
+	// System.out.println(out);
+	// if (out.exists()) {
+	// System.out.println("continuie");
+	// continue;
+	// }
+	// digForUselessPacks(variantFolder, out);
+	// }
+	// }
+	// }
+	// }
 
-	}
+	// digToCopyCsvFolders(new File("/home/ubuntu/boulot/these/missingFromCDenseBase.csv"),
+	// new File("/media/ubuntu/saintmande/Packager/CDense/base/"), new File("/home/ubuntu/boulot/these/missing/"));
+	//
+	// }
 
-	private static void copyDir(File src, File dest) throws IOException {
+	public static void copyDir(File src, File dest) throws IOException {
 		if (src.isDirectory()) {
 			for (File f : src.listFiles()) {
 				File destDir = new File(dest, src.getName());
@@ -835,7 +844,12 @@ public class SimuTool {
 							for (String reason : reasons.split(",")) {
 								reason = reason.replace(" ", "");
 								String topic = reason.split("=")[0];
-								long val = Integer.valueOf(reason.split("=")[1]);
+								long val = 0;
+								try {
+									val = Integer.valueOf(reason.split("=")[1]);
+								} catch (ArrayIndexOutOfBoundsException ahbon) {
+									System.out.println("getStatDenialCuboid: problem with \"" + reasons + "\"");
+								}
 								Long tmp = result.putIfAbsent(topic, val);
 								if (tmp != null) {
 									result.replace(topic, tmp, tmp + val);
@@ -1069,6 +1083,56 @@ public class SimuTool {
 		csv.writeAll(lL);
 
 		csv.close();
+	}
+
+	/**
+	 * dig for SimPLUPackager folders that are uninteresting to be simulated Put them in a csv file ?! Do we copy/delete them? !!
+	 * 
+	 * TODO not tested, may not work
+	 * 
+	 * @param fPack
+	 * @param fSimu
+	 * @param fOut
+	 * @throws IOException
+	 */
+	public static void deleteUselessPacks(File fPack) throws IOException {
+		List<String[]> lL = new ArrayList<String[]>();
+		String[] fl = { "SuperPack", "Pack" };
+		lL.add(fl);
+		for (File superPack : fPack.listFiles()) {
+			boolean delete = true;
+			for (File pack : superPack.listFiles()) {
+				for (File f : pack.listFiles()) {
+					// if there is a parcel shapefile
+					if (f.getName().equals("parcelle.shp")) {
+						ShapefileDataStore parcelleSDS = new ShapefileDataStore(f.toURI().toURL());
+						SimpleFeatureCollection parcelleOG = parcelleSDS.getFeatureSource().getFeatures();
+						SimpleFeatureIterator it = parcelleOG.features();
+						try {
+							while (it.hasNext()) {
+								SimpleFeature feat = it.next();
+								if (feat.getAttribute("DoWeSimul").equals("true")) {
+									delete = false;
+									break;
+								}
+							}
+						} catch (Exception problem) {
+							System.out.println("problem for " + f);
+							problem.printStackTrace();
+						} finally {
+							it.close();
+						}
+						it.close();
+						parcelleSDS.dispose();
+					}
+				}
+				if (delete) {
+					deleteDirectoryStream(pack.toPath());
+				}
+			}
+
+		}
+
 	}
 
 	/**

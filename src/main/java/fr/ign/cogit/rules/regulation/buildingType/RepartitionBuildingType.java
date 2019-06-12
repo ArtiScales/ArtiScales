@@ -248,11 +248,11 @@ public class RepartitionBuildingType {
 		Double distribInf = 0.0;
 		Double distribSup = 0.0;
 		if (upOrDown) {
-			distribInf = Double.valueOf(oldDistrib.split("-")[0]);
-			distribSup = Double.valueOf(oldDistrib.split("-")[1]) - ecart;
+			distribInf = Double.valueOf(oldDistrib.split("-")[0].replace(".", ","));
+			distribSup = Double.valueOf(oldDistrib.split("-")[1].replace(".", ",")) - ecart;
 		} else {
-			distribInf = Double.valueOf(oldDistrib.split("-")[0]) + ecart;
-			distribSup = Double.valueOf(oldDistrib.split("-")[1]);
+			distribInf = Double.valueOf(oldDistrib.split("-")[0].replace(".", ",")) + ecart;
+			distribSup = Double.valueOf(oldDistrib.split("-")[1].replace(".", ","));
 		}
 
 		this.distribution.put(normalType, distribInf + "-" + distribSup);

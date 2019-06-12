@@ -82,7 +82,7 @@ public abstract class Indicators {
 			}
 		}
 
-		// if there's a will of saving the infos
+		// if there's a will of saving the infos with order
 		if (scenarname != "") {
 			setIndicFile(new File(rootFile, "indic/" + indicName + "/" + scenarName + "/" + variantName));
 			getIndicFolder().mkdirs();
@@ -91,7 +91,6 @@ public abstract class Indicators {
 			getMapDepotFolder().mkdir();
 			setGraphDepotFolder(new File(getIndicFolder(), "graphDepot"));
 			getGraphDepotFolder().mkdir();
-
 		}
 
 		if (specificCities != null && !specificCities.isEmpty()) {
@@ -113,9 +112,10 @@ public abstract class Indicators {
 			this.setSimPLUDepotGenFile(new File(rootFile, "SimPLUDepot/" + scenarName + "/" + variantName + "/TotBatSimuFill.shp"));
 		}
 
+		// operations to group buildings if it's not already made
 		if (!getSimPLUDepotGenFile().exists() && !scenarname.equals("") && !variantname.equals("")) {
 			File buildingFile = FromGeom.mergeBatis(getSimPLUDepotGenFile().getParentFile());
-			// TODO the nex treatement is made for the simu that puts zones into a wrong order and will be deleted one day
+			// TODO the next treatement is made for the simu that puts zones into a wrong order and will be deleted one day
 			SimuTool.fixBuildingForZone(buildingFile, new File(rootFile, "/dataRegulation/zoning.shp"), true);
 		}
 	}
@@ -217,14 +217,18 @@ public abstract class Indicators {
 	}
 
 	public File joinStatBTHtoCommunities(String nameFileToJoin) throws NoSuchAuthorityCodeException, IOException, FactoryException {
+		return joinStatBTHtoCommunities(new File(getIndicFolder(), nameFileToJoin), new File(getIndicFolder(), "commStat.shp"));
+	}
+
+	public File joinStatBTHtoCommunities(File fileToJoin, File fileOut) throws NoSuchAuthorityCodeException, IOException, FactoryException {
 		ShapefileDataStore communitiesOGSDS = new ShapefileDataStore((new File(rootFile, "/dataGeo/old/communities.shp")).toURI().toURL());
 		SimpleFeatureCollection communitiesOG = communitiesOGSDS.getFeatureSource().getFeatures();
-		File result = joinStatToBTHCommunities(communitiesOG, new File(getIndicFolder(), nameFileToJoin), new File(getIndicFolder(), "commStat.shp"));
+		File result = joinStatToBTHCommunities(communitiesOG, fileToJoin, fileOut);
 		communitiesOGSDS.dispose();
 		return result;
 	}
 
-	public File joinStatToBTHCommunities(SimpleFeatureCollection collec, File statFile, File outFile)
+	public File joinStatToBTHCommunities(SimpleFeatureCollection collec, File statFile, File fileOut)
 			throws IOException, NoSuchAuthorityCodeException, FactoryException {
 		DefaultFeatureCollection result = new DefaultFeatureCollection();
 		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
@@ -245,7 +249,8 @@ public abstract class Indicators {
 		sfTypeBuilder.add("avSDPpHU", Double.class);
 		sfTypeBuilder.add("sdSDPpHU", Double.class);
 		sfTypeBuilder.add("difObjDens", Double.class);
-		sfTypeBuilder.add("nbBuilding", Double.class);
+
+		// Housing units
 		sfTypeBuilder.add("nbHU", Double.class);
 		sfTypeBuilder.add("objHU", Double.class);
 		sfTypeBuilder.add("difObjHU", Double.class);
@@ -261,6 +266,22 @@ public abstract class Indicators {
 		sfTypeBuilder.add("nbBanl", Double.class);
 		sfTypeBuilder.add("nbPeriU", Double.class);
 		sfTypeBuilder.add("nbRur", Double.class);
+
+		// Buildings
+		sfTypeBuilder.add("nbBuilding", Double.class);
+		sfTypeBuilder.add("nbBDetach", Double.class);
+		sfTypeBuilder.add("nbBSmall", Double.class);
+		sfTypeBuilder.add("nbBFamH", Double.class);
+		sfTypeBuilder.add("nbBSmallBk", Double.class);
+		sfTypeBuilder.add("nbBMidBk", Double.class);
+		sfTypeBuilder.add("nbBU", Double.class);
+		sfTypeBuilder.add("nbBAU", Double.class);
+		sfTypeBuilder.add("nbBNC", Double.class);
+		sfTypeBuilder.add("nbBCentr", Double.class);
+		sfTypeBuilder.add("nbBBanl", Double.class);
+		sfTypeBuilder.add("nbBPeriU", Double.class);
+		sfTypeBuilder.add("nbBRur", Double.class);
+
 		sfTypeBuilder.add("ratioHUcol", Double.class);
 		sfTypeBuilder.add("ratioHUind", Double.class);
 		SimpleFeatureBuilder builder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
@@ -275,7 +296,9 @@ public abstract class Indicators {
 				int inseeP = 0, SDPTotP = 0, empriseTotP = 0, avDensiteHUP = 0, SDDensiteHUP = 0, avDensiteSDPP = 0, SDDensiteSDPP = 0,
 						avDensiteEmpriseP = 0, SDDensiteEmpriseP = 0, avSDPpHUP = 0, sdSDPpHUP = 0, difObjDensP = 0, nbBuildingP = 0, nbHUP = 0,
 						objHUP = 0, difObjHUP = 0, nbSmallP = 0, nbDetachP = 0, nbFamHP = 0, nbSmallBkP = 0, nbMidBkP = 0, nbUP = 0, nbAUP = 0,
-						nbNCP = 0, nbCentrP = 0, nbBanlP = 0, nbPeriUP = 0, nbRurP = 0, ratioHUcolP = 0, ratioHUindP = 0;
+						nbNCP = 0, nbCentrP = 0, nbBanlP = 0, nbPeriUP = 0, nbRurP = 0, nbBSmallP = 0, nbBDetachP = 0, nbBFamHP = 0, nbBSmallBkP = 0,
+						nbBMidBkP = 0, nbBUP = 0, nbBAUP = 0, nbBNCP = 0, nbBCentrP = 0, nbBBanlP = 0, nbBPeriUP = 0, nbBRurP = 0, ratioHUcolP = 0,
+						ratioHUindP = 0;
 				for (int i = 0; i < firstLine.length; i++) {
 					switch (firstLine[i]) {
 					case "code":
@@ -361,6 +384,42 @@ public abstract class Indicators {
 					case "nbHU_rural":
 						nbRurP = i;
 						break;
+					case "nbBuild_detachedHouse":
+						nbBDetachP = i;
+						break;
+					case "nbBuild_smallHouse":
+						nbBSmallP = i;
+						break;
+					case "nbBuild_multiFamilyHouse":
+						nbBFamHP = i;
+						break;
+					case "nbBuild_smallBlockFlat":
+						nbBSmallBkP = i;
+						break;
+					case "nbBuild_midBlockFlat":
+						nbBMidBkP = i;
+						break;
+					case "nbBuild_U":
+						nbBUP = i;
+						break;
+					case "nbBuild_AU":
+						nbBAUP = i;
+						break;
+					case "nbBuild_NC":
+						nbBNCP = i;
+						break;
+					case "nbBuild_centre":
+						nbBCentrP = i;
+						break;
+					case "nbBuild_banlieue":
+						nbBBanlP = i;
+						break;
+					case "nbBuild_periUrbain":
+						nbBPeriUP = i;
+						break;
+					case "nbBuild_rural":
+						nbBRurP = i;
+						break;
 					case "ratioHUcol":
 						ratioHUcolP = i;
 						break;
@@ -384,7 +443,8 @@ public abstract class Indicators {
 						builder.set("avSDPpHU", Double.valueOf(l[avSDPpHUP]));
 						builder.set("sdSDPpHU", Double.valueOf(l[sdSDPpHUP]));
 						builder.set("difObjDens", Double.valueOf(l[difObjDensP]));
-						builder.set("nbBuilding", Double.valueOf(l[nbBuildingP]));
+
+						// Housing units
 						builder.set("nbHU", Double.valueOf(l[nbHUP]));
 						builder.set("objHU", Double.valueOf(l[objHUP]));
 						builder.set("difObjHU", Double.valueOf(l[difObjHUP]));
@@ -400,6 +460,22 @@ public abstract class Indicators {
 						builder.set("nbBanl", Double.valueOf(l[nbBanlP]));
 						builder.set("nbPeriU", Double.valueOf(l[nbPeriUP]));
 						builder.set("nbRur", Double.valueOf(l[nbRurP]));
+
+						// buildings
+						builder.set("nbBuilding", Double.valueOf(l[nbBuildingP]));
+						builder.set("nbBDetach", Double.valueOf(l[nbBDetachP]));
+						builder.set("nbBSmall", Double.valueOf(l[nbBSmallP]));
+						builder.set("nbBFamH", Double.valueOf(l[nbBFamHP]));
+						builder.set("nbBSmallBk", Double.valueOf(l[nbBSmallBkP]));
+						builder.set("nbBMidBk", Double.valueOf(l[nbBMidBkP]));
+						builder.set("nbBU", Double.valueOf(l[nbBUP]));
+						builder.set("nbBAU", Double.valueOf(l[nbBAUP]));
+						builder.set("nbBNC", Double.valueOf(l[nbBNCP]));
+						builder.set("nbBCentr", Double.valueOf(l[nbBCentrP]));
+						builder.set("nbBBanl", Double.valueOf(l[nbBBanlP]));
+						builder.set("nbBPeriU", Double.valueOf(l[nbBPeriUP]));
+						builder.set("nbBRur", Double.valueOf(l[nbBRurP]));
+
 						builder.set("ratioHUcol", Double.valueOf(l[ratioHUcolP]));
 						builder.set("ratioHUind", Double.valueOf(l[ratioHUindP]));
 						result.add(builder.buildFeature(null));
@@ -413,7 +489,7 @@ public abstract class Indicators {
 		} finally {
 			it.close();
 		}
-		return Vectors.exportSFC(result, outFile);
+		return Vectors.exportSFC(result, fileOut);
 	}
 
 	public static String makeLabelPHDable(String s) throws FileNotFoundException {

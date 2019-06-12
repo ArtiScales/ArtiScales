@@ -222,6 +222,27 @@ public class FromGeom {
 		System.err.println("bigZone unknown");
 		return "nutin";
 	}
+	
+	public static List<String> getZips(File regulFile) throws IOException {
+		ShapefileDataStore sds = new ShapefileDataStore(FromGeom.getZoning(regulFile).toURI().toURL());
+		SimpleFeatureIterator cityIt = sds.getFeatureSource().getFeatures().features();
+		List<String> result = new ArrayList<String>();
+		try {
+			while (cityIt.hasNext()) {
+				SimpleFeature city = cityIt.next();
+				String typlan = (String) city.getAttribute("TYPEPLAN");
+				String insee = (String) city.getAttribute("INSEE");
+				if (!result.contains(insee)) {
+					result.add(insee);
+				}
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			cityIt.close();
+		}
+		return result;
+	}
 
 	public static List<String> getZipByTypeDoc(File regulFile, String typeDoc) throws IOException {
 		ShapefileDataStore sds = new ShapefileDataStore(FromGeom.getZoning(regulFile).toURI().toURL());

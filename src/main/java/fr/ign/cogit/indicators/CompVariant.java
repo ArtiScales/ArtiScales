@@ -18,18 +18,21 @@ import org.knowm.xchart.CategoryChart;
 import org.knowm.xchart.CategoryChartBuilder;
 import org.knowm.xchart.CategorySeries;
 import org.knowm.xchart.internal.series.Series.DataType;
+import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.NoSuchAuthorityCodeException;
 
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
 import fr.ign.cogit.map.MapRenderer;
-import fr.ign.cogit.map.theseMC.compVariant.MapNbHUCV;
+import fr.ign.cogit.map.theseMC.compVariant.CVNbBat;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 
 public class CompVariant extends Indicators {
-	int nbVariant = 0;
 	String[] baseVariant;
+	List<String> variantNames = new LinkedList<String>();
 	String indicStatFile;
 	static String indicName = "compVariant";
+	String spec = "";
 
 	public static void main(String[] args) throws Exception {
 		File rootFile = new File("./result2903/");
@@ -43,95 +46,167 @@ public class CompVariant extends Indicators {
 
 		CompVariant compVar = new CompVariant(p, rootFile, scenario);
 		compVar.createStat("bTH", "genStat.csv");
-		List<MapRenderer> allOfTheMaps = new ArrayList<MapRenderer>();
-
 		compVar.setCommStatFile(compVar.joinStatBTHtoCommunities("compVariantbTHCityCoeffVar.csv"));
-
 		compVar.createGraph(new File(compVar.getIndicFolder(), "compVariantbTHGen.csv"));
+		compVar.allOfTheMaps();
 
-		MapRenderer mapNbHUCV = new MapNbHUCV(1000, 1000, compVar.getMapStyle(), compVar.getCommStatFile(), compVar.getMapDepotFolder());
-		mapNbHUCV.renderCityInfo();
-		mapNbHUCV.generateSVG();
-		allOfTheMaps.add(mapNbHUCV);
+		// for every different variant
+		List<LinkedList<String>> lists = compVar.ForEachVariantType();
+
+		for (LinkedList<String> soloList : lists) {
+			CompVariant compVarSolo = new CompVariant(p, rootFile, scenario);
+			String prefix = soloList.get(0).substring(7, 11);
+			compVarSolo.spec = "solo/" + prefix;
+			compVarSolo.setIndicFile(new File(compVarSolo.getIndicFolder(), compVarSolo.spec));
+			compVarSolo.getIndicFolder().mkdirs();
+			File graphDepot = new File(compVarSolo.getIndicFolder(), "graphDepot");
+			graphDepot.mkdirs();
+			File mapDepot = new File(compVarSolo.getIndicFolder(), "mapDepot");
+			mapDepot.mkdirs();
+
+			compVarSolo.createStat("bTH", "genStat.csv", soloList);
+
+			compVarSolo.setCommStatFile(compVarSolo.joinStatBTHtoCommunities(new File(compVarSolo.getIndicFolder(), "compVariantbTHCityCoeffVar.csv"),
+					new File(compVarSolo.getIndicFolder(), "commStatCoeffVar.shp")));
+
+			compVarSolo.createGraph(new File(compVarSolo.getIndicFolder(), "compVariantbTHGen.csv"), graphDepot);
+
+			compVarSolo.allOfTheMaps(mapDepot, prefix);
+		}
+
+		// compVar.setCommStatFile(compVar.joinStatBTHtoCommunities("compVariantbTHCityCoeffVar.csv"));
+		// compVar.createGraph(new File(compVar.getIndicFolder(), "compVariantbTHGen.csv"));
+		// compVar.allOfTheMaps();
 	}
 
 	public CompVariant(SimpluParametersJSON p, File rootfile, String scenarname) throws Exception {
 		super(p, rootfile, scenarname, "", indicName);
 	}
 
+	/**
+	 * thats a bit ugly but it sorts the variants by the same type for a solo comparison
+	 * 
+	 * @return
+	 */
+	public List<LinkedList<String>> ForEachVariantType() {
+		List<LinkedList<String>> result = new ArrayList<LinkedList<String>>();
+		for (String name : variantNames) {
+			if (name.equals("base")) {
+				continue;
+			}
+			LinkedList<String> add = new LinkedList<String>();
+			if (result.isEmpty()) {
+				add.add(name);
+				result.add(add);
+			} else {
+				boolean addNew = true;
+				LinkedList<String> tp = new LinkedList<String>();
+				LinkedList<String> tpRm = new LinkedList<String>();
+				for (LinkedList<String> list : result) {
+					if (list.get(0).substring(7, 10).startsWith(name.substring(7, 10))) {
+						addNew = false;
+						tp.add(name);
+						tp.addAll(list);
+						tpRm = list;
+					}
+				}
+				if (addNew) {
+					add.add(name);
+					result.add(add);
+				} else {
+					result.remove(tpRm);
+					result.add(tp);
+				}
+			}
+		}
+
+		for (LinkedList<String> list : result) {
+			list.add("base");
+		}
+
+		return result;
+	}
+
+	public void SortVariantNames() {
+		// TODO faire ça
+	}
+
 	public void createStat(String nameCompared, String nameFileStat) throws IOException {
+		List<String> listVariant = new ArrayList<String>();
+
+		for (File f : new File(super.getRootFile(), "indic/" + nameCompared + "/" + super.scenarName + "/").listFiles()) {
+			listVariant.add(f.getName());
+		}
+		createStat(nameCompared, nameFileStat, listVariant);
+	}
+
+	public void createStat(String nameCompared, String nameFileStat, List<String> listVariant) throws IOException {
+
 		String nameGen = indicName + nameCompared + "Gen.csv";
 		String nameCity = indicName + nameCompared + "City.csv";
+
 		CSVWriter csvWGen = new CSVWriter(new FileWriter(new File(getIndicFolder(), nameGen)), ',', '\u0000');
 		CSVWriter csvWCity = new CSVWriter(new FileWriter(new File(getIndicFolder(), nameCity)), ',', '\u0000');
 		boolean firstLine = true;
-		for (File f : (new File(super.getRootFile(), "indic/" + nameCompared + "/" + super.scenarName + "/")).listFiles()) {
+		// for (File f : (new File(super.getRootFile(), "indic/" + nameCompared + "/" + super.scenarName + "/")).listFiles()) {
+		for (String variant : listVariant) {
+			File f = new File(super.getRootFile(), "indic/" + nameCompared + "/" + super.scenarName + "/" + variant);
+			System.out.println(f);
 			File statFile = new File(f, nameFileStat);
 			if (f.isDirectory() && statFile.exists()) {
+				if (!variantNames.contains(f.getName())) {
+					variantNames.add(f.getName());
+				}
+
 				CSVReader csvR = new CSVReader(new FileReader(statFile));
 				if (firstLine) {
-					String[] fLineTmp = csvR.readNext();
-					// adding a count of the variant
-					String[] fLine = new String[fLineTmp.length + 1];
-					int y = 0;
-					for (int i = 0; i < fLine.length; i++) {
-						if (i == 3) {
-							fLine[i] = "nbVariant";
-						} else {
-							fLine[i] = fLineTmp[y++];
-						}
-					}
+					String[] fLine = csvR.readNext();
 					csvWGen.writeNext(fLine);
 					csvWCity.writeNext(fLine);
 					firstLine = false;
+
 				} else {
 					csvR.readNext();
 				}
+
 				for (String[] l : csvR.readAll()) {
 					String insee = l[2];
-					String lineTmp = "";
-					for (String s : l) {
-						lineTmp = lineTmp + s + ",";
-					}
 					// System.out.println(insee + ",");
 					// System.out.println(insee + "," + String.valueOf(nbVariant) + ",");
-					String[] line = lineTmp.replace(insee + ",", insee + "," + String.valueOf(nbVariant) + ",").split(",");
 					if (insee.equals("AllZone") || insee.equals("ALLLL")) {
-						csvWGen.writeNext(line);
+						csvWGen.writeNext(l);
 					} else {
-						csvWCity.writeNext(line);
+						csvWCity.writeNext(l);
 					}
 				}
 				csvR.close();
 			}
-			nbVariant++;
 		}
 		csvWGen.close();
 		csvWCity.close();
-		genCoeffVar(nameGen, nameCity);
-
+		genCoeffVar(nameGen, nameCity, getIndicFolder());
 	}
 
-	public void genCoeffVar(String nameGen, String nameCity) throws IOException {
-		CSVReader csvGen = new CSVReader(new FileReader(new File(getIndicFolder(), nameGen)));
+	public void genCoeffVar(String nameGen, String nameCity, File indicFolder) throws IOException {
+		CSVReader csvGen = new CSVReader(new FileReader(new File(indicFolder, nameGen)));
 		String[] fLine = csvGen.readNext();
-		CSVReader csvCity = new CSVReader(new FileReader(new File(getIndicFolder(), nameCity)));
+		CSVReader csvCity = new CSVReader(new FileReader(new File(indicFolder, nameCity)));
 		csvCity.readNext();
-		CSVWriter csvWGen = new CSVWriter(new FileWriter(new File(getIndicFolder(), nameGen.replace(".csv", "") + "CoeffVar.csv")), ',', '\u0000');
+		CSVWriter csvWGen = new CSVWriter(new FileWriter(new File(indicFolder, nameGen.replace(".csv", "") + "CoeffVar.csv")), ',', '\u0000');
 		csvWGen.writeNext(fLine);
-		CSVWriter csvWCity = new CSVWriter(new FileWriter(new File(getIndicFolder(), nameCity.replace(".csv", "") + "CoeffVar.csv")), ',', '\u0000');
+		CSVWriter csvWCity = new CSVWriter(new FileWriter(new File(indicFolder, nameCity.replace(".csv", "") + "CoeffVar.csv")), ',', '\u0000');
 		csvWCity.writeNext(fLine);
-		DescriptiveStatistics[] listStatGen = new DescriptiveStatistics[fLine.length - 4];
+		DescriptiveStatistics[] listStatGen = new DescriptiveStatistics[fLine.length - 3];
 		// boolean to get the existing DS
 		boolean ini = true;
 		for (String[] l : csvGen.readAll()) {
-			for (int i = 4; i < fLine.length; i++) {
+			for (int i = 3; i < fLine.length; i++) {
 				DescriptiveStatistics ds = new DescriptiveStatistics();
 				if (!ini) {
-					ds = listStatGen[i - 4];
+					ds = listStatGen[i - 3];
 				}
 				ds.addValue(Double.valueOf(l[i]));
-				listStatGen[i - 4] = ds;
+				listStatGen[i - 3] = ds;
 			}
 			ini = false;
 		}
@@ -139,9 +214,12 @@ public class CompVariant extends Indicators {
 		line[0] = scenarName;
 		line[1] = "AllVariant";
 		line[2] = "AllZone";
-		line[3] = String.valueOf(nbVariant);
-		for (int i = 4; i < fLine.length; i++) {
-			line[i] = String.valueOf(listStatGen[i - 4].getStandardDeviation() / listStatGen[i - 4].getMean());
+		for (int i = 3; i < fLine.length; i++) {
+			double sal = listStatGen[i - 3].getStandardDeviation() / listStatGen[i - 3].getMean();
+			if (Double.isNaN(sal)) {
+				sal = 0;
+			}
+			line[i] = String.valueOf(sal);
 		}
 		csvWGen.writeNext(line);
 
@@ -151,18 +229,18 @@ public class CompVariant extends Indicators {
 			String city = l[2];
 			if (listStatCity.containsKey(city)) {
 				DescriptiveStatistics[] listStat = listStatCity.remove(city);
-				for (int i = 4; i < fLine.length; i++) {
-					DescriptiveStatistics ds = listStat[i - 4];
+				for (int i = 3; i < fLine.length; i++) {
+					DescriptiveStatistics ds = listStat[i - 3];
 					ds.addValue(Double.valueOf(l[i]));
-					listStat[i - 4] = ds;
+					listStat[i - 3] = ds;
 				}
 				listStatCity.put(city, listStat);
 			} else {
-				DescriptiveStatistics[] newListStat = new DescriptiveStatistics[fLine.length - 4];
-				for (int i = 4; i < fLine.length; i++) {
+				DescriptiveStatistics[] newListStat = new DescriptiveStatistics[fLine.length - 3];
+				for (int i = 3; i < fLine.length; i++) {
 					DescriptiveStatistics ds = new DescriptiveStatistics();
 					ds.addValue(Double.valueOf(l[i]));
-					newListStat[i - 4] = ds;
+					newListStat[i - 3] = ds;
 				}
 				listStatCity.put(city, newListStat);
 			}
@@ -172,10 +250,13 @@ public class CompVariant extends Indicators {
 			lineCity[0] = scenarName;
 			lineCity[1] = "AllVariant";
 			lineCity[2] = city;
-			line[3] = String.valueOf(nbVariant);
 			DescriptiveStatistics[] cityStat = listStatCity.get(city);
-			for (int i = 4; i < fLine.length; i++) {
-				lineCity[i] = String.valueOf(cityStat[i - 4].getStandardDeviation() / cityStat[i - 4].getMean());
+			for (int i = 3; i < fLine.length; i++) {
+				double sal = cityStat[i - 3].getStandardDeviation() / cityStat[i - 3].getMean();
+				if (Double.isNaN(sal)) {
+					sal = 0;
+				}
+				lineCity[i] = String.valueOf(sal);
 			}
 			csvWCity.writeNext(lineCity);
 		}
@@ -225,47 +306,58 @@ public class CompVariant extends Indicators {
 	// }
 
 	public void createGraph(File distrib) throws IOException {
-		makeGraph(distrib, getGraphDepotFolder(), "Nombre de logements simulés dans une commune de type rurale", "nameVariant", "Variante ",
-				"nbHU_rural", "Nombre de logements simulés");
-		makeGraph(distrib, getGraphDepotFolder(), "Nombre de logements simulés dans une commune de type péri-urbain", "nameVariant", "Variante ",
-				"nbHU_periUrbain", "Nombre de logements simulés");
-		makeGraph(distrib, getGraphDepotFolder(), "Nombre de logements simulés dans un quartier de type banlieue", "nameVariant", "Variante ",
-				"nbHU_banlieue", "nombre de logements simulés");
-		makeGraph(distrib, getGraphDepotFolder(), "Nombre de logements simulés dans un quartier de type centre", "nameVariant", "Variante ",
-				"nbHU_centre", "Nombre de logements simulés");
-		makeGraph(distrib, getGraphDepotFolder(), "Nombre de logements simulés dans une zone non constructible (NC)", "nameVariant", "Variante ",
-				"nbHU_NC", "Nombre de logements simulés");
-		makeGraph(distrib, getGraphDepotFolder(), "Nombre de logements simulés dans une zone à urbaniser (AU)", "nameVariant", "Variante ", "nbHU_AU",
-				"Nombre de logements simulés");
-		makeGraph(distrib, getGraphDepotFolder(), "Nombre de logements simulés dans une zone urbanisable (U)", "nameVariant", "Variante ", "nbHU_U",
-				"Nombre de logements simulés");
-		makeGraph(distrib, getGraphDepotFolder(), "Nombre de logements simulés de type maison isolée", "nameVariant", "Variante ",
-				"nbHU_detachedHouse", "Nombre de logements simulés");
-		makeGraph(distrib, getGraphDepotFolder(), "Nombre de logements simulés de type pavillon de lotissement", "nameVariant", "Variante ",
-				"nbHU_smallHouse", "Nombre de logements simulés");
-		makeGraph(distrib, getGraphDepotFolder(), "Nombre de logements simulés de type immeuble d'habitat intermédiaire", "nameVariant", "Variante ",
-				"nbHU_multiFamilyHouse", "Nombre de logements simulés");
-		makeGraph(distrib, getGraphDepotFolder(), "Nombre de logements simulés de type petit immeuble collectif", "nameVariant", "Variante ",
-				"nbHU_smallBlockFlat", "Nombre de logements simulés");
-		makeGraph(distrib, getGraphDepotFolder(), "Nombre de logements simulés de type immeuble collectif de taille moyenne", "nameVariant",
-				"Variante ", "nbHU_midBlockFlat", "Nombre de logements simulés");
-		makeGraph(distrib, getGraphDepotFolder(), "Nombre de logements simulés par variantes", "nameVariant", "Variante ", "nb_housingUnit",
-				"Nombre de logements simulés");
+		createGraph(distrib, getGraphDepotFolder());
+	}
+
+	public void createGraph(File distrib, File graphDepot) throws IOException {
+		System.out.println("distr ib " + distrib);
+		makeGraph(distrib, graphDepot, "Nombre de bâtiments simulés dans une commune de type rurale", "nameVariant", "Variante ", "nbBuild_rural",
+				"Nombre de bâtiments simulés");
+		makeGraph(distrib, graphDepot, "Nombre de bâtiments simulés dans une commune de type péri-urbain", "nameVariant", "Variante ",
+				"nbBuild_periUrbain", "Nombre de bâtiments simulés");
+		makeGraph(distrib, graphDepot, "Nombre de bâtiments simulés dans un quartier de type banlieue", "nameVariant", "Variante ",
+				"nbBuild_banlieue", "nombre de bâtiments simulés");
+		makeGraph(distrib, graphDepot, "Nombre de bâtiments simulés dans un quartier de type centre", "nameVariant", "Variante ", "nbBuild_centre",
+				"Nombre de bâtiments simulés");
+		makeGraph(distrib, graphDepot, "Nombre de bâtiments simulés dans une zone non constructible (NC)", "nameVariant", "Variante ", "nbBuild_NC",
+				"Nombre de bâtiments simulés");
+		makeGraph(distrib, graphDepot, "Nombre de bâtiments simulés dans une zone à urbaniser (AU)", "nameVariant", "Variante ", "nbBuild_AU",
+				"Nombre de bâtiments simulés");
+		makeGraph(distrib, graphDepot, "Nombre de bâtiments simulés dans une zone urbanisable (U)", "nameVariant", "Variante ", "nbBuild_U",
+				"Nombre de bâtiments simulés");
+		makeGraph(distrib, graphDepot, "Nombre de bâtiments simulés de type maison isolée", "nameVariant", "Variante ", "nbBuild_detachedHouse",
+				"Nombre de bâtiments simulés");
+		makeGraph(distrib, graphDepot, "Nombre de bâtiments simulés de type pavillon de lotissement", "nameVariant", "Variante ",
+				"nbBuild_smallHouse", "Nombre de bâtiments simulés");
+		makeGraph(distrib, graphDepot, "Nombre de bâtiments simulés de type immeuble d'habitat intermédiaire", "nameVariant", "Variante ",
+				"nbBuild_multiFamilyHouse", "Nombre de bâtiments simulés");
+		makeGraph(distrib, graphDepot, "Nombre de bâtiments simulés de type petit immeuble collectif", "nameVariant", "Variante ",
+				"nbBuild_smallBlockFlat", "Nombre de bâtiments simulés");
+		makeGraph(distrib, graphDepot, "Nombre de bâtiments simulés de type immeuble collectif de taille moyenne", "nameVariant", "Variante ",
+				"nbBuild_midBlockFlat", "Nombre de bâtiments simulés");
+		makeGraph(distrib, graphDepot, "Nombre de bâtiments simulés par variante", "nameVariant", "Variante ", "nb_building",
+				"Nombre de bâtiments simulés");
+		makeGraph(distrib, graphDepot, "Nombre de logements simulés par variante", "nameVariant", "Variante ", "nb_housingUnit",
+				"Nombre de logements simulés",700,420);
+	}
+
+	public static void makeGraph(File csv, File graphDepotFile, String title, String x, String xTitle, String y, String yTitle) throws IOException {
+		makeGraph(csv, graphDepotFile, title, x, xTitle, y, yTitle, 600, 475);
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static void makeGraph(File csv, File graphDepotFile, String title, String x, String xTitle, String y, String yTitle) throws IOException {
+	public static void makeGraph(File csv, File graphDepotFile, String title, String x, String xTitle, String y, String yTitle, int width, int height)
+			throws IOException {
 
-		// SeriesData csvDaa = CSVImporter.getSeriesDataFromCSVFile(csv, DataOrientation.Columns, x, y);
 		CategorySeries csvData = CSVImporter.getCategorySeriesFromCSVFile(csv, x, y, yTitle + "-" + xTitle, DataType.String);
 		// Create Chart
-		CategoryChart chart = new CategoryChartBuilder().width(800).height(600).title(title).xAxisTitle(xTitle).yAxisTitle(yTitle).build();
+		CategoryChart chart = new CategoryChartBuilder().width(width).height(height).title(title).xAxisTitle(xTitle).yAxisTitle(yTitle).build();
 		// chart.addSeries(yTitle, csvDaa.getxAxisData(), csvDaa.getyAxisData());
 		List<String> goodNames = new LinkedList<String>();
 		Iterator<?> it = csvData.getXData().iterator();
 		while (it.hasNext()) {
 			String s = ((String) it.next()).replace("variant", "");
-			System.out.println("position varianteComp" + s);
+			// System.out.println("position varianteComp" + s);
 			goodNames.add(s);
 		}
 		chart.addSeries(yTitle, goodNames, (List) csvData.getYData());
@@ -275,7 +367,19 @@ public class CompVariant extends Indicators {
 
 		BitmapEncoder.saveBitmap(chart, graphDepotFile + "/" + y, BitmapFormat.PNG);
 
-		// new SwingWrapper(chart).displayChart();
+	}
+
+	public void allOfTheMaps() throws IOException, NoSuchAuthorityCodeException, FactoryException {
+		allOfTheMaps(this.getMapDepotFolder(), "");
+	}
+
+	public void allOfTheMaps(File depot, String prefix) throws IOException, NoSuchAuthorityCodeException, FactoryException {
+		List<MapRenderer> allOfTheMaps = new ArrayList<MapRenderer>();
+
+		MapRenderer mapNbHUCV = new CVNbBat(1000, 1000, this.getMapStyle(), this.getCommStatFile(), depot, prefix);
+		mapNbHUCV.renderCityInfo();
+		mapNbHUCV.generateSVG();
+		allOfTheMaps.add(mapNbHUCV);
 	}
 
 	// public void createGraph(File csvIn) throws IOException {

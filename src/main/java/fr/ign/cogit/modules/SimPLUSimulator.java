@@ -146,29 +146,52 @@ public class SimPLUSimulator {
 		// // SimPLUSimulator.fillSelectedParcels(new File(rootFolder), geoFile,
 		// // pluFile, selectedParcels, 50, "25495", p);
 
-		String[] scenars = { "DDense", "CPeuDense", "DPeuDense", "CDense" };
+		// //rattrapage des Cartes Communales
+		// String[] scenars = { "DDense", "CPeuDense", "DPeuDense", "CDense" };
+		// File rootFile = new File("/home/ubuntu/boulot/these/result2903/rattrapage");
+		// for (String scenar : scenars) {
+		// for (File f : new File(rootFile, "/cc/" + scenar).listFiles()) {
+		// File paramFolder = new File(rootFile, "paramFolder");
+		// System.out.println(paramFolder);
+		// TransformXMLToJSON.convert(paramFolder);
+		// List<File> lF = new ArrayList<>();
+		// lF.add(new File(paramFolder, "paramSet/" + scenar + "/parameterTechnic.json"));
+		// lF.add(new File(paramFolder, "paramSet/" + scenar + "/parameterScenario.json"));
+		// SimpluParametersJSON p = new SimpluParametersJSON(lF);
+		// // AttribNames.setATT_CODE_PARC("CODE");
+		// // USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
+		// File fOut = new File(rootFile + "/cc/" + scenar + "/result/");
+		// fOut.mkdirs();
+		// System.out.println("start pack " + f);
+		// SimPLUSimulator sim = new SimPLUSimulator(paramFolder, f, p, fOut);
+		// sim.run();
+		// System.out.println("done with pack " + f.getName());
+		// }
+		// }
+		String scenar = "CDense";
 		File rootFile = new File("/home/ubuntu/boulot/these/result2903/rattrapage");
-		for (String scenar : scenars) {
-			for (File f : new File(rootFile,"/cc/" + scenar).listFiles()) {
-				File paramFolder = new File(rootFile, "paramFolder");
-				System.out.println(paramFolder);
-				TransformXMLToJSON.convert(paramFolder);
-				List<File> lF = new ArrayList<>();
-				lF.add(new File(paramFolder, "paramSet/"+scenar+"/parameterTechnic.json"));
-				lF.add(new File(paramFolder, "paramSet/"+scenar+"/parameterScenario.json"));
-				SimpluParametersJSON p = new SimpluParametersJSON(lF);
-				// AttribNames.setATT_CODE_PARC("CODE");
-				// USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
-				File fOut = new File(rootFile + "/cc/" + scenar + "/result/");
-				fOut.mkdirs();
-				System.out.println("start pack " + f);
-				SimPLUSimulator sim = new SimPLUSimulator(paramFolder, f, p, fOut);
-				sim.run();
 
-				System.out.println("done with pack " + f.getName());
-
-			}
+		File paramFolder = new File(rootFile, "paramFolder");
+		System.out.println(paramFolder);
+		TransformXMLToJSON.convert(paramFolder);
+		List<File> lF = new ArrayList<>();
+		lF.add(new File(paramFolder, "paramSet/" + scenar + "/parameterTechnic.json"));
+		lF.add(new File(paramFolder, "paramSet/" + scenar + "/parameterScenario.json"));
+		SimpluParametersJSON p = new SimpluParametersJSON(lF);
+		// AttribNames.setATT_CODE_PARC("CODE");
+		// USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
+		File fOut = new File(rootFile + "/depotSimPLUVar/" + scenar);
+		// for (File variante : (new File(rootFile, "/cc/CDense/variantes/").listFiles())) {
+		File variante = new File(rootFile, "/cc/CDense/variantes/variantMvData1");
+		File out = new File(fOut, variante.getName());
+		out.mkdirs();
+		for (File pack : variante.listFiles()) {
+			System.out.println("start pack " + pack);
+			SimPLUSimulator sim = new SimPLUSimulator(paramFolder, pack, p, out);
+			sim.run();
+			System.out.println("done with pack " + pack.getName());
 		}
+		// }
 		// File f = new File("./" + nameMainFolder + "/ParcelSelectionDepot/DDense/variante0/");
 		// File fOut = new File("." + nameMainFolder + "/ArtiScalesTest/SimPLUDepot/DDense/variante0/");
 		// List<File> listBatiSimu = new ArrayList<File>();
@@ -534,6 +557,11 @@ public class SimPLUSimulator {
 			pUsed = new SimpluParametersJSON(p);
 			CadastralParcel cadParc = env.getBpU().get(i).getCadastralParcels().get(0);
 			String codeParcel = cadParc.getCode();
+			File output = new File(folderOut, "out-parcel_" + codeParcel + ".shp");
+			if (output.exists()) {
+				System.out.println(codeParcel + "already exist");
+				continue;
+			}
 			importantInfo.append(codeParcel + "\n");
 			// if this parcel contains no attributes, it means that it has been put here
 			// just to express its boundaries
@@ -613,7 +641,6 @@ public class SimPLUSimulator {
 				}
 			}
 
-			File output = new File(folderOut, "out-parcel_" + codeParcel + ".shp");
 			System.out.println("Output in : " + output);
 			ShapefileWriter.write(building, output.toString(), CRS.decode("EPSG:2154"));
 

@@ -10,8 +10,6 @@ import fr.ign.cogit.indicators.BuildingToHousingUnit;
 import fr.ign.cogit.indicators.CompVariant;
 import fr.ign.cogit.indicators.CompatibleResult;
 import fr.ign.cogit.indicators.ParcelStat;
-import fr.ign.cogit.map.MapRenderer;
-import fr.ign.cogit.map.theseMC.compVariant.MapNbHUCV;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.cogit.util.FromGeom;
 import fr.ign.cogit.util.ParcelFonction;
@@ -38,19 +36,14 @@ public class AllIndicators {
 				String variant = f.getName();
 				IndicForSimu(rootFile, p, scenario, variant, compatibleResult);
 			}
-			CompVariant parc = new CompVariant(p, rootFile, scenario);
-			parc.createStat("bTH", "genStat.csv");
-			List<MapRenderer> allOfTheMaps = new ArrayList<MapRenderer>();
+			CompVariant cV = new CompVariant(p, rootFile, scenario);
+			cV.createStat("bTH", "genStat.csv");
 
-			File commStatFile = parc.joinStatBTHtoCommunities("compVariantbTHCityCoeffVar.csv");
+			File commStatFile = cV.joinStatBTHtoCommunities("compVariantbTHCityCoeffVar.csv");
 
-			parc.createGraph(new File(parc.getIndicFolder(), "compVariantbTHGen.csv"));
+			cV.createGraph(new File(cV.getIndicFolder(), "compVariantbTHGen.csv"));
 
-			MapRenderer mapNbHUCV = new MapNbHUCV(1000, 1000, parc.getMapStyle(), commStatFile, parc.getMapDepotFolder());
-			mapNbHUCV.renderCityInfo();
-			mapNbHUCV.generateSVG();
-
-			allOfTheMaps.add(mapNbHUCV);
+			cV.allOfTheMaps();
 		}
 	}
 
@@ -90,7 +83,7 @@ public class AllIndicators {
 
 		// graphs
 		bhtU.createGraphNetDensity(new File(bhtU.getIndicFolder(), "housingUnits.csv"));
-		bhtU.createGraphCount(new File(bhtU.getIndicFolder(), "genStat.csv"));
+		bhtU.createGraphCount(new File(bhtU.getIndicFolder(), "genStat.csv"), null);
 
 		// maps
 		BuildingToHousingUnit.allOfTheMap(bhtU, newDensityFile);

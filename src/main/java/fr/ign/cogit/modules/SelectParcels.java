@@ -54,7 +54,11 @@ public class SelectParcels {
 		File varianteSpatialConf = new File(
 				"/home/ubuntu/boulot/these/result2903/rattrapage/MupCityDepot/CDense/base/CDense--N6_St_Moy_ahpE_seed_42-evalAnal-20.0.shp");
 		SelectParcels selecPar = new SelectParcels(rootFile, fileOut, varianteSpatialConf, p);
-		selecPar.run(new File("/home/ubuntu/boulot/these/result2903/rattrapage/parcelMissing.shp"));
+		// selecPar.run(new File("/home/ubuntu/boulot/these/result2903/rattrapage/parcelMissing.shp"));
+
+		selecPar.separateToDifferentOptimizedPack(new File("/home/ubuntu/boulot/these/result2903/rattrapage/depotParcel/parcelGenExport.shp"),
+				new File("/home/ubuntu/boulot/these/result2903/rattrapage/depotParcel/tmpFile/"));
+
 	}
 
 	public SelectParcels(File rootfile, File outfile, File spatialconfiguration, SimpluParametersJSON par) throws Exception {
@@ -762,6 +766,10 @@ public class SelectParcels {
 				}
 			}
 		}
+	}
+
+	public void separateToDifferentOptimizedPack(File parcelCollection, File tmpFile) throws Exception {
+		separateToDifferentOptimizedPack(parcelCollection, outFile, tmpFile, regulFile, geoFile);
 	}
 
 	public static void separateToDifferentOptimizedPack(File parcelCollection, File fileOut, File tmpFile, File regulFile, File geoFile)

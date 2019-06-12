@@ -8,6 +8,7 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
@@ -61,7 +62,8 @@ public class BuildingToHousingUnit extends Indicators {
 
 	// infos about the buildings
 	int nbBuildings, nbHU, nbDetachedHouse, nbSmallHouse, nbMultifamilyHouse, nbSmallBlockFlat, nbMidBlockFlat, nbU, nbAU, nbNC, nbCentre, nbBanlieue,
-			nbPeriUrbain, nbRural, objHU, diffHU;
+			nbPeriUrbain, nbRural, objHU, diffHU, nbBuildDetachedHouse, nbBuildSmallHouse, nbBuildMultifamilyHouse, nbBuildSmallBlockFlat,
+			nbBuildMidBlockFlat, nbBuildU, nbBuildAU, nbBuildNC, nbBuildCentre, nbBuildBanlieue, nbBuildPeriUrbain, nbBuildRural;
 	double sDPtot, empriseTot, averageDensiteHU, averageDensiteSDP, standDevDensiteSDP, averageDensiteEmprise, standDevDensiteEmprise,
 			standDevDensiteHU, objDens, diffDens, averageSDPpHU, standDevSDPpHU, averageEval, standDevEval, ratioHUcol, ratioHUind;
 	String housingUnitFirstLine, genStatFirstLine, numeroParcel;
@@ -91,7 +93,9 @@ public class BuildingToHousingUnit extends Indicators {
 				+ "diff_objectifSCOT_densite," + "average_SDP_per_HU," + "standardDev_SDP_per_HU," + "nb_building," + "nb_housingUnit,"
 				+ "objectifPLH_housingUnit," + "diff_objectifPLH_housingUnit," + "nbHU_detachedHouse," + "nbHU_smallHouse," + "nbHU_multiFamilyHouse,"
 				+ "nbHU_smallBlockFlat," + "nbHU_midBlockFlat," + "nbHU_U," + "nbHU_AU," + "nbHU_NC," + "nbHU_centre," + "nbHU_banlieue,"
-				+ "nbHU_periUrbain," + "nbHU_rural," + "averageEval," + "standardDevEval," + "ratioHUcol," + "ratioHUind";
+				+ "nbHU_periUrbain," + "nbHU_rural," + "nbBuild_detachedHouse," + "nbBuild_smallHouse," + "nbBuild_multiFamilyHouse,"
+				+ "nbBuild_smallBlockFlat," + "nbBuild_midBlockFlat," + "nbBuild_U," + "nbBuild_AU," + "nbBuild_NC," + "nbBuild_centre,"
+				+ "nbBuild_banlieue," + "nbBuild_periUrbain," + "nbBuild_rural," + "averageEval," + "standardDevEval," + "ratioHUcol," + "ratioHUind";
 	}
 
 	public BuildingToHousingUnit(File batiFolder, File paramFile, SimpluParametersJSON par) throws Exception {
@@ -102,34 +106,58 @@ public class BuildingToHousingUnit extends Indicators {
 	public static void main(String[] args) throws Exception {
 		File rootFile = new File("./result2903/");
 		File rootParam = new File(rootFile, "paramFolder");
-		// String scenario = "CPeuDense";
-		String variant = "base";
-		String[] typeDocs = { "RNU", "PLU" };
-		for (String typeDoc : typeDocs) {
-			indicName = "bTH-" + typeDoc;
-			List<String> listRNU = FromGeom.getZipByTypeDoc(new File(rootFile, "dataRegulation"), typeDoc);
-			System.out.println("list " + typeDoc + " : " + listRNU);
-			List<File> lF = new ArrayList<>();
-			// String[] scenarios = { "CDense", "CPeuDense", "DDense", "DPeuDense" };
-			String[] scenarios = { "CPeuDense" };
 
-			for (String scenario : scenarios) {
-				// for (File f : (new File(rootFile, "SimPLUDepot/" + scenario + "/")).listFiles()) {
-				// variant = f.getName();
-				// if (variant.equals("base")) {
-				// continue;
-				// }
+		// String[] scenarios = { "CDense", "CPeuDense", "DDense", "DPeuDense" };
+		String[] scenarios = { "CDense" };
+		// String variant = "base";
+
+		for (String scenario : scenarios) {
+			for (File f : (new File(rootFile, "SimPLUDepot/" + scenario + "/")).listFiles()) {
+				String variant = f.getName();
+
+				// String variant = "varianteSeed2";
+				if (variant.startsWith("variantSeed") || variant.equals("variantSizeCell18")) {
+	
+				List<File> lF = new ArrayList<>();
 				lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterTechnic.json"));
 				lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterScenario.json"));
 
 				SimpluParametersJSON p = new SimpluParametersJSON(lF);
 				System.out.println("run " + scenario + " variant: " + variant);
-				run(p, rootFile, scenario, variant, listRNU);
+				run(p, rootFile, scenario, variant);
+			}
 			}
 		}
 	}
 
+	// // main for analysis by different documents
+	// public static void main(String[] args) throws Exception {
+	// File rootFile = new File("./result2903/");s
+	// File rootParam = new File(rootFile, "paramFolder");
+	// // String scenario = "CPeuDense";
+	// String variant = "base";
+	// String[] typeDocs = { "RNU", "PLU", "CC" };
+	// String[] scenarios = { "DDense", "CDense", "CPeuDense", "DPeuDense" };
+	// for (String typeDoc : typeDocs) {
+	// List<String> listDoc = FromGeom.getZipByTypeDoc(new File(rootFile, "dataRegulation"), typeDoc);
+	// indicName = "bTH-" + typeDoc;
+	//
+	// // String[] scenarios = { "CDense", "CPeuDense", "DDense", "DPeuDense" };
+	// // String[] scenarios = { "CPeuDense", "DDense" };
+	//
+	// for (String scenario : scenarios) {
+	//
+	// List<File> lF = new ArrayList<>();
+	// lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterTechnic.json"));
+	// lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterScenario.json"));
+	//
+	// SimpluParametersJSON p = new SimpluParametersJSON(lF);
+	// System.out.println("run " + scenario + " variant: " + variant + " doc ? " + typeDoc);
+	// run(p, rootFile, scenario, variant, listDoc);
 	// }
+	// }
+	// }
+
 	public static void run(SimpluParametersJSON p, File rootFile, String scenario, String variant) throws Exception {
 		run(p, rootFile, scenario, variant, null);
 	}
@@ -142,8 +170,6 @@ public class BuildingToHousingUnit extends Indicators {
 		} else {
 			bhtU = new BuildingToHousingUnit(rootFile, p, scenario, variant);
 		}
-		// BuildingToHousingUnit bhtU = new BuildingToHousingUnit(rootFile, p, scenario, variant);
-
 		// statistics about denials
 		SimuTool.getStatDenialBuildingType(bhtU.getSimPLUDepotGenFile().getParentFile(),
 				new File(bhtU.getIndicFolder(), "StatDenialBuildingType.csv"));
@@ -165,19 +191,17 @@ public class BuildingToHousingUnit extends Indicators {
 		bhtU.setParcelStatFile(bhtU.joinStatBTHtoParcels("housingUnits.csv"));
 		bhtU.setCommStatFile(bhtU.joinStatBTHtoCommunities("genStat.csv"));
 
-		File newDensityFile = bhtU.createDensityCommunities(new File(bhtU.getRootFile(), "dataGeo/base-ic-logement-2012.csv"),
+		bhtU.createDensityCommunities(new File(bhtU.getRootFile(), "dataGeo/base-ic-logement-2012.csv"),
 				new File(bhtU.getRootFile(), "dataGeo/old/communities.shp"), bhtU.getRootFile(), new File(bhtU.getIndicFolder(), "commNewDens.shp"),
 				"P12_LOG", "COM", "DEPCOM");
 
 		// graphs
 		bhtU.createGraphNetDensity(new File(bhtU.getIndicFolder(), "housingUnits.csv"));
-		bhtU.createGraphCount(new File(bhtU.getIndicFolder(), "genStat.csv"));
-
+		bhtU.createGraphCount(new File(bhtU.getIndicFolder(), "genStat.csv"), listCities);
+		bhtU.makeStatHU();
 		// maps
-		allOfTheMap(bhtU, newDensityFile);
-		// allOfTheMap(bhtU);
+		allOfTheMap(bhtU);
 	}
-	// }
 
 	public File createDensityCommunities(File countHUFile, File fileToAddInitialDensity, File rootFile, File fileOut, String nameFieldHUCsv,
 			String nameFieldCodeCsv, String nameFieldCodeShp) throws Exception {
@@ -281,19 +305,42 @@ public class BuildingToHousingUnit extends Indicators {
 				"Évaluation de l'intêret à être urbanisé", "Nombre de parcelle", 0, 1, 10);
 	}
 
-	public void createGraphCount(File statFile) throws IOException {
+	public void createGraphCount(File statFile, List<String> listCities) throws IOException {
+
+		// un peu bancal, mais ce sera mieux fait one day
+		String addon = "";
+		if (listCities == null || listCities.isEmpty()) {
+			listCities = FromGeom.getZips(new File(getRootFile(), "dataRegulation"));
+		} else {
+			switch (indicName.split("-")[1]) {
+			case "RNU":
+				addon = " - communes couvertes par le RNU";
+				break;
+			case "CC":
+				addon = " - communes couvertes par une carte communale";
+				break;
+			case "PLU":
+				addon = " - communes couvertes par un PLU";
+				break;
+			}
+		}
+
 		String[] xType = { "nbHU_detachedHouse", "nbHU_smallHouse", "nbHU_multiFamilyHouse", "nbHU_smallBlockFlat", "nbHU_midBlockFlat" };
-		makeGraph(statFile, getGraphDepotFolder(), SimuTool.makeWordPHDable(scenarName) + " - Variante : " + variantName, xType, "Type de bâtiment",
-				"Nombre de logements simulés");
+		makeGraph(statFile, getGraphDepotFolder(), SimuTool.makeWordPHDable(scenarName) + " - Variante : " + variantName + addon, xType,
+				"Type de bâtiment", "Nombre de logements simulés" + addon);
 		String[] xTypo = { "nbHU_rural", "nbHU_periUrbain", "nbHU_banlieue", "nbHU_centre" };
-		makeGraph(statFile, getGraphDepotFolder(), SimuTool.makeWordPHDable(scenarName) + " - Variante : " + variantName, xTypo,
+		makeGraph(statFile, getGraphDepotFolder(), SimuTool.makeWordPHDable(scenarName) + " - Variante : " + variantName + addon, xTypo,
 				"Typologie des communes", "Nombre de logements simulés");
 		String[] xZone = { "nbHU_U", "nbHU_AU", "nbHU_NC" };
-		makeGraph(statFile, getGraphDepotFolder(), SimuTool.makeWordPHDable(scenarName) + " - Variante : " + variantName, xZone, "Type de zonage",
-				"Nombre de logements simulés");
+		makeGraph(statFile, getGraphDepotFolder(), SimuTool.makeWordPHDable(scenarName) + " - Variante : " + variantName + addon, xZone,
+				"Type de zonage", "Nombre de logements simulés");
 		String[] xConso = { "SDPTot", "empriseTot" };
-		makeGraph(statFile, getGraphDepotFolder(), SimuTool.makeWordPHDable(scenarName) + " - Variante : " + variantName, xConso,
+		makeGraph(statFile, getGraphDepotFolder(), SimuTool.makeWordPHDable(scenarName) + " - Variante : " + variantName + addon, xConso,
 				"Consommation surfacique des bâtiments simulés", "Surface (em km²)");
+
+		makeGraphForEachCities(statFile, getGraphDepotFolder(), "Différence des objectifs de logements et des logements simulés" + addon, listCities,
+				"Code INSEE des communes", "Différence entre l'objectif et le nombre de logements simulé");
+
 	}
 
 	public static void makeGraphDens(File csv, File graphDepotFile, String title, String x, String xTitle, String yTitle, int xMin, int xMax)
@@ -337,6 +384,91 @@ public class BuildingToHousingUnit extends Indicators {
 		// new SwingWrapper(chart).displayChart();
 	}
 
+	/**
+	 * create statistics about the Housing Units within a Building
+	 * 
+	 * @throws IOException
+	 */
+	public void makeStatHU() throws IOException {
+
+		// List<Double> yS = new ArrayList<Double>();
+		String[] types = { "MULTIFAMILYHOUSE", "SMALLHOUSE", "SMALLBLOCKFLAT", "MIDBLOCKFLAT", "DETACHEDHOUSE" };
+
+		File graphDepotFileHU = new File(this.getGraphDepotFolder(), "HU");
+		graphDepotFileHU.mkdir();
+
+		for (String type : types) {
+
+			List<Double> valuesSDPpHU = new ArrayList<Double>();
+			List<Double> valuesnbHousing = new ArrayList<Double>();
+
+			CSVReader csvR = new CSVReader(new FileReader(new File(this.getIndicFolder(), "housingUnits.csv")));
+
+			// SeriesData csvData= CSVImporter.getSeriesDataFromCSVFile(csv, DataOrientation.Columns, s, y);
+			int typeP = 0, nbHousingP = 0, sDPpHUP = 0;
+			String[] fLine = csvR.readNext();
+			// get them first line
+			for (int i = 0; i < fLine.length; i++) {
+				if (fLine[i].equals("averageSDPPerHU"))
+					sDPpHUP = i;
+				else if (fLine[i].equals("nb_housingUnit"))
+					nbHousingP = i;
+				else if (fLine[i].equals("type_HU"))
+					typeP = i;
+			}
+			for (String[] line : csvR.readAll()) {
+				if (line[typeP].equals(type)) {
+					valuesSDPpHU.add(Double.valueOf(line[sDPpHUP]));
+					valuesnbHousing.add(Double.valueOf(line[nbHousingP]));
+				}
+			}
+			csvR.close();
+			int xMax = 200;
+			int xMin = 50;
+			if (type.equals("DETACHEDHOUSE")) {
+				xMax = 260;
+			} else if (type.equals("SMALLBLOCKFLAT") || type.equals("MIDBLOCKFLAT")) {
+				xMin = 30;
+				xMax = 180;
+			}
+
+			Histogram histoSDPpHU = new Histogram(valuesSDPpHU, 15, xMin, xMax);
+			String titreSPDpHU = "moyenne de surface de plancher par logements";
+
+			CategoryChart chartSPDpHU = new CategoryChartBuilder().width(460).height(400).title(titreSPDpHU)
+					.xAxisTitle("moyenne de surface de plancher").yAxisTitle("nombre de bâtiments").build();
+			chartSPDpHU.addSeries(titreSPDpHU, histoSDPpHU.getxAxisData(), histoSDPpHU.getyAxisData());
+
+			// Customize Chart
+			// chart.getStyler().setLegendPosition(LegendPosition.InsideNW);
+			chartSPDpHU.getStyler().setLegendVisible(false);
+			chartSPDpHU.getStyler().setHasAnnotations(false);
+			chartSPDpHU.getStyler().setXAxisLabelRotation(45);
+			chartSPDpHU.getStyler().setXAxisLogarithmicDecadeOnly(true);
+			BitmapEncoder.saveBitmap(chartSPDpHU, graphDepotFileHU + "/" + titreSPDpHU + "-" + type, BitmapFormat.PNG);
+			// new SwingWrapper(chart).displayChart();
+
+			if (type.equals("SMALLHOUSE") || type.equals("DETACHEDHOUSE")) {
+				continue;
+			}
+
+			Histogram histonbH = new Histogram(valuesnbHousing, 10, 1, 31);
+			String titrenbH = "nombre de logements par bâtiments";
+
+			CategoryChart chartnbH = new CategoryChartBuilder().width(400).height(400).title(titrenbH).xAxisTitle("nombre de logements")
+					.yAxisTitle("nombre de bâtiments").build();
+			chartnbH.addSeries("nombre de logements par bâtiments", histonbH.getxAxisData(), histonbH.getyAxisData());
+
+			// chart.getStyler().setLegendPosition(LegendPosition.InsideNW);
+			chartnbH.getStyler().setLegendVisible(false);
+			chartnbH.getStyler().setHasAnnotations(false);
+			chartnbH.getStyler().setXAxisLabelRotation(45);
+			chartnbH.getStyler().setXAxisLogarithmicDecadeOnly(true);
+			BitmapEncoder.saveBitmap(chartnbH, graphDepotFileHU + "/" + titrenbH + "-" + type, BitmapFormat.PNG);
+			// new SwingWrapper(chart).displayChart();
+		}
+	}
+
 	public static void makeGraph(File csv, File graphDepotFile, String title, String[] x, String xTitle, String yTitle) throws IOException {
 		// Create Chart
 		CategoryChart chart = new CategoryChartBuilder().width(800).height(600).title(title).xAxisTitle(xTitle).yAxisTitle(yTitle).build();
@@ -376,8 +508,59 @@ public class BuildingToHousingUnit extends Indicators {
 		// new SwingWrapper(chart).displayChart();
 	}
 
+	public static void makeGraphForEachCities(File csv, File graphDepotFile, String title, List<String> x, String xTitle, String yTitle)
+			throws IOException {
+		// Create Chart
+		// delete those Besançon data
+		x.remove("25056");
+		CategoryChart chart = new CategoryChartBuilder().width(1300).height(500).title(title).xAxisTitle(xTitle).yAxisTitle(yTitle).build();
+		List<Double> yS = new LinkedList<Double>();
+		for (String s : x) {
+			// SeriesData csvData= CSVImporter.getSeriesDataFromCSVFile(csv, DataOrientation.Columns, s, y);
+			CSVReader csvR = new CSVReader(new FileReader(csv));
+			int iX = 0;
+			int iCode = 0;
+			String[] fLine = csvR.readNext();
+			// get them first line
+			for (int i = 0; i < fLine.length; i++) {
+				if (fLine[i].equals("diff_objectifPLH_housingUnit"))
+					iX = i;
+				if (fLine[i].equals("code"))
+					iCode = i;
+			}
+			for (String[] lines : csvR.readAll()) {
+				if (lines[iCode].equals(s)) {
+					yS.add(Double.valueOf(lines[iX]));
+					break;
+				}
+			}
+			csvR.close();
+		}
+
+		chart.addSeries(yTitle, x, yS);
+
+		// Customize Chart
+		// chart.getStyler().setLegendPosition(LegendPosition.InsideNW);
+		chart.getStyler().setLegendVisible(false);
+		chart.getStyler().setHasAnnotations(true);
+		chart.getStyler().setXAxisLabelRotation(90);
+		BitmapEncoder.saveBitmap(chart, graphDepotFile + "/" + SimuTool.makeCamelWordOutOfPhrases(xTitle + yTitle), BitmapFormat.PNG);
+		// new SwingWrapper(chart).displayChart();
+	}
+
+	/**
+	 * shortCut method
+	 * 
+	 * @param bhtU
+	 * @throws MalformedURLException
+	 * @throws NoSuchAuthorityCodeException
+	 * @throws IOException
+	 * @throws FactoryException
+	 */
 	public static void allOfTheMap(BuildingToHousingUnit bhtU)
 			throws MalformedURLException, NoSuchAuthorityCodeException, IOException, FactoryException {
+		bhtU.setCommStatFile(new File(bhtU.getIndicFolder(), "commStat.shp"));
+		bhtU.setParcelStatFile(new File(bhtU.getIndicFolder(), "parcStat.shp"));
 		allOfTheMap(bhtU, new File(bhtU.getIndicFolder(), "commNewDens.shp"));
 	}
 
@@ -595,15 +778,19 @@ public class BuildingToHousingUnit extends Indicators {
 				switch (l[typoP]) {
 				case "centre":
 					nbCentre = nbCentre + Integer.valueOf(l[nbHousingUnitP]);
+					nbBuildCentre++;
 					break;
 				case "banlieue":
 					nbBanlieue = nbBanlieue + Integer.valueOf(l[nbHousingUnitP]);
+					nbBuildBanlieue++;
 					break;
 				case "periUrbain":
 					nbPeriUrbain = nbPeriUrbain + Integer.valueOf(l[nbHousingUnitP]);
+					nbBuildPeriUrbain++;
 					break;
 				case "rural":
 					nbRural = nbRural + Integer.valueOf(l[nbHousingUnitP]);
+					nbBuildRural++;
 					break;
 				}
 				// zone
@@ -616,28 +803,36 @@ public class BuildingToHousingUnit extends Indicators {
 
 				if (mainZone.equals("U") || mainZone.equals("ZC")) {
 					nbU = nbU + Integer.valueOf(l[nbHousingUnitP]);
+					nbBuildU++;
 				} else if (mainZone.equals("AU")) {
 					nbAU = nbAU + Integer.valueOf(l[nbHousingUnitP]);
+					nbBuildAU++;
 				} else {
 					nbNC = nbNC + Integer.valueOf(l[nbHousingUnitP]);
+					nbBuildNC++;
 				}
 
 				// buildingType
 				switch (l[typeHUP]) {
 				case "DETACHEDHOUSE":
 					nbDetachedHouse = nbDetachedHouse + Integer.valueOf(l[nbHousingUnitP]);
+					nbBuildDetachedHouse++;
 					break;
 				case "SMALLHOUSE":
 					nbSmallHouse = nbSmallHouse + Integer.valueOf(l[nbHousingUnitP]);
+					nbBuildSmallHouse++;
 					break;
 				case "MULTIFAMILYHOUSE":
 					nbMultifamilyHouse = nbMultifamilyHouse + Integer.valueOf(l[nbHousingUnitP]);
+					nbBuildMultifamilyHouse++;
 					break;
 				case "SMALLBLOCKFLAT":
 					nbSmallBlockFlat = nbSmallBlockFlat + Integer.valueOf(l[nbHousingUnitP]);
+					nbBuildSmallBlockFlat++;
 					break;
 				case "MIDBLOCKFLAT":
 					nbMidBlockFlat = nbMidBlockFlat + Integer.valueOf(l[nbHousingUnitP]);
+					nbBuildMidBlockFlat++;
 					break;
 				}
 			}
@@ -666,6 +861,7 @@ public class BuildingToHousingUnit extends Indicators {
 		averageEval = evalStat.getMean();
 		standDevEval = evalStat.getStandardDeviation();
 
+		// relations with the region objectives
 		objDens = SimuTool.getDensityGoal(new File(getRootFile(), "dataGeo"), insee);
 		objHU = SimuTool.getHousingUnitsGoal(new File(getRootFile(), "dataGeo"), insee);
 		if (insee.equals("ALLLL")) {
@@ -678,19 +874,18 @@ public class BuildingToHousingUnit extends Indicators {
 		double diffDens = objDens - averageDensiteHU;
 		double diffObj = objHU - nbHU;
 
+		// put all that into csv
 		String line = insee + "," + round(sDPtot / 1000000, 6) + "," + round(empriseTot / 1000000, 6) + "," + averageDensiteHU + ","
 				+ standDevDensiteHU + "," + averageDensiteSDP + "," + standDevDensiteSDP + "," + averageDensiteEmprise + "," + +standDevDensiteEmprise
 				+ "," + objDens + "," + diffDens + "," + averageSDPpHU + "," + standDevSDPpHU + "," + nbBuildings + "," + nbHU + "," + objHU + ","
 				+ diffObj + "," + nbDetachedHouse + "," + nbSmallHouse + "," + nbMultifamilyHouse + "," + nbSmallBlockFlat + "," + nbMidBlockFlat
-				+ "," + nbU + "," + nbAU + "," + nbNC + "," + nbCentre + "," + nbBanlieue + "," + nbPeriUrbain + "," + nbRural + "," + averageEval
-				+ "," + standDevEval + "," + ratioHUcol + "," + ratioHUind;
+				+ "," + nbU + "," + nbAU + "," + nbNC + "," + nbCentre + "," + nbBanlieue + "," + nbPeriUrbain + "," + nbRural + ","
+				+ nbBuildDetachedHouse + "," + nbBuildSmallHouse + "," + nbBuildMultifamilyHouse + "," + nbBuildSmallBlockFlat + ","
+				+ nbBuildMidBlockFlat + "," + nbBuildU + "," + nbBuildAU + "," + nbBuildNC + "," + nbBuildCentre + "," + nbBuildBanlieue + ","
+				+ nbBuildPeriUrbain + "," + nbBuildRural + "," + averageEval + "," + standDevEval + "," + ratioHUcol + "," + ratioHUind;
 
 		toGenCSV("genStat", genStatFirstLine, line);
 		stat.close();
-	}
-
-	public int distributionEstimate() throws IOException, NoSuchAuthorityCodeException, FactoryException {
-		return distributionEstimate(SimuTool.giveEvalToBuilding(getSimPLUDepotGenFile(), getMupOutputFile()));
 	}
 
 	public int simpleDistributionEstimate(SimpleFeatureCollection collec) throws Exception {
@@ -716,6 +911,10 @@ public class BuildingToHousingUnit extends Indicators {
 			}
 		}
 		return nbHU;
+	}
+
+	public int distributionEstimate() throws IOException, NoSuchAuthorityCodeException, FactoryException {
+		return distributionEstimate(SimuTool.giveEvalToBuilding(getSimPLUDepotGenFile(), getMupOutputFile()));
 	}
 
 	public int distributionEstimate(SimpleFeatureCollection collec) throws IOException {
@@ -926,7 +1125,7 @@ public class BuildingToHousingUnit extends Indicators {
 			}
 			// if the limit of minimum housing units is outpassed
 			// System.out.println("minLgt : " + minLgt + " contre " + nbLgtFinal);
-			if (nbLgtFinal >= minLgt || antiInfinity > 100) {
+			if (nbLgtFinal >= minLgt || antiInfinity > 42) {
 				// System.out.println("it's enough");
 				doRepart = false;
 				result.put("smallHU", smallHU);
@@ -935,8 +1134,9 @@ public class BuildingToHousingUnit extends Indicators {
 				HashMap<String, Integer> carac = new HashMap<String, Integer>();
 				carac.put("totHU", nbLgtFinal);
 				result.put("carac", carac);
-				if (antiInfinity > 100) {
-					System.out.println("too much loop - this shouldn't happend");
+				if (antiInfinity > 42) {
+					System.err.println("too much loops on building estimation - this shouldn't happend");
+					System.err.println("building " + bati.getAttribute("CODE"));
 				}
 
 			} else {
@@ -1088,7 +1288,7 @@ public class BuildingToHousingUnit extends Indicators {
 	}
 
 	public void setCountToZero() {
-		nbBuildings = nbHU = nbDetachedHouse = nbSmallHouse = nbMultifamilyHouse = nbSmallBlockFlat = objHU = diffHU = nbMidBlockFlat = nbU = nbAU = nbNC = nbCentre = nbBanlieue = nbPeriUrbain = nbRural = 0;
+		nbBuildings = nbHU = nbDetachedHouse = nbSmallHouse = nbMultifamilyHouse = nbSmallBlockFlat = objHU = diffHU = nbMidBlockFlat = nbU = nbAU = nbNC = nbCentre = nbBanlieue = nbPeriUrbain = nbRural = nbBuildDetachedHouse = nbBuildSmallHouse = nbBuildMultifamilyHouse = nbBuildSmallBlockFlat = nbBuildMidBlockFlat = nbBuildU = nbBuildAU = nbBuildNC = nbBuildCentre = nbBuildBanlieue = nbBuildPeriUrbain = nbBuildRural = 0;
 		ratioHUcol = ratioHUind = averageEval = standDevEval = sDPtot = empriseTot = averageSDPpHU = standDevSDPpHU = averageDensiteHU = standDevDensiteHU = averageDensiteSDP = standDevDensiteSDP = averageDensiteEmprise = standDevDensiteEmprise = objDens = diffDens = 0.0;
 	}
 }

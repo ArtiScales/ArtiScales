@@ -1,6 +1,7 @@
 package fr.ign.cogit.indicators;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -55,7 +56,16 @@ public class ParcelStat extends Indicators {
 
 	public ParcelStat(SimpluParametersJSON p, File rootFile, String scenarName, String variantName) throws Exception {
 		super(p, rootFile, scenarName, variantName, indicName);
-		parcelOGFile = FromGeom.getParcels(new File(rootFile, "dataGeo"));
+		setBasics();
+	}
+
+	public ParcelStat(SimpluParametersJSON p, File rootFile, String scenarName, String variantName, List<String> listCities) throws Exception {
+		super(p, rootFile, scenarName, variantName, indicName, listCities);
+		setBasics();
+	}
+
+	private void setBasics() throws FileNotFoundException {
+		parcelOGFile = FromGeom.getParcels(new File(getRootFile(), "dataGeo"));
 		firstLine = "INSEE,nb_parcel_simulated,nb_parcel_simu_failed,surf_parcel_ignored,surf_parcel_simulated,surf_parcel_simulFailed,nbParcelSimulatedU,nbParcelSimulFailedU,nbParcelSimulatedAU,nbParcelSimulFailedAU,nbParcelSimulatedNC,nbParcelSimulFailedNC,nbParcelSimulatedCentre,nbParcelSimulFailedCentre,nbParcelSimulatedBanlieue,nbParcelSimulFailedBanlieue,nbParcelSimulatedPeriUrb,nbParcelSimulFailedPeriUrb,nbParcelSimulatedRural,nbParcelSimulFailedRural,surfParcelSimulatedU,surfParcelSimulFailedU,surfParcelSimulatedAU,surfParcelSimulFailedAU,surfParcelSimulatedNC,surfParcelSimulFailedNC,surfParcelSimulatedCentre,surfParcelSimulFailedCentre,surfParcelSimulatedBanlieue,surfParcelSimulFailedBanlieue,surfParcelSimulatedPeriUrb,surfParcelSimulFailedPeriUrb,surfParcelSimulatedRural,surfParcelSimulFailedRural,simuledFromOriginal,simuledFromDensification,simuledFromTotalRecomp,simuledFromPartRecomp,simuledFromZoneCut,failedFromOriginal,failedFromDensification,failedFromTotalRecomp,failedFromPartRecomp,failedFromZoneCut";
 	}
 
@@ -63,42 +73,72 @@ public class ParcelStat extends Indicators {
 		File rootFile = new File("./result2903/");
 		File rootParam = new File(rootFile, "paramFolder");
 		List<File> lF = new ArrayList<>();
-		// String scenario= "DPeuDense";
-		String[] scenarios = { "CDense", "CPeuDense", "DDense", "DPeuDense" };
+		String[] scenarios = { "CDense" };
+		// String[] scenarios = { "CDense", "CPeuDense", "DDense", "DPeuDense" };
 
-		String variant = "base";
+		// String variant = "base";
+		// indicName = "parcelStat-RNU";
 
 		for (String scenario : scenarios) {
 			lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterTechnic.json"));
 			lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterScenario.json"));
-
-			SimpluParametersJSON p = new SimpluParametersJSON(lF);
-			run(p, rootFile, scenario, variant);
+			for (File f : (new File(rootFile, "SimPLUDepot/" + scenario + "/")).listFiles()) {
+				String variant = f.getName();
+				SimpluParametersJSON p = new SimpluParametersJSON(lF);
+				run(p, rootFile, scenario, variant);
+			}
 		}
-		// for (File f : (new File(rootFile, "SimPLUDepot/" + scenario + "/")).listFiles()) {
-
 	}
 
+	// public static void main(String[] args) throws Exception {
+	// File rootFile = new File("./result2903/");
+	// File rootParam = new File(rootFile, "paramFolder");
+	// List<File> lF = new ArrayList<>();
+	// String[] scenarios = { "CDense" };
+	// // String[] scenarios = { "CDense", "CPeuDense", "DDense", "DPeuDense" };
+	//
+	// String variant = "base";
+	// indicName = "parcelStat-RNU";
+	//
+	// for (String scenario : scenarios) {
+	// lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterTechnic.json"));
+	// lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterScenario.json"));
+	// SimpluParametersJSON p = new SimpluParametersJSON(lF);
+	// run(p, rootFile, scenario, variant, FromGeom.getZipByTypeDoc(new File(rootFile, "dataRegulation"), "RNU"));
+	//
+	// }
+	// }
+
 	public static void run(SimpluParametersJSON p, File rootFile, String scenario, String variant) throws Exception {
+		run(p, rootFile, scenario, variant, null);
+	}
+
+	public static void run(SimpluParametersJSON p, File rootFile, String scenario, String variant, List<String> listCities) throws Exception {
 
 		// ParcelStat parc = new ParcelStat(p, rootFile, scenario, f.getName());
-		ParcelStat parc = new ParcelStat(p, rootFile, scenario, variant);
-		// SimpleFeatureCollection parcelStatSHP = parc.markSimuledParcels();
-		// parc.caclulateStatParcel();
-		// parc.writeLine("AllZone", "ParcelStat");
-		// parc.setCountToZero();
-		// List<String> listInsee = FromGeom.getInsee(new File(parc.getRootFile(), "/dataGeo/old/communities.shp"), "DEPCOM");
-		//
-		// for (String city : listInsee) {
-		// SimpleFeatureCollection commParcel = ParcelFonction.getParcelByZip(parcelStatSHP, city);
-		// System.out.println("city " + city);
-		// parc.calculateStatParcel(commParcel);
-		// parc.writeLine(city, "ParcelStat");
-		// parc.toString();
-		// parc.setCountToZero();
-		// }
-		// parc.setCommStatFile(parc.joinStatToCommunities());
-		// parc.createMap(parc);
+		ParcelStat parc;
+
+		if (listCities != null && !listCities.isEmpty()) {
+			parc = new ParcelStat(p, rootFile, scenario, variant);
+		} else {
+			parc = new ParcelStat(p, rootFile, scenario, variant, listCities);
+		}
+		SimpleFeatureCollection parcelStatSHP = parc.markSimuledParcels();
+		parc.caclulateStatParcel();
+		parc.writeLine("AllZone", "ParcelStat");
+		parc.setCountToZero();
+		List<String> listInsee = FromGeom.getInsee(new File(parc.getRootFile(), "/dataGeo/old/communities.shp"), "DEPCOM");
+
+		for (String city : listInsee) {
+			SimpleFeatureCollection commParcel = ParcelFonction.getParcelByZip(parcelStatSHP, city);
+			System.out.println("city " + city);
+			parc.calculateStatParcel(commParcel);
+			parc.writeLine(city, "ParcelStat");
+			parc.toString();
+			parc.setCountToZero();
+		}
+		parc.setCommStatFile(parc.joinStatToCommunities());
+		parc.createMap(parc);
 		parc.createGraph(new File(parc.getIndicFolder(), "ParcelStat.csv"));
 		// }
 	}
