@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
@@ -19,6 +20,8 @@ import org.knowm.xchart.internal.series.Series.DataType;
 
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
+import fr.ign.cogit.map.MapRenderer;
+import fr.ign.cogit.map.theseMC.compVariant.CVNbBat;
 
 public class CompScenario extends Indicators {
 	String[] baseScenario;
@@ -27,21 +30,23 @@ public class CompScenario extends Indicators {
 	static String indicName = "compScenario";
 
 	public static void main(String[] args) throws Exception {
-		// File rootFile = new File("./result2903/");
-		//
-		// CompScenario compScen = new CompScenario(rootFile);
-		//
-		// compScen.createStat("bTH", "genStat.csv");
-		// List<MapRenderer> allOfTheMaps = new ArrayList<MapRenderer>();
-		//
-		// compScen.setCommStatFile(compScen.joinStatBTHtoCommunities("compScenariobTHCity.csv"));
-		//
-		// compScen.createGraph(new File(compScen.getIndicFolder(), "compScenariobTHGen.csv"));
-		//
-		// MapRenderer mapNbHUCV = new MapNbHUCV(1000, 1000, compScen.getMapStyle(), compScen.getCommStatFile(), compScen.getMapDepotFolder());
-		// mapNbHUCV.renderCityInfo();
-		// mapNbHUCV.generateSVG();
-		// allOfTheMaps.add(mapNbHUCV);
+		 File rootFile = new File("./result2903/");
+		 run(rootFile);
+	}
+	public static void run(File rootFile) throws Exception {
+		
+		 CompScenario compScen = new CompScenario(rootFile);
+		
+		 compScen.createStat("bTH", "genStat.csv");
+		 List<MapRenderer> allOfTheMaps = new ArrayList<MapRenderer>();
+		
+		 compScen.setCommStatFile(compScen.joinStatBTHtoCommunities("compScenariobTHCity.csv"));
+		 compScen.createGraph(new File(compScen.getIndicFolder(), "compScenariobTHGen.csv"));
+		
+		 MapRenderer mapNbHUCV = new CVNbBat(1000, 1000, compScen.getMapStyle(), compScen.getCommStatFile(), compScen.getMapDepotFolder(), "");
+		 mapNbHUCV.renderCityInfo();
+		 mapNbHUCV.generateSVG();
+		 allOfTheMaps.add(mapNbHUCV);
 
 		mergeDenialStat(new File("/home/ubuntu/boulot/these/result2903/indic/bTH/"), "base", new File("/tmp/stat"));
 	}

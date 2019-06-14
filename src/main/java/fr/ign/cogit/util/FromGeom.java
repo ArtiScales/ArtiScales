@@ -45,9 +45,9 @@ import fr.ign.cogit.geoxygene.util.conversion.GeOxygeneGeoToolsTypes;
 
 public class FromGeom {
 
-	public static void main(String[] args) throws Exception {
-		mergeBatis(new File("/home/ubuntu/boulot/these/result2903/indic/compatibleResult/CDense/variantMvData1/newSimPLUDepot/"));
-	}
+	// public static void main(String[] args) throws Exception {
+	// mergeBatis(new File("/home/ubuntu/boulot/these/result2903/indic/compatibleResult/CDense/variantMvData1/newSimPLUDepot/"));
+	// }
 	// File rootParam = new
 	// File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/exScenar");
 	// List<File> lF = new ArrayList<>();
@@ -222,7 +222,7 @@ public class FromGeom {
 		System.err.println("bigZone unknown");
 		return "nutin";
 	}
-	
+
 	public static List<String> getZips(File regulFile) throws IOException {
 		ShapefileDataStore sds = new ShapefileDataStore(FromGeom.getZoning(regulFile).toURI().toURL());
 		SimpleFeatureIterator cityIt = sds.getFeatureSource().getFeatures().features();
@@ -230,7 +230,6 @@ public class FromGeom {
 		try {
 			while (cityIt.hasNext()) {
 				SimpleFeature city = cityIt.next();
-				String typlan = (String) city.getAttribute("TYPEPLAN");
 				String insee = (String) city.getAttribute("INSEE");
 				if (!result.contains(insee)) {
 					result.add(insee);
@@ -470,26 +469,35 @@ public class FromGeom {
 	}
 
 	/**
-	 * get the insee number from a Simplefeature (that is most of the time, a parcel)
+	 * get the insee number from a Simplefeature (that is most of the time, a parcel or building)
 	 * 
 	 * @param cities
 	 * @param parcel
 	 * @return
 	 */
 	public static String getInseeFromParcel(SimpleFeatureCollection cities, SimpleFeature parcel) {
-		SimpleFeature City = null;
+		return getCommunityStuffFromParcel(cities, parcel, "DEPCOM");
+	}
+
+	public static String getArmatureFromParcel(SimpleFeatureCollection cities, SimpleFeature parcel) {
+		return getCommunityStuffFromParcel(cities, parcel, "armature");
+	}
+
+	public static String getCommunityStuffFromParcel(SimpleFeatureCollection cities, SimpleFeature parcel, String code) {
+
+		SimpleFeature city = null;
 		SimpleFeatureIterator citIt = cities.features();
-		String cityInsee = "00000";
+		String result = "";
 		try {
 			while (citIt.hasNext()) {
 				SimpleFeature cit = citIt.next();
 				if (((Geometry) cit.getDefaultGeometry()).contains((Geometry) parcel.getDefaultGeometry())) {
-					City = cit;
+					city = cit;
 					break;
 				}
 				// if the parcel is in between two cities, we randomly add the first met
 				else if (((Geometry) cit.getDefaultGeometry()).intersects((Geometry) parcel.getDefaultGeometry())) {
-					City = cit;
+					city = cit;
 					break;
 				}
 			}
@@ -499,11 +507,11 @@ public class FromGeom {
 			citIt.close();
 		}
 
-		String attribute = (String) City.getAttribute("DEPCOM");
+		String attribute = (String) city.getAttribute(code);
 		if (attribute != null && !attribute.isEmpty()) {
-			cityInsee = attribute;
+			result = attribute;
 		}
-		return cityInsee;
+		return result;
 	}
 
 	/**
@@ -1035,4 +1043,5 @@ public class FromGeom {
 		}
 		throw new FileNotFoundException("CommunitiesIris file not found");
 	}
+
 }

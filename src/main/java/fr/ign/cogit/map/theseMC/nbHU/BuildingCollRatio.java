@@ -18,7 +18,7 @@ public class BuildingCollRatio extends MapRenderer {
 	}
 
 	public static void main(String[] args) throws MalformedURLException, NoSuchAuthorityCodeException, IOException, FactoryException {
-		File indicFile = new File("/home/ubuntu/boulot/these/result2903/indic/bTH/CDense/base");
+		File indicFile = new File("/home/ubuntu/boulot/these/result2903/indic/bTH/Cvoir PeuDense/base");
 		File rootMapStyle = new File("/home/ubuntu/boulot/these/result2903/mapStyle/");
 
 		File outMap = new File(indicFile, "mapDepot");

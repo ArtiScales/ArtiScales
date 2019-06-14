@@ -25,6 +25,7 @@ import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
 import fr.ign.cogit.map.MapRenderer;
 import fr.ign.cogit.map.theseMC.compVariant.CVNbBat;
+import fr.ign.cogit.map.theseMC.compVariant.CVParcelFailed;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 
 public class CompVariant extends Indicators {
@@ -43,40 +44,57 @@ public class CompVariant extends Indicators {
 		lF.add(new File(rootParam, "paramSet/" + scenario + "/parameterScenario.xml"));
 
 		SimpluParametersJSON p = new SimpluParametersJSON(lF);
+		run(p, rootFile, scenario);
+	}
 
-		CompVariant compVar = new CompVariant(p, rootFile, scenario);
-		compVar.createStat("bTH", "genStat.csv");
-		compVar.setCommStatFile(compVar.joinStatBTHtoCommunities("compVariantbTHCityCoeffVar.csv"));
-		compVar.createGraph(new File(compVar.getIndicFolder(), "compVariantbTHGen.csv"));
-		compVar.allOfTheMaps();
+	public static void run(SimpluParametersJSON p, File rootFile, String scenario) throws Exception {
+		String[] analyzes = { "parcelStat", "bTH" };
+		// String[] analyzes = { "parcelStat"};
 
-		// for every different variant
-		List<LinkedList<String>> lists = compVar.ForEachVariantType();
+		for (String analyzed : analyzes) {
+			CompVariant compVar = new CompVariant(p, rootFile, scenario);
+			compVar.createStat(analyzed, "genStat.csv");
 
-		for (LinkedList<String> soloList : lists) {
-			CompVariant compVarSolo = new CompVariant(p, rootFile, scenario);
-			String prefix = soloList.get(0).substring(7, 11);
-			compVarSolo.spec = "solo/" + prefix;
-			compVarSolo.setIndicFile(new File(compVarSolo.getIndicFolder(), compVarSolo.spec));
-			compVarSolo.getIndicFolder().mkdirs();
-			File graphDepot = new File(compVarSolo.getIndicFolder(), "graphDepot");
-			graphDepot.mkdirs();
-			File mapDepot = new File(compVarSolo.getIndicFolder(), "mapDepot");
-			mapDepot.mkdirs();
+			if (analyzed.equals("bTH")) {
+				compVar.createGraphBHT(new File(compVar.getIndicFolder(), "compVariant" + analyzed + "Gen.csv"));
+				compVar.setCommStatFile(compVar.joinStatBTHtoCommunities("compVariant" + analyzed + "CityCoeffVar.csv"));
+				compVar.allOfTheMapsBTH();
 
-			compVarSolo.createStat("bTH", "genStat.csv", soloList);
+			} else if (analyzed.equals("parcelStat")) {
+				compVar.createGraphParcelStat(new File(compVar.getIndicFolder(), "compVariant" + analyzed + "Gen.csv"));
+				compVar.setCommStatFile(compVar.joinStatParcelToCommunities("compVariant" + analyzed + "CityCoeffVar.csv"));
+				compVar.allOfTheMapsParcelStat();
+			}
 
-			compVarSolo.setCommStatFile(compVarSolo.joinStatBTHtoCommunities(new File(compVarSolo.getIndicFolder(), "compVariantbTHCityCoeffVar.csv"),
-					new File(compVarSolo.getIndicFolder(), "commStatCoeffVar.shp")));
+			// for every different variant
+			List<LinkedList<String>> lists = compVar.ForEachVariantType();
 
-			compVarSolo.createGraph(new File(compVarSolo.getIndicFolder(), "compVariantbTHGen.csv"), graphDepot);
+			for (LinkedList<String> soloList : lists) {
+				CompVariant compVarSolo = new CompVariant(p, rootFile, scenario);
+				String prefix = soloList.get(0).substring(7, 11);
+				compVarSolo.spec = "solo/" + analyzed + "/" + prefix;
+				compVarSolo.setIndicFile(new File(compVarSolo.getIndicFolder(), compVarSolo.spec));
+				compVarSolo.getIndicFolder().mkdirs();
+				File graphDepot = new File(compVarSolo.getIndicFolder(), "graphDepot");
+				graphDepot.mkdirs();
+				File mapDepot = new File(compVarSolo.getIndicFolder(), "mapDepot");
+				mapDepot.mkdirs();
 
-			compVarSolo.allOfTheMaps(mapDepot, prefix);
+				compVarSolo.createStat(analyzed, "genStat.csv", soloList);
+
+				if (analyzed.equals("bTH")) {
+					compVarSolo.createGraphBHT(new File(compVarSolo.getIndicFolder(), "compVariant" + analyzed + "Gen.csv"), graphDepot);
+					compVarSolo.setCommStatFile(compVarSolo.joinStatBTHtoCommunities("compVariant" + analyzed + "CityCoeffVar.csv"));
+					compVarSolo.allOfTheMapsBTH(mapDepot, prefix);
+				} else if (analyzed.equals("parcelStat")) {
+					compVarSolo.createGraphParcelStat(new File(compVarSolo.getIndicFolder(), "compVariant" + analyzed + "Gen.csv"), graphDepot);
+					compVarSolo.setCommStatFile(compVarSolo.joinStatParcelToCommunities("compVariant" + analyzed + "CityCoeffVar.csv",
+							new File(compVarSolo.getIndicFolder(), "commStatCoeffVar.shp")));
+					compVarSolo.allOfTheMapsParcelStat(mapDepot, prefix);
+
+				}
+			}
 		}
-
-		// compVar.setCommStatFile(compVar.joinStatBTHtoCommunities("compVariantbTHCityCoeffVar.csv"));
-		// compVar.createGraph(new File(compVar.getIndicFolder(), "compVariantbTHGen.csv"));
-		// compVar.allOfTheMaps();
 	}
 
 	public CompVariant(SimpluParametersJSON p, File rootfile, String scenarname) throws Exception {
@@ -271,9 +289,9 @@ public class CompVariant extends Indicators {
 	// stage.setTitle("Index Chart Sample");
 	// final NumberAxis yAxis = new NumberAxis(0, 5000000, 1);
 	// final CategoryAxis xAxis = new CategoryAxis();
+	// yAxis.setLabel("People without job");
 	//
 	// final LineChart<String, Number> lineChart = new LineChart<>(xAxis, yAxis);
-	// yAxis.setLabel("People without job");
 	// xAxis.setLabel("year");
 	// lineChart.setTitle("Unemployment in Germnay");
 	//
@@ -305,11 +323,11 @@ public class CompVariant extends Indicators {
 	// stage.show();
 	// }
 
-	public void createGraph(File distrib) throws IOException {
-		createGraph(distrib, getGraphDepotFolder());
+	public void createGraphBHT(File distrib) throws IOException {
+		createGraphBHT(distrib, getGraphDepotFolder());
 	}
 
-	public void createGraph(File distrib, File graphDepot) throws IOException {
+	public void createGraphBHT(File distrib, File graphDepot) throws IOException {
 		System.out.println("distr ib " + distrib);
 		makeGraph(distrib, graphDepot, "Nombre de bâtiments simulés dans une commune de type rurale", "nameVariant", "Variante ", "nbBuild_rural",
 				"Nombre de bâtiments simulés");
@@ -338,7 +356,45 @@ public class CompVariant extends Indicators {
 		makeGraph(distrib, graphDepot, "Nombre de bâtiments simulés par variante", "nameVariant", "Variante ", "nb_building",
 				"Nombre de bâtiments simulés");
 		makeGraph(distrib, graphDepot, "Nombre de logements simulés par variante", "nameVariant", "Variante ", "nb_housingUnit",
-				"Nombre de logements simulés",700,420);
+				"Nombre de logements simulés", 700, 420);
+	}
+
+	public void createGraphParcelStat(File distrib) throws IOException {
+		createGraphParcelStat(distrib, getGraphDepotFolder());
+	}
+
+	public void createGraphParcelStat(File distrib, File graphDepot) throws IOException {
+		System.out.println("distr ib " + distrib);
+		makeGraph(distrib, graphDepot, "Parcelles simulées dans une commune de type rurale", "nameVariant", "Variante ", "nbParcelSimulatedRural",
+				"Nombre de parcelles simulés");
+		makeGraph(distrib, graphDepot, "Parcelles simulées dans une commune de type péri-urbain", "nameVariant", "Variante ",
+				"nbParcelSimulatedPeriUrb", "Nombre de parcelles simulés");
+		makeGraph(distrib, graphDepot, "Parcelles simulées dans un quartier de type banlieue", "nameVariant", "Variante ",
+				"nbParcelSimulatedBanlieue", "nombre de parcelles simulés");
+		makeGraph(distrib, graphDepot, "Parcelles simulées dans un quartier de type centre", "nameVariant", "Variante ", "nbParcelSimulatedCentre",
+				"Nombre de parcelles simulés");
+		makeGraph(distrib, graphDepot, "Parcelles simulées dans une zone à urbaniser (AU)", "nameVariant", "Variante ", "nbParcelSimulatedAU",
+				"parcelles simulés");
+		makeGraph(distrib, graphDepot, "Parcelles simulées dans une zone urbanisable (U)", "nameVariant", "Variante ", "nbParcelSimulatedU",
+				"Nombre de parcelles simulés");
+
+		makeGraph(distrib, graphDepot, "Parcelles non simulées pour les commune de type rurale", "nameVariant", "Variante ",
+				"nbParcelSimulFailedRural", "Nombre de parcelles simulés");
+		makeGraph(distrib, graphDepot, "Parcelles non simulées pour les commune de type péri-urbain", "nameVariant", "Variante ",
+				"nbParcelSimulFailedPeriUrb", "Nombre de parcelles simulés");
+		makeGraph(distrib, graphDepot, "Parcelles non simulées pour les quartier de type banlieue", "nameVariant", "Variante ",
+				"nbParcelSimulFailedBanlieue", "nombre de parcelles simulés");
+		makeGraph(distrib, graphDepot, "Parcelles non simulées pour les quartier de type centre", "nameVariant", "Variante ",
+				"nbParcelSimulFailedCentre", "Nombre de parcelles simulés");
+		makeGraph(distrib, graphDepot, "Parcelles non simulées pour les zone à urbaniser (AU)", "nameVariant", "Variante ", "nbParcelSimulFailedAU",
+				"Nombre de parcelles simulés");
+		makeGraph(distrib, graphDepot, "Parcelles non simulées pour les zone urbanisable (U)", "nameVariant", "Variante ", "nbParcelSimulFailedU",
+				"Nombre de parcelles simulés");
+
+		makeGraph(distrib, graphDepot, "Nombre de parcelles simulées par variante", "nameVariant", "Variante ", "nb_parcel_simulated",
+				"Nombre de parcelles simulés");
+		makeGraph(distrib, graphDepot, "Parcelles non simulées par variante", "nameVariant", "Variante ", "nb_parcel_simu_failed",
+				"Nombre de logements simulés", 700, 420);
 	}
 
 	public static void makeGraph(File csv, File graphDepotFile, String title, String x, String xTitle, String y, String yTitle) throws IOException {
@@ -348,7 +404,6 @@ public class CompVariant extends Indicators {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static void makeGraph(File csv, File graphDepotFile, String title, String x, String xTitle, String y, String yTitle, int width, int height)
 			throws IOException {
-
 		CategorySeries csvData = CSVImporter.getCategorySeriesFromCSVFile(csv, x, y, yTitle + "-" + xTitle, DataType.String);
 		// Create Chart
 		CategoryChart chart = new CategoryChartBuilder().width(width).height(height).title(title).xAxisTitle(xTitle).yAxisTitle(yTitle).build();
@@ -369,14 +424,27 @@ public class CompVariant extends Indicators {
 
 	}
 
-	public void allOfTheMaps() throws IOException, NoSuchAuthorityCodeException, FactoryException {
-		allOfTheMaps(this.getMapDepotFolder(), "");
+	public void allOfTheMapsBTH() throws IOException, NoSuchAuthorityCodeException, FactoryException {
+		allOfTheMapsBTH(this.getMapDepotFolder(), "");
 	}
 
-	public void allOfTheMaps(File depot, String prefix) throws IOException, NoSuchAuthorityCodeException, FactoryException {
+	public void allOfTheMapsBTH(File depot, String prefix) throws IOException, NoSuchAuthorityCodeException, FactoryException {
 		List<MapRenderer> allOfTheMaps = new ArrayList<MapRenderer>();
 
 		MapRenderer mapNbHUCV = new CVNbBat(1000, 1000, this.getMapStyle(), this.getCommStatFile(), depot, prefix);
+		mapNbHUCV.renderCityInfo();
+		mapNbHUCV.generateSVG();
+		allOfTheMaps.add(mapNbHUCV);
+	}
+
+	public void allOfTheMapsParcelStat() throws IOException, NoSuchAuthorityCodeException, FactoryException {
+		allOfTheMapsParcelStat(this.getMapDepotFolder(), "");
+	}
+
+	public void allOfTheMapsParcelStat(File depot, String prefix) throws IOException, NoSuchAuthorityCodeException, FactoryException {
+		List<MapRenderer> allOfTheMaps = new ArrayList<MapRenderer>();
+
+		MapRenderer mapNbHUCV = new CVParcelFailed(1000, 1000, this.getMapStyle(), this.getCommStatFile(), depot, prefix);
 		mapNbHUCV.renderCityInfo();
 		mapNbHUCV.generateSVG();
 		allOfTheMaps.add(mapNbHUCV);

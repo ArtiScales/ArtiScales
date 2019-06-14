@@ -217,7 +217,7 @@ public abstract class Indicators {
 	}
 
 	public File joinStatBTHtoCommunities(String nameFileToJoin) throws NoSuchAuthorityCodeException, IOException, FactoryException {
-		return joinStatBTHtoCommunities(new File(getIndicFolder(), nameFileToJoin), new File(getIndicFolder(), "commStat.shp"));
+		return joinStatBTHtoCommunities(new File(getIndicFolder(), nameFileToJoin), new File(getIndicFolder(), "commStatBTH.shp"));
 	}
 
 	public File joinStatBTHtoCommunities(File fileToJoin, File fileOut) throws NoSuchAuthorityCodeException, IOException, FactoryException {
@@ -490,6 +490,91 @@ public abstract class Indicators {
 			it.close();
 		}
 		return Vectors.exportSFC(result, fileOut);
+	}
+
+	public File joinStatParcelToCommunities() throws NoSuchAuthorityCodeException, IOException, FactoryException {
+		return joinStatParcelToCommunities("genStat.csv", new File(getIndicFolder(), "commStatBTH.shp"));
+	}
+
+	public File joinStatParcelToCommunities(File fileOut) throws NoSuchAuthorityCodeException, IOException, FactoryException {
+		return joinStatParcelToCommunities("genStat.csv", fileOut);
+	}
+
+	public File joinStatParcelToCommunities(String nameStat) throws NoSuchAuthorityCodeException, IOException, FactoryException {
+		return joinStatParcelToCommunities(nameStat, new File(getIndicFolder(), "commStatParcelStat.shp"));
+	}
+
+	public File joinStatParcelToCommunities(String nameFileToJoin, File fileOut) throws NoSuchAuthorityCodeException, IOException, FactoryException {
+		ShapefileDataStore communitiesSDS = new ShapefileDataStore((new File(getRootFile(), "/dataGeo/old/communities.shp")).toURI().toURL());
+		SimpleFeatureCollection communitiesOG = communitiesSDS.getFeatureSource().getFeatures();
+		File result = joinStatParcelToSFC(communitiesOG, new File(getIndicFolder(), nameFileToJoin), fileOut);
+		communitiesSDS.dispose();
+		return result;
+	}
+
+	public File joinStatParcelToSFC(SimpleFeatureCollection collec, File statFile, File outFile)
+			throws IOException, NoSuchAuthorityCodeException, FactoryException {
+		DefaultFeatureCollection result = new DefaultFeatureCollection();
+		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
+		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
+		sfTypeBuilder.setName("communities");
+		sfTypeBuilder.setCRS(sourceCRS);
+		sfTypeBuilder.add("the_geom", Polygon.class);
+		sfTypeBuilder.setDefaultGeometry("the_geom");
+		sfTypeBuilder.add("INSEE", String.class);
+		sfTypeBuilder.add("nbParcSimu", Double.class);
+		sfTypeBuilder.add("nbParcFail", Double.class);
+		sfTypeBuilder.add("aParcSimu", Double.class);
+		sfTypeBuilder.add("aParcFail", Double.class);
+		SimpleFeatureBuilder builder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
+		SimpleFeatureIterator it = collec.features();
+		try {
+			while (it.hasNext()) {
+				SimpleFeature ftBati = it.next();
+				String insee = (String) ftBati.getAttribute("DEPCOM");
+				CSVReader stat = new CSVReader(new FileReader(statFile), ',', '\0');
+				String[] firstLine = stat.readNext();
+				int inseeP = 0, nbParcSimuP = 0, nbParcFailP = 0, aParcSimuP = 0, aParcFailP = 0;
+				// surface_SDP_parcelleP = 0, surface_emprise_parcelleP = 0;
+				for (int i = 0; i < firstLine.length; i++) {
+					switch (firstLine[i]) {
+					case "INSEE":
+						inseeP = i;
+						break;
+					case "nb_parcel_simulated":
+						nbParcSimuP = i;
+						break;
+					case "nb_parcel_simu_failed":
+						nbParcFailP = i;
+						break;
+					case "surf_parcel_simulated":
+						aParcSimuP = i;
+						break;
+					case "surf_parcel_simulFailed":
+						aParcFailP = i;
+						break;
+					}
+				}
+				for (String[] l : stat.readAll()) {
+					if (l[inseeP].equals(insee)) {
+						builder.set("the_geom", ftBati.getDefaultGeometry());
+						builder.set("INSEE", insee);
+						builder.set("nbParcSimu", Double.valueOf(l[nbParcSimuP]));
+						builder.set("nbParcFail", Double.valueOf(l[nbParcFailP]));
+						builder.set("aParcSimu", Double.valueOf(l[aParcSimuP]));
+						builder.set("aParcFail", Double.valueOf(l[aParcFailP]));
+						result.add(builder.buildFeature(null));
+						break;
+					}
+				}
+				stat.close();
+			}
+		} catch (Exception problem) {
+			problem.printStackTrace();
+		} finally {
+			it.close();
+		}
+		return Vectors.exportSFC(result, outFile);
 	}
 
 	public static String makeLabelPHDable(String s) throws FileNotFoundException {
