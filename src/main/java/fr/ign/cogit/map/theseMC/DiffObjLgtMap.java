@@ -19,9 +19,12 @@ public class DiffObjLgtMap extends MapRenderer {
 	}
 
 	public static void main(String[] args) throws MalformedURLException, NoSuchAuthorityCodeException, IOException, FactoryException {
-		File rootMapStyle = new File("/home/ubuntu/boulot/these/result0308/mapStyle/");
-		MapRenderer mpR = new DiffObjLgtMap(1000, 1000, rootMapStyle,
-				new File("/home/ubuntu/boulot/these/result0308/indic/bTH/DDense/variante0/commStat.shp"), new File(rootMapStyle, "out/"));
+		File indicFile = new File("/home/ubuntu/boulot/these/result2903/indic/bTH/CDense/base");
+		File rootMapStyle = new File("/home/ubuntu/boulot/these/result2903/mapStyle/");
+
+		File outMap = new File(indicFile, "mapDepot");
+		outMap.mkdirs();
+		MapRenderer mpR = new DiffObjLgtMap(1000, 1000, rootMapStyle, new File(indicFile, "commStatBTH.shp"), outMap);
 		mpR.renderCityInfo();
 		mpR.generateSVG();
 	}

@@ -44,6 +44,9 @@ import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 
 public class SimuTool {
 	// public static void main(String[] args) throws Exception {
+	// List<String> zb = new ArrayList<String>();
+	// digForACity(new File("/media/ubuntu/saintmande/Packager/CDense/variantMvData1/"), "25212",zb);
+	// }
 	// digForRepportOnACity(new File("/home/ubuntu/boulot/these/result2903/tmp/outCompMai9"), "25245", new File("/tmp/ville"));
 	// digForPackWithoutSimu(new File("/media/ubuntu/saintmande/Packager/CDense/base/"),
 	// new File("/home/ubuntu/boulot/these/result2903/tmp/SimPLUDepot/CDense/base/"), new File("/tmp/missingFromCDenseBase.csv"));
@@ -865,10 +868,17 @@ public class SimuTool {
 	}
 
 	public static File getStatDenialBuildingType(File fIn, File fOut) throws IOException {
-		HashMap<String, Integer> result = new HashMap<String, Integer>();
-		String str = getStatDenialBuildingType(fIn, result).toString();
+		HashMap<String, Integer[]> result = new HashMap<String, Integer[]>();
+
+		HashMap<String, Integer[]> res = getStatDenialBuildingType(fIn, result);
+		String str = "";
+
+		for (String s : res.keySet()) {
+			str = str + ";" + s + "=" + res.get(s)[0] + "," + res.get(s)[1];
+		}
+
 		System.out.println("StatDenialBuildingType : " + str);
-		str = str.replace("{", "").replace("}", "").replace(" ", "");
+		str = str.replace("{", "").replace("}", "").replace(" ", "").replace(";", "\ntw");
 		CSVWriter csv = new CSVWriter(new FileWriter(fOut));
 
 		for (String st : str.split(",")) {
@@ -877,6 +887,11 @@ public class SimuTool {
 		}
 		csv.close();
 		return fOut;
+	}
+
+	public static void main(String[] args) throws IOException {
+		SimuTool.getStatDenialBuildingType(new File("/home/ubuntu/boulot/these/result2903/SimPLUDepot/DDense/base"),
+				new File("/tmp/StatDenialBuildingType.csv"));
 	}
 
 	/**
@@ -889,23 +904,70 @@ public class SimuTool {
 	 * @return
 	 * @throws IOException
 	 */
-	public static HashMap<String, Integer> getStatDenialBuildingType(File fIn, HashMap<String, Integer> result) throws IOException {
+	public static HashMap<String, Integer[]> getStatDenialBuildingType(File fIn, HashMap<String, Integer[]> result) throws IOException {
 		for (File f : fIn.listFiles()) {
 			if (f.isDirectory()) {
 				result = getStatDenialBuildingType(f, result);
 			} else if (f.getName().equals("importantInfo")) {
 				CSVReader read = new CSVReader(new FileReader(f), ';');
 				String antType = "";
+				int[] occurences = { 0, 0 };
+
 				for (String[] l : read.readAll()) {
 					if (l[0].startsWith("simulation d'un ")) {
+						// flush
+						if (!antType.equals("") || antType != l[0].replace("simulation d'un ", "").replace(" ", "")) {
+							if (result.containsKey(antType)) {
+								Integer[] tmp = result.remove(antType);
+								tmp[0] = tmp[0] + occurences[0];
+								tmp[1] = tmp[1] + occurences[1];
+								result.put(antType, tmp);
+							} else {
+								Integer[] tmp = { occurences[0], occurences[1] };
+								result.put(antType, tmp);
+							}
+							occurences = new int[2];
+							occurences[0] = 0;
+							occurences[1] = 0;
+						}
 						antType = l[0].replace("simulation d'un ", "").replace(" ", "");
 					}
-					if (l[0].startsWith("SDP is too small")) {
-						Integer tmp = result.putIfAbsent(antType, 1);
-						if (tmp != null) {
-							result.replace(antType, tmp, tmp + 1);
+					if (l[0].startsWith("denial reasons") && l[0].contains(",")) {
+						String reasons = l[0].replace("denial reasons : {", "").replace("}", "");
+						boolean ok = false;
+						if (reasons.contains("=")) {
+							for (String reason : reasons.split(",")) {
+								reason = reason.replace(" ", "");
+								long val = 0;
+								try {
+									val = Integer.valueOf(reason.split("=")[1]);
+								} catch (ArrayIndexOutOfBoundsException ahbon) {
+									System.out.println("getStatDenialCuboid: problem with \"" + reasons + "\"");
+								}
+								if (val > 10000) {
+									ok = true;
+								}
+							}
+						}
+						if (ok) {
+							occurences[0] = occurences[0] + 1;
 						}
 					}
+					if (l[0].startsWith("SDP is too small")) {
+						occurences[1] = occurences[1] + 1;
+					}
+
+				}
+				if (antType.equals("MIDBLOCKFLAT") && occurences[0] < occurences[1])
+					System.out.println(f);
+				if (result.containsKey(antType)) {
+					Integer[] tmp = result.remove(antType);
+					tmp[0] = tmp[0] + occurences[0];
+					tmp[1] = tmp[1] + occurences[1];
+					result.put(antType, tmp);
+				} else {
+					Integer[] tmp = { occurences[0], occurences[1] };
+					result.put(antType, tmp);
 				}
 				read.close();
 			}
@@ -982,7 +1044,6 @@ public class SimuTool {
 							if (feat.getAttribute("DoWeSimul").equals("true")) {
 								toto++;
 							}
-
 						}
 					}
 					it.close();
@@ -1003,7 +1064,7 @@ public class SimuTool {
 		return listPath;
 	}
 
-	public static String digForRepportOnACity(File fIn, String insee, File outFile) throws IOException {
+	public static String digForRepportOnACityOnAFile(File fIn, String insee, File outFile) throws IOException {
 		String result = "";
 		FileWriter w = new FileWriter(outFile);
 		CSVReader read = new CSVReader(new FileReader(fIn), '£');

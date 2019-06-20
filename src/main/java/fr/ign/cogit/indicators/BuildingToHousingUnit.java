@@ -103,59 +103,59 @@ public class BuildingToHousingUnit extends Indicators {
 		setParamFolder(paramFile);
 	}
 
-	public static void main(String[] args) throws Exception {
-		File rootFile = new File("./result2903/");
-		File rootParam = new File(rootFile, "paramFolder");
+//	public static void main(String[] args) throws Exception {
+//		File rootFile = new File("./result2903/");
+//		File rootParam = new File(rootFile, "paramFolder");
+//
+//		String[] scenarios = { "CDense", "CPeuDense", "DDense", "DPeuDense" };
+//		// String[] scenarios = { "CDense" };
+//		String variant = "base";
+//
+//		for (String scenario : scenarios) {
+//			// for (File f : (new File(rootFile, "SimPLUDepot/" + scenario + "/")).listFiles()) {
+//			// String variant = f.getName();
+//			//
+//			// String variant = "varianteSeed2";
+//
+//			List<File> lF = new ArrayList<>();
+//			lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterTechnic.json"));
+//			lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterScenario.json"));
+//
+//			SimpluParametersJSON p = new SimpluParametersJSON(lF);
+//			System.out.println("run " + scenario + " variant: " + variant);
+//			run(p, rootFile, scenario, variant);
+//			// }
+//		}
+//
+//	}
 
-		String[] scenarios = { "CDense", "CPeuDense", "DDense", "DPeuDense" };
-		// String[] scenarios = { "CDense" };
-		String variant = "base";
-
-		for (String scenario : scenarios) {
-			// for (File f : (new File(rootFile, "SimPLUDepot/" + scenario + "/")).listFiles()) {
-			// String variant = f.getName();
-			//
-			// String variant = "varianteSeed2";
-
-			List<File> lF = new ArrayList<>();
-			lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterTechnic.json"));
-			lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterScenario.json"));
-
-			SimpluParametersJSON p = new SimpluParametersJSON(lF);
-			System.out.println("run " + scenario + " variant: " + variant);
-			run(p, rootFile, scenario, variant);
-			// }
-		}
-
-	}
-
-	// // // main for analysis by different documents
-	// public static void main(String[] args) throws Exception {
-	// File rootFile = new File("./result2903/");
-	// File rootParam = new File(rootFile, "paramFolder");
-	// // String scenario = "CPeuDense";
-	// String variant = "base";
-	// String[] typeDocs = { "RNU", "PLU", "CC" };
-	// String[] scenarios = { "DDense", "CDense", "CPeuDense", "DPeuDense" };
-	// for (String typeDoc : typeDocs) {
-	// List<String> listDoc = FromGeom.getZipByTypeDoc(new File(rootFile, "dataRegulation"), typeDoc);
-	// setIndicName("bTH-" + typeDoc);
-	//
-	// // String[] scenarios = { "CDense", "CPeuDense", "DDense", "DPeuDense" };
-	// // String[] scenarios = { "CPeuDense", "DDense" };
-	//
-	// for (String scenario : scenarios) {
-	//
-	// List<File> lF = new ArrayList<>();
-	// lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterTechnic.json"));
-	// lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterScenario.json"));
-	//
-	// SimpluParametersJSON p = new SimpluParametersJSON(lF);
-	// System.out.println("run " + scenario + " variant: " + variant + " doc ? " + typeDoc);
-	// run(p, rootFile, scenario, variant, listDoc);
-	// }
-	// }
-	// }
+	 // // main for analysis by different documents
+	 public static void main(String[] args) throws Exception {
+	 File rootFile = new File("./result2903/");
+	 File rootParam = new File(rootFile, "paramFolder");
+	 // String scenario = "CPeuDense";
+	 String variant = "base";
+	 String[] typeDocs = { "RNU", "PLU", "CC" };
+	 String[] scenarios = { "DDense", "CDense", "CPeuDense", "DPeuDense" };
+	 for (String typeDoc : typeDocs) {
+	 List<String> listDoc = FromGeom.getZipByTypeDoc(new File(rootFile, "dataRegulation"), typeDoc);
+	 setIndicName("bTH-" + typeDoc);
+	
+	 // String[] scenarios = { "CDense", "CPeuDense", "DDense", "DPeuDense" };
+	 // String[] scenarios = { "CPeuDense", "DDense" };
+	
+	 for (String scenario : scenarios) {
+	
+	 List<File> lF = new ArrayList<>();
+	 lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterTechnic.json"));
+	 lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterScenario.json"));
+	
+	 SimpluParametersJSON p = new SimpluParametersJSON(lF);
+	 System.out.println("run " + scenario + " variant: " + variant + " doc ? " + typeDoc);
+	 run(p, rootFile, scenario, variant, listDoc);
+	 }
+	 }
+	 }
 
 	public static void run(SimpluParametersJSON p, File rootFile, String scenario, String variant) throws Exception {
 		run(p, rootFile, scenario, variant, null);
@@ -171,12 +171,12 @@ public class BuildingToHousingUnit extends Indicators {
 		}
 
 		// // statistics about denials
-		// SimuTool.getStatDenialBuildingType(bhtU.getSimPLUDepotGenFile().getParentFile(),
-		// new File(bhtU.getIndicFolder(), "StatDenialBuildingType.csv"));
-		// SimuTool.getStatDenialCuboid(bhtU.getSimPLUDepotGenFile().getParentFile(), new File(bhtU.getIndicFolder(), "StatDenialCuboid.csv"));
+		 SimuTool.getStatDenialBuildingType(bhtU.getSimPLUDepotGenFile().getParentFile(),
+		 new File(bhtU.getIndicFolder(), "StatDenialBuildingType.csv"));
+//		 SimuTool.getStatDenialCuboid(bhtU.getSimPLUDepotGenFile().getParentFile(), new File(bhtU.getIndicFolder(), "StatDenialCuboid.csv"));
 		//
 		// // main general statistics
-		bhtU.distributionEstimate();
+//		bhtU.distributionEstimate();
 		// bhtU.makeGenStat();
 		// bhtU.setCountToZero();
 		//
@@ -188,11 +188,11 @@ public class BuildingToHousingUnit extends Indicators {
 		// }
 
 		// for every armature
-		List<String> listArmature = FromGeom.getInsee(new File(bhtU.getRootFile(), "/dataGeo/old/communities.shp"), "armature");
-		for (String armat : listArmature) {
-			bhtU.makeArmatureStat(armat);
-			bhtU.setCountToZero();
-		}
+//		List<String> listArmature = FromGeom.getInsee(new File(bhtU.getRootFile(), "/dataGeo/old/communities.shp"), "armature");
+//		for (String armat : listArmature) {
+//			bhtU.makeArmatureStat(armat);
+//			bhtU.setCountToZero();
+//		}
 
 		// // new shapefile with stats
 		// bhtU.setParcelStatFile(bhtU.joinStatBTHtoParcels("housingUnits.csv"));
@@ -203,8 +203,8 @@ public class BuildingToHousingUnit extends Indicators {
 		// "P12_LOG", "COM", "DEPCOM");
 		//
 		// // graphs
-		// bhtU.createGraphNetDensity(new File(bhtU.getIndicFolder(), "housingUnits.csv"));
-		// bhtU.createGraphCount(new File(bhtU.getIndicFolder(), "genStat.csv"), listCities);
+		 bhtU.createGraphNetDensity(new File(bhtU.getIndicFolder(), "housingUnits.csv"));
+		 bhtU.createGraphCount(new File(bhtU.getIndicFolder(), "genStat.csv"), listCities);
 		// bhtU.makeStatHU();
 		// // maps
 		// allOfTheMap(bhtU);
@@ -303,13 +303,13 @@ public class BuildingToHousingUnit extends Indicators {
 
 	public void createGraphNetDensity(File statFile) throws IOException {
 		makeGraphDens(statFile, getGraphDepotFolder(), SimuTool.makeWordPHDable(scenarName) + " - Variante : " + variantName, "HUpHectareDensity",
-				"Densité nette de logements par hectare", "Nombre de parcelle", 0, 100);
+				"Densité nette de logements par hectare", "Nombre de parcelles", 0, 100);
 		makeGraphDens(statFile, getGraphDepotFolder(), SimuTool.makeWordPHDable(scenarName) + " - Variante : " + variantName, "SDPpHectareDensity",
-				"Densité nette de surface de plancher des bâtiments par hectare", "Nombre de parcelle", 0, 6000);
+				"Densité nette de surface de plancher des bâtiments par hectare", "Nombre de parcelles", 0, 6000);
 		makeGraphDens(statFile, getGraphDepotFolder(), SimuTool.makeWordPHDable(scenarName) + " - Variante : " + variantName,
-				"EmprisepHectareDensity", "Densité nette de l'emprise des bâtiments par hectare", "Nombre de parcelle", 0, 6000);
+				"EmprisepHectareDensity", "Densité nette de l'emprise des bâtiments par hectare", "Nombre de parcelles", 0, 6000);
 		makeGraphDens(statFile, getGraphDepotFolder(), SimuTool.makeWordPHDable(scenarName) + " - Variante : " + variantName, "eval",
-				"Évaluation de l'intêret à être urbanisé", "Nombre de parcelle", 0, 1, 10);
+				"Évaluation de l'intêret à être urbanisé", "Nombre de parcelles", 0, 1, 10);
 	}
 
 	public void createGraphCount(File statFile, List<String> listCities) throws IOException {
@@ -346,7 +346,7 @@ public class BuildingToHousingUnit extends Indicators {
 				"Consommation surfacique des bâtiments simulés", "Surface (em km²)");
 
 		makeGraphForEachCities(statFile, getGraphDepotFolder(), "Différence des objectifs de logements et des logements simulés" + addon, listCities,
-				"Code INSEE des communes", "Différence entre l'objectif et le nombre de logements simulé");
+				"Code INSEE des communes", "Différence entre l'objectif et le nombre de logements simulés");
 
 	}
 

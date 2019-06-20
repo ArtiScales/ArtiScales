@@ -65,51 +65,51 @@ public class ParcelStat extends Indicators {
 		firstLine = "INSEE,nb_parcel_simulated,nb_parcel_simu_failed,surf_parcel_ignored,surf_parcel_simulated,surf_parcel_simulFailed,nbParcelSimulatedU,nbParcelSimulFailedU,nbParcelSimulatedAU,nbParcelSimulFailedAU,nbParcelSimulatedNC,nbParcelSimulFailedNC,nbParcelSimulatedCentre,nbParcelSimulFailedCentre,nbParcelSimulatedBanlieue,nbParcelSimulFailedBanlieue,nbParcelSimulatedPeriUrb,nbParcelSimulFailedPeriUrb,nbParcelSimulatedRural,nbParcelSimulFailedRural,surfParcelSimulatedU,surfParcelSimulFailedU,surfParcelSimulatedAU,surfParcelSimulFailedAU,surfParcelSimulatedNC,surfParcelSimulFailedNC,surfParcelSimulatedCentre,surfParcelSimulFailedCentre,surfParcelSimulatedBanlieue,surfParcelSimulFailedBanlieue,surfParcelSimulatedPeriUrb,surfParcelSimulFailedPeriUrb,surfParcelSimulatedRural,surfParcelSimulFailedRural,simuledFromOriginal,simuledFromDensification,simuledFromTotalRecomp,simuledFromPartRecomp,simuledFromZoneCut,failedFromOriginal,failedFromDensification,failedFromTotalRecomp,failedFromPartRecomp,failedFromZoneCut";
 	}
 
-	// public static void main(String[] args) throws Exception {
-	// File rootFile = new File("./result2903/");
-	// File rootParam = new File(rootFile, "paramFolder");
-	// List<File> lF = new ArrayList<>();
-	// String[] scenarios = { "CDense" };
-	// // String[] scenarios = { "CDense", "CPeuDense", "DDense", "DPeuDense" };
-	//
-	// String variant = "base";
-	// // indicName = "parcelStat-RNU";
-	//
-	// for (String scenario : scenarios) {
-	// lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterTechnic.json"));
-	// lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterScenario.json"));
-	//// for (File f : (new File(rootFile, "SimPLUDepot/" + scenario + "/")).listFiles()) {
-	//// String variant = f.getName();
-	// SimpluParametersJSON p = new SimpluParametersJSON(lF);
-	// run(p, rootFile, scenario, variant);
-	// }
-	//// }
-	// }
+	 public static void main(String[] args) throws Exception {
+	 File rootFile = new File("./result2903/");
+	 File rootParam = new File(rootFile, "paramFolder");
+	 List<File> lF = new ArrayList<>();
+//	 String[] scenarios = { "CDense" };
+	  String[] scenarios = {  "CPeuDense", "DDense", "DPeuDense" };
+	
+	 String variant = "base";
+	 // indicName = "parcelStat-RNU";
+	
+	 for (String scenario : scenarios) {
+	 lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterTechnic.json"));
+	 lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterScenario.json"));
+//	 for (File f : (new File(rootFile, "SimPLUDepot/" + scenario + "/")).listFiles()) {
+//	 String variant = f.getName();
+	 SimpluParametersJSON p = new SimpluParametersJSON(lF);
+	 run(p, rootFile, scenario, variant);
+	 }
+	 }
+//	 }
 
-	public static void main(String[] args) throws Exception {
-		File rootFile = new File("./result2903/");
-		File rootParam = new File(rootFile, "paramFolder");
-		List<File> lF = new ArrayList<>();
-		String[] scenarios = { "CDense", "CPeuDense", "DDense", "DPeuDense" };
-		String[] typeDocs = { "RNU", "PLU", "CC" };
-
-		String variant = "base";
-		for (String typeDoc : typeDocs) {
-			List<String> listDoc = FromGeom.getZipByTypeDoc(new File(rootFile, "dataRegulation"), typeDoc);
-			setIndicName("ParcelStat-" + typeDoc);
-
-			for (String scenario : scenarios) {
-				System.out.println("run " + scenario + " variant: " + variant + " doc ? " + typeDoc);
-
-				lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterTechnic.json"));
-				lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterScenario.json"));
-				// for (File f : (new File(rootFile, "SimPLUDepot/" + scenario + "/")).listFiles()) {
-				// String variant = f.getName();
-				SimpluParametersJSON p = new SimpluParametersJSON(lF);
-				run(p, rootFile, scenario, variant, listDoc);
-			}
-		}
-	}
+//	public static void main(String[] args) throws Exception {
+//		File rootFile = new File("./result2903/");
+//		File rootParam = new File(rootFile, "paramFolder");
+//		List<File> lF = new ArrayList<>();
+//		String[] scenarios = { "CDense", "CPeuDense", "DDense", "DPeuDense" };
+//		String[] typeDocs = { "RNU", "PLU", "CC" };
+//
+//		String variant = "base";
+//		for (String typeDoc : typeDocs) {
+//			List<String> listDoc = FromGeom.getZipByTypeDoc(new File(rootFile, "dataRegulation"), typeDoc);
+//			setIndicName("ParcelStat-" + typeDoc);
+//
+//			for (String scenario : scenarios) {
+//				System.out.println("run " + scenario + " variant: " + variant + " doc ? " + typeDoc);
+//
+//				lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterTechnic.json"));
+//				lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterScenario.json"));
+//				// for (File f : (new File(rootFile, "SimPLUDepot/" + scenario + "/")).listFiles()) {
+//				// String variant = f.getName();
+//				SimpluParametersJSON p = new SimpluParametersJSON(lF);
+//				run(p, rootFile, scenario, variant, listDoc);
+//			}
+//		}
+//	}
 
 	public static void run(SimpluParametersJSON p, File rootFile, String scenario, String variant) throws Exception {
 		run(p, rootFile, scenario, variant, null);
@@ -342,13 +342,13 @@ public class ParcelStat extends Indicators {
 				case "simulated":
 					surfParcelSimulated = surfParcelSimulated + area;
 					nbParcelSimulated++;
-					if (ft.getAttribute("U").equals("T")) {
+					if (ft.getAttribute("U").equals("T") || ft.getAttribute("U").equals(true)) {
 						surfParcelSimulatedU = surfParcelSimulatedU + area;
 						nbParcelSimulatedU++;
-					} else if (ft.getAttribute("AU").equals("T")) {
+					} else if (ft.getAttribute("AU").equals("T")|| ft.getAttribute("AU").equals(true)) {
 						surfParcelSimulatedAU = surfParcelSimulatedAU + area;
 						nbParcelSimulatedAU++;
-					} else if (ft.getAttribute("NC").equals("T")) {
+					} else if (ft.getAttribute("NC").equals("T")|| ft.getAttribute("NC").equals(true)) {
 						surfParcelSimulatedNC = surfParcelSimulatedNC + area;
 						nbParcelSimulatedNC++;
 					}
@@ -393,13 +393,13 @@ public class ParcelStat extends Indicators {
 				case "simuFailed":
 					surfParcelSimulFailed = surfParcelSimulFailed + area;
 					nbParcelSimulFailed++;
-					if (ft.getAttribute("U").equals("T")) {
+					if (ft.getAttribute("U").equals("T") || ft.getAttribute("U").equals(true)) {
 						nbParcelSimulFailedU++;
 						surfParcelSimulFailedU = surfParcelSimulFailedU + area;
-					} else if (ft.getAttribute("AU").equals("T")) {
+					} else if (ft.getAttribute("AU").equals("T") || ft.getAttribute("AU").equals(true)) {
 						nbParcelSimulFailedAU++;
 						surfParcelSimulFailedAU = surfParcelSimulFailedAU + area;
-					} else if (ft.getAttribute("NC").equals("T")) {
+					} else if (ft.getAttribute("NC").equals("T") || ft.getAttribute("NC").equals(true)) {
 						nbParcelSimulFailedNC++;
 						surfParcelSimulFailedNC = surfParcelSimulFailedNC + area;
 					}

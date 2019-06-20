@@ -580,7 +580,7 @@ public abstract class Indicators {
 	public static String makeLabelPHDable(String s) throws FileNotFoundException {
 		switch (s) {
 		case "buildDensity":
-			return "densité de logement simulé par hectare";
+			return "densité de logements simulés par hectare";
 		case "nbHU_detachedHouse":
 			return "Maison isolée";
 		case "nbHU_smallHouse":
@@ -645,7 +645,7 @@ public abstract class Indicators {
 		case "empriseTot":
 			return "Emprise totale";
 		case "HUpHectareDensity":
-			return "Densité de logement par hectare";
+			return "Densité de logements par hectare";
 		case "EmprisepHectareDensity":
 			return "Densité de l'emprise des bâtiments par hectare";
 		case "SDPpHectareDensity":

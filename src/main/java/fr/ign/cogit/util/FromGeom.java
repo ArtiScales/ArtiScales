@@ -45,9 +45,9 @@ import fr.ign.cogit.geoxygene.util.conversion.GeOxygeneGeoToolsTypes;
 
 public class FromGeom {
 
-	// public static void main(String[] args) throws Exception {
-	// mergeBatis(new File("/home/ubuntu/boulot/these/result2903/indic/compatibleResult/CDense/variantMvData1/newSimPLUDepot/"));
-	// }
+	 public static void main(String[] args) throws Exception {
+	 mergeBatis(new File("/home/ubuntu/boulot/these/result2903/indic/compatibleResult/CDense/variantMvData1/newSimPLUDepot/"));
+	 }
 	// File rootParam = new
 	// File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/exScenar");
 	// List<File> lF = new ArrayList<>();
@@ -78,7 +78,7 @@ public class FromGeom {
 	// true));
 	//
 	// shpDSZone.dispose();
-	// }
+//	 }
 
 	public static String affectZoneAndTypoToLocation(String mainLine, String code, IFeature parcel, File rootFile, boolean priorTypoOrZone)
 			throws Exception {
@@ -280,14 +280,14 @@ public class FromGeom {
 	/**
 	 * Merge all the shapefile of a folder (made for simPLU buildings) into one shapefile with a recursive method.
 	 * 
-	 * @param file2MergeIn
+	 * @param folder2MergeFilesIn
 	 *            : folder containing the shapefiles
 	 * @return : file where everything is saved (here whith a building name)
 	 * @throws Exception
 	 */
-	public static File mergeBatis(File file2MergeIn) throws Exception {
-		List<File> listBatiFile = addBati(file2MergeIn);
-		File outFile = new File(file2MergeIn, "TotBatSimuFill.shp");
+	public static File mergeBatis(File folder2MergeFilesIn) throws Exception {
+		List<File> listBatiFile = addBati(folder2MergeFilesIn);
+		File outFile = new File(folder2MergeFilesIn, "TotBatSimuFill.shp");
 		return Vectors.mergeVectFiles(listBatiFile, outFile);
 	}
 

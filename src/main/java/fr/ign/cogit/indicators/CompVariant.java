@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -48,8 +49,8 @@ public class CompVariant extends Indicators {
 	}
 
 	public static void run(SimpluParametersJSON p, File rootFile, String scenario) throws Exception {
-		String[] analyzes = { "parcelStat", "bTH" };
-		// String[] analyzes = { "parcelStat"};
+//		String[] analyzes = { "parcelStat", "bTH" };
+		 String[] analyzes = { "parcelStat"};
 
 		for (String analyzed : analyzes) {
 			CompVariant compVar = new CompVariant(p, rootFile, scenario);
@@ -91,7 +92,6 @@ public class CompVariant extends Indicators {
 					compVarSolo.setCommStatFile(compVarSolo.joinStatParcelToCommunities("compVariant" + analyzed + "CityCoeffVar.csv",
 							new File(compVarSolo.getIndicFolder(), "commStatCoeffVar.shp")));
 					compVarSolo.allOfTheMapsParcelStat(mapDepot, prefix);
-
 				}
 			}
 		}
@@ -137,16 +137,10 @@ public class CompVariant extends Indicators {
 				}
 			}
 		}
-
 		for (LinkedList<String> list : result) {
 			list.add("base");
 		}
-
 		return result;
-	}
-
-	public void SortVariantNames() {
-		// TODO faire ça
 	}
 
 	public void createStat(String nameCompared, String nameFileStat) throws IOException {
@@ -155,6 +149,7 @@ public class CompVariant extends Indicators {
 		for (File f : new File(super.getRootFile(), "indic/" + nameCompared + "/" + super.scenarName + "/").listFiles()) {
 			listVariant.add(f.getName());
 		}
+		Collections.sort(listVariant);
 		createStat(nameCompared, nameFileStat, listVariant);
 	}
 
@@ -166,14 +161,13 @@ public class CompVariant extends Indicators {
 		CSVWriter csvWGen = new CSVWriter(new FileWriter(new File(getIndicFolder(), nameGen)), ',', '\u0000');
 		CSVWriter csvWCity = new CSVWriter(new FileWriter(new File(getIndicFolder(), nameCity)), ',', '\u0000');
 		boolean firstLine = true;
-		// for (File f : (new File(super.getRootFile(), "indic/" + nameCompared + "/" + super.scenarName + "/")).listFiles()) {
 		for (String variant : listVariant) {
 			File f = new File(super.getRootFile(), "indic/" + nameCompared + "/" + super.scenarName + "/" + variant);
-			System.out.println(f);
 			File statFile = new File(f, nameFileStat);
 			if (f.isDirectory() && statFile.exists()) {
 				if (!variantNames.contains(f.getName())) {
 					variantNames.add(f.getName());
+					Collections.sort(variantNames);
 				}
 
 				CSVReader csvR = new CSVReader(new FileReader(statFile));
@@ -189,8 +183,6 @@ public class CompVariant extends Indicators {
 
 				for (String[] l : csvR.readAll()) {
 					String insee = l[2];
-					// System.out.println(insee + ",");
-					// System.out.println(insee + "," + String.valueOf(nbVariant) + ",");
 					if (insee.equals("AllZone") || insee.equals("ALLLL")) {
 						csvWGen.writeNext(l);
 					} else {
@@ -202,6 +194,7 @@ public class CompVariant extends Indicators {
 		}
 		csvWGen.close();
 		csvWCity.close();
+		Collections.sort(variantNames);
 		genCoeffVar(nameGen, nameCity, getIndicFolder());
 	}
 
@@ -328,35 +321,34 @@ public class CompVariant extends Indicators {
 	}
 
 	public void createGraphBHT(File distrib, File graphDepot) throws IOException {
-		System.out.println("distr ib " + distrib);
-		makeGraph(distrib, graphDepot, "Nombre de bâtiments simulés dans une commune de type rurale", "nameVariant", "Variante ", "nbBuild_rural",
+		makeGraph(distrib, graphDepot, "Bâtiments dans une commune rurale", "nameVariant", "Variante ", "nbBuild_rural",
 				"Nombre de bâtiments simulés");
-		makeGraph(distrib, graphDepot, "Nombre de bâtiments simulés dans une commune de type péri-urbain", "nameVariant", "Variante ",
+		makeGraph(distrib, graphDepot, "Bâtiments dans une commune périurbaine", "nameVariant", "Variante ",
 				"nbBuild_periUrbain", "Nombre de bâtiments simulés");
-		makeGraph(distrib, graphDepot, "Nombre de bâtiments simulés dans un quartier de type banlieue", "nameVariant", "Variante ",
+		makeGraph(distrib, graphDepot, "Bâtiments dans un quartier de banlieue", "nameVariant", "Variante ",
 				"nbBuild_banlieue", "nombre de bâtiments simulés");
-		makeGraph(distrib, graphDepot, "Nombre de bâtiments simulés dans un quartier de type centre", "nameVariant", "Variante ", "nbBuild_centre",
+		makeGraph(distrib, graphDepot, "Bâtiments dans un quartier du centre-ville", "nameVariant", "Variante ", "nbBuild_centre",
 				"Nombre de bâtiments simulés");
-		makeGraph(distrib, graphDepot, "Nombre de bâtiments simulés dans une zone non constructible (NC)", "nameVariant", "Variante ", "nbBuild_NC",
+		makeGraph(distrib, graphDepot, "Bâtiments dans une zone non constructible (NC)", "nameVariant", "Variante ", "nbBuild_NC",
 				"Nombre de bâtiments simulés");
-		makeGraph(distrib, graphDepot, "Nombre de bâtiments simulés dans une zone à urbaniser (AU)", "nameVariant", "Variante ", "nbBuild_AU",
+		makeGraph(distrib, graphDepot, "Bâtiments dans une zone à urbaniser (AU)", "nameVariant", "Variante ", "nbBuild_AU",
 				"Nombre de bâtiments simulés");
-		makeGraph(distrib, graphDepot, "Nombre de bâtiments simulés dans une zone urbanisable (U)", "nameVariant", "Variante ", "nbBuild_U",
+		makeGraph(distrib, graphDepot, "Bâtiments dans une zone urbanisable (U)", "nameVariant", "Variante ", "nbBuild_U",
 				"Nombre de bâtiments simulés");
-		makeGraph(distrib, graphDepot, "Nombre de bâtiments simulés de type maison isolée", "nameVariant", "Variante ", "nbBuild_detachedHouse",
+		makeGraph(distrib, graphDepot, "Bâtiments de type maison isolée", "nameVariant", "Variante ", "nbBuild_detachedHouse",
 				"Nombre de bâtiments simulés");
-		makeGraph(distrib, graphDepot, "Nombre de bâtiments simulés de type pavillon de lotissement", "nameVariant", "Variante ",
-				"nbBuild_smallHouse", "Nombre de bâtiments simulés");
-		makeGraph(distrib, graphDepot, "Nombre de bâtiments simulés de type immeuble d'habitat intermédiaire", "nameVariant", "Variante ",
+		makeGraph(distrib, graphDepot, "Bâtiments de type pavillon de lotissement", "nameVariant", "Variante ",
+				"nbBuild_smallHouse", "Bâtiments simulés");
+		makeGraph(distrib, graphDepot, "Bâtiments de type immeuble d'habitat intermédiaire", "nameVariant", "Variante ",
 				"nbBuild_multiFamilyHouse", "Nombre de bâtiments simulés");
-		makeGraph(distrib, graphDepot, "Nombre de bâtiments simulés de type petit immeuble collectif", "nameVariant", "Variante ",
+		makeGraph(distrib, graphDepot, "Bâtiments de type petit immeuble collectif", "nameVariant", "Variante ",
 				"nbBuild_smallBlockFlat", "Nombre de bâtiments simulés");
-		makeGraph(distrib, graphDepot, "Nombre de bâtiments simulés de type immeuble collectif de taille moyenne", "nameVariant", "Variante ",
+		makeGraph(distrib, graphDepot, "Bâtiments de type immeuble collectif de taille moyenne", "nameVariant", "Variante ",
 				"nbBuild_midBlockFlat", "Nombre de bâtiments simulés");
 		makeGraph(distrib, graphDepot, "Nombre de bâtiments simulés par variante", "nameVariant", "Variante ", "nb_building",
 				"Nombre de bâtiments simulés");
 		makeGraph(distrib, graphDepot, "Nombre de logements simulés par variante", "nameVariant", "Variante ", "nb_housingUnit",
-				"Nombre de logements simulés", 700, 420);
+				"Nombre de logements simulés", 650, 400);
 	}
 
 	public void createGraphParcelStat(File distrib) throws IOException {
@@ -365,40 +357,58 @@ public class CompVariant extends Indicators {
 
 	public void createGraphParcelStat(File distrib, File graphDepot) throws IOException {
 		System.out.println("distr ib " + distrib);
-		makeGraph(distrib, graphDepot, "Parcelles simulées dans une commune de type rurale", "nameVariant", "Variante ", "nbParcelSimulatedRural",
+		System.out.println(variantNames);
+Collections.sort(variantNames);
+		makeGraph(distrib, graphDepot, "Parcelles dans les communes rurales", "nameVariant", "Variante ", "nbParcelSimulatedRural",
 				"Nombre de parcelles simulés");
-		makeGraph(distrib, graphDepot, "Parcelles simulées dans une commune de type péri-urbain", "nameVariant", "Variante ",
+		makeGraph(distrib, graphDepot, "Parcelles dans les communes périurbaines", "nameVariant", "Variante ",
 				"nbParcelSimulatedPeriUrb", "Nombre de parcelles simulés");
-		makeGraph(distrib, graphDepot, "Parcelles simulées dans un quartier de type banlieue", "nameVariant", "Variante ",
+		makeGraph(distrib, graphDepot, "Parcelles dans les quartiers de banlieue", "nameVariant", "Variante ",
 				"nbParcelSimulatedBanlieue", "nombre de parcelles simulés");
-		makeGraph(distrib, graphDepot, "Parcelles simulées dans un quartier de type centre", "nameVariant", "Variante ", "nbParcelSimulatedCentre",
+		makeGraph(distrib, graphDepot, "Parcelles dans les quartiers du centre", "nameVariant", "Variante ", "nbParcelSimulatedCentre",
 				"Nombre de parcelles simulés");
-		makeGraph(distrib, graphDepot, "Parcelles simulées dans une zone à urbaniser (AU)", "nameVariant", "Variante ", "nbParcelSimulatedAU",
+		makeGraph(distrib, graphDepot, "Parcelles dans les zones à urbaniser (AU)", "nameVariant", "Variante ", "nbParcelSimulatedAU",
 				"parcelles simulés");
-		makeGraph(distrib, graphDepot, "Parcelles simulées dans une zone urbanisable (U)", "nameVariant", "Variante ", "nbParcelSimulatedU",
+		makeGraph(distrib, graphDepot, "Parcelles dans les zones urbanisable (U)", "nameVariant", "Variante ", "nbParcelSimulatedU",
 				"Nombre de parcelles simulés");
 
-		makeGraph(distrib, graphDepot, "Parcelles non simulées pour les commune de type rurale", "nameVariant", "Variante ",
+		makeGraph(distrib, graphDepot, "Parcelles non simulées pour les communes rurales", "nameVariant", "Variante ",
 				"nbParcelSimulFailedRural", "Nombre de parcelles simulés");
-		makeGraph(distrib, graphDepot, "Parcelles non simulées pour les commune de type péri-urbain", "nameVariant", "Variante ",
+		makeGraph(distrib, graphDepot, "Parcelles non simulées pour les communes périurbaines", "nameVariant", "Variante ",
 				"nbParcelSimulFailedPeriUrb", "Nombre de parcelles simulés");
-		makeGraph(distrib, graphDepot, "Parcelles non simulées pour les quartier de type banlieue", "nameVariant", "Variante ",
+		makeGraph(distrib, graphDepot, "Parcelles non simulées pour les quartiers de banlieue", "nameVariant", "Variante ",
 				"nbParcelSimulFailedBanlieue", "nombre de parcelles simulés");
-		makeGraph(distrib, graphDepot, "Parcelles non simulées pour les quartier de type centre", "nameVariant", "Variante ",
+		makeGraph(distrib, graphDepot, "Parcelles non simulées pour les quartiers de centre-ville", "nameVariant", "Variante ",
 				"nbParcelSimulFailedCentre", "Nombre de parcelles simulés");
-		makeGraph(distrib, graphDepot, "Parcelles non simulées pour les zone à urbaniser (AU)", "nameVariant", "Variante ", "nbParcelSimulFailedAU",
+		makeGraph(distrib, graphDepot, "Parcelles non simulées pour les zones à urbaniser (AU)", "nameVariant", "Variante ", "nbParcelSimulFailedAU",
 				"Nombre de parcelles simulés");
-		makeGraph(distrib, graphDepot, "Parcelles non simulées pour les zone urbanisable (U)", "nameVariant", "Variante ", "nbParcelSimulFailedU",
+		makeGraph(distrib, graphDepot, "Parcelles non simulées pour les zones urbanisables (U)", "nameVariant", "Variante ", "nbParcelSimulFailedU",
 				"Nombre de parcelles simulés");
+		
+		
+		makeGraph(distrib, graphDepot, "Surface non simulée dans les communes rurales", "nameVariant", "Variante ",
+				"surfParcelSimulFailedRural", "Surface de parcelles simulés");
+		makeGraph(distrib, graphDepot, "Surface non simulée dans les communes périurbaines", "nameVariant", "Variante ",
+				"surfParcelSimulFailedPeriUrb", "Surface de parcelles simulés");
+		makeGraph(distrib, graphDepot, "Surface non simulée dans les quartiers de banlieue", "nameVariant", "Variante ",
+				"surfParcelSimulFailedBanlieue", "Surface de parcelles simulés");
+		makeGraph(distrib, graphDepot, "Surface non simulée dans les quartiers de centre-ville", "nameVariant", "Variante ",
+				"surfParcelSimulFailedCentre", "Surface de parcelles simulés");
+		makeGraph(distrib, graphDepot, "Surface non simulée dans les zones à urbaniser (AU)", "nameVariant", "Variante ", "surfParcelSimulFailedAU",
+				"Nombre de parcelles simulés");
+		makeGraph(distrib, graphDepot, "Surface non simulée dans les zones urbanisables (U)", "nameVariant", "Variante ", "surfParcelSimulFailedU",
+				"Nombre de parcelles simulés");
+		
+		
 
 		makeGraph(distrib, graphDepot, "Nombre de parcelles simulées par variante", "nameVariant", "Variante ", "nb_parcel_simulated",
 				"Nombre de parcelles simulés");
 		makeGraph(distrib, graphDepot, "Parcelles non simulées par variante", "nameVariant", "Variante ", "nb_parcel_simu_failed",
-				"Nombre de logements simulés", 700, 420);
+				"Nombre de logements simulés", 500, 420);
 	}
 
 	public static void makeGraph(File csv, File graphDepotFile, String title, String x, String xTitle, String y, String yTitle) throws IOException {
-		makeGraph(csv, graphDepotFile, title, x, xTitle, y, yTitle, 600, 475);
+		makeGraph(csv, graphDepotFile, title, x, xTitle, y, yTitle, 520, 475);
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -418,6 +428,7 @@ public class CompVariant extends Indicators {
 		chart.addSeries(yTitle, goodNames, (List) csvData.getYData());
 		// Customize Chart
 		chart.getStyler().setLegendVisible(false);
+		chart.getStyler().setXAxisLabelRotation(30);
 		chart.getStyler().setHasAnnotations(true);
 
 		BitmapEncoder.saveBitmap(chart, graphDepotFile + "/" + y, BitmapFormat.PNG);

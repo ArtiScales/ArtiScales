@@ -11,7 +11,7 @@ import fr.ign.cogit.map.MapRenderer;
 
 public class ParcelleDensHUpHec extends MapRenderer {
 	static String nameMap = "ParcelleDensHUpHec";
-	static String text = "Densité de logement par hectare pour chaque parcelle";
+	static String text = "Densité de logements par hectare pour chaque parcelle";
 
 	public ParcelleDensHUpHec(int imageWidth, int imageHeight, File mapStyleFolder, File featureFile, File outFolder)
 			throws MalformedURLException, NoSuchAuthorityCodeException, IOException, FactoryException {
@@ -19,9 +19,9 @@ public class ParcelleDensHUpHec extends MapRenderer {
 	}
 
 	public static void main(String[] args) throws MalformedURLException, NoSuchAuthorityCodeException, IOException, FactoryException {
-		File rootMapStyle = new File("/home/ubuntu/boulot/these/result0308/mapStyle/");
+		File rootMapStyle = new File("/home/ubuntu/boulot/these/result2903/mapStyle/");
 		MapRenderer mpR = new ParcelleDensHUpHec(1000, 1000, rootMapStyle,
-				new File("/home/ubuntu/boulot/these/result0308/indic/bTH/DDense/variante0/commStat.shp"), new File(rootMapStyle, "out/"));
+				new File("/home/ubuntu/boulot/these/result2903/indic/bTH/CDense/base/parcStat.shp"), new File(rootMapStyle, "out/"));
 		mpR.renderCityInfo();
 		mpR.generateSVG();
 	}
