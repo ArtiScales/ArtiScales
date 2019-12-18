@@ -76,6 +76,7 @@ public class MainTask {
 				}
 				mupCityOutput.add(listVariant);
 			}
+
 		}
 		// if MUP-City simulations has already been calculated
 		else {

@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>fr.ign.cogit</groupId>
 	<artifactId>ArtiScales</artifactId>
-	<version>0.2-SNAPSHOT</version>
+	<version>0.3-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<properties>
@@ -68,8 +68,8 @@
 					</includes>
 					<excludes>
  						<exclude>**/MupCitySimulation.java</exclude>
-<!--  					    <exclude>**/indicators/*.java</exclude> -->
-<!--  					    <exclude>**/compVariant/*.java</exclude> -->
+<!--  					    	<exclude>**/indicators/*.java</exclude> -->
+<!--  					    	<exclude>**/compVariant/*.java</exclude> -->
 					    <exclude>**/MainTask.java</exclude>
 					</excludes>
 				</configuration>
@@ -147,9 +147,8 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		
-<!--
-<dependency>
+		<!--
+		<dependency>
 			<groupId>fr.ign</groupId>
 			<artifactId>mupcity-openMole</artifactId>
 			<version>${mupcity-openMole.version}</version>
@@ -159,9 +158,13 @@
 					<artifactId>jts-core</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency> -->
+		<dependency>
+			<groupId>net.sf.opencsv</groupId>
+			<artifactId>opencsv</artifactId>
+			<version>2.3</version>
 		</dependency>
--->
-<dependency>
+		<dependency>
 			<groupId>net.sf.opencsv</groupId>
 			<artifactId>opencsv</artifactId>
 			<version>2.3</version>
@@ -198,14 +201,14 @@
 			<name>ThéMA libs Repository</name>
 			<url>http://themalibs.sourceforge.net/repository/</url>
 		</repository>
-        <repository>
-        	<id>geosolutions</id>
-        	<url>http://maven.geo-solutions.it/</url>
-        </repository>
      <repository>
 		<id>mupcity</id>
             <name>ThéMA libs Repository</name>
             <url>http://sourcesup.renater.fr/nexus/content/repositories/mupcity-releases/</url>
+        </repository>
+        <repository>
+        	<id>geosolutions</id>
+        	<url>http://maven.geo-solutions.it/</url>
         </repository>
 	</repositories>
     <developers>

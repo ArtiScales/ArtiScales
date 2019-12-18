@@ -27,14 +27,10 @@ import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.map.MapRenderer;
 import fr.ign.cogit.map.theseMC.SurfParcelFailedMap;
 import fr.ign.cogit.map.theseMC.SurfParcelSimulatedMap;
-import fr.ign.cogit.parcelFunction.ParcelGetter;
 import fr.ign.cogit.parcelFunction.ParcelAttribute;
-import fr.ign.cogit.parcelFunction.ParcelCollection;
 import fr.ign.cogit.parcelFunction.ParcelGetter;
 import fr.ign.cogit.parcelFunction.ParcelSchema;
 import fr.ign.cogit.parcelFunction.ParcelState;
-
-
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.cogit.util.FromGeom;
 import fr.ign.cogit.util.SimuTool;

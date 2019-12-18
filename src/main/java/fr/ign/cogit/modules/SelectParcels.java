@@ -144,9 +144,11 @@ public class SelectParcels {
 		System.out.println("for the " + zip + " city");
 		System.out.println();
 		if (listSpecificParcel != null && listSpecificParcel.exists()) {
-			parcelFile = ParcelGetter.getParcels(FromGeom.getBuild(geoFile),FromGeom.getZoning(regulFile),FromGeom.getParcel(geoFile) , tmpFile, zip, listSpecificParcel, p.getBoolean("preCutParcels"));
+			parcelFile = ParcelGetter.getParcels(FromGeom.getBuild(geoFile), FromGeom.getZoning(regulFile), FromGeom.getParcel(geoFile), tmpFile, zip,
+					listSpecificParcel, p.getBoolean("preCutParcels"));
 		} else {
-			parcelFile = ParcelGetter.getParcels(FromGeom.getBuild(geoFile),FromGeom.getZoning(regulFile),FromGeom.getParcel(geoFile), tmpFile, zip, p.getBoolean("preCutParcels"));
+			parcelFile = ParcelGetter.getParcels(FromGeom.getBuild(geoFile), FromGeom.getZoning(regulFile), FromGeom.getParcel(geoFile), tmpFile, zip,
+					p.getBoolean("preCutParcels"));
 		}
 		ShapefileDataStore shpDSparcel = new ShapefileDataStore((parcelFile).toURI().toURL());
 		SimpleFeatureCollection parcelCollection = DataUtilities.collection(shpDSparcel.getFeatureSource().getFeatures());
@@ -211,8 +213,8 @@ public class SelectParcels {
 			if (!splitZone.contains("-")) {
 				System.out.println();
 				System.out.println("///// We start the splitTotRecomp process\\\\\\");
-				parcelCollection = ApplyParcelManager.setRecompositionProcesssus(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP, rootFile,
-						geoFile, regulFile, p, "totRecomp", true);
+				parcelCollection = ApplyParcelManager.setRecompositionProcesssus(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP,
+						rootFile, geoFile, regulFile, p, "totRecomp", true);
 				Vectors.exportSFC(parcelCollection, new File(tmpFile, "afterSplitTotRecomp"));
 			} else {
 				System.err.println("splitParcel : complex section non implemented yet");
@@ -223,8 +225,8 @@ public class SelectParcels {
 			if (!splitZone.contains("-")) {
 				System.out.println();
 				System.out.println("///// We start the splitPartRecomp process\\\\\\");
-				parcelCollection = ApplyParcelManager.setRecompositionProcesssus(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP, rootFile,
-						geoFile, regulFile, p, "partRecomp", true);
+				parcelCollection = ApplyParcelManager.setRecompositionProcesssus(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP,
+						rootFile, geoFile, regulFile, p, "partRecomp", true);
 				Vectors.exportSFC(parcelCollection, new File(tmpFile, "aftersplitPartRecomp"));
 			} else {
 				System.err.println("splitParcel : complex section non implemented yet");
