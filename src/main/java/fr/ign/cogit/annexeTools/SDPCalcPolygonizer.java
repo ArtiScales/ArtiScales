@@ -6,13 +6,13 @@ import java.util.Collections;
 import java.util.List;
 
 import org.geotools.feature.SchemaException;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.geom.PrecisionModel;
+import org.locationtech.jts.precision.GeometryPrecisionReducer;
 
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.geom.Polygon;
-import com.vividsolutions.jts.geom.PrecisionModel;
-import com.vividsolutions.jts.precision.GeometryPrecisionReducer;
-
+import fr.ign.cogit.FeaturePolygonizer;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.impl.AbstractSimpleBuilding;
 import fr.ign.cogit.simplu3d.rjmcmc.cuboid.geometry.loader.LoaderCuboid;
 import fr.ign.cogit.simplu3d.util.CuboidGroupCreation;
@@ -98,7 +98,6 @@ public class SDPCalcPolygonizer {
 			sdp += sdpGroup(g, true);
 		return sdp;
 	}
-
 
 	public double processSurface(String shape) {
 		return process(LoaderCuboid.loadFromShapeFile(shape));

@@ -16,18 +16,17 @@ import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.referencing.CRS;
+import org.locationtech.jts.geom.Polygon;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
-import com.vividsolutions.jts.geom.Polygon;
-
 import au.com.bytecode.opencsv.CSVReader;
 import fr.ign.cogit.GTFunctions.Vectors;
+import fr.ign.cogit.parcelFunction.ParcelGetter;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.cogit.util.FromGeom;
-import fr.ign.cogit.util.ParcelFonction;
 import fr.ign.cogit.util.SimuTool;
 
 public abstract class Indicators {
@@ -97,7 +96,7 @@ public abstract class Indicators {
 
 			// sorting of the parcels
 			File parcelSorted = new File(indicFile, "ParcelSorted.shp");
-			ParcelFonction.getParcelByZip((new File(rootFile, "ParcelSelectionDepot/" + scenarName + "/" + variantName + "/parcelGenExport.shp")),
+			ParcelGetter.getParcelByZip((new File(rootFile, "ParcelSelectionDepot/" + scenarName + "/" + variantName + "/parcelGenExport.shp")),
 					specificCities, parcelSorted);
 			this.setParcelDepotGenFile(parcelSorted);
 

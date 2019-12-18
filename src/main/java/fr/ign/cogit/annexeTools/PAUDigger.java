@@ -15,13 +15,17 @@ import org.geotools.data.shapefile.ShapefileDataStoreFactory;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.factory.CommonFactoryFinder;
-import org.geotools.factory.GeoTools;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.SchemaException;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
+import org.geotools.util.factory.GeoTools;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.MultiLineString;
+import org.locationtech.jts.geom.MultiPolygon;
+import org.locationtech.jts.geom.Polygon;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
@@ -32,14 +36,9 @@ import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.MultiLineString;
-import com.vividsolutions.jts.geom.MultiPolygon;
-import com.vividsolutions.jts.geom.Polygon;
-
+import algorithm.ParcelConsolidRecomp;
+import fr.ign.cogit.FeaturePolygonizer;
 import fr.ign.cogit.GTFunctions.Vectors;
-import fr.ign.cogit.geoxygene.spatial.coordgeom.DirectPosition;
-import fr.ign.cogit.util.ParcelFonction;
 
 public class PAUDigger {
 	// cut cluster polygons with limits
@@ -71,7 +70,6 @@ public class PAUDigger {
 	}
 
 	public static File createPAU() throws Exception {
-		DirectPosition.PRECISION = 4;
 
 		File tmpFile = new File("/tmp/");
 		File rootFile = new File("/home/ubuntu/boulot/these/newZoning/");
@@ -129,7 +127,8 @@ public class PAUDigger {
 		SimpleFeatureCollection parcelSFC = parcelSDS.getFeatureSource().getFeatures();
 		SimpleFeatureCollection parcelPreSelected = parcelSFC.subCollection(filCluster).subCollection(filMorpho);
 
-		SimpleFeatureCollection parcelSplitted = ParcelFonction.generateSplitedParcels(parcelPreSelected, tmpFile, 2000.0, 7, 0, null, 99, 15, false);
+		// TODO mark all (anf
+		SimpleFeatureCollection parcelSplitted = ParcelConsolidRecomp.parcelConsolidRecomp(parcelPreSelected, tmpFile, 2000.0, 500, 7, 99, 99);
 
 		SimpleFeatureCollection out = makeEnvelopePAU(parcelSplitted.subCollection(filNU).subCollection(filMorpho).subCollection(filCluster),
 				communitiesFile);

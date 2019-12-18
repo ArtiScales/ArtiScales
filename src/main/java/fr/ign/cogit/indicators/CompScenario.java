@@ -23,6 +23,12 @@ import au.com.bytecode.opencsv.CSVWriter;
 import fr.ign.cogit.map.MapRenderer;
 import fr.ign.cogit.map.theseMC.compVariant.CVNbBat;
 
+import fr.ign.cogit.parcelFunction.ParcelAttribute;
+import fr.ign.cogit.parcelFunction.ParcelCollection;
+import fr.ign.cogit.parcelFunction.ParcelGetter;
+import fr.ign.cogit.parcelFunction.ParcelState;
+import fr.ign.cogit.parcelFunction.ParcelSchema;
+
 public class CompScenario extends Indicators {
 	String[] baseScenario;
 	String indicStatFile;
@@ -201,19 +207,19 @@ public class CompScenario extends Indicators {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static void makeGraph(File csv, File graphDepotFile, String title, String x, String xTitle, String y, String yTitle) throws IOException {
-
-		// SeriesData csvDaa = CSVImporter.getSeriesDataFromCSVFile(csv, DataOrientation.Columns, x, y);
-		CategorySeries csvData = CSVImporter.getCategorySeriesFromCSVFile(csv, x, y, yTitle + "-" + xTitle, DataType.String);
-		// Create Chart
-		CategoryChart chart = new CategoryChartBuilder().width(800).height(600).title(title).xAxisTitle(xTitle).yAxisTitle(yTitle).build();
-		// chart.addSeries(yTitle, csvDaa.getxAxisData(), csvDaa.getyAxisData());
-
-		chart.addSeries(yTitle, (List) csvData.getXData(), (List) csvData.getYData());
-		// Customize Chart
-		chart.getStyler().setLegendVisible(false);
-		chart.getStyler().setHasAnnotations(true);
-
-		BitmapEncoder.saveBitmap(chart, graphDepotFile + "/" + y, BitmapFormat.PNG);
+// TODO push changes to XCharts
+//		// SeriesData csvDaa = CSVImporter.getSeriesDataFromCSVFile(csv, DataOrientation.Columns, x, y);
+//		CategorySeries csvData = CSVImporter.getCategorySeriesFromCSVFile(csv, x, y, yTitle + "-" + xTitle, DataType.String);
+//		// Create Chart
+//		CategoryChart chart = new CategoryChartBuilder().width(800).height(600).title(title).xAxisTitle(xTitle).yAxisTitle(yTitle).build();
+//		// chart.addSeries(yTitle, csvDaa.getxAxisData(), csvDaa.getyAxisData());
+//
+//		chart.addSeries(yTitle, (List) csvData.getXData(), (List) csvData.getYData());
+//		// Customize Chart
+//		chart.getStyler().setLegendVisible(false);
+//		chart.getStyler().setHasAnnotations(true);
+//
+//		BitmapEncoder.saveBitmap(chart, graphDepotFile + "/" + y, BitmapFormat.PNG);
 
 		// new SwingWrapper(chart).displayChart();
 	}

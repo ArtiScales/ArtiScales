@@ -12,8 +12,8 @@ import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.factory.CommonFactoryFinder;
-import org.geotools.factory.GeoTools;
 import org.geotools.feature.DefaultFeatureCollection;
+import org.geotools.util.factory.GeoTools;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory2;
@@ -21,11 +21,14 @@ import org.opengis.filter.FilterFactory2;
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
 import fr.ign.cogit.GTFunctions.Vectors;
+import fr.ign.cogit.parcelFunction.ParcelCollection;
+import fr.ign.cogit.parcelFunction.ParcelGetter;
+import fr.ign.cogit.parcelFunction.ParcelState;
 import fr.ign.cogit.simplu3d.util.SimpluParameters;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
+import fr.ign.cogit.util.ApplyParcelManager;
 import fr.ign.cogit.util.DataPreparator;
 import fr.ign.cogit.util.FromGeom;
-import fr.ign.cogit.util.ParcelFonction;
 import fr.ign.cogit.util.SimuTool;
 
 public class SelectParcels {
@@ -141,9 +144,9 @@ public class SelectParcels {
 		System.out.println("for the " + zip + " city");
 		System.out.println();
 		if (listSpecificParcel != null && listSpecificParcel.exists()) {
-			parcelFile = ParcelFonction.getParcels(geoFile, regulFile, tmpFile, zip, listSpecificParcel, p.getBoolean("preCutParcels"));
+			parcelFile = ParcelGetter.getParcels(FromGeom.getBuild(geoFile),FromGeom.getZoning(regulFile),FromGeom.getParcel(geoFile) , tmpFile, zip, listSpecificParcel, p.getBoolean("preCutParcels"));
 		} else {
-			parcelFile = ParcelFonction.getParcels(geoFile, regulFile, tmpFile, zip, p.getBoolean("preCutParcels"));
+			parcelFile = ParcelGetter.getParcels(FromGeom.getBuild(geoFile),FromGeom.getZoning(regulFile),FromGeom.getParcel(geoFile), tmpFile, zip, p.getBoolean("preCutParcels"));
 		}
 		ShapefileDataStore shpDSparcel = new ShapefileDataStore((parcelFile).toURI().toURL());
 		SimpleFeatureCollection parcelCollection = DataUtilities.collection(shpDSparcel.getFeatureSource().getFeatures());
@@ -194,7 +197,7 @@ public class SelectParcels {
 				if (!splitZone.contains("-")) {
 					System.out.println();
 					System.out.println("///// We start the densification process\\\\\\");
-					parcelCollection = ParcelFonction.setRecompositionProcesssus(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP,
+					parcelCollection = ApplyParcelManager.setRecompositionProcesssus(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP,
 							rootFile, geoFile, regulFile, p, "densification", true);
 					Vectors.exportSFC(parcelCollection, new File(tmpFile, "afterDensification"));
 				} else {
@@ -208,7 +211,7 @@ public class SelectParcels {
 			if (!splitZone.contains("-")) {
 				System.out.println();
 				System.out.println("///// We start the splitTotRecomp process\\\\\\");
-				parcelCollection = ParcelFonction.setRecompositionProcesssus(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP, rootFile,
+				parcelCollection = ApplyParcelManager.setRecompositionProcesssus(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP, rootFile,
 						geoFile, regulFile, p, "totRecomp", true);
 				Vectors.exportSFC(parcelCollection, new File(tmpFile, "afterSplitTotRecomp"));
 			} else {
@@ -220,7 +223,7 @@ public class SelectParcels {
 			if (!splitZone.contains("-")) {
 				System.out.println();
 				System.out.println("///// We start the splitPartRecomp process\\\\\\");
-				parcelCollection = ParcelFonction.setRecompositionProcesssus(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP, rootFile,
+				parcelCollection = ApplyParcelManager.setRecompositionProcesssus(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP, rootFile,
 						geoFile, regulFile, p, "partRecomp", true);
 				Vectors.exportSFC(parcelCollection, new File(tmpFile, "aftersplitPartRecomp"));
 			} else {
@@ -229,9 +232,9 @@ public class SelectParcels {
 		}
 
 		// if there's been a bug and a parcel is missing
-		ShapefileDataStore shpDSparcel2 = new ShapefileDataStore(FromGeom.getParcels(geoFile).toURI().toURL());
+		ShapefileDataStore shpDSparcel2 = new ShapefileDataStore(FromGeom.getParcel(geoFile).toURI().toURL());
 		SimpleFeatureCollection parcelOriginal = shpDSparcel2.getFeatureSource().getFeatures();
-		parcelCollection = ParcelFonction.completeParcelMissingWithOriginal(parcelCollection, parcelOriginal);
+		parcelCollection = ParcelCollection.completeParcelMissingWithOriginal(parcelCollection, parcelOriginal);
 		shpDSparcel2.dispose();
 
 		// if used in the normal case, we append the newly generated file onto parcelGenExport
@@ -329,9 +332,9 @@ public class SelectParcels {
 				SimpleFeature parcel = parcelIt.next();
 				if ((boolean) parcel.getAttribute("U")) {
 					if ((boolean) parcel.getAttribute("IsBuild")) {
-						if (ParcelFonction.isParcelInCell(parcel, cellsSFS)) {
+						if (ParcelState.isParcelInCell(parcel, cellsSFS)) {
 							parcel.setAttribute("DoWeSimul", "true");
-							parcel.setAttribute("eval", ParcelFonction.getEvalInParcel(parcel, spatialConfigurationMUP));
+							parcel.setAttribute("eval", ParcelState.getEvalInParcel(parcel, spatialConfigurationMUP));
 						} else {
 							parcel.setAttribute("DoWeSimul", "false");
 						}
@@ -367,9 +370,9 @@ public class SelectParcels {
 				SimpleFeature parcel = parcelIt.next();
 				if ((boolean) parcel.getAttribute("U")) {
 					if (!(boolean) parcel.getAttribute("IsBuild")) {
-						if (ParcelFonction.isParcelInCell(parcel, cellsSFS)) {
+						if (ParcelState.isParcelInCell(parcel, cellsSFS)) {
 							parcel.setAttribute("DoWeSimul", "true");
-							parcel.setAttribute("eval", ParcelFonction.getEvalInParcel(parcel, spatialConfigurationMUP));
+							parcel.setAttribute("eval", ParcelState.getEvalInParcel(parcel, spatialConfigurationMUP));
 						} else {
 							parcel.setAttribute("DoWeSimul", "false");
 						}
@@ -398,9 +401,9 @@ public class SelectParcels {
 			while (parcelIt.hasNext()) {
 				SimpleFeature parcel = parcelIt.next();
 				if ((boolean) parcel.getAttribute("AU")) {
-					if (ParcelFonction.isParcelInCell(parcel, cellsSFS)) {
+					if (ParcelState.isParcelInCell(parcel, cellsSFS)) {
 						parcel.setAttribute("DoWeSimul", "true");
-						parcel.setAttribute("eval", ParcelFonction.getEvalInParcel(parcel, spatialConfigurationMUP));
+						parcel.setAttribute("eval", ParcelState.getEvalInParcel(parcel, spatialConfigurationMUP));
 					} else {
 						parcel.setAttribute("DoWeSimul", "false");
 
@@ -436,9 +439,9 @@ public class SelectParcels {
 			while (parcelIt.hasNext()) {
 				SimpleFeature parcel = parcelIt.next();
 				if ((boolean) parcel.getAttribute("NC")) {
-					if (ParcelFonction.isParcelInCell(parcel, cellsSFS)) {
+					if (ParcelState.isParcelInCell(parcel, cellsSFS)) {
 						parcel.setAttribute("DoWeSimul", "true");
-						parcel.setAttribute("eval", ParcelFonction.getEvalInParcel(parcel, spatialConfigurationMUP));
+						parcel.setAttribute("eval", ParcelState.getEvalInParcel(parcel, spatialConfigurationMUP));
 					} else {
 						parcel.setAttribute("DoWeSimul", "false");
 					}
@@ -473,9 +476,9 @@ public class SelectParcels {
 			while (parcelIt.hasNext()) {
 				SimpleFeature parcel = parcelIt.next();
 
-				if (ParcelFonction.isParcelInCell(parcel, cellsSFS)) {
+				if (ParcelState.isParcelInCell(parcel, cellsSFS)) {
 					parcel.setAttribute("DoWeSimul", "true");
-					parcel.setAttribute("eval", ParcelFonction.getEvalInParcel(parcel, spatialConfigurationMUP));
+					parcel.setAttribute("eval", ParcelState.getEvalInParcel(parcel, spatialConfigurationMUP));
 				} else {
 					parcel.setAttribute("DoWeSimul", "false");
 				}
@@ -512,9 +515,9 @@ public class SelectParcels {
 			while (parcelIt.hasNext()) {
 				SimpleFeature parcel = parcelIt.next();
 				if ((boolean) parcel.getAttribute("U") || (boolean) parcel.getAttribute("AU")) {
-					if (ParcelFonction.isParcelInCell(parcel, cellsSFS)) {
+					if (ParcelState.isParcelInCell(parcel, cellsSFS)) {
 						parcel.setAttribute("DoWeSimul", "true");
-						parcel.setAttribute("eval", ParcelFonction.getEvalInParcel(parcel, spatialConfigurationMUP));
+						parcel.setAttribute("eval", ParcelState.getEvalInParcel(parcel, spatialConfigurationMUP));
 					} else {
 						parcel.setAttribute("DoWeSimul", "false");
 					}
@@ -625,7 +628,7 @@ public class SelectParcels {
 
 				Filter filterCity = ff.like(ff.property("INSEE"), pack.getName());
 
-				File parcelFile = FromGeom.getParcels(geoFile);
+				File parcelFile = FromGeom.getParcel(geoFile);
 
 				Vectors.exportSFC(parcelCollec.subCollection(filterCity), parcelFile);
 
