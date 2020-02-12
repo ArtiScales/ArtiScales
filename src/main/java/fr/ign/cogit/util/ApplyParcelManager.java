@@ -9,9 +9,6 @@ import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.feature.DefaultFeatureCollection;
 
-import algorithm.ParcelConsolidRecomp;
-import algorithm.ParcelDensification;
-import algorithm.ParcelTotRecomp;
 import fields.ArtiScalesFields;
 import fields.AttributeFromPosition;
 import fr.ign.cogit.GTFunctions.Vectors;
@@ -22,6 +19,9 @@ import fr.ign.cogit.parcelFunction.ParcelState;
 import fr.ign.cogit.rules.regulation.buildingType.BuildingType;
 import fr.ign.cogit.rules.regulation.buildingType.RepartitionBuildingType;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
+import goal.ParcelConsolidRecomp;
+import goal.ParcelDensification;
+import goal.ParcelTotRecomp;
 
 public class ApplyParcelManager {
 	public static boolean DEBUG = false;
@@ -230,7 +230,7 @@ public class ApplyParcelManager {
 			ShapefileDataStore shpDSIlot = new ShapefileDataStore(FromGeom.getIlots(geoFile).toURI().toURL());
 			SimpleFeatureCollection ilot = shpDSIlot.getFeatureSource().getFeatures();
 
-			SimpleFeatureCollection parcMUPMarked = AttributeFromPosition.markParcelIntersectMUPOutput(bigZonedParcel, mupOutput);
+			SimpleFeatureCollection parcMUPMarked = AttributeFromPosition.markParcelIntersectPolygonIntersection(bigZonedParcel, mupOutput);
 			SimpleFeatureCollection toDensify = AttributeFromPosition.markParcelIntersectZoningType(parcMUPMarked, splitZone, zoningFile);
 			SimpleFeatureCollection salut = ParcelDensification.parcelDensification(toDensify, ilot, tmpFolder, buildingFile, maximalArea,
 					minimalArea, maximalWidth, lenDriveway, ParcelState.isArt3AllowsIsolatedParcel(parcMUPMarked.features().next(), predicateFile));
@@ -241,7 +241,7 @@ public class ApplyParcelManager {
 			shpDSIlot.dispose();
 			return densifyedParcel;
 		case "partRecomp":
-			SimpleFeatureCollection testmp = AttributeFromPosition.markParcelIntersectMUPOutput(bigZonedParcel, mupOutput);
+			SimpleFeatureCollection testmp = AttributeFromPosition.markParcelIntersectPolygonIntersection(bigZonedParcel, mupOutput);
 			SimpleFeatureCollection test = AttributeFromPosition.markParcelIntersectZoningType(testmp, splitZone, zoningFile);
 			SimpleFeatureCollection cuted = ParcelConsolidRecomp.parcelConsolidRecomp(test, tmpFolder, maximalArea, minimalArea, maximalWidth,
 					lenRoad, decompositionLevelWithoutStreet);

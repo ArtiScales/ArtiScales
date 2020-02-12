@@ -30,13 +30,12 @@ public class TransformXMLToJSON {
           } catch (IOException e) {
             e.printStackTrace();
           }
-//          System.out.print(obj);
         }
       }
     }
   }
 
   public static void main(String[] args) throws Exception {
-    convert(new File("/home/ubuntu/boulot/these/result2903/paramFolder/paramSet/CDense/"));
+    convert(new File("/home/thema/Documents/MC/workspace/ParcelManager/src/main/resources/testData/profileBuildingType/"));
   }
 }

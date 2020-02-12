@@ -36,9 +36,9 @@ import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
-import algorithm.ParcelConsolidRecomp;
 import fr.ign.cogit.FeaturePolygonizer;
 import fr.ign.cogit.GTFunctions.Vectors;
+import goal.ParcelConsolidRecomp;
 
 public class PAUDigger {
 	// cut cluster polygons with limits

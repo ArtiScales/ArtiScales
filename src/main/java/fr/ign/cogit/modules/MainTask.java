@@ -42,6 +42,7 @@ public class MainTask {
 		geoFile = new File(rootFile, "dataGeo");
 		regulFile = new File(rootFile, "dataRegulation");
 		TransformXMLToJSON.convert(paramFile);
+		TransformXMLToJSON.convert(new File("/home/thema/Documents/MC/workspace/ParcelManager/src/main/resources/testData/profileBuildingType/"));
 
 		File paramSet = new File(paramFile, "paramSet");
 
