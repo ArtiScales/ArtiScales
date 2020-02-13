@@ -38,8 +38,8 @@ import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
-import fr.ign.cogit.Schema;
 import fr.ign.cogit.GTFunctions.Vectors;
+import fr.ign.cogit.geometryGeneration.CityGeneration;
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
 import fr.ign.cogit.geoxygene.util.conversion.AdapterFactory;
 import fr.ign.cogit.geoxygene.util.conversion.GeOxygeneGeoToolsTypes;
@@ -365,6 +365,15 @@ public class FromGeom {
 		return Vectors.snapDatas(ilots, parcelCollection);
 	}
 
+	/**
+	 * If an ilot file is contained in the data folder, it returns it. Otherwise, it creates ilots 
+	 * 
+	 * @param geoFile
+	 * @return
+	 * @throws NoSuchAuthorityCodeException
+	 * @throws IOException
+	 * @throws FactoryException
+	 */
 	public static File getIlots(File geoFile) throws NoSuchAuthorityCodeException, IOException, FactoryException {
 		for (File f : geoFile.listFiles()) {
 			if (f.getName().startsWith("ilot") && f.getName().endsWith(".shp")) {
@@ -372,23 +381,7 @@ public class FromGeom {
 			}
 		}
 		System.out.println("ilots not found: auto-generation of them");
-		File result = new File(geoFile, "ilot.shp");
-		ShapefileDataStore parcelSDS = new ShapefileDataStore(getParcel(geoFile).toURI().toURL());
-		SimpleFeatureCollection parcelSFC = parcelSDS.getFeatureSource().getFeatures();
-		Geometry bigGeom = Vectors.unionSFC(parcelSFC);
-		DefaultFeatureCollection df = new DefaultFeatureCollection();
-
-		int nbGeom = bigGeom.getNumGeometries();
-		SimpleFeatureBuilder sfBuilder = Schema.getBasicSFB();
-		int count = 0;
-		for (int i = 0; i < nbGeom; i++) {
-			sfBuilder.add(bigGeom.getGeometryN(i));
-			SimpleFeature feature = sfBuilder.buildFeature(String.valueOf(count), new Object[0]);
-			df.add(feature);
-			count++;
-		}
-		Vectors.exportSFC(df.collection(), result);
-		return result;
+		return CityGeneration.CreateIlots(getParcel(geoFile), geoFile);
 	}
 
 	public static File getZoning(File regulFile) throws FileNotFoundException {

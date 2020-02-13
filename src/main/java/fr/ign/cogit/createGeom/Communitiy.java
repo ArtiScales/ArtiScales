@@ -11,35 +11,20 @@ import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
-import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
-import org.geotools.referencing.CRS;
+import org.locationtech.jts.geom.Geometry;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.MultiPolygon;
 
 import fr.ign.cogit.GTFunctions.Vectors;
+import fr.ign.cogit.GTFunctions.Schemas;
+
 
 public class Communitiy {
 	public static File makeCommunitiesFromParcels(File communitiesFile, File parcelFile, File outFile)
 			throws IOException, NoSuchAuthorityCodeException, FactoryException {
-		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
-		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
-		sfTypeBuilder.setName("testType");
-		sfTypeBuilder.setCRS(sourceCRS);
-		sfTypeBuilder.add("the_geom", MultiPolygon.class);
-		sfTypeBuilder.setDefaultGeometry("the_geom");
-		sfTypeBuilder.add("DEPCOM", String.class);
-		sfTypeBuilder.add("NOM_COM", String.class);
-		sfTypeBuilder.add("typo", String.class);
-		sfTypeBuilder.add("surface", String.class);
-		sfTypeBuilder.add("scot", String.class);
-		sfTypeBuilder.add("log-icone", String.class);
-
-		SimpleFeatureBuilder ft = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
+		
+		SimpleFeatureBuilder ft = Schemas.getASCommunitySchema();
 
 		ShapefileDataStore shpDSParcels = new ShapefileDataStore(parcelFile.toURI().toURL());
 		SimpleFeatureCollection featuresParcels = shpDSParcels.getFeatureSource().getFeatures();
