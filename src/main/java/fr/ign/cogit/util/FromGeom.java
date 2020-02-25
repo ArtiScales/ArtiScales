@@ -12,42 +12,45 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 
+import javax.xml.crypto.dsig.TransformException;
+
+import org.geotools.data.DataUtilities;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.factory.CommonFactoryFinder;
-import org.geotools.factory.GeoTools;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.filter.text.cql2.CQLException;
 import org.geotools.referencing.CRS;
+import org.geotools.util.factory.GeoTools;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.geom.PrecisionModel;
+import org.locationtech.jts.precision.GeometryPrecisionReducer;
 import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory2;
 import org.opengis.geometry.MismatchedDimensionException;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.operation.TransformException;
-
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.Polygon;
-import com.vividsolutions.jts.geom.PrecisionModel;
-import com.vividsolutions.jts.precision.GeometryPrecisionReducer;
 
 import fr.ign.cogit.GTFunctions.Vectors;
+import fr.ign.cogit.geometryGeneration.CityGeneration;
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
 import fr.ign.cogit.geoxygene.util.conversion.AdapterFactory;
 import fr.ign.cogit.geoxygene.util.conversion.GeOxygeneGeoToolsTypes;
+import fr.ign.cogit.parcelFunction.ParcelSchema;
+import fr.ign.cogit.parcelFunction.ParcelState;
 
 public class FromGeom {
 
-	 public static void main(String[] args) throws Exception {
-	 mergeBatis(new File("/home/ubuntu/boulot/these/result2903/indic/compatibleResult/CDense/variantMvData1/newSimPLUDepot/"));
-	 }
+	public static void main(String[] args) throws Exception {
+		mergeBatis(new File("/home/ubuntu/boulot/these/result2903/indic/compatibleResult/CDense/variantMvData1/newSimPLUDepot/"));
+	}
 	// File rootParam = new
 	// File("/home/mcolomb/workspace/ArtiScales/src/main/resources/paramSet/exScenar");
 	// List<File> lF = new ArrayList<>();
@@ -78,7 +81,7 @@ public class FromGeom {
 	// true));
 	//
 	// shpDSZone.dispose();
-//	 }
+	// }
 
 	public static String affectZoneAndTypoToLocation(String mainLine, String code, IFeature parcel, File rootFile, boolean priorTypoOrZone)
 			throws Exception {
@@ -115,7 +118,7 @@ public class FromGeom {
 	public static String affectZoneAndTypoToLocation(String mainLine, String code, IFeature parcel, File zoningFile, File communeFile,
 			boolean priorTypoOrZone) throws Exception {
 
-		SimpleFeatureBuilder sfBuilder = FromGeom.getParcelSFBuilder();
+		SimpleFeatureBuilder sfBuilder = ParcelSchema.getSFBFrenchParcel();
 		sfBuilder.set("the_geom", AdapterFactory.toGeometry(new GeometryFactory(), parcel.getGeom()));
 		SimpleFeature feature = sfBuilder.buildFeature(null);
 
@@ -146,12 +149,12 @@ public class FromGeom {
 		String isCode = "";
 		List<String> mayOccur = new ArrayList<String>();
 		// TODO make sure that this returns the best answer
-		String zone = FromGeom.parcelInBigZone(zoningFile, parcel);
+		String zone = ParcelState.parcelInBigZone(zoningFile, parcel);
 		if (zone.equals("null")) {
 			System.out.println("Could not affect zonez in " + zoningFile + " to " + parcel);
 			return "null";
 		}
-		String typo = FromGeom.parcelInTypo(communeFile, parcel);
+		String typo = ParcelState.parcelInTypo(communeFile, parcel);
 
 		String[] tabRepart = mainLine.split("_");
 
@@ -362,6 +365,15 @@ public class FromGeom {
 		return Vectors.snapDatas(ilots, parcelCollection);
 	}
 
+	/**
+	 * If an ilot file is contained in the data folder, it returns it. Otherwise, it creates ilots 
+	 * 
+	 * @param geoFile
+	 * @return
+	 * @throws NoSuchAuthorityCodeException
+	 * @throws IOException
+	 * @throws FactoryException
+	 */
 	public static File getIlots(File geoFile) throws NoSuchAuthorityCodeException, IOException, FactoryException {
 		for (File f : geoFile.listFiles()) {
 			if (f.getName().startsWith("ilot") && f.getName().endsWith(".shp")) {
@@ -369,30 +381,21 @@ public class FromGeom {
 			}
 		}
 		System.out.println("ilots not found: auto-generation of them");
-		File result = new File(geoFile, "ilot.shp");
-		ShapefileDataStore parcelSDS = new ShapefileDataStore(getParcels(geoFile).toURI().toURL());
-		SimpleFeatureCollection parcelSFC = parcelSDS.getFeatureSource().getFeatures();
-		Geometry bigGeom = Vectors.unionSFC(parcelSFC);
-		DefaultFeatureCollection df = new DefaultFeatureCollection();
-
-		int nbGeom = bigGeom.getNumGeometries();
-		SimpleFeatureBuilder sfBuilder = getBasicSFB();
-		int count = 0;
-		for (int i = 0; i < nbGeom; i++) {
-			sfBuilder.add(bigGeom.getGeometryN(i));
-			SimpleFeature feature = sfBuilder.buildFeature(String.valueOf(count), new Object[0]);
-			df.add(feature);
-			count++;
-		}
-		Vectors.exportSFC(df.collection(), result);
-
-		return result;
-
+		return CityGeneration.CreateIlots(getParcel(geoFile), geoFile);
 	}
 
 	public static File getZoning(File regulFile) throws FileNotFoundException {
 		for (File f : regulFile.listFiles()) {
 			if (f.getName().startsWith("zoning") && f.getName().endsWith(".shp")) {
+				return f;
+			}
+		}
+		throw new FileNotFoundException("Zoning file not found");
+	}
+
+	public static File getParcel(File geoFile) throws FileNotFoundException {
+		for (File f : geoFile.listFiles()) {
+			if (f.getName().startsWith("parcel") && f.getName().endsWith(".shp")) {
 				return f;
 			}
 		}
@@ -436,15 +439,6 @@ public class FromGeom {
 		throw new FileNotFoundException("prescLin file not found");
 	}
 
-	public static File getParcels(File geoFile) throws FileNotFoundException {
-		for (File f : geoFile.listFiles()) {
-			if (f.getName().startsWith("parcel") && f.getName().endsWith(".shp")) {
-				return f;
-			}
-		}
-		throw new FileNotFoundException("parcel file not found");
-	}
-
 	public static SimpleFeatureCollection selecParcelZoning(String[] typesZone, String zipcode, File parcelFile, File zoningFile) throws Exception {
 
 		ShapefileDataStore shpDSParcel = new ShapefileDataStore(parcelFile.toURI().toURL());
@@ -469,35 +463,28 @@ public class FromGeom {
 	}
 
 	/**
-	 * get the insee number from a Simplefeature (that is most of the time, a parcel or building)
+<<<<<<< HEAD
+=======
+	 * get the insee number from a Simplefeature (that is most of the time, a parcel)
 	 * 
 	 * @param cities
 	 * @param parcel
 	 * @return
 	 */
 	public static String getInseeFromParcel(SimpleFeatureCollection cities, SimpleFeature parcel) {
-		return getCommunityStuffFromParcel(cities, parcel, "DEPCOM");
-	}
-
-	public static String getArmatureFromParcel(SimpleFeatureCollection cities, SimpleFeature parcel) {
-		return getCommunityStuffFromParcel(cities, parcel, "armature");
-	}
-
-	public static String getCommunityStuffFromParcel(SimpleFeatureCollection cities, SimpleFeature parcel, String code) {
-
-		SimpleFeature city = null;
+		SimpleFeature City = null;
 		SimpleFeatureIterator citIt = cities.features();
-		String result = "";
+		String cityInsee = "00000";
 		try {
 			while (citIt.hasNext()) {
 				SimpleFeature cit = citIt.next();
 				if (((Geometry) cit.getDefaultGeometry()).contains((Geometry) parcel.getDefaultGeometry())) {
-					city = cit;
+					City = cit;
 					break;
 				}
 				// if the parcel is in between two cities, we randomly add the first met
 				else if (((Geometry) cit.getDefaultGeometry()).intersects((Geometry) parcel.getDefaultGeometry())) {
-					city = cit;
+					City = cit;
 					break;
 				}
 			}
@@ -507,11 +494,11 @@ public class FromGeom {
 			citIt.close();
 		}
 
-		String attribute = (String) city.getAttribute(code);
+		String attribute = (String) City.getAttribute("DEPCOM");
 		if (attribute != null && !attribute.isEmpty()) {
-			result = attribute;
+			cityInsee = attribute;
 		}
-		return result;
+		return cityInsee;
 	}
 
 	/**
@@ -541,19 +528,12 @@ public class FromGeom {
 				(Geometry) parcelIn.getDefaultGeometry());
 
 		SimpleFeatureIterator featuresZones = shpDSZoneReduced.features();
-
-		// objects for crossed zones
-		boolean twoZones = false;
-		HashMap<String, Double> repart = new HashMap<String, Double>();
-
 		try {
 			zone: while (featuresZones.hasNext()) {
 				SimpleFeature feat = featuresZones.next();
-				Geometry parcelInGeometry = (Geometry) parcelIn.getDefaultGeometry();
-				Geometry featGeometry = (Geometry) feat.getDefaultGeometry();
 				// TODO if same typo in two different typo, won't fall into that trap =>
 				// create a big zone shapefile instead?
-				if (featGeometry.buffer(1).contains(parcelInGeometry)) {
+				if (((Geometry) feat.getDefaultGeometry()).buffer(1).contains((Geometry) parcelIn.getDefaultGeometry())) {
 					switch ((String) feat.getAttribute("typo")) {
 					case "rural":
 						result.add("rural");
@@ -581,39 +561,21 @@ public class FromGeom {
 						break zone;
 					}
 				}
-				// maybe the parcel is in between two cities
-				else if (featGeometry.intersects(parcelInGeometry)) {
-					twoZones = true;
-					double area = Vectors.scaledGeometryReductionIntersection(Arrays.asList(featGeometry, parcelInGeometry)).getArea();
+				// maybe the parcel is in between two cities (that must be rare)
+				else if (((Geometry) feat.getDefaultGeometry()).intersects((Geometry) parcelIn.getDefaultGeometry())) {
 					switch ((String) feat.getAttribute("typo")) {
 					case "rural":
-						if (repart.containsKey("rural")) {
-							repart.put("rural", repart.get("rural") + area);
-						} else {
-							repart.put("rural", area);
-						}
-						break;
-					case "centre":
-						if (repart.containsKey("centre")) {
-							repart.put("centre", repart.get("centre") + area);
-						} else {
-							repart.put("centre", area);
-						}
-						break;
-					case "banlieue":
-						if (repart.containsKey("banlieue")) {
-							repart.put("banlieue", repart.get("banlieue") + area);
-						} else {
-							repart.put("banlieue", area);
-						}
-						break;
+						result.add("rural");
+						break zone;
 					case "periUrbain":
-						if (repart.containsKey("periUrbain")) {
-							repart.put("periUrbain", repart.get("periUrbain") + area);
-						} else {
-							repart.put("periUrbain", area);
-						}
-						break;
+						result.add("periUrbain");
+						break zone;
+					case "banlieue":
+						result.add("banlieue");
+						break zone;
+					case "centre":
+						result.add("centre");
+						break zone;
 					}
 				}
 			}
@@ -623,25 +585,15 @@ public class FromGeom {
 			featuresZones.close();
 		}
 
-		if (twoZones == true) {
-			List<Entry<String, Double>> entryList = new ArrayList<Entry<String, Double>>(repart.entrySet());
-			Collections.sort(entryList, new Comparator<Entry<String, Double>>() {
-				@Override
-				public int compare(Entry<String, Double> obj1, Entry<String, Double> obj2) {
-					return obj2.getValue().compareTo(obj1.getValue());
-				}
-			});
-
-			for (Entry<String, Double> s : entryList) {
-				result.add(s.getKey());
-			}
+		// TODO sort from the most represented to the less
+		if (result.size() > 1) {
+			System.out.println("parcel " + parcelIn.getAttribute("CODE_COM") + parcelIn.getAttribute("SECTION") + parcelIn.getAttribute("NUMERO")
+					+ "is IN BETWEEN TWO CITIES OF DIFFERENT TYPOLOGIES");
+			System.out.println("thats very rare");
+			System.out.println("we randomly use " + result.get(0));
 		}
 
 		shpDSZone.dispose();
-
-		if (result.isEmpty()) {
-			result.add("null");
-		}
 
 		return result;
 
@@ -658,16 +610,16 @@ public class FromGeom {
 	public static String parcelInBigZone(File zoningFile, SimpleFeature parcelIn) throws Exception {
 		List<String> yo = parcelInBigZone(parcelIn, zoningFile);
 		if (yo.isEmpty())
-			return "null";
+			return null;
 		return yo.get(0);
 	}
 
 	public static List<String> parcelInBigZone(IFeature parcelIn, File zoningFile) throws Exception {
-		return parcelInBigZone(GeOxygeneGeoToolsTypes.convert2SimpleFeature(parcelIn, CRS.decode("EPSG:2154")), zoningFile);
+		return parcelInBigZone(GeOxygeneGeoToolsTypes.convert2SimpleFeature(parcelIn, CRS.decode("EPSG:2154"),true), zoningFile);
 	}
 
 	/**
-	 * return the TYPEZONEs that a parcels intersect result is sorted by the largest interdected zone to the lowest
+	 * return the TYPEZONEs that a parcels intersect
 	 * 
 	 * @param parcelIn
 	 * @param zoningFile
@@ -677,8 +629,11 @@ public class FromGeom {
 	public static List<String> parcelInBigZone(SimpleFeature parcelIn, File zoningFile) throws Exception {
 		List<String> result = new LinkedList<String>();
 		ShapefileDataStore shpDSZone = new ShapefileDataStore(zoningFile.toURI().toURL());
-		SimpleFeatureCollection shpDSZoneReduced = Vectors.snapDatas(shpDSZone.getFeatureSource().getFeatures(),
-				(Geometry) parcelIn.getDefaultGeometry());
+		SimpleFeatureCollection shpDSZoneReduced = Vectors.snapDatas(DataUtilities.collection(shpDSZone.getFeatureSource().getFeatures()), (Geometry) parcelIn.getDefaultGeometry());
+		if (shpDSZoneReduced.isEmpty()) {
+		  System.out.println("parcelInBigZone = " + zoningFile);
+		  System.out.println("ParcelIn = " + parcelIn.getDefaultGeometry());
+		}
 		SimpleFeatureIterator featuresZones = shpDSZoneReduced.features();
 		// if there's two zones, we need to sort them by making collection. zis iz évy
 		// calculation, but it could worth it
@@ -691,6 +646,7 @@ public class FromGeom {
 				PrecisionModel precMod = new PrecisionModel(100);
 				Geometry featGeometry = GeometryPrecisionReducer.reduce((Geometry) feat.getDefaultGeometry(), precMod);
 				Geometry parcelInGeometry = GeometryPrecisionReducer.reduce((Geometry) parcelIn.getDefaultGeometry(), precMod);
+
 				if (featGeometry.buffer(0.5).contains(parcelInGeometry)) {
 					twoZones = false;
 					switch ((String) feat.getAttribute("TYPEZONE")) {
@@ -751,8 +707,8 @@ public class FromGeom {
 		} finally {
 			featuresZones.close();
 		}
-		shpDSZone.dispose();
 
+		shpDSZone.dispose();
 		if (twoZones == true) {
 			List<Entry<String, Double>> entryList = new ArrayList<Entry<String, Double>>(repart.entrySet());
 			Collections.sort(entryList, new Comparator<Entry<String, Double>>() {
@@ -765,11 +721,13 @@ public class FromGeom {
 			for (Entry<String, Double> s : entryList) {
 				result.add(s.getKey());
 			}
+
 		}
 		return result;
 	}
 
 	/**
+>>>>>>> geotools-21
 	 * return all the insee numbers from a parcel shapeFile
 	 * 
 	 * @param parcelFile
@@ -870,167 +828,6 @@ public class FromGeom {
 		SimpleFeatureCollection result = selecParcelZoning(typeZone, shpDSParcel.getFeatureSource().getFeatures(), zoningFile);
 		shpDSParcel.dispose();
 		return result;
-	}
-
-	public static SimpleFeatureBuilder getParcelSplitSFBuilder() throws NoSuchAuthorityCodeException, FactoryException {
-		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
-		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
-		sfTypeBuilder.setName("testType");
-		sfTypeBuilder.setCRS(sourceCRS);
-		sfTypeBuilder.add("the_geom", Polygon.class);
-		sfTypeBuilder.setDefaultGeometry("the_geom");
-		sfTypeBuilder.add("CODE", String.class);
-		sfTypeBuilder.add("CODE_DEP", String.class);
-		sfTypeBuilder.add("CODE_COM", String.class);
-		sfTypeBuilder.add("COM_ABS", String.class);
-		sfTypeBuilder.add("SECTION", String.class);
-		sfTypeBuilder.add("NUMERO", String.class);
-		sfTypeBuilder.add("INSEE", String.class);
-		sfTypeBuilder.add("eval", String.class);
-		sfTypeBuilder.add("DoWeSimul", String.class);
-		sfTypeBuilder.add("SPLIT", Integer.class);
-		sfTypeBuilder.add("IsBuild", Boolean.class);
-		sfTypeBuilder.add("U", Boolean.class);
-		sfTypeBuilder.add("AU", Boolean.class);
-		sfTypeBuilder.add("NC", Boolean.class);
-
-		return new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
-	}
-
-	public static SimpleFeatureBuilder getSimpleParcelSFBuilder() throws NoSuchAuthorityCodeException, FactoryException {
-		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
-		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
-		sfTypeBuilder.setName("testType");
-		sfTypeBuilder.setCRS(sourceCRS);
-		sfTypeBuilder.add("the_geom", Polygon.class);
-		sfTypeBuilder.setDefaultGeometry("the_geom");
-		sfTypeBuilder.add("CODE", String.class);
-		sfTypeBuilder.add("CODE_DEP", String.class);
-		sfTypeBuilder.add("CODE_COM", String.class);
-		sfTypeBuilder.add("COM_ABS", String.class);
-		sfTypeBuilder.add("SECTION", String.class);
-		sfTypeBuilder.add("NUMERO", String.class);
-
-		return new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
-	}
-
-	public static SimpleFeatureBuilder getParcelSFBuilder() throws NoSuchAuthorityCodeException, FactoryException {
-		SimpleFeatureTypeBuilder sfTypeBuilder = new SimpleFeatureTypeBuilder();
-		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
-		sfTypeBuilder.setName("testType");
-		sfTypeBuilder.setCRS(sourceCRS);
-		sfTypeBuilder.add("the_geom", Polygon.class);
-		sfTypeBuilder.setDefaultGeometry("the_geom");
-		sfTypeBuilder.add("CODE", String.class);
-		sfTypeBuilder.add("CODE_DEP", String.class);
-		sfTypeBuilder.add("CODE_COM", String.class);
-		sfTypeBuilder.add("COM_ABS", String.class);
-		sfTypeBuilder.add("SECTION", String.class);
-		sfTypeBuilder.add("NUMERO", String.class);
-		sfTypeBuilder.add("INSEE", String.class);
-		sfTypeBuilder.add("eval", String.class);
-		sfTypeBuilder.add("DoWeSimul", String.class);
-		sfTypeBuilder.add("IsBuild", Boolean.class);
-		sfTypeBuilder.add("U", Boolean.class);
-		sfTypeBuilder.add("AU", Boolean.class);
-		sfTypeBuilder.add("NC", Boolean.class);
-
-		return new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
-	}
-
-	public static SimpleFeatureBuilder getBasicSFB() throws NoSuchAuthorityCodeException, FactoryException {
-		SimpleFeatureTypeBuilder sfTypeBuilderSimple = new SimpleFeatureTypeBuilder();
-		CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:2154");
-
-		sfTypeBuilderSimple.setName("basicSFB");
-		sfTypeBuilderSimple.setCRS(sourceCRS);
-		sfTypeBuilderSimple.add("the_geom", Polygon.class);
-		sfTypeBuilderSimple.setDefaultGeometry("the_geom");
-
-		return new SimpleFeatureBuilder(sfTypeBuilderSimple.buildFeatureType());
-	}
-
-	public static SimpleFeatureBuilder setSFBParDefaut(SimpleFeature feat, SimpleFeatureType schema, String geometryOutputName) {
-		SimpleFeatureBuilder finalParcelBuilder = new SimpleFeatureBuilder(schema);
-		finalParcelBuilder.set(geometryOutputName, (Geometry) feat.getDefaultGeometry());
-		finalParcelBuilder.set("CODE", "unknow");
-		finalParcelBuilder.set("CODE_DEP", "unknow");
-		finalParcelBuilder.set("CODE_COM", "unknow");
-		finalParcelBuilder.set("COM_ABS", "unknow");
-		finalParcelBuilder.set("SECTION", "unknow");
-		finalParcelBuilder.set("NUMERO", "unknow");
-		finalParcelBuilder.set("INSEE", "unknow");
-		finalParcelBuilder.set("eval", "0");
-		finalParcelBuilder.set("DoWeSimul", false);
-		finalParcelBuilder.set("IsBuild", false);
-		finalParcelBuilder.set("U", false);
-		finalParcelBuilder.set("AU", false);
-		finalParcelBuilder.set("NC", false);
-
-		return finalParcelBuilder;
-	}
-
-	/**
-	 * not very nice overload
-	 * 
-	 * @param feat
-	 * @param schema
-	 * @return
-	 */
-	public static SimpleFeatureBuilder setSFBParcelWithFeat(SimpleFeature feat) {
-		return setSFBParcelWithFeat(feat, feat.getFeatureType(), feat.getFeatureType().getGeometryDescriptor().getName().toString());
-	}
-
-	/**
-	 * not very nice overload
-	 * 
-	 * @param feat
-	 * @param schema
-	 * @return
-	 */
-	public static SimpleFeatureBuilder setSFBParcelWithFeat(SimpleFeature feat, SimpleFeatureType schema) {
-		return setSFBParcelWithFeat(feat, schema, schema.getGeometryDescriptor().getName().toString());
-
-	}
-
-	public static SimpleFeatureBuilder setSFBParcelWithFeat(SimpleFeature feat, SimpleFeatureType schema, String geometryOutputName) {
-		SimpleFeatureBuilder finalParcelBuilder = new SimpleFeatureBuilder(schema);
-		finalParcelBuilder.set(geometryOutputName, (Geometry) feat.getDefaultGeometry());
-		finalParcelBuilder.set("CODE", feat.getAttribute("CODE"));
-		finalParcelBuilder.set("CODE_DEP", feat.getAttribute("CODE_DEP"));
-		finalParcelBuilder.set("CODE_COM", feat.getAttribute("CODE_COM"));
-		finalParcelBuilder.set("COM_ABS", feat.getAttribute("COM_ABS"));
-		finalParcelBuilder.set("SECTION", feat.getAttribute("SECTION"));
-		finalParcelBuilder.set("NUMERO", feat.getAttribute("NUMERO"));
-		finalParcelBuilder.set("INSEE", feat.getAttribute("INSEE"));
-		finalParcelBuilder.set("eval", feat.getAttribute("eval"));
-		finalParcelBuilder.set("DoWeSimul", feat.getAttribute("DoWeSimul"));
-		finalParcelBuilder.set("IsBuild", feat.getAttribute("IsBuild"));
-		finalParcelBuilder.set("U", feat.getAttribute("U"));
-		finalParcelBuilder.set("AU", feat.getAttribute("AU"));
-		finalParcelBuilder.set("NC", feat.getAttribute("NC"));
-
-		return finalParcelBuilder;
-	}
-
-	public static SimpleFeatureBuilder setSFBOriginalParcelWithFeat(SimpleFeature feat, SimpleFeatureType schema) {
-		SimpleFeatureBuilder finalParcelBuilder = new SimpleFeatureBuilder(schema);
-		finalParcelBuilder.set(schema.getGeometryDescriptor().getName().toString(), (Geometry) feat.getDefaultGeometry());
-		finalParcelBuilder.set("CODE", ParcelFonction.makeParcelCode(feat));
-		finalParcelBuilder.set("CODE_DEP", feat.getAttribute("CODE_DEP"));
-		finalParcelBuilder.set("CODE_COM", feat.getAttribute("CODE_COM"));
-		finalParcelBuilder.set("COM_ABS", feat.getAttribute("COM_ABS"));
-		finalParcelBuilder.set("SECTION", feat.getAttribute("SECTION"));
-		finalParcelBuilder.set("NUMERO", feat.getAttribute("NUMERO"));
-		finalParcelBuilder.set("INSEE", (String) feat.getAttribute("CODE_DEP") + (String) feat.getAttribute("CODE_COM"));
-		finalParcelBuilder.set("eval", "0");
-		finalParcelBuilder.set("DoWeSimul", "false");
-		finalParcelBuilder.set("IsBuild", "false");
-		finalParcelBuilder.set("U", "false");
-		finalParcelBuilder.set("AU", "false");
-		finalParcelBuilder.set("NC", "false");
-
-		return finalParcelBuilder;
 	}
 
 	public static File getCommunitiesIris(File geoFile) throws FileNotFoundException {

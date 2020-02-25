@@ -20,9 +20,8 @@ import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.referencing.CRS;
+import org.locationtech.jts.geom.Geometry;
 import org.opengis.feature.simple.SimpleFeature;
-
-import com.vividsolutions.jts.geom.Geometry;
 
 import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.annexeTools.SDPCalcPolygonizer;
@@ -489,6 +488,7 @@ public class SimPLUSimulator {
 			return null;
 		}
 
+		// FileWriter importantInfo = new FileWriter(new File(folderOut, "importantInfo"), true);
 		Environnement env = LoaderSHP.load(simuFile, codeFile, zoningFile, parcelsFile, roadFile, buildFile, filePrescPonct, filePrescLin,
 				filePrescSurf, null);
 		return run(env);
@@ -785,7 +785,6 @@ public class SimPLUSimulator {
 
 	public IFeatureCollection<IFeature> runSimulation(Environnement env, int i, SimpluParametersJSON par, BuildingType type,
 			IFeatureCollection<Prescription> prescriptionUse) throws Exception {
-
 		FileWriter fw = new FileWriter(new File(folderOut, "important"), true);
 		IFeatureCollection<IFeature> result = runSimulation(env, i, par, type, prescriptionUse, fw);
 		fw.close();
@@ -861,6 +860,7 @@ public class SimPLUSimulator {
 					cc = article71Case12(alignementsGeometries, pred, env, i, bPU, par);
 					writer.append("ART7112 used \n");
 				} catch (Exception e) {
+					writer.write("ART7112 not used \n");
 					System.out.println("cuboid from ART7112 failed");
 					writer.append("ART7112 not used \n");
 					OptimisedBuildingsCuboidFinalDirectRejection oCB = new OptimisedBuildingsCuboidFinalDirectRejection();

@@ -34,7 +34,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	public ArtiScalesRegulation(String fLine, String line) {
 
 		String[] fLineSplited = fLine.split(CSV_SEPARATOR);
-		String[] lineSplited = line.split(CSV_SEPARATOR,fLineSplited.length);
+		String[] lineSplited = line.split(CSV_SEPARATOR, fLineSplited.length);
 
 		for (int i = 0; i < fLineSplited.length; i++) {
 			switch (fLineSplited[i].toLowerCase()) {
@@ -51,16 +51,16 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 				libelle_de_dul = lineSplited[i];
 				break;
 			case "oap":
-				oap = lineSplited[i].isEmpty()?0:Integer.valueOf(lineSplited[i]);
+				oap = lineSplited[i].isEmpty() ? 0 : Integer.valueOf(lineSplited[i]);
 				break;
 			case "fonction":
-				fonction = lineSplited[i].isEmpty()?99:Integer.valueOf(lineSplited[i]);
+				fonction = lineSplited[i].isEmpty() ? 99 : Integer.valueOf(lineSplited[i]);
 				break;
 			case "art_3":
-				art_3 = lineSplited[i].isEmpty()?99:Integer.valueOf(lineSplited[i]);
+				art_3 = lineSplited[i].isEmpty() ? 99 : Integer.valueOf(lineSplited[i]);
 				break;
 			case "art_4":
-				art_4 = lineSplited[i].isEmpty()?99:Integer.valueOf(lineSplited[i]);
+				art_4 = lineSplited[i].isEmpty() ? 99 : Integer.valueOf(lineSplited[i]);
 				break;
 			case "art_5":
 				art_5 = lineSplited[i];
@@ -69,31 +69,31 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 				art_6_defaut = lineSplited[i];
 				break;
 			case "art_6_type":
-				art_6_type = lineSplited[i].isEmpty()?99:Integer.valueOf(lineSplited[i]);
+				art_6_type = lineSplited[i].isEmpty() ? 99 : Integer.valueOf(lineSplited[i]);
 				break;
 			case "art_6_optionel":
 				art_6_optionel = lineSplited[i];
 				break;
 			case "art_71":
-				art_71 = lineSplited[i].isEmpty()?99:Integer.valueOf(lineSplited[i]);
+				art_71 = lineSplited[i].isEmpty() ? 99 : Integer.valueOf(lineSplited[i]);
 				break;
 			case "art_72":
-				art_72 = lineSplited[i].isEmpty()?99.0:Double.valueOf(lineSplited[i]);
+				art_72 = lineSplited[i].isEmpty() ? 99.0 : Double.valueOf(lineSplited[i]);
 				break;
 			case "art_73":
-				art_73 = lineSplited[i].isEmpty()?99.0:Double.valueOf(lineSplited[i]);
+				art_73 = lineSplited[i].isEmpty() ? 99.0 : Double.valueOf(lineSplited[i]);
 				break;
 			case "art_74":
-				art_74 = (lineSplited[i].isEmpty()||lineSplited[i].contains("."))?99:Integer.valueOf(lineSplited[i]);
+				art_74 = (lineSplited[i].isEmpty() || lineSplited[i].contains(".")) ? 99 : Integer.valueOf(lineSplited[i]);
 				break;
 			case "art_8":
-				art_8 = lineSplited[i].isEmpty()?99.0:Double.valueOf(lineSplited[i]);
+				art_8 = lineSplited[i].isEmpty() ? 99.0 : Double.valueOf(lineSplited[i]);
 				break;
 			case "art_9":
-				art_9 = lineSplited[i].isEmpty()?99.0:Double.valueOf(lineSplited[i]);
+				art_9 = lineSplited[i].isEmpty() ? 99.0 : Double.valueOf(lineSplited[i]);
 				break;
 			case "art_10_top":
-				art_10_top = lineSplited[i].isEmpty()?99:Integer.valueOf(lineSplited[i]);
+				art_10_top = lineSplited[i].isEmpty() ? 99 : Integer.valueOf(lineSplited[i]);
 				break;
 			case "art_101":
 				art_10_1 = lineSplited[i];
@@ -207,7 +207,7 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 		if (!file.exists()) {
 			return table;
 		}
-//System.out.println("read file = " + file);
+		// System.out.println("read file = " + file);
 		// On lit le fichier
 		BufferedReader in = new BufferedReader(new FileReader(file));
 
@@ -217,8 +217,8 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 		// On traite chaque ligne
 		while ((line = in.readLine()) != null) {
 			log.info(line);
-    //  System.out.println("fLine = " + fLine);
-		//	System.out.println("line = " + line);
+			// System.out.println("fLine = " + fLine);
+			// System.out.println("line = " + line);
 			// On instancier la réglementation
 			ArtiScalesRegulation r = new ArtiScalesRegulation(fLine, line);
 			// On regarde si le code imu a été rencontré auparavant
@@ -248,11 +248,11 @@ public class ArtiScalesRegulation implements IZoneRegulation {
 	@Override
 	public String toString() {
 		return "ArtiScalesRegulation [libelle_zone=" + libelle_zone + ", insee=" + insee + ", libelle_de_base=" + libelle_de_base
-				+ ", libelle_de_dul=" + libelle_de_dul + ", fonction=" + fonction + ", oap=" + oap + ", art_3=" + art_3
-				+ ", art_4=" + art_4 + ", art_5=" + art_5 + ", art_6_defaut=" + art_6_defaut + ", art_6_type=" + art_6_type + ", art_6_optionel="
-				+ art_6_optionel + ", art_71=" + art_71 + ", art_72=" + art_72 + ", art_73=" + art_73 + ", art_74=" + art_74 + ", art_8=" + art_8
-				+ ", art_9=" + art_9 + ", art_10_top=" + art_10_top + ", art_10=" + art_10_1 + ", " + "art_12=" + art_12 + ", art_13=" + art_13
-				+ ", art_14=" + art_14 + "]";
+				+ ", libelle_de_dul=" + libelle_de_dul + ", fonction=" + fonction + ", oap=" + oap + ", art_3=" + art_3 + ", art_4=" + art_4
+				+ ", art_5=" + art_5 + ", art_6_defaut=" + art_6_defaut + ", art_6_type=" + art_6_type + ", art_6_optionel=" + art_6_optionel
+				+ ", art_71=" + art_71 + ", art_72=" + art_72 + ", art_73=" + art_73 + ", art_74=" + art_74 + ", art_8=" + art_8 + ", art_9=" + art_9
+				+ ", art_10_top=" + art_10_top + ", art_10=" + art_10_1 + ", " + "art_12=" + art_12 + ", art_13=" + art_13 + ", art_14=" + art_14
+				+ "]";
 	}
 
 	//////////// GETTERS AND SETTERS

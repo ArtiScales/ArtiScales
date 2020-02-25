@@ -4,17 +4,12 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.geotools.data.simple.SimpleFeatureCollection;
-
 import fr.ign.cogit.indicators.BuildingToHousingUnit;
 import fr.ign.cogit.indicators.CompScenario;
 import fr.ign.cogit.indicators.CompVariant;
 import fr.ign.cogit.indicators.CompatibleResult;
 import fr.ign.cogit.indicators.ParcelStat;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
-import fr.ign.cogit.util.FromGeom;
-import fr.ign.cogit.util.ParcelFonction;
-import fr.ign.cogit.util.SimuTool;
 
 public class AllIndicators {
 

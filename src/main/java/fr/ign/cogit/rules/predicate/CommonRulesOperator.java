@@ -3,7 +3,7 @@ package fr.ign.cogit.rules.predicate;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Geometry;
 
 import fr.ign.cogit.annexeTools.SDPCalcPolygonizer;
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;

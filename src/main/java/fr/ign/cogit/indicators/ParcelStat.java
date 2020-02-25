@@ -17,20 +17,22 @@ import org.knowm.xchart.BitmapEncoder;
 import org.knowm.xchart.BitmapEncoder.BitmapFormat;
 import org.knowm.xchart.CategoryChart;
 import org.knowm.xchart.CategoryChartBuilder;
+import org.locationtech.jts.geom.Geometry;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
-
-import com.vividsolutions.jts.geom.Geometry;
 
 import au.com.bytecode.opencsv.CSVReader;
 import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.map.MapRenderer;
 import fr.ign.cogit.map.theseMC.SurfParcelFailedMap;
 import fr.ign.cogit.map.theseMC.SurfParcelSimulatedMap;
+import fr.ign.cogit.parcelFunction.ParcelAttribute;
+import fr.ign.cogit.parcelFunction.ParcelGetter;
+import fr.ign.cogit.parcelFunction.ParcelSchema;
+import fr.ign.cogit.parcelFunction.ParcelState;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.cogit.util.FromGeom;
-import fr.ign.cogit.util.ParcelFonction;
 import fr.ign.cogit.util.SimuTool;
 
 public class ParcelStat extends Indicators {
@@ -61,55 +63,55 @@ public class ParcelStat extends Indicators {
 	}
 
 	private void setBasics() throws FileNotFoundException {
-		parcelOGFile = FromGeom.getParcels(new File(getRootFile(), "dataGeo"));
+		parcelOGFile = FromGeom.getParcel(new File(getRootFile(), "dataGeo"));
 		firstLine = "INSEE,nb_parcel_simulated,nb_parcel_simu_failed,surf_parcel_ignored,surf_parcel_simulated,surf_parcel_simulFailed,nbParcelSimulatedU,nbParcelSimulFailedU,nbParcelSimulatedAU,nbParcelSimulFailedAU,nbParcelSimulatedNC,nbParcelSimulFailedNC,nbParcelSimulatedCentre,nbParcelSimulFailedCentre,nbParcelSimulatedBanlieue,nbParcelSimulFailedBanlieue,nbParcelSimulatedPeriUrb,nbParcelSimulFailedPeriUrb,nbParcelSimulatedRural,nbParcelSimulFailedRural,surfParcelSimulatedU,surfParcelSimulFailedU,surfParcelSimulatedAU,surfParcelSimulFailedAU,surfParcelSimulatedNC,surfParcelSimulFailedNC,surfParcelSimulatedCentre,surfParcelSimulFailedCentre,surfParcelSimulatedBanlieue,surfParcelSimulFailedBanlieue,surfParcelSimulatedPeriUrb,surfParcelSimulFailedPeriUrb,surfParcelSimulatedRural,surfParcelSimulFailedRural,simuledFromOriginal,simuledFromDensification,simuledFromTotalRecomp,simuledFromPartRecomp,simuledFromZoneCut,failedFromOriginal,failedFromDensification,failedFromTotalRecomp,failedFromPartRecomp,failedFromZoneCut";
 	}
 
-	 public static void main(String[] args) throws Exception {
-	 File rootFile = new File("./result2903/");
-	 File rootParam = new File(rootFile, "paramFolder");
-	 List<File> lF = new ArrayList<>();
-//	 String[] scenarios = { "CDense" };
-	  String[] scenarios = {  "CPeuDense", "DDense", "DPeuDense" };
-	
-	 String variant = "base";
-	 // indicName = "parcelStat-RNU";
-	
-	 for (String scenario : scenarios) {
-	 lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterTechnic.json"));
-	 lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterScenario.json"));
-//	 for (File f : (new File(rootFile, "SimPLUDepot/" + scenario + "/")).listFiles()) {
-//	 String variant = f.getName();
-	 SimpluParametersJSON p = new SimpluParametersJSON(lF);
-	 run(p, rootFile, scenario, variant);
-	 }
-	 }
-//	 }
+	public static void main(String[] args) throws Exception {
+		File rootFile = new File("./result2903/");
+		File rootParam = new File(rootFile, "paramFolder");
+		List<File> lF = new ArrayList<>();
+		// String[] scenarios = { "CDense" };
+		String[] scenarios = { "CPeuDense", "DDense", "DPeuDense" };
 
-//	public static void main(String[] args) throws Exception {
-//		File rootFile = new File("./result2903/");
-//		File rootParam = new File(rootFile, "paramFolder");
-//		List<File> lF = new ArrayList<>();
-//		String[] scenarios = { "CDense", "CPeuDense", "DDense", "DPeuDense" };
-//		String[] typeDocs = { "RNU", "PLU", "CC" };
-//
-//		String variant = "base";
-//		for (String typeDoc : typeDocs) {
-//			List<String> listDoc = FromGeom.getZipByTypeDoc(new File(rootFile, "dataRegulation"), typeDoc);
-//			setIndicName("ParcelStat-" + typeDoc);
-//
-//			for (String scenario : scenarios) {
-//				System.out.println("run " + scenario + " variant: " + variant + " doc ? " + typeDoc);
-//
-//				lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterTechnic.json"));
-//				lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterScenario.json"));
-//				// for (File f : (new File(rootFile, "SimPLUDepot/" + scenario + "/")).listFiles()) {
-//				// String variant = f.getName();
-//				SimpluParametersJSON p = new SimpluParametersJSON(lF);
-//				run(p, rootFile, scenario, variant, listDoc);
-//			}
-//		}
-//	}
+		String variant = "base";
+		// indicName = "parcelStat-RNU";
+
+		for (String scenario : scenarios) {
+			lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterTechnic.json"));
+			lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterScenario.json"));
+			// for (File f : (new File(rootFile, "SimPLUDepot/" + scenario + "/")).listFiles()) {
+			// String variant = f.getName();
+			SimpluParametersJSON p = new SimpluParametersJSON(lF);
+			run(p, rootFile, scenario, variant);
+		}
+	}
+	// }
+
+	// public static void main(String[] args) throws Exception {
+	// File rootFile = new File("./result2903/");
+	// File rootParam = new File(rootFile, "paramFolder");
+	// List<File> lF = new ArrayList<>();
+	// String[] scenarios = { "CDense", "CPeuDense", "DDense", "DPeuDense" };
+	// String[] typeDocs = { "RNU", "PLU", "CC" };
+	//
+	// String variant = "base";
+	// for (String typeDoc : typeDocs) {
+	// List<String> listDoc = FromGeom.getZipByTypeDoc(new File(rootFile, "dataRegulation"), typeDoc);
+	// setIndicName("ParcelStat-" + typeDoc);
+	//
+	// for (String scenario : scenarios) {
+	// System.out.println("run " + scenario + " variant: " + variant + " doc ? " + typeDoc);
+	//
+	// lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterTechnic.json"));
+	// lF.add(new File(rootParam, "/paramSet/" + scenario + "/parameterScenario.json"));
+	// // for (File f : (new File(rootFile, "SimPLUDepot/" + scenario + "/")).listFiles()) {
+	// // String variant = f.getName();
+	// SimpluParametersJSON p = new SimpluParametersJSON(lF);
+	// run(p, rootFile, scenario, variant, listDoc);
+	// }
+	// }
+	// }
 
 	public static void run(SimpluParametersJSON p, File rootFile, String scenario, String variant) throws Exception {
 		run(p, rootFile, scenario, variant, null);
@@ -132,7 +134,7 @@ public class ParcelStat extends Indicators {
 		List<String> listInsee = FromGeom.getInsee(new File(parc.getRootFile(), "/dataGeo/old/communities.shp"), "DEPCOM");
 
 		for (String city : listInsee) {
-			SimpleFeatureCollection commParcel = ParcelFonction.getParcelByZip(parcelStatSHP, city);
+			SimpleFeatureCollection commParcel = ParcelGetter.getParcelByZip(parcelStatSHP, city);
 			System.out.println("city " + city);
 			parc.calculateStatParcel(commParcel);
 			parc.writeLine(city, "genStat");
@@ -345,15 +347,15 @@ public class ParcelStat extends Indicators {
 					if (ft.getAttribute("U").equals("T") || ft.getAttribute("U").equals(true)) {
 						surfParcelSimulatedU = surfParcelSimulatedU + area;
 						nbParcelSimulatedU++;
-					} else if (ft.getAttribute("AU").equals("T")|| ft.getAttribute("AU").equals(true)) {
+					} else if (ft.getAttribute("AU").equals("T") || ft.getAttribute("AU").equals(true)) {
 						surfParcelSimulatedAU = surfParcelSimulatedAU + area;
 						nbParcelSimulatedAU++;
-					} else if (ft.getAttribute("NC").equals("T")|| ft.getAttribute("NC").equals(true)) {
+					} else if (ft.getAttribute("NC").equals("T") || ft.getAttribute("NC").equals(true)) {
 						surfParcelSimulatedNC = surfParcelSimulatedNC + area;
 						nbParcelSimulatedNC++;
 					}
 					// System.out.println(FromGeom.getTypo(FromGeom.getCommunitiesIris(new File(rootFile, "dataGeo")), (Geometry) ft.getDefaultGeometry()));
-					switch (FromGeom.parcelInTypo(FromGeom.getCommunitiesIris(new File(getRootFile(), "dataGeo")), ft)) {
+					switch (ParcelState.parcelInTypo(FromGeom.getCommunitiesIris(new File(getRootFile(), "dataGeo")), ft)) {
 					case "rural":
 						nbParcelSimulatedRural++;
 						surfParcelSimulatedRural = surfParcelSimulatedRural + area;
@@ -403,7 +405,7 @@ public class ParcelStat extends Indicators {
 						nbParcelSimulFailedNC++;
 						surfParcelSimulFailedNC = surfParcelSimulFailedNC + area;
 					}
-					switch (FromGeom.parcelInTypo(FromGeom.getCommunitiesIris(new File(getRootFile(), "dataGeo")), ft)) {
+					switch (ParcelState.parcelInTypo(FromGeom.getCommunitiesIris(new File(getRootFile(), "dataGeo")), ft)) {
 					case "rural":
 						nbParcelSimulFailedRural++;
 						surfParcelSimulFailedRural = surfParcelSimulFailedRural + area;
@@ -530,11 +532,11 @@ public class ParcelStat extends Indicators {
 
 		ShapefileDataStore parcelOGSDS = new ShapefileDataStore(parcelOGFile.toURI().toURL());
 		SimpleFeatureCollection parcelOG = parcelOGSDS.getFeatureSource().getFeatures();
-		List<String> oGCode = ParcelFonction.getCodeParcels(parcelOG);
+		List<String> oGCode = ParcelAttribute.getCodeParcels(parcelOG);
 
 		ShapefileDataStore parcelSimuledSDS = new ShapefileDataStore(getParcelDepotGenFile().toURI().toURL());
 		SimpleFeatureCollection parcelSimuled = parcelSimuledSDS.getFeatureSource().getFeatures();
-		List<String> simuledCode = ParcelFonction.getCodeParcels(parcelSimuled);
+		List<String> simuledCode = ParcelAttribute.getCodeParcels(parcelSimuled);
 
 		List<String> intactParcels = new ArrayList<String>();
 		List<String> cuttedButIntactParcels = new ArrayList<String>();
@@ -603,7 +605,7 @@ public class ParcelStat extends Indicators {
 					while (getAttributeIt.hasNext()) {
 						SimpleFeature model = getAttributeIt.next();
 						if (((Geometry) model.getDefaultGeometry()).intersects(aggregate)) {
-							SimpleFeatureBuilder sfbuild = FromGeom.setSFBParcelWithFeat(model);
+							SimpleFeatureBuilder sfbuild = ParcelSchema.setSFBParcelAsASWithFeat(model);
 							sfbuild.set(model.getFeatureType().getGeometryDescriptor().getName().toString(), aggregate);
 							reuniteParcel.add(sfbuild.buildFeature(null));
 							break;

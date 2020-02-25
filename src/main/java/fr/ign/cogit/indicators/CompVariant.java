@@ -414,24 +414,26 @@ Collections.sort(variantNames);
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static void makeGraph(File csv, File graphDepotFile, String title, String x, String xTitle, String y, String yTitle, int width, int height)
 			throws IOException {
-		CategorySeries csvData = CSVImporter.getCategorySeriesFromCSVFile(csv, x, y, yTitle + "-" + xTitle, DataType.String);
-		// Create Chart
-		CategoryChart chart = new CategoryChartBuilder().width(width).height(height).title(title).xAxisTitle(xTitle).yAxisTitle(yTitle).build();
-		// chart.addSeries(yTitle, csvDaa.getxAxisData(), csvDaa.getyAxisData());
-		List<String> goodNames = new LinkedList<String>();
-		Iterator<?> it = csvData.getXData().iterator();
-		while (it.hasNext()) {
-			String s = ((String) it.next()).replace("variant", "");
-			// System.out.println("position varianteComp" + s);
-			goodNames.add(s);
-		}
-		chart.addSeries(yTitle, goodNames, (List) csvData.getYData());
-		// Customize Chart
-		chart.getStyler().setLegendVisible(false);
-		chart.getStyler().setXAxisLabelRotation(30);
-		chart.getStyler().setHasAnnotations(true);
-
-		BitmapEncoder.saveBitmap(chart, graphDepotFile + "/" + y, BitmapFormat.PNG);
+//	//TODO push changes on XCharts
+//		
+//		CategorySeries csvData = CSVImporter.getCategorySeriesFromCSVFile(csv, x, y, yTitle + "-" + xTitle, DataType.String);
+//		// Create Chart
+//		CategoryChart chart = new CategoryChartBuilder().width(width).height(height).title(title).xAxisTitle(xTitle).yAxisTitle(yTitle).build();
+//		// chart.addSeries(yTitle, csvDaa.getxAxisData(), csvDaa.getyAxisData());
+//		List<String> goodNames = new LinkedList<String>();
+//		Iterator<?> it = csvData.getXData().iterator();
+//		while (it.hasNext()) {
+//			String s = ((String) it.next()).replace("variant", "");
+//			// System.out.println("position varianteComp" + s);
+//			goodNames.add(s);
+//		}
+//		chart.addSeries(yTitle, goodNames, (List) csvData.getYData());
+//		// Customize Chart
+//		chart.getStyler().setLegendVisible(false);
+//		chart.getStyler().setXAxisLabelRotation(30);
+//		chart.getStyler().setHasAnnotations(true);
+//
+//		BitmapEncoder.saveBitmap(chart, graphDepotFile + "/" + y, BitmapFormat.PNG);
 
 	}
 

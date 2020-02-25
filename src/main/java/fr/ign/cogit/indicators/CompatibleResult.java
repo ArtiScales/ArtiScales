@@ -29,8 +29,8 @@ import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Polygon;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Polygon;
 
 import au.com.bytecode.opencsv.CSVReader;
 import fr.ign.cogit.GTFunctions.Vectors;
@@ -38,8 +38,12 @@ import fr.ign.cogit.modules.SelectParcels;
 import fr.ign.cogit.modules.SimPLUSimulator;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.cogit.util.FromGeom;
-import fr.ign.cogit.util.ParcelFonction;
 import fr.ign.cogit.util.SimuTool;
+import fr.ign.cogit.parcelFunction.ParcelAttribute;
+import fr.ign.cogit.parcelFunction.ParcelCollection;
+import fr.ign.cogit.parcelFunction.ParcelGetter;
+import fr.ign.cogit.parcelFunction.ParcelState;
+import fr.ign.cogit.parcelFunction.ParcelSchema;
 
 public class CompatibleResult extends Indicators {
 	File newGeoFile, newParcelDepot, newOutSimPLU, tmpFile;
@@ -223,7 +227,7 @@ public class CompatibleResult extends Indicators {
 		if (parcelGen.exists()) {
 			ShapefileDataStore sds = new ShapefileDataStore(parcelGen.toURI().toURL());
 			SimpleFeatureCollection parcelIn = sds.getFeatureSource().getFeatures();
-			if (!ParcelFonction.getParcelByZip(parcelIn, insee).isEmpty()) {
+			if (!ParcelGetter.getParcelByZip(parcelIn, insee).isEmpty()) {
 				System.out.println("compatibility has already been calculated");
 				sds.dispose();
 				return 0;

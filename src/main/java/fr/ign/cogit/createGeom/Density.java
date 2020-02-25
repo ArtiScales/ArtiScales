@@ -13,11 +13,13 @@ import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.factory.CommonFactoryFinder;
-import org.geotools.factory.GeoTools;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.referencing.CRS;
+import org.geotools.util.factory.GeoTools;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.MultiPolygon;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.filter.Filter;
@@ -26,12 +28,9 @@ import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.MultiPolygon;
-
 import au.com.bytecode.opencsv.CSVReader;
 import fr.ign.cogit.GTFunctions.Vectors;
-import fr.ign.cogit.util.ParcelFonction;
+import fr.ign.cogit.parcelFunction.ParcelState;
 
 public class Density {
 
@@ -407,7 +406,7 @@ public class Density {
 			}
 			Filter f = ff.intersects(ff.property(geometryCellPropertyName), ff.literal(feat.getDefaultGeometry()));
 			SimpleFeatureCollection batiSorted = batiSFC.subCollection(f).subCollection(filterBuildingNature);
-			if (ParcelFonction.isAlreadyBuilt(batiSorted, feat, -1.0)) {
+			if (ParcelState.isAlreadyBuilt(batiSorted, feat, -1.0)) {
 				// ratio between the area of parcels and building
 				double areaBuildings = 0.0;
 				SimpleFeatureIterator itBuild = batiSorted.features();

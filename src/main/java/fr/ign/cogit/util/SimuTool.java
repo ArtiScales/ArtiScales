@@ -26,17 +26,18 @@ import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.referencing.CRS;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Polygon;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Polygon;
-
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
 import fr.ign.cogit.GTFunctions.Vectors;
+import fr.ign.cogit.parcelFunction.ParcelAttribute;
+import fr.ign.cogit.parcelFunction.ParcelState;
 import fr.ign.cogit.simplu3d.model.BasicPropertyUnit;
 import fr.ign.cogit.simplu3d.model.SubParcel;
 import fr.ign.cogit.simplu3d.util.SimpluParameters;
@@ -275,7 +276,7 @@ public class SimuTool {
 				builder.set("LIBELLE", feat.getAttribute("LIBELLE"));
 				builder.set("TYPEZONE", feat.getAttribute("TYPEZONE"));
 				builder.set("BUILDTYPE", feat.getAttribute("BUILDTYPE"));
-				builder.set("EVAL", ParcelFonction.getCloseEvalInParcel(feat, mupOutput));
+				builder.set("EVAL", ParcelState.getCloseEvalInParcel(feat, mupOutput));
 				result.add(builder.buildFeature(null));
 			}
 		} catch (Exception problem) {
@@ -471,7 +472,7 @@ public class SimuTool {
 			throws Exception {
 		if (specificFile != null && specificFile.exists()) {
 			ShapefileDataStore sds = new ShapefileDataStore(specificFile.toURI().toURL());
-			List<String> result = ParcelFonction.getInseeParcels(sds.getFeatureSource().getFeatures());
+			List<String> result = ParcelAttribute.getCityCodeFromParcels(sds.getFeatureSource().getFeatures());
 			sds.dispose();
 			return result;
 		}
@@ -513,7 +514,7 @@ public class SimuTool {
 				System.out.println("this " + zipIntoSector + " is split into Sections");
 				result.remove(zipIntoSector);
 				List<String> diffSection = new ArrayList<>();
-				ShapefileDataStore parcSDS = new ShapefileDataStore(FromGeom.getParcels(geoFile).toURI().toURL());
+				ShapefileDataStore parcSDS = new ShapefileDataStore(FromGeom.getParcel(geoFile).toURI().toURL());
 				SimpleFeatureIterator it = parcSDS.getFeatureSource().getFeatures().features();
 				try {
 					while (it.hasNext()) {

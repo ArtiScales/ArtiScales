@@ -30,8 +30,8 @@ import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Polygon;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Polygon;
 
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
@@ -57,6 +57,12 @@ import fr.ign.cogit.rules.regulation.buildingType.RepartitionBuildingType;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.cogit.util.FromGeom;
 import fr.ign.cogit.util.SimuTool;
+
+import fr.ign.cogit.parcelFunction.ParcelAttribute;
+import fr.ign.cogit.parcelFunction.ParcelCollection;
+import fr.ign.cogit.parcelFunction.ParcelGetter;
+import fr.ign.cogit.parcelFunction.ParcelState;
+import fr.ign.cogit.parcelFunction.ParcelSchema;
 
 public class BuildingToHousingUnit extends Indicators {
 
@@ -968,9 +974,9 @@ public class BuildingToHousingUnit extends Indicators {
 						eval = 0.001;
 					}
 					// typo of the zone
-					String typo = FromGeom.parcelInTypo(FromGeom.getCommunitiesIris(new File(getRootFile(), "dataGeo")), ftBati);
+					String typo = ParcelState.parcelInTypo(FromGeom.getCommunitiesIris(new File(getRootFile(), "dataGeo")), ftBati);
 
-					String armature = FromGeom.getArmatureFromParcel(
+					String armature = ParcelAttribute.getArmatureFromSFC(
 							Vectors.snapDatas(citiesSds.getFeatureSource().getFeatures(), (Geometry) ftBati.getDefaultGeometry()), ftBati);
 					BuildingType type = BuildingType.valueOf((String) ftBati.getAttribute("BUILDTYPE"));
 					boolean collectiveHousing = false;
