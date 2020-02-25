@@ -168,11 +168,11 @@ public class SimPLUSimulator {
 		// System.out.println("done with pack " + f.getName());
 		// }
 		// }
-		String scenar = "CDense";
-		File rootFile = new File("/home/ubuntu/boulot/these/result2903/rattrapage");
+		String scenar = "DPeuDense";
+		String variant = "variantSizeCell16";
+		File rootFile = new File("/home/ubuntu/boulot/these/result2903/");
 
 		File paramFolder = new File(rootFile, "paramFolder");
-		System.out.println(paramFolder);
 		TransformXMLToJSON.convert(paramFolder);
 		List<File> lF = new ArrayList<>();
 		lF.add(new File(paramFolder, "paramSet/" + scenar + "/parameterTechnic.json"));
@@ -180,18 +180,23 @@ public class SimPLUSimulator {
 		SimpluParametersJSON p = new SimpluParametersJSON(lF);
 		// AttribNames.setATT_CODE_PARC("CODE");
 		// USE_DIFFERENT_REGULATION_FOR_ONE_PARCEL = false;
-		File fOut = new File(rootFile + "/depotSimPLUVar/" + scenar);
 		// for (File variante : (new File(rootFile, "/cc/CDense/variantes/").listFiles())) {
-		File variante = new File(rootFile, "/cc/CDense/variantes/variantMvData1");
-		File out = new File(fOut, variante.getName());
-		out.mkdirs();
-		for (File pack : variante.listFiles()) {
-			System.out.println("start pack " + pack);
-			SimPLUSimulator sim = new SimPLUSimulator(paramFolder, pack, p, out);
-			sim.run();
-			System.out.println("done with pack " + pack.getName());
-		}
-		// }
+		// File variante = new File(rootFile, "/cc/CDense/variantes/variantMvData1");
+		// File out = new File(fOut, variante.getName());
+		// fOut.mkdirs();
+		File packagerFile = new File(rootFile + "/Packager/" + scenar + "/" + variant);
+//		for (File superPack : packagerFile.listFiles()) {
+		File superPack = new File(packagerFile,"2");	
+		for (File pack : superPack.listFiles()) {
+				File fOut = new File(rootFile + "/SimPLUDepot/" + scenar + "/" + variant + "/" + superPack + "/" + pack);
+				System.out.println("start pack " + superPack);
+				SimPLUSimulator sim = new SimPLUSimulator(paramFolder, pack, p, fOut);
+				sim.run();
+				System.out.println("done with pack " + pack.getName());
+			}
+			System.out.println("youpi");
+			System.out.println("done with superpack " + superPack);
+//		}
 		// File f = new File("./" + nameMainFolder + "/ParcelSelectionDepot/DDense/variante0/");
 		// File fOut = new File("." + nameMainFolder + "/ArtiScalesTest/SimPLUDepot/DDense/variante0/");
 		// List<File> listBatiSimu = new ArrayList<File>();
@@ -488,7 +493,35 @@ public class SimPLUSimulator {
 				filePrescSurf, null);
 		return run(env);
 	}
-
+/**
+ * simplifies the stop conditions for small simulations 
+ * @param parIn
+ * @param type
+ * @return
+ */
+	public SimpluParametersJSON simplifyStopCondition(SimpluParametersJSON parIn, BuildingType type){
+		
+		switch (type) {
+		case DETACHEDHOUSE:
+			parIn.set("absolute_nb_iter", 1100000);
+			parIn.set("relative_nb_iter", 42000);
+			System.out.println("simplifyStopCondition for detached house");
+			break;
+		case SMALLHOUSE:
+			parIn.set("absolute_nb_iter", 800000);
+			parIn.set("relative_nb_iter", 32000);
+			System.out.println("simplifyStopCondition for small house");
+			break;
+		case SMALLBLOCKFLAT:
+			parIn.set("absolute_nb_iter", 2250000);
+			parIn.set("relative_nb_iter", 66666);
+			System.out.println("simplifyStopCondition for smallBlock");
+		default:
+			break;
+		}
+		return parIn;
+	}
+	
 	/**
 	 * method employed for every simPLU Simu
 	 * 
@@ -601,7 +634,10 @@ public class SimPLUSimulator {
 				// we add the parameters for the building type want to simulate
 				SimpluParametersJSON pWithBuildingType = new SimpluParametersJSON(pUsed);
 				pWithBuildingType.add(RepartitionBuildingType.getParamBuildingType(new File(paramFile, "profileBuildingType"), type));
+				pWithBuildingType = simplifyStopCondition(pWithBuildingType,type);
+				
 				building = runSimulation(env, i, pWithBuildingType, type, prescriptionUse, importantInfo);
+				
 				// if it's null, we skip to another parcel
 				if (building == null) {
 					continue bpu;
