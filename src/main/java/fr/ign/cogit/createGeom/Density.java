@@ -29,7 +29,8 @@ import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import au.com.bytecode.opencsv.CSVReader;
-import fr.ign.cogit.GTFunctions.Vectors;
+import fr.ign.cogit.geoToolsFunctions.vectors.Collec;
+import fr.ign.cogit.geoToolsFunctions.vectors.Geom;
 import fr.ign.cogit.parcelFunction.ParcelState;
 
 public class Density {
@@ -313,7 +314,7 @@ public class Density {
 			}
 		}
 		inIt.close();
-		return Vectors.exportSFC(result, outFile);
+		return Collec.exportSFC(result, outFile);
 	}
 
 	/**
@@ -361,7 +362,7 @@ public class Density {
 			}
 		}
 		inIt.close();
-		return Vectors.exportSFC(result, outFile);
+		return Collec.exportSFC(result, outFile);
 	}
 
 	/**
@@ -541,7 +542,7 @@ public class Density {
 		SimpleFeatureBuilder builder = new SimpleFeatureBuilder(sfTypeBuilder.buildFeatureType());
 		DefaultFeatureCollection zones = new DefaultFeatureCollection();
 		for (String com : list.keySet()) {
-			builder.set("the_geom", Vectors.unionSFC(list.get(com)));
+			builder.set("the_geom", Geom.unionSFC(list.get(com)));
 			builder.set("INSEE", com);
 			zones.add(builder.buildFeature(null));
 		}

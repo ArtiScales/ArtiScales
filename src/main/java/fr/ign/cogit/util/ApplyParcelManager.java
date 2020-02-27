@@ -9,9 +9,9 @@ import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.feature.DefaultFeatureCollection;
 
-import fields.ArtiScalesFields;
-import fields.AttributeFromPosition;
-import fr.ign.cogit.GTFunctions.Vectors;
+import fields.ArtiScalesParcelFields;
+import fr.ign.cogit.geoToolsFunctions.vectors.Collec;
+import fr.ign.cogit.parcelFunction.MarkParcelAttributeFromPosition;
 import fr.ign.cogit.parcelFunction.ParcelAttribute;
 import fr.ign.cogit.parcelFunction.ParcelCollection;
 import fr.ign.cogit.parcelFunction.ParcelGetter;
@@ -100,7 +100,7 @@ public class ApplyParcelManager {
 
 		boolean goOn = false;
 
-		splitZone = ParcelAttribute.normalizeNameBigZone(splitZone);
+		splitZone = ParcelAttribute.normalizeNameFrenchBigZone(splitZone);
 
 		List<String> parcelToNotAdd = new ArrayList<String>();
 		File paramFile = new File(rootFile, "paramFolder");
@@ -135,8 +135,7 @@ public class ApplyParcelManager {
 				stringParam = SimuTool.cleanSectorName(stringParam);
 				// two specifications
 				if (stringParam.split("-").length == 2 && splitZone.equals(stringParam.split("-")[1])) {
-					SimpleFeatureCollection typoedParcel = ParcelGetter.getParcelByTypo(stringParam.split("-")[0], parcelCollection, rootFile,
-							FromGeom.getZoning(regulFile));
+					SimpleFeatureCollection typoedParcel = ParcelGetter.getParcelByTypo(stringParam.split("-")[0], parcelCollection, FromGeom.getZoning(regulFile));
 					SimpleFeatureCollection bigZonedParcel = ParcelGetter.getParcelByBigZone(stringParam.split("-")[1], typoedParcel, zoningFile);
 					if (bigZonedParcel.size() > 0) {
 						parcelToNotAdd = ParcelCollection.dontAddParcel(parcelToNotAdd, bigZonedParcel);
@@ -174,15 +173,14 @@ public class ApplyParcelManager {
 
 					if (stringParam.equals("periUrbain") || stringParam.equals("rural") || stringParam.equals("banlieue")
 							|| stringParam.equals("centre")) {
-						SimpleFeatureCollection typoedParcel = ParcelGetter.getParcelByTypo(stringParam, parcelCollection, rootFile,
-								FromGeom.getZoning(regulFile));
+						SimpleFeatureCollection typoedParcel = ParcelGetter.getParcelByTypo(stringParam, parcelCollection, FromGeom.getZoning(regulFile));
 						if (typoedParcel.size() > 0) {
-							Vectors.exportSFC(typoedParcel, new File("/tmp/salut-" + stringParam + ".shp"));
+							Collec.exportSFC(typoedParcel, new File("/tmp/salut-" + stringParam + ".shp"));
 							parcelToNotAdd = ParcelCollection.dontAddParcel(parcelToNotAdd, typoedParcel);
 							System.out.println(typoedParcel.size() + " elements :we cut the parcels with " + type + " parameters");
 							def = ParcelCollection.addAllParcels(def, runParcelRecomp(splitZone, typoedParcel, tmpFile, mupOutput, pBuildingType,
 									dontTouchUZones, geoFile, regulFile, typeOfRecomp));
-							Vectors.exportSFC(def, new File("/tmp/" + stringParam + ".shp"));
+							Collec.exportSFC(def, new File("/tmp/" + stringParam + ".shp"));
 
 							// if (typoed.size() > 10) {
 							// break;
@@ -230,25 +228,25 @@ public class ApplyParcelManager {
 			ShapefileDataStore shpDSIlot = new ShapefileDataStore(FromGeom.getIlots(geoFile).toURI().toURL());
 			SimpleFeatureCollection ilot = shpDSIlot.getFeatureSource().getFeatures();
 
-			SimpleFeatureCollection parcMUPMarked = AttributeFromPosition.markParcelIntersectPolygonIntersection(bigZonedParcel, mupOutput);
-			SimpleFeatureCollection toDensify = AttributeFromPosition.markParcelIntersectZoningType(parcMUPMarked, splitZone, zoningFile);
+			SimpleFeatureCollection parcMUPMarked = MarkParcelAttributeFromPosition.markParcelIntersectPolygonIntersection(bigZonedParcel, mupOutput);
+			SimpleFeatureCollection toDensify = MarkParcelAttributeFromPosition.markParcelIntersectZoningType(parcMUPMarked, splitZone, zoningFile);
 			SimpleFeatureCollection salut = ParcelDensification.parcelDensification(toDensify, ilot, tmpFolder, buildingFile, maximalArea,
 					minimalArea, maximalWidth, lenDriveway, ParcelState.isArt3AllowsIsolatedParcel(parcMUPMarked.features().next(), predicateFile));
-			SimpleFeatureCollection densifyedParcel = ArtiScalesFields.fixParcelAttributes(salut, tmpFolder, buildingFile, communityFile, mupOutput,
+			SimpleFeatureCollection densifyedParcel = ArtiScalesParcelFields.fixParcelAttributes(salut, tmpFolder, buildingFile, communityFile, mupOutput,
 					zoningFile, allOrCell);
 			if (DEBUG)
-				Vectors.exportSFC(densifyedParcel, new File("/tmp/ParcelConsolidRecomp.shp"));
+				Collec.exportSFC(densifyedParcel, new File("/tmp/ParcelConsolidRecomp.shp"));
 			shpDSIlot.dispose();
 			return densifyedParcel;
 		case "partRecomp":
-			SimpleFeatureCollection testmp = AttributeFromPosition.markParcelIntersectPolygonIntersection(bigZonedParcel, mupOutput);
-			SimpleFeatureCollection test = AttributeFromPosition.markParcelIntersectZoningType(testmp, splitZone, zoningFile);
+			SimpleFeatureCollection testmp = MarkParcelAttributeFromPosition.markParcelIntersectPolygonIntersection(bigZonedParcel, mupOutput);
+			SimpleFeatureCollection test = MarkParcelAttributeFromPosition.markParcelIntersectZoningType(testmp, splitZone, zoningFile);
 			SimpleFeatureCollection cuted = ParcelConsolidRecomp.parcelConsolidRecomp(test, tmpFolder, maximalArea, minimalArea, maximalWidth,
 					lenRoad, decompositionLevelWithoutStreet);
-			SimpleFeatureCollection consolidRecompParcel = ArtiScalesFields.fixParcelAttributes(cuted, tmpFolder, buildingFile, communityFile,
+			SimpleFeatureCollection consolidRecompParcel = ArtiScalesParcelFields.fixParcelAttributes(cuted, tmpFolder, buildingFile, communityFile,
 					mupOutput, zoningFile, allOrCell);
 			if (DEBUG)
-				Vectors.exportSFC(consolidRecompParcel, new File("/tmp/ParcelConsolidRecomp.shp"));
+				Collec.exportSFC(consolidRecompParcel, new File("/tmp/ParcelConsolidRecomp.shp"));
 			return consolidRecompParcel;
 		// return ParcelDensification.parcelPartRecomp(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType, dontTouchUZones, geoFile, regulFile);
 		case "totRecomp":
@@ -262,10 +260,10 @@ public class ApplyParcelManager {
 			}
 			SimpleFeatureCollection parcelCuted = ParcelTotRecomp.parcelTotRecomp(zone, bigZonedParcel, tmpFolder, zoningFile, maximalArea,
 					minimalArea, maximalWidth, lenRoad, decompositionLevelWithoutStreet);
-			SimpleFeatureCollection totRecompParcel = ArtiScalesFields.fixParcelAttributes(parcelCuted, tmpFolder, buildingFile, communityFile,
+			SimpleFeatureCollection totRecompParcel = ArtiScalesParcelFields.fixParcelAttributes(parcelCuted, tmpFolder, buildingFile, communityFile,
 					mupOutput, zoningFile, allOrCell);
 			if (DEBUG)
-				Vectors.exportSFC(totRecompParcel, new File("/tmp/parcelTotZone.shp"));
+				Collec.exportSFC(totRecompParcel, new File("/tmp/parcelTotZone.shp"));
 			shpDSZone.dispose();
 			return totRecompParcel;
 		}

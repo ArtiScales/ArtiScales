@@ -38,7 +38,9 @@ import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
-import fr.ign.cogit.GTFunctions.Vectors;
+import fr.ign.cogit.geoToolsFunctions.vectors.Collec;
+import fr.ign.cogit.geoToolsFunctions.vectors.Geom;
+import fr.ign.cogit.geoToolsFunctions.vectors.Shp;
 import fr.ign.cogit.geometryGeneration.CityGeneration;
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
 import fr.ign.cogit.geoxygene.util.conversion.AdapterFactory;
@@ -277,7 +279,7 @@ public class FromGeom {
 	 */
 	public static File mergeBatis(List<File> file2MergeIn) throws Exception {
 		File out = new File(file2MergeIn.get(0).getParentFile(), "TotBatSimuFill.shp");
-		return Vectors.mergeVectFiles(file2MergeIn, out);
+		return Shp.mergeVectFiles(file2MergeIn, out);
 	}
 
 	/**
@@ -291,7 +293,7 @@ public class FromGeom {
 	public static File mergeBatis(File folder2MergeFilesIn) throws Exception {
 		List<File> listBatiFile = addBati(folder2MergeFilesIn);
 		File outFile = new File(folder2MergeFilesIn, "TotBatSimuFill.shp");
-		return Vectors.mergeVectFiles(listBatiFile, outFile);
+		return Shp.mergeVectFiles(listBatiFile, outFile);
 	}
 
 	public static List<File> addBati(File motherF) {
@@ -313,7 +315,7 @@ public class FromGeom {
 	}
 
 	public static boolean isBuilt(SimpleFeature parcel, SimpleFeatureCollection batiSFC, double bufferParcel) throws Exception {
-		SimpleFeatureCollection batiCollec = Vectors.snapDatas(batiSFC, (Geometry) parcel.getDefaultGeometry());
+		SimpleFeatureCollection batiCollec = Collec.snapDatas(batiSFC, (Geometry) parcel.getDefaultGeometry());
 		boolean isBuild = false;
 		SimpleFeatureIterator batiCollectionIt = batiCollec.features();
 		try {
@@ -362,7 +364,7 @@ public class FromGeom {
 	public static SimpleFeatureCollection getIlots(File geoFile, SimpleFeatureCollection parcelCollection) throws Exception {
 		File ilots = getIlots(geoFile);
 
-		return Vectors.snapDatas(ilots, parcelCollection);
+		return Collec.snapDatas(ilots, parcelCollection);
 	}
 
 	/**
@@ -381,7 +383,7 @@ public class FromGeom {
 			}
 		}
 		System.out.println("ilots not found: auto-generation of them");
-		return CityGeneration.CreateIlots(getParcel(geoFile), geoFile);
+		return CityGeneration.createUrbanIslet(getParcel(geoFile), geoFile);
 	}
 
 	public static File getZoning(File regulFile) throws FileNotFoundException {
@@ -456,7 +458,7 @@ public class FromGeom {
 		DefaultFeatureCollection totalParcel = new DefaultFeatureCollection();
 
 		for (String typeZone : typesZone) {
-			totalParcel.addAll(selecParcelZoning(typeZone, Vectors.snapDatas(parcels, zoningFile), zoningFile));
+			totalParcel.addAll(selecParcelZoning(typeZone, Collec.snapDatas(parcels, zoningFile), zoningFile));
 		}
 
 		return totalParcel.collection();
@@ -524,7 +526,7 @@ public class FromGeom {
 	public static List<String> parcelInTypo(SimpleFeature parcelIn, File communeFile) throws Exception {
 		List<String> result = new ArrayList<String>();
 		ShapefileDataStore shpDSZone = new ShapefileDataStore(communeFile.toURI().toURL());
-		SimpleFeatureCollection shpDSZoneReduced = Vectors.snapDatas(shpDSZone.getFeatureSource().getFeatures(),
+		SimpleFeatureCollection shpDSZoneReduced = Collec.snapDatas(shpDSZone.getFeatureSource().getFeatures(),
 				(Geometry) parcelIn.getDefaultGeometry());
 
 		SimpleFeatureIterator featuresZones = shpDSZoneReduced.features();
@@ -629,7 +631,7 @@ public class FromGeom {
 	public static List<String> parcelInBigZone(SimpleFeature parcelIn, File zoningFile) throws Exception {
 		List<String> result = new LinkedList<String>();
 		ShapefileDataStore shpDSZone = new ShapefileDataStore(zoningFile.toURI().toURL());
-		SimpleFeatureCollection shpDSZoneReduced = Vectors.snapDatas(DataUtilities.collection(shpDSZone.getFeatureSource().getFeatures()), (Geometry) parcelIn.getDefaultGeometry());
+		SimpleFeatureCollection shpDSZoneReduced = Collec.snapDatas(DataUtilities.collection(shpDSZone.getFeatureSource().getFeatures()), (Geometry) parcelIn.getDefaultGeometry());
 		if (shpDSZoneReduced.isEmpty()) {
 		  System.out.println("parcelInBigZone = " + zoningFile);
 		  System.out.println("ParcelIn = " + parcelIn.getDefaultGeometry());
@@ -673,7 +675,7 @@ public class FromGeom {
 				// maybe the parcel is in between two zones (less optimized) intersection
 				else if ((featGeometry).intersects(parcelInGeometry)) {
 					twoZones = true;
-					double area = Vectors.scaledGeometryReductionIntersection(Arrays.asList(featGeometry, parcelInGeometry)).getArea();
+					double area = Geom.scaledGeometryReductionIntersection(Arrays.asList(featGeometry, parcelInGeometry)).getArea();
 					switch ((String) feat.getAttribute("TYPEZONE")) {
 					case "U":
 					case "ZC":
@@ -805,7 +807,7 @@ public class FromGeom {
 
 		// TODO opérateur géométrique pas terrible, mais rattrapé par le
 		// découpage de SimPLU
-		Filter inter = ff.intersects(ff.property(geometryParcelPropertyName), ff.literal(Vectors.unionSFC(featureZoneSelected)));
+		Filter inter = ff.intersects(ff.property(geometryParcelPropertyName), ff.literal(Geom.unionSFC(featureZoneSelected)));
 		SimpleFeatureCollection parcelSelected = parcelCollection.subCollection(inter);
 
 		shpDSZone.dispose();

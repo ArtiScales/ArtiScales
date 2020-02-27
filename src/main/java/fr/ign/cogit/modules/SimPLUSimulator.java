@@ -23,8 +23,10 @@ import org.geotools.referencing.CRS;
 import org.locationtech.jts.geom.Geometry;
 import org.opengis.feature.simple.SimpleFeature;
 
-import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.annexeTools.SDPCalcPolygonizer;
+import fr.ign.cogit.geoToolsFunctions.vectors.Collec;
+import fr.ign.cogit.geoToolsFunctions.vectors.Geom;
+import fr.ign.cogit.geoToolsFunctions.vectors.Shp;
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
 import fr.ign.cogit.geoxygene.api.feature.IFeatureCollection;
 import fr.ign.cogit.geoxygene.api.spatial.geomaggr.IMultiSurface;
@@ -436,19 +438,19 @@ public class SimPLUSimulator {
 	public int run(SimpleFeature parcel) throws Exception {
 		DefaultFeatureCollection parcelColl = new DefaultFeatureCollection();
 		parcelColl.add(parcel);
-		File parcelTemp = Vectors.exportSFC(parcelColl, new File(folderOut, "parcelTemp.shp"));
+		File parcelTemp = Collec.exportSFC(parcelColl, new File(folderOut, "parcelTemp.shp"));
 		// parcels aside not taken into account : thats untrue (but it's just for an example)
-		File emprise = Vectors.exportGeom(((Geometry) parcel.getDefaultGeometry()).buffer(30), new File(tmpFile, "emprise"));
+		File emprise = Geom.exportGeom(((Geometry) parcel.getDefaultGeometry()).buffer(30), new File(tmpFile, "emprise"));
 
-		this.buildFile = Vectors.cropSFC(new File(geoFile, "building.shp"), emprise, tmpFile);
-		this.roadFile = Vectors.cropSFC(new File(geoFile, "road.shp"), emprise, tmpFile);
-		this.communitiesFile = Vectors.cropSFC(new File(geoFile, "communities.shp"), emprise, tmpFile);
+		this.buildFile = Shp.cropSFC(new File(geoFile, "building.shp"), emprise, tmpFile);
+		this.roadFile = Shp.cropSFC(new File(geoFile, "road.shp"), emprise, tmpFile);
+		this.communitiesFile = Shp.cropSFC(new File(geoFile, "communities.shp"), emprise, tmpFile);
 		this.parcelsFile = parcelTemp;
 
-		this.zoningFile = Vectors.cropSFC(new File(regulationFile, "zoning.shp"), emprise, tmpFile);
-		this.filePrescPonct = Vectors.cropSFC(new File(regulationFile, "prescPonct.shp"), emprise, tmpFile);
-		this.filePrescLin = Vectors.cropSFC(new File(regulationFile, "prescLin.shp"), emprise, tmpFile);
-		this.filePrescSurf = Vectors.cropSFC(new File(regulationFile, "prescSurf.shp"), emprise, tmpFile);
+		this.zoningFile = Shp.cropSFC(new File(regulationFile, "zoning.shp"), emprise, tmpFile);
+		this.filePrescPonct = Shp.cropSFC(new File(regulationFile, "prescPonct.shp"), emprise, tmpFile);
+		this.filePrescLin = Shp.cropSFC(new File(regulationFile, "prescLin.shp"), emprise, tmpFile);
+		this.filePrescSurf = Shp.cropSFC(new File(regulationFile, "prescSurf.shp"), emprise, tmpFile);
 		Environnement env;
 		try {
 			env = LoaderSHP.load(simuFile, codeFile, zoningFile, parcelTemp, roadFile, buildFile, filePrescPonct, filePrescLin, filePrescSurf, null);

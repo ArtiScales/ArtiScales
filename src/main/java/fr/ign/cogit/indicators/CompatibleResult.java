@@ -24,26 +24,22 @@ import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.referencing.CRS;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Polygon;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.Polygon;
-
 import au.com.bytecode.opencsv.CSVReader;
-import fr.ign.cogit.GTFunctions.Vectors;
+import fr.ign.cogit.geoToolsFunctions.vectors.Collec;
+import fr.ign.cogit.geoToolsFunctions.vectors.Shp;
 import fr.ign.cogit.modules.SelectParcels;
 import fr.ign.cogit.modules.SimPLUSimulator;
+import fr.ign.cogit.parcelFunction.ParcelGetter;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.cogit.util.FromGeom;
 import fr.ign.cogit.util.SimuTool;
-import fr.ign.cogit.parcelFunction.ParcelAttribute;
-import fr.ign.cogit.parcelFunction.ParcelCollection;
-import fr.ign.cogit.parcelFunction.ParcelGetter;
-import fr.ign.cogit.parcelFunction.ParcelState;
-import fr.ign.cogit.parcelFunction.ParcelSchema;
 
 public class CompatibleResult extends Indicators {
 	File newGeoFile, newParcelDepot, newOutSimPLU, tmpFile;
@@ -155,7 +151,7 @@ public class CompatibleResult extends Indicators {
 		} finally {
 			it.close();
 		}
-		return Vectors.exportSFC(result, outFile);
+		return Collec.exportSFC(result, outFile);
 	}
 
 	public SimpleFeatureCollection doWeFillWithBuilding(File rootFile, SimpluParametersJSON par, String scenarName, String variantName)
@@ -207,11 +203,11 @@ public class CompatibleResult extends Indicators {
 	public void prepareNewGeoFile() throws Exception {
 		copyAll((new File(getRootFile(), "dataGeo")), newGeoFile);
 		// paste new parcels
-		Vectors.copyShp("parcelGenExport", getParcelDepotGenFile().getParentFile(), newGeoFile);
+		Shp.copyShp("parcelGenExport", getParcelDepotGenFile().getParentFile(), newGeoFile);
 
 		// merge simulated buildings
 		List<File> lBuilding = Arrays.asList(new File(newGeoFile, "building.shp"), getSimPLUDepotGenFile());
-		Vectors.mergeVectFiles(lBuilding, new File(newGeoFile, "building.shp"));
+		Shp.mergeVectFiles(lBuilding, new File(newGeoFile, "building.shp"));
 	}
 
 	public int fillWithBuilding(String insee, int nbToFill) throws Exception {
@@ -349,7 +345,7 @@ public class CompatibleResult extends Indicators {
 		// get the building file and affect it an evaluation according to MUP-City's cells
 		File tmpBati = new File(tmpFile, "batiment.shp");
 		if (!tmpBati.exists()) {
-			Vectors.exportSFC(SimuTool.giveEvalToBuilding(bht.getBuildingTotalFile(), bht.getMupOutputFile()), tmpBati);
+			Collec.exportSFC(SimuTool.giveEvalToBuilding(bht.getBuildingTotalFile(), bht.getMupOutputFile()), tmpBati);
 		}
 		ShapefileDataStore sds = new ShapefileDataStore(tmpBati.toURI().toURL());
 		SimpleFeatureCollection buildings = sds.getFeatureSource().getFeatures();
@@ -439,13 +435,13 @@ public class CompatibleResult extends Indicators {
 
 	public void completeParcelle(File parcelRejectedFile, SimpleFeatureCollection parcelRejected) throws Exception {
 		if (!parcelRejectedFile.exists()) {
-			Vectors.exportSFC(parcelRejected, new File(newParcelDepot, "parcelRejected.shp"));
+			Collec.exportSFC(parcelRejected, new File(newParcelDepot, "parcelRejected.shp"));
 		} else {
-			File tmp = Vectors.exportSFC(parcelRejected, new File(tmpFile, "parcelRejected.shp"));
+			File tmp = Collec.exportSFC(parcelRejected, new File(tmpFile, "parcelRejected.shp"));
 			List<File> merge = new ArrayList<File>();
 			merge.add(tmp);
 			merge.add(parcelRejectedFile);
-			Vectors.mergeVectFiles(merge, parcelRejectedFile);
+			Shp.mergeVectFiles(merge, parcelRejectedFile);
 		}
 	}
 

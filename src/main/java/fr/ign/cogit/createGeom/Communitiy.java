@@ -16,8 +16,9 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 
-import fr.ign.cogit.GTFunctions.Vectors;
-import fr.ign.cogit.GTFunctions.Schemas;
+import fr.ign.cogit.geoToolsFunctions.Schemas;
+import fr.ign.cogit.geoToolsFunctions.vectors.Collec;
+import fr.ign.cogit.geoToolsFunctions.vectors.Geom;
 
 
 public class Communitiy {
@@ -58,7 +59,7 @@ public class Communitiy {
 		}
 
 		for (String insee : result.keySet()) {
-			Geometry geom = Vectors.unionGeom(result.get(insee));
+			Geometry geom = Geom.unionGeom(result.get(insee));
 			SimpleFeatureIterator itCom = featuresCommunes.features();
 			// ft.set("the_geom", geom.buffer(20).buffer(-20));
 			ft.set("the_geom", geom);
@@ -85,7 +86,7 @@ public class Communitiy {
 		}
 		shpDSParcels.dispose();
 		shpDSCommunes.dispose();
-		return Vectors.exportSFC(dfC.collection(), outFile);
+		return Collec.exportSFC(dfC.collection(), outFile);
 
 	}
 }

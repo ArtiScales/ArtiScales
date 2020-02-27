@@ -23,7 +23,8 @@ import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 
 import au.com.bytecode.opencsv.CSVReader;
-import fr.ign.cogit.GTFunctions.Vectors;
+import fr.ign.cogit.geoToolsFunctions.vectors.Collec;
+import fr.ign.cogit.geoToolsFunctions.vectors.Geom;
 import fr.ign.cogit.map.MapRenderer;
 import fr.ign.cogit.map.theseMC.SurfParcelFailedMap;
 import fr.ign.cogit.map.theseMC.SurfParcelSimulatedMap;
@@ -477,7 +478,7 @@ public class ParcelStat extends Indicators {
 		} finally {
 			itParcel.close();
 		}
-		Vectors.exportSFC(result, new File(getIndicFolder(), "parcelStatted.shp"));
+		Collec.exportSFC(result, new File(getIndicFolder(), "parcelStatted.shp"));
 
 		parcelSimuledSDS.dispose();
 
@@ -496,7 +497,7 @@ public class ParcelStat extends Indicators {
 
 		Geometry parcelGeometry = (Geometry) parcel.getDefaultGeometry();
 
-		SimpleFeatureCollection snapBatiCollec = Vectors.snapDatas(batiColl, parcelGeometry);
+		SimpleFeatureCollection snapBatiCollec = Collec.snapDatas(batiColl, parcelGeometry);
 		SimpleFeatureIterator batiFeaturesIt = snapBatiCollec.features();
 		try {
 			while (batiFeaturesIt.hasNext()) {
@@ -590,7 +591,7 @@ public class ParcelStat extends Indicators {
 			itParcel.close();
 		}
 
-		Vectors.exportSFC(toMergeIftouch, new File("/tmp/toMergeIfTouch.shp"));
+		Collec.exportSFC(toMergeIftouch, new File("/tmp/toMergeIfTouch.shp"));
 
 		SimpleFeatureIterator ItToMergeIftouch = toMergeIftouch.features();
 
@@ -600,7 +601,7 @@ public class ParcelStat extends Indicators {
 				Geometry aggregate = mergeIfTouch((Geometry) f.getDefaultGeometry(), toMergeIftouch);
 
 				// find attribute infos
-				SimpleFeatureIterator getAttributeIt = Vectors.snapDatas(parcelOG, aggregate).features();
+				SimpleFeatureIterator getAttributeIt = Collec.snapDatas(parcelOG, aggregate).features();
 				try {
 					while (getAttributeIt.hasNext()) {
 						SimpleFeature model = getAttributeIt.next();
@@ -625,7 +626,7 @@ public class ParcelStat extends Indicators {
 			ItToMergeIftouch.close();
 		}
 
-		Vectors.exportSFC(reuniteParcel, new File("/tmp/unitedParcels.shp"));
+		Collec.exportSFC(reuniteParcel, new File("/tmp/unitedParcels.shp"));
 
 		return toMergeIftouch;
 
@@ -656,7 +657,7 @@ public class ParcelStat extends Indicators {
 				Geometry geomTemp = (((Geometry) f.getDefaultGeometry()));
 				if (geomIn.intersects(geomTemp) && !geomIn.equals(geomTemp)) {
 					result.remove(f);
-					aggreg = Vectors.unionGeom(geomIn, geomTemp);
+					aggreg = Geom.unionGeom(geomIn, geomTemp);
 					aggreg = mergeIfTouch(aggreg, result);
 					break;
 				}

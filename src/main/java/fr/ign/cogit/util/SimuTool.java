@@ -35,7 +35,8 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
-import fr.ign.cogit.GTFunctions.Vectors;
+import fr.ign.cogit.geoToolsFunctions.vectors.Collec;
+import fr.ign.cogit.geoToolsFunctions.vectors.Geom;
 import fr.ign.cogit.parcelFunction.ParcelAttribute;
 import fr.ign.cogit.parcelFunction.ParcelState;
 import fr.ign.cogit.simplu3d.model.BasicPropertyUnit;
@@ -185,7 +186,7 @@ public class SimuTool {
 		SimpleFeatureCollection sfc = sds.getFeatureSource().getFeatures();
 		SimpleFeatureCollection result = getBuildingByZip(sfc, zips);
 		sds.dispose();
-		return Vectors.exportSFC(result, fileOut);
+		return Collec.exportSFC(result, fileOut);
 
 	}
 
@@ -789,8 +790,8 @@ public class SimuTool {
 			if (f.getName().equals("geoSnap")) {
 				ShapefileDataStore parcelSDS = new ShapefileDataStore(new File(f.getParentFile(), "parcelle.shp").toURI().toURL());
 				SimpleFeatureCollection parcelOG = parcelSDS.getFeatureSource().getFeatures();
-				Geometry union = Vectors.unionSFC(parcelOG);
-				Vectors.exportSFC(Vectors.snapDatas(zoningOG, union), new File(f, "zone_urba.shp"));
+				Geometry union = Geom.unionSFC(parcelOG);
+				Collec.exportSFC(Collec.snapDatas(zoningOG, union), new File(f, "zone_urba.shp"));
 				parcelSDS.dispose();
 			} else if (f.isDirectory()) {
 				replaceZoning(f, zoningFile);
@@ -1327,7 +1328,7 @@ public class SimuTool {
 			buildingLoop: while (it.hasNext()) {
 				SimpleFeature building = it.next();
 				Geometry buildingGeom = (Geometry) building.getDefaultGeometry();
-				SimpleFeatureCollection zones = Vectors.snapDatas(zoning, buildingGeom);
+				SimpleFeatureCollection zones = Collec.snapDatas(zoning, buildingGeom);
 				SimpleFeatureIterator zoneIt = zones.features();
 				try {
 					while (zoneIt.hasNext()) {
@@ -1364,7 +1365,7 @@ public class SimuTool {
 		bSDS.dispose();
 		zSDS.dispose();
 		if (replace) {
-			Vectors.exportSFC(result.collection(), buildingFile);
+			Collec.exportSFC(result.collection(), buildingFile);
 		}
 		return result.collection();
 	}

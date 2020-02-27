@@ -25,18 +25,18 @@ import org.knowm.xchart.BitmapEncoder.BitmapFormat;
 import org.knowm.xchart.CategoryChart;
 import org.knowm.xchart.CategoryChartBuilder;
 import org.knowm.xchart.Histogram;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Polygon;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.Polygon;
-
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
-import fr.ign.cogit.GTFunctions.Vectors;
 import fr.ign.cogit.createGeom.Density;
+import fr.ign.cogit.geoToolsFunctions.vectors.Collec;
+import fr.ign.cogit.geoToolsFunctions.vectors.Shp;
 import fr.ign.cogit.map.MapRenderer;
 import fr.ign.cogit.map.theseMC.DensIniNewComp;
 import fr.ign.cogit.map.theseMC.DiffObjLgtMap;
@@ -52,17 +52,13 @@ import fr.ign.cogit.map.theseMC.nbHU.NbHUU;
 import fr.ign.cogit.map.theseMC.parcelMaps.ParcelleDensEmprisepHec;
 import fr.ign.cogit.map.theseMC.parcelMaps.ParcelleDensHUpHec;
 import fr.ign.cogit.map.theseMC.parcelMaps.ParcelleDensSDPpHec;
+import fr.ign.cogit.parcelFunction.ParcelAttribute;
+import fr.ign.cogit.parcelFunction.ParcelState;
 import fr.ign.cogit.rules.regulation.buildingType.BuildingType;
 import fr.ign.cogit.rules.regulation.buildingType.RepartitionBuildingType;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.cogit.util.FromGeom;
 import fr.ign.cogit.util.SimuTool;
-
-import fr.ign.cogit.parcelFunction.ParcelAttribute;
-import fr.ign.cogit.parcelFunction.ParcelCollection;
-import fr.ign.cogit.parcelFunction.ParcelGetter;
-import fr.ign.cogit.parcelFunction.ParcelState;
-import fr.ign.cogit.parcelFunction.ParcelSchema;
 
 public class BuildingToHousingUnit extends Indicators {
 
@@ -297,7 +293,7 @@ public class BuildingToHousingUnit extends Indicators {
 		File parcelNewFile = getParcelDepotGenFile();
 
 		List<File> lBuilding = Arrays.asList(buildingIniFile, getSimPLUDepotGenFile());
-		File buildingNewFile = Vectors.mergeVectFiles(lBuilding, new File(tmpFile, "buildingTot.shp"));
+		File buildingNewFile = Shp.mergeVectFiles(lBuilding, new File(tmpFile, "buildingTot.shp"));
 
 		result = Density.createCommunitiesWithInitialNetDensity(nameFieldHUCsv, nameFieldCodeCsv, nameFieldCodeShp, parcelIniFile, buildingIniFile,
 				countHUFile, result, fileOut);
@@ -977,7 +973,7 @@ public class BuildingToHousingUnit extends Indicators {
 					String typo = ParcelState.parcelInTypo(FromGeom.getCommunitiesIris(new File(getRootFile(), "dataGeo")), ftBati);
 
 					String armature = ParcelAttribute.getArmatureFromSFC(
-							Vectors.snapDatas(citiesSds.getFeatureSource().getFeatures(), (Geometry) ftBati.getDefaultGeometry()), ftBati);
+							Collec.snapDatas(citiesSds.getFeatureSource().getFeatures(), (Geometry) ftBati.getDefaultGeometry()), ftBati);
 					BuildingType type = BuildingType.valueOf((String) ftBati.getAttribute("BUILDTYPE"));
 					boolean collectiveHousing = false;
 					double sDPLgt = (double) ftBati.getAttribute("SDPShon");
@@ -1331,7 +1327,7 @@ public class BuildingToHousingUnit extends Indicators {
 			it.close();
 		}
 
-		return Vectors.exportSFC(result, outFile);
+		return Collec.exportSFC(result, outFile);
 	}
 
 	public void setCountToZero() {

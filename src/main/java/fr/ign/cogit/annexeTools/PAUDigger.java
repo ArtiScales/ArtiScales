@@ -37,7 +37,9 @@ import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import fr.ign.cogit.FeaturePolygonizer;
-import fr.ign.cogit.GTFunctions.Vectors;
+import fr.ign.cogit.geoToolsFunctions.vectors.Collec;
+import fr.ign.cogit.geoToolsFunctions.vectors.Geom;
+import fr.ign.cogit.geoToolsFunctions.vectors.Shp;
 import goal.ParcelConsolidRecomp;
 
 public class PAUDigger {
@@ -88,11 +90,11 @@ public class PAUDigger {
 		nU.add(new File(NUroot, "PPRI_Loue_AU.shp"));
 		nU.add(new File(NUroot, "PPRI_Doubs_AU.shp"));
 		nU.add(new File(NUroot, "ZNIEFF1_AU.shp"));
-		File fileNU = Vectors.mergeVectFiles(nU, new File(tmpFile, "zonesNU.shp"), false);
+		File fileNU = Shp.mergeVectFiles(nU, new File(tmpFile, "zonesNU.shp"), false);
 		ShapefileDataStore nUSDS = new ShapefileDataStore(fileNU.toURI().toURL());
 		SimpleFeatureCollection nUSFC = nUSDS.getFeatureSource().getFeatures();
-		Geometry unionNU = Vectors.unionSFC(nUSFC);
-		Vectors.exportGeom(unionNU, new File("/tmp/unionNU.shp"));
+		Geometry unionNU = Geom.unionSFC(nUSFC);
+		Geom.exportGeom(unionNU, new File("/tmp/unionNU.shp"));
 
 		// cluster of buildings
 		// limits
@@ -108,12 +110,12 @@ public class PAUDigger {
 		File splitedCluster = splitLimClus(limit, buildAllegeCluster, buildAllege, tmpFile);
 		ShapefileDataStore clusterSDS = new ShapefileDataStore(splitedCluster.toURI().toURL());
 		SimpleFeatureCollection clusterSFC = clusterSDS.getFeatureSource().getFeatures();
-		Geometry clusterUnion = Vectors.unionSFC(clusterSFC);
+		Geometry clusterUnion = Geom.unionSFC(clusterSFC);
 
 		// morphology
 		ShapefileDataStore morphoSDS = new ShapefileDataStore(morphoLimFile.toURI().toURL());
 		SimpleFeatureCollection morphoSFC = morphoSDS.getFeatureSource().getFeatures();
-		Geometry morphoUnion = Vectors.unionSFC(morphoSFC);
+		Geometry morphoUnion = Geom.unionSFC(morphoSFC);
 
 		// selection with geographical filters
 		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
@@ -137,7 +139,7 @@ public class PAUDigger {
 		clusterSDS.dispose();
 		parcelSDS.dispose();
 		morphoSDS.dispose();
-		return Vectors.exportSFC(out, new File(outFile, "zonePAU"));
+		return Collec.exportSFC(out, new File(outFile, "zonePAU"));
 	}
 
 	public static SimpleFeatureBuilder pAUBuilder() throws NoSuchAuthorityCodeException, FactoryException {
@@ -163,7 +165,7 @@ public class PAUDigger {
 
 		SimpleFeatureBuilder sfBuilder = pAUBuilder();
 
-		MultiPolygon mp = (MultiPolygon) Vectors.unionSFC(pau);
+		MultiPolygon mp = (MultiPolygon) Geom.unionSFC(pau);
 		int nbGeom = mp.getNumGeometries();
 
 		ShapefileDataStore communeSDS = new ShapefileDataStore(communitiesFile.toURI().toURL());
@@ -273,7 +275,7 @@ public class PAUDigger {
 		trainSDS.dispose();
 		riverSDS.dispose();
 
-		return Vectors.exportSFC(collecLimit.collection(), new File(tmpFile, "limit.shp"));
+		return Collec.exportSFC(collecLimit.collection(), new File(tmpFile, "limit.shp"));
 
 	}
 
@@ -337,13 +339,13 @@ public class PAUDigger {
 			bIt.close();
 		}
 
-		sfBuilder.add(Vectors.unionGeom(lG));
+		sfBuilder.add(Geom.unionGeom(lG));
 		bufferBuild.add(sfBuilder.buildFeature(String.valueOf(i)));
 
 		buildSDS.dispose();
 
-		File[] result = { Vectors.exportSFC(collecBuild.collection(), new File(tmpFile, "batiAllege.shp")),
-				Vectors.exportSFC(bufferBuild.collection(), new File(tmpFile, "batiAllegeBuffer.shp")) };
+		File[] result = { Collec.exportSFC(collecBuild.collection(), new File(tmpFile, "batiAllege.shp")),
+				Collec.exportSFC(bufferBuild.collection(), new File(tmpFile, "batiAllegeBuffer.shp")) };
 
 		return result;
 

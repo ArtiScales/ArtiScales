@@ -23,7 +23,7 @@ import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import au.com.bytecode.opencsv.CSVReader;
-import fr.ign.cogit.GTFunctions.Vectors;
+import fr.ign.cogit.geoToolsFunctions.vectors.Collec;
 import fr.ign.cogit.parcelFunction.ParcelGetter;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.cogit.util.FromGeom;
@@ -488,7 +488,7 @@ public abstract class Indicators {
 		} finally {
 			it.close();
 		}
-		return Vectors.exportSFC(result, fileOut);
+		return Collec.exportSFC(result, fileOut);
 	}
 
 	public File joinStatParcelToCommunities() throws NoSuchAuthorityCodeException, IOException, FactoryException {
@@ -573,7 +573,7 @@ public abstract class Indicators {
 		} finally {
 			it.close();
 		}
-		return Vectors.exportSFC(result, outFile);
+		return Collec.exportSFC(result, outFile);
 	}
 
 	public static String makeLabelPHDable(String s) throws FileNotFoundException {
