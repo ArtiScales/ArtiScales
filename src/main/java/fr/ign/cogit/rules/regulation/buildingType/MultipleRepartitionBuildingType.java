@@ -71,7 +71,7 @@ public class MultipleRepartitionBuildingType extends RepartitionBuildingType {
 			}
 		}
 
-		SimpleFeatureCollection parcelRepart = ParcelGetter.getParcelByZip(parcelles, parcelsWanted);
+		SimpleFeatureCollection parcelRepart = ParcelGetter.getFrenchParcelByZip(parcelles, parcelsWanted);
 
 		makeRepart(p, parcelRepart);
 

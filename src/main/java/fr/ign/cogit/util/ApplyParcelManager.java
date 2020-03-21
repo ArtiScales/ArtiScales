@@ -19,9 +19,9 @@ import fr.ign.cogit.parcelFunction.ParcelState;
 import fr.ign.cogit.rules.regulation.buildingType.BuildingType;
 import fr.ign.cogit.rules.regulation.buildingType.RepartitionBuildingType;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
-import goal.ParcelConsolidRecomp;
-import goal.ParcelDensification;
-import goal.ParcelTotRecomp;
+import goal.ConsolidationDivision;
+import goal.Densification;
+import goal.ZoneDivision;
 
 public class ApplyParcelManager {
 	public static boolean DEBUG = false;
@@ -136,7 +136,7 @@ public class ApplyParcelManager {
 				// two specifications
 				if (stringParam.split("-").length == 2 && splitZone.equals(stringParam.split("-")[1])) {
 					SimpleFeatureCollection typoedParcel = ParcelGetter.getParcelByTypo(stringParam.split("-")[0], parcelCollection, FromGeom.getZoning(regulFile));
-					SimpleFeatureCollection bigZonedParcel = ParcelGetter.getParcelByBigZone(stringParam.split("-")[1], typoedParcel, zoningFile);
+					SimpleFeatureCollection bigZonedParcel = ParcelGetter.getParcelByZoningType(stringParam.split("-")[1], typoedParcel, zoningFile);
 					if (bigZonedParcel.size() > 0) {
 						parcelToNotAdd = ParcelCollection.dontAddParcel(parcelToNotAdd, bigZonedParcel);
 						System.out.println(bigZonedParcel.size() + " elements : we cut the parcels with " + type + " parameters");
@@ -190,7 +190,7 @@ public class ApplyParcelManager {
 						}
 					} else {
 						if (splitZone.equals(stringParam)) {
-							SimpleFeatureCollection bigZoned = ParcelGetter.getParcelByBigZone(stringParam, parcelCollection, zoningFile);
+							SimpleFeatureCollection bigZoned = ParcelGetter.getParcelByZoningType(stringParam, parcelCollection, zoningFile);
 							if (bigZoned.size() > 0) {
 								parcelToNotAdd = ParcelCollection.dontAddParcel(parcelToNotAdd, bigZoned);
 								System.out.println("we cut the parcels with " + type + " parameters");
@@ -219,7 +219,6 @@ public class ApplyParcelManager {
 		File zoningFile = FromGeom.getZoning(regulFile);
 		File buildingFile = FromGeom.getBuild(geoFile);
 		File predicateFile = FromGeom.getPredicate(regulFile);
-		File communityFile = FromGeom.getCommunities(geoFile);
 
 		switch (typeOfRecomp) {
 		case "densification":
@@ -230,9 +229,9 @@ public class ApplyParcelManager {
 
 			SimpleFeatureCollection parcMUPMarked = MarkParcelAttributeFromPosition.markParcelIntersectPolygonIntersection(bigZonedParcel, mupOutput);
 			SimpleFeatureCollection toDensify = MarkParcelAttributeFromPosition.markParcelIntersectZoningType(parcMUPMarked, splitZone, zoningFile);
-			SimpleFeatureCollection salut = ParcelDensification.parcelDensification(toDensify, ilot, tmpFolder, buildingFile, maximalArea,
+			SimpleFeatureCollection salut = Densification.densification(toDensify, ilot, tmpFolder, buildingFile, maximalArea,
 					minimalArea, maximalWidth, lenDriveway, ParcelState.isArt3AllowsIsolatedParcel(parcMUPMarked.features().next(), predicateFile));
-			SimpleFeatureCollection densifyedParcel = ArtiScalesParcelFields.fixParcelAttributes(salut, tmpFolder, buildingFile, communityFile, mupOutput,
+			SimpleFeatureCollection densifyedParcel = ArtiScalesParcelFields.fixParcelAttributes(salut, tmpFolder, buildingFile, mupOutput,
 					zoningFile, allOrCell);
 			if (DEBUG)
 				Collec.exportSFC(densifyedParcel, new File("/tmp/ParcelConsolidRecomp.shp"));
@@ -241,9 +240,9 @@ public class ApplyParcelManager {
 		case "partRecomp":
 			SimpleFeatureCollection testmp = MarkParcelAttributeFromPosition.markParcelIntersectPolygonIntersection(bigZonedParcel, mupOutput);
 			SimpleFeatureCollection test = MarkParcelAttributeFromPosition.markParcelIntersectZoningType(testmp, splitZone, zoningFile);
-			SimpleFeatureCollection cuted = ParcelConsolidRecomp.parcelConsolidRecomp(test, tmpFolder, maximalArea, minimalArea, maximalWidth,
+			SimpleFeatureCollection cuted = ConsolidationDivision.consolidationDivision(test, tmpFolder, maximalArea, minimalArea, maximalWidth,
 					lenRoad, decompositionLevelWithoutStreet);
-			SimpleFeatureCollection consolidRecompParcel = ArtiScalesParcelFields.fixParcelAttributes(cuted, tmpFolder, buildingFile, communityFile,
+			SimpleFeatureCollection consolidRecompParcel = ArtiScalesParcelFields.fixParcelAttributes(cuted, tmpFolder, buildingFile,
 					mupOutput, zoningFile, allOrCell);
 			if (DEBUG)
 				Collec.exportSFC(consolidRecompParcel, new File("/tmp/ParcelConsolidRecomp.shp"));
@@ -252,15 +251,15 @@ public class ApplyParcelManager {
 		case "totRecomp":
 			ShapefileDataStore shpDSZone = new ShapefileDataStore(zoningFile.toURI().toURL());
 			SimpleFeatureCollection featuresZones = shpDSZone.getFeatureSource().getFeatures();
-			SimpleFeatureCollection zone = ParcelTotRecomp.createZoneToCut(splitZone, featuresZones, bigZonedParcel);
+			SimpleFeatureCollection zone = ZoneDivision.createZoneToCut(splitZone, featuresZones, bigZonedParcel);
 			// If no zones, we won't bother
 			if (zone.isEmpty()) {
 				System.out.println("parcelGenZone : no zones to be cut");
 				System.exit(1);
 			}
-			SimpleFeatureCollection parcelCuted = ParcelTotRecomp.parcelTotRecomp(zone, bigZonedParcel, tmpFolder, zoningFile, maximalArea,
+			SimpleFeatureCollection parcelCuted = ZoneDivision.zoneDivision(zone, bigZonedParcel, tmpFolder, zoningFile, maximalArea,
 					minimalArea, maximalWidth, lenRoad, decompositionLevelWithoutStreet);
-			SimpleFeatureCollection totRecompParcel = ArtiScalesParcelFields.fixParcelAttributes(parcelCuted, tmpFolder, buildingFile, communityFile,
+			SimpleFeatureCollection totRecompParcel = ArtiScalesParcelFields.fixParcelAttributes(parcelCuted, tmpFolder, buildingFile,
 					mupOutput, zoningFile, allOrCell);
 			if (DEBUG)
 				Collec.exportSFC(totRecompParcel, new File("/tmp/parcelTotZone.shp"));

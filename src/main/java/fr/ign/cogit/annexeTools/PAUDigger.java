@@ -40,7 +40,7 @@ import fr.ign.cogit.FeaturePolygonizer;
 import fr.ign.cogit.geoToolsFunctions.vectors.Collec;
 import fr.ign.cogit.geoToolsFunctions.vectors.Geom;
 import fr.ign.cogit.geoToolsFunctions.vectors.Shp;
-import goal.ParcelConsolidRecomp;
+import goal.ConsolidationDivision;
 
 public class PAUDigger {
 	// cut cluster polygons with limits
@@ -130,7 +130,7 @@ public class PAUDigger {
 		SimpleFeatureCollection parcelPreSelected = parcelSFC.subCollection(filCluster).subCollection(filMorpho);
 
 		// TODO mark all (anf
-		SimpleFeatureCollection parcelSplitted = ParcelConsolidRecomp.parcelConsolidRecomp(parcelPreSelected, tmpFile, 2000.0, 500, 7, 99, 99);
+		SimpleFeatureCollection parcelSplitted = ConsolidationDivision.consolidationDivision(parcelPreSelected, tmpFile, 2000.0, 500, 7, 99, 99);
 
 		SimpleFeatureCollection out = makeEnvelopePAU(parcelSplitted.subCollection(filNU).subCollection(filMorpho).subCollection(filCluster),
 				communitiesFile);

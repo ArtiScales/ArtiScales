@@ -96,7 +96,7 @@ public abstract class Indicators {
 
 			// sorting of the parcels
 			File parcelSorted = new File(indicFile, "ParcelSorted.shp");
-			ParcelGetter.getParcelByZip((new File(rootFile, "ParcelSelectionDepot/" + scenarName + "/" + variantName + "/parcelGenExport.shp")),
+			ParcelGetter.getFrenchParcelByZip((new File(rootFile, "ParcelSelectionDepot/" + scenarName + "/" + variantName + "/parcelGenExport.shp")),
 					specificCities, parcelSorted);
 			this.setParcelDepotGenFile(parcelSorted);
 
