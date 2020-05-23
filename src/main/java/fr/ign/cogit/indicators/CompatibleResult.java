@@ -32,11 +32,11 @@ import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import au.com.bytecode.opencsv.CSVReader;
+import fr.ign.artiscales.parcelFunction.ParcelGetter;
 import fr.ign.cogit.geoToolsFunctions.vectors.Collec;
 import fr.ign.cogit.geoToolsFunctions.vectors.Shp;
 import fr.ign.cogit.modules.SelectParcels;
 import fr.ign.cogit.modules.SimPLUSimulator;
-import fr.ign.cogit.parcelFunction.ParcelGetter;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.cogit.util.FromGeom;
 import fr.ign.cogit.util.SimuTool;
@@ -223,7 +223,7 @@ public class CompatibleResult extends Indicators {
 		if (parcelGen.exists()) {
 			ShapefileDataStore sds = new ShapefileDataStore(parcelGen.toURI().toURL());
 			SimpleFeatureCollection parcelIn = sds.getFeatureSource().getFeatures();
-			if (!ParcelGetter.getParcelByZip(parcelIn, insee).isEmpty()) {
+			if (!ParcelGetter.getParcelByCommunityCode(parcelIn, insee).isEmpty()) {
 				System.out.println("compatibility has already been calculated");
 				sds.dispose();
 				return 0;

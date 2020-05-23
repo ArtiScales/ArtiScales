@@ -35,10 +35,10 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
+import fr.ign.artiscales.parcelFunction.ParcelAttribute;
+import fr.ign.artiscales.parcelFunction.ParcelState;
 import fr.ign.cogit.geoToolsFunctions.vectors.Collec;
 import fr.ign.cogit.geoToolsFunctions.vectors.Geom;
-import fr.ign.cogit.parcelFunction.ParcelAttribute;
-import fr.ign.cogit.parcelFunction.ParcelState;
 import fr.ign.cogit.simplu3d.model.BasicPropertyUnit;
 import fr.ign.cogit.simplu3d.model.SubParcel;
 import fr.ign.cogit.simplu3d.util.SimpluParameters;
@@ -473,7 +473,7 @@ public class SimuTool {
 			throws Exception {
 		if (specificFile != null && specificFile.exists()) {
 			ShapefileDataStore sds = new ShapefileDataStore(specificFile.toURI().toURL());
-			List<String> result = ParcelAttribute.getCityCodeFromParcels(sds.getFeatureSource().getFeatures());
+			List<String> result = ParcelAttribute.getCityCodesOfParcels(sds.getFeatureSource().getFeatures());
 			sds.dispose();
 			return result;
 		}

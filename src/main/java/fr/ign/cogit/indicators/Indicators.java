@@ -23,8 +23,8 @@ import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import au.com.bytecode.opencsv.CSVReader;
+import fr.ign.artiscales.parcelFunction.ParcelGetter;
 import fr.ign.cogit.geoToolsFunctions.vectors.Collec;
-import fr.ign.cogit.parcelFunction.ParcelGetter;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.cogit.util.FromGeom;
 import fr.ign.cogit.util.SimuTool;

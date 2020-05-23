@@ -109,7 +109,7 @@ public class MapRenderer {
 	//
 	//
 	// // create a partial opaque fill
-	// FeatureTypeStyle zob = styleFactory.createFeatureTypeStyle(new Rule[]{rule});
+	// FeatureTypeStyle featStyleType = styleFactory.createFeatureTypeStyle(new Rule[]{rule});
 	//
 	//
 	//// Fill fill = styleFactory.createFeatureTypeStyle(new Rule[]{rule});
@@ -379,7 +379,7 @@ public class MapRenderer {
 	//
 	// MapRenderer renderer = new MapRenderer(1000, 1000,new File("/home/ubuntu/boulot/these/result0308/mapStyle/diffObjLgt.sld"), );
 	// renderer.renderCityInfo(new File("/home/ubuntu/boulot/these/result0308/indic/bTH/DDense/variante0/commStat.shp"),
-	// new File("/tmp/zob.png"));
+	// new File("/tmp/tmp.png"));
 	// (
 	// new File(parent, "parcelle.shp"),
 	// new File(parent, "batimentPro.shp"),

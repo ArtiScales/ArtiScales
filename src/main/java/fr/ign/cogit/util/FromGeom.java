@@ -38,15 +38,14 @@ import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
+import fr.ign.artiscales.fields.french.FrenchParcelSchemas;
+import fr.ign.artiscales.parcelFunction.ParcelState;
 import fr.ign.cogit.geoToolsFunctions.vectors.Collec;
 import fr.ign.cogit.geoToolsFunctions.vectors.Geom;
 import fr.ign.cogit.geoToolsFunctions.vectors.Shp;
 import fr.ign.cogit.geometryGeneration.CityGeneration;
 import fr.ign.cogit.geoxygene.api.feature.IFeature;
 import fr.ign.cogit.geoxygene.util.conversion.AdapterFactory;
-import fr.ign.cogit.geoxygene.util.conversion.GeOxygeneGeoToolsTypes;
-import fr.ign.cogit.parcelFunction.ParcelSchema;
-import fr.ign.cogit.parcelFunction.ParcelState;
 
 public class FromGeom {
 
@@ -120,7 +119,7 @@ public class FromGeom {
 	public static String affectZoneAndTypoToLocation(String mainLine, String code, IFeature parcel, File zoningFile, File communeFile,
 			boolean priorTypoOrZone) throws Exception {
 
-		SimpleFeatureBuilder sfBuilder = ParcelSchema.getSFBFrenchParcel();
+		SimpleFeatureBuilder sfBuilder = FrenchParcelSchemas.getSFBFrenchParcel();
 		sfBuilder.set("the_geom", AdapterFactory.toGeometry(new GeometryFactory(), parcel.getGeom()));
 		SimpleFeature feature = sfBuilder.buildFeature(null);
 
@@ -146,7 +145,6 @@ public class FromGeom {
 	 */
 	public static String affectZoneAndTypoToLocation(String mainLine, String code, SimpleFeature parcel, File zoningFile, File communeFile,
 			boolean priorTypoOrZone) throws Exception {
-
 		String result = "";
 		String isCode = "";
 		List<String> mayOccur = new ArrayList<String>();
@@ -211,23 +209,7 @@ public class FromGeom {
 		}
 		return result;
 	}
-
-	public static String getBigZone(String unbigZone) {
-		switch (unbigZone) {
-		case "ZC":
-		case "U":
-			return "U";
-		case "N":
-		case "NC":
-		case "A":
-			return "NC";
-		case "AU":
-			return "AU";
-		}
-		System.err.println("bigZone unknown");
-		return "nutin";
-	}
-
+	
 	public static List<String> getZips(File regulFile) throws IOException {
 		ShapefileDataStore sds = new ShapefileDataStore(FromGeom.getZoning(regulFile).toURI().toURL());
 		SimpleFeatureIterator cityIt = sds.getFeatureSource().getFeatures().features();
@@ -286,7 +268,7 @@ public class FromGeom {
 	 * Merge all the shapefile of a folder (made for simPLU buildings) into one shapefile with a recursive method.
 	 * 
 	 * @param folder2MergeFilesIn
-	 *            : folder containing the shapefiles
+	 *            Folder containing the shapefiles
 	 * @return : file where everything is saved (here whith a building name)
 	 * @throws Exception
 	 */
@@ -361,10 +343,9 @@ public class FromGeom {
 		throw new FileNotFoundException("Road file not found");
 	}
 
-	public static SimpleFeatureCollection getIlots(File geoFile, SimpleFeatureCollection parcelCollection) throws Exception {
+	public static File getIlots(File geoFile, SimpleFeatureCollection parcelCollection) throws Exception {
 		File ilots = getIlots(geoFile);
-
-		return Collec.snapDatas(ilots, parcelCollection);
+		return Shp.snapDatas(ilots,ilots, parcelCollection);
 	}
 
 	/**
@@ -465,8 +446,6 @@ public class FromGeom {
 	}
 
 	/**
-<<<<<<< HEAD
-=======
 	 * get the insee number from a Simplefeature (that is most of the time, a parcel)
 	 * 
 	 * @param cities
@@ -599,25 +578,6 @@ public class FromGeom {
 
 		return result;
 
-	}
-
-	/**
-	 * return a single TYPEZONE that a parcels intersect if the parcel intersects multiple, we select the one that covers the most area
-	 * 
-	 * @param parcelIn
-	 * @param zoningFile
-	 * @return
-	 * @throws Exception
-	 */
-	public static String parcelInBigZone(File zoningFile, SimpleFeature parcelIn) throws Exception {
-		List<String> yo = parcelInBigZone(parcelIn, zoningFile);
-		if (yo.isEmpty())
-			return null;
-		return yo.get(0);
-	}
-
-	public static List<String> parcelInBigZone(IFeature parcelIn, File zoningFile) throws Exception {
-		return parcelInBigZone(GeOxygeneGeoToolsTypes.convert2SimpleFeature(parcelIn, CRS.decode("EPSG:2154"),true), zoningFile);
 	}
 
 	/**

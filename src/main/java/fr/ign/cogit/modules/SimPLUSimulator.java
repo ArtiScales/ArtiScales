@@ -442,15 +442,15 @@ public class SimPLUSimulator {
 		// parcels aside not taken into account : thats untrue (but it's just for an example)
 		File emprise = Geom.exportGeom(((Geometry) parcel.getDefaultGeometry()).buffer(30), new File(tmpFile, "emprise"));
 
-		this.buildFile = Shp.cropSFC(new File(geoFile, "building.shp"), emprise, tmpFile);
-		this.roadFile = Shp.cropSFC(new File(geoFile, "road.shp"), emprise, tmpFile);
-		this.communitiesFile = Shp.cropSFC(new File(geoFile, "communities.shp"), emprise, tmpFile);
+		this.buildFile = Shp.snapDatas(new File(geoFile, "building.shp"), emprise, tmpFile);
+		this.roadFile = Shp.snapDatas(new File(geoFile, "road.shp"), emprise, tmpFile);
+		this.communitiesFile = Shp.snapDatas(new File(geoFile, "communities.shp"), emprise, tmpFile);
 		this.parcelsFile = parcelTemp;
 
-		this.zoningFile = Shp.cropSFC(new File(regulationFile, "zoning.shp"), emprise, tmpFile);
-		this.filePrescPonct = Shp.cropSFC(new File(regulationFile, "prescPonct.shp"), emprise, tmpFile);
-		this.filePrescLin = Shp.cropSFC(new File(regulationFile, "prescLin.shp"), emprise, tmpFile);
-		this.filePrescSurf = Shp.cropSFC(new File(regulationFile, "prescSurf.shp"), emprise, tmpFile);
+		this.zoningFile = Shp.snapDatas(new File(regulationFile, "zoning.shp"), emprise, tmpFile);
+		this.filePrescPonct = Shp.snapDatas(new File(regulationFile, "prescPonct.shp"), emprise, tmpFile);
+		this.filePrescLin = Shp.snapDatas(new File(regulationFile, "prescLin.shp"), emprise, tmpFile);
+		this.filePrescSurf = Shp.snapDatas(new File(regulationFile, "prescSurf.shp"), emprise, tmpFile);
 		Environnement env;
 		try {
 			env = LoaderSHP.load(simuFile, codeFile, zoningFile, parcelTemp, roadFile, buildFile, filePrescPonct, filePrescLin, filePrescSurf, null);

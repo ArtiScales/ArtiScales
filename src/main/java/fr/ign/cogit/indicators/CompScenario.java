@@ -20,14 +20,13 @@ import org.knowm.xchart.internal.series.Series.DataType;
 
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
+import fr.ign.artiscales.parcelFunction.ParcelAttribute;
+import fr.ign.artiscales.parcelFunction.ParcelCollection;
+import fr.ign.artiscales.parcelFunction.ParcelGetter;
+import fr.ign.artiscales.parcelFunction.ParcelSchema;
+import fr.ign.artiscales.parcelFunction.ParcelState;
 import fr.ign.cogit.map.MapRenderer;
 import fr.ign.cogit.map.theseMC.compVariant.CVNbBat;
-
-import fr.ign.cogit.parcelFunction.ParcelAttribute;
-import fr.ign.cogit.parcelFunction.ParcelCollection;
-import fr.ign.cogit.parcelFunction.ParcelGetter;
-import fr.ign.cogit.parcelFunction.ParcelState;
-import fr.ign.cogit.parcelFunction.ParcelSchema;
 
 public class CompScenario extends Indicators {
 	String[] baseScenario;

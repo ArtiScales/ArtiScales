@@ -34,6 +34,8 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
+import fr.ign.artiscales.parcelFunction.ParcelAttribute;
+import fr.ign.artiscales.parcelFunction.ParcelState;
 import fr.ign.cogit.createGeom.Density;
 import fr.ign.cogit.geoToolsFunctions.vectors.Collec;
 import fr.ign.cogit.geoToolsFunctions.vectors.Shp;
@@ -52,8 +54,6 @@ import fr.ign.cogit.map.theseMC.nbHU.NbHUU;
 import fr.ign.cogit.map.theseMC.parcelMaps.ParcelleDensEmprisepHec;
 import fr.ign.cogit.map.theseMC.parcelMaps.ParcelleDensHUpHec;
 import fr.ign.cogit.map.theseMC.parcelMaps.ParcelleDensSDPpHec;
-import fr.ign.cogit.parcelFunction.ParcelAttribute;
-import fr.ign.cogit.parcelFunction.ParcelState;
 import fr.ign.cogit.rules.regulation.buildingType.BuildingType;
 import fr.ign.cogit.rules.regulation.buildingType.RepartitionBuildingType;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
@@ -972,7 +972,7 @@ public class BuildingToHousingUnit extends Indicators {
 					// typo of the zone
 					String typo = ParcelState.parcelInTypo(FromGeom.getCommunitiesIris(new File(getRootFile(), "dataGeo")), ftBati);
 
-					String armature = ParcelAttribute.getArmatureFromSFC(
+					String armature = ParcelAttribute.getCommunityTypeFromSFC(
 							Collec.snapDatas(citiesSds.getFeatureSource().getFeatures(), (Geometry) ftBati.getDefaultGeometry()), ftBati);
 					BuildingType type = BuildingType.valueOf((String) ftBati.getAttribute("BUILDTYPE"));
 					boolean collectiveHousing = false;

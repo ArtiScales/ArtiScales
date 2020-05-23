@@ -20,11 +20,11 @@ import org.opengis.filter.FilterFactory2;
 
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
+import fr.ign.artiscales.parcelFunction.ParcelGetter;
+import fr.ign.artiscales.parcelFunction.ParcelState;
 import fr.ign.cogit.geoToolsFunctions.vectors.Collec;
 import fr.ign.cogit.geoToolsFunctions.vectors.Geom;
 import fr.ign.cogit.geoToolsFunctions.vectors.Shp;
-import fr.ign.cogit.parcelFunction.ParcelGetter;
-import fr.ign.cogit.parcelFunction.ParcelState;
 import fr.ign.cogit.simplu3d.util.SimpluParameters;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.cogit.util.ApplyParcelManager;
@@ -337,7 +337,7 @@ public class SelectParcels {
 				SimpleFeature parcel = parcelIt.next();
 				if ((boolean) parcel.getAttribute("U")) {
 					if ((boolean) parcel.getAttribute("IsBuild")) {
-						if (ParcelState.isParcelInCell(parcel, cellsSFS)) {
+						if (Collec.isFeatIntersectsSFC(parcel, cellsSFS)) {
 							parcel.setAttribute("DoWeSimul", "true");
 							parcel.setAttribute("eval", ParcelState.getEvalInParcel(parcel, spatialConfigurationMUP));
 						} else {
@@ -375,7 +375,7 @@ public class SelectParcels {
 				SimpleFeature parcel = parcelIt.next();
 				if ((boolean) parcel.getAttribute("U")) {
 					if (!(boolean) parcel.getAttribute("IsBuild")) {
-						if (ParcelState.isParcelInCell(parcel, cellsSFS)) {
+						if (Collec.isFeatIntersectsSFC(parcel, cellsSFS)) {
 							parcel.setAttribute("DoWeSimul", "true");
 							parcel.setAttribute("eval", ParcelState.getEvalInParcel(parcel, spatialConfigurationMUP));
 						} else {
@@ -406,7 +406,7 @@ public class SelectParcels {
 			while (parcelIt.hasNext()) {
 				SimpleFeature parcel = parcelIt.next();
 				if ((boolean) parcel.getAttribute("AU")) {
-					if (ParcelState.isParcelInCell(parcel, cellsSFS)) {
+					if (Collec.isFeatIntersectsSFC(parcel, cellsSFS)) {
 						parcel.setAttribute("DoWeSimul", "true");
 						parcel.setAttribute("eval", ParcelState.getEvalInParcel(parcel, spatialConfigurationMUP));
 					} else {
@@ -444,7 +444,7 @@ public class SelectParcels {
 			while (parcelIt.hasNext()) {
 				SimpleFeature parcel = parcelIt.next();
 				if ((boolean) parcel.getAttribute("NC")) {
-					if (ParcelState.isParcelInCell(parcel, cellsSFS)) {
+					if (Collec.isFeatIntersectsSFC(parcel, cellsSFS)) {
 						parcel.setAttribute("DoWeSimul", "true");
 						parcel.setAttribute("eval", ParcelState.getEvalInParcel(parcel, spatialConfigurationMUP));
 					} else {
@@ -481,7 +481,7 @@ public class SelectParcels {
 			while (parcelIt.hasNext()) {
 				SimpleFeature parcel = parcelIt.next();
 
-				if (ParcelState.isParcelInCell(parcel, cellsSFS)) {
+				if (Collec.isFeatIntersectsSFC(parcel, cellsSFS)) {
 					parcel.setAttribute("DoWeSimul", "true");
 					parcel.setAttribute("eval", ParcelState.getEvalInParcel(parcel, spatialConfigurationMUP));
 				} else {
@@ -520,7 +520,7 @@ public class SelectParcels {
 			while (parcelIt.hasNext()) {
 				SimpleFeature parcel = parcelIt.next();
 				if ((boolean) parcel.getAttribute("U") || (boolean) parcel.getAttribute("AU")) {
-					if (ParcelState.isParcelInCell(parcel, cellsSFS)) {
+					if (Collec.isFeatIntersectsSFC(parcel, cellsSFS)) {
 						parcel.setAttribute("DoWeSimul", "true");
 						parcel.setAttribute("eval", ParcelState.getEvalInParcel(parcel, spatialConfigurationMUP));
 					} else {
@@ -808,10 +808,8 @@ public class SelectParcels {
 						File fBBox = new File(pack, "bbox.shp");
 						System.setOut(new PrintStream(System.out));
 
-						if (!fBBox.exists()) {
+						if (!fBBox.exists())
 							System.err.print("bbox of pack not generated");
-						}
-
 						File snapPack = new File(pack, "geoSnap");
 						snapPack.mkdirs();
 
@@ -822,33 +820,29 @@ public class SelectParcels {
 						ShapefileDataStore build_datastore = new ShapefileDataStore(FromGeom.getBuild(geoFile).toURI().toURL());
 						SimpleFeatureCollection buildFeatures = build_datastore.getFeatureSource().getFeatures();
 						SimpleFeatureCollection buildSnapped = Collec.snapDatas(buildFeatures, fBBox);
-						if (!buildSnapped.isEmpty()) {
+						if (!buildSnapped.isEmpty()) 
 							Collec.exportSFC(buildSnapped, new File(snapPack, "batiment.shp"));
-						}
 						build_datastore.dispose();
 
 						ShapefileDataStore road_datastore = new ShapefileDataStore(FromGeom.getRoute(geoFile).toURI().toURL());
 						SimpleFeatureCollection roadFeatures = road_datastore.getFeatureSource().getFeatures();
 						SimpleFeatureCollection roadSnap = Collec.snapDatas(roadFeatures, fBBox, 15);
-						if (!roadSnap.isEmpty()) {
+						if (!roadSnap.isEmpty()) 
 							Collec.exportSFC(roadSnap, new File(snapPack, "route.shp"));
-						}
 						road_datastore.dispose();
 
 						ShapefileDataStore zoning_datastore = new ShapefileDataStore(FromGeom.getZoning(regulFile).toURI().toURL());
 						SimpleFeatureCollection zoningFeatures = zoning_datastore.getFeatureSource().getFeatures();
 						SimpleFeatureCollection zoningSnap = Collec.snapDatas(zoningFeatures, fBBox);
-						if (!zoningSnap.isEmpty()) {
+						if (!zoningSnap.isEmpty()) 
 							Collec.exportSFC(Collec.snapDatas(zoningFeatures, fBBox), new File(snapPack, "zone_urba.shp"));
-						}
 						zoning_datastore.dispose();
 
 						ShapefileDataStore prescPonct_datastore = new ShapefileDataStore(FromGeom.getPrescPonct(regulFile).toURI().toURL());
 						SimpleFeatureCollection prescPonctFeatures = prescPonct_datastore.getFeatureSource().getFeatures();
 						SimpleFeatureCollection prescPSnap = Collec.snapDatas(prescPonctFeatures, fBBox);
-						if (!prescPSnap.isEmpty()) {
+						if (!prescPSnap.isEmpty()) 
 							Collec.exportSFC(prescPSnap, new File(snapPack, "prescription_pct.shp"));
-						}
 						prescPonct_datastore.dispose();
 
 						ShapefileDataStore prescLin_datastore = new ShapefileDataStore(FromGeom.getPrescLin(regulFile).toURI().toURL());
