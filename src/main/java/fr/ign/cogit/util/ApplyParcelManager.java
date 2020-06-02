@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.geotools.data.DataUtilities;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.feature.DefaultFeatureCollection;
@@ -88,13 +89,13 @@ public class ApplyParcelManager {
 	 * 
 	 * @param splitZone
 	 * @param parcelCollection
-	 * @param tmpFile
+	 * @param tmpFolder
 	 * @param zoningFile
 	 * @param p
 	 * @return
 	 * @throws Exception
 	 */
-	public static SimpleFeatureCollection setRecompositionProcesssus(String splitZone, SimpleFeatureCollection parcelCollection, File tmpFile,
+	public static SimpleFeatureCollection setRecompositionProcesssus(String splitZone, SimpleFeatureCollection parcelCollection, File tmpFolder, File outFolder,
 			File mupOutput, File rootFile, File geoFile, File regulFile, SimpluParametersJSON p, String typeOfRecomp, boolean dontTouchUZones)
 			throws Exception {
 
@@ -140,7 +141,7 @@ public class ApplyParcelManager {
 					if (bigZonedParcel.size() > 0) {
 						parcelToNotAdd = ParcelCollection.dontAddParcel(parcelToNotAdd, bigZonedParcel);
 						System.out.println(bigZonedParcel.size() + " elements : we cut the parcels with " + type + " parameters");
-						result = ParcelCollection.addAllParcels(result, runParcelRecomp(splitZone, bigZonedParcel, tmpFile, mupOutput, pBuildingType,
+						result = ParcelCollection.addAllParcels(result, runParcelRecomp(splitZone, bigZonedParcel, tmpFolder, outFolder, mupOutput, pBuildingType,
 								dontTouchUZones, geoFile, regulFile, typeOfRecomp));
 						// THAT'S AN UGLY PATCH, BUT HAS TO TAKE CARE OF GEOM ERRORS TODO find somathing nices
 
@@ -178,7 +179,7 @@ public class ApplyParcelManager {
 							Collec.exportSFC(typoedParcel, new File("/tmp/salut-" + stringParam + ".shp"));
 							parcelToNotAdd = ParcelCollection.dontAddParcel(parcelToNotAdd, typoedParcel);
 							System.out.println(typoedParcel.size() + " elements :we cut the parcels with " + type + " parameters");
-							def = ParcelCollection.addAllParcels(def, runParcelRecomp(splitZone, typoedParcel, tmpFile, mupOutput, pBuildingType,
+							def = ParcelCollection.addAllParcels(def, runParcelRecomp(splitZone, typoedParcel, tmpFolder, outFolder, mupOutput, pBuildingType,
 									dontTouchUZones, geoFile, regulFile, typeOfRecomp));
 							Collec.exportSFC(def, new File("/tmp/" + stringParam + ".shp"));
 
@@ -194,7 +195,7 @@ public class ApplyParcelManager {
 							if (bigZoned.size() > 0) {
 								parcelToNotAdd = ParcelCollection.dontAddParcel(parcelToNotAdd, bigZoned);
 								System.out.println("we cut the parcels with " + type + " parameters");
-								def = ParcelCollection.addAllParcels(def, runParcelRecomp(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType,
+								def = ParcelCollection.addAllParcels(def, runParcelRecomp(splitZone, bigZoned, tmpFolder, outFolder, mupOutput, pBuildingType,
 										dontTouchUZones, geoFile, regulFile, typeOfRecomp));
 							}
 						}
@@ -207,7 +208,7 @@ public class ApplyParcelManager {
 		return realResult;
 	}
 
-	public static SimpleFeatureCollection runParcelRecomp(String splitZone, SimpleFeatureCollection bigZonedParcel, File tmpFolder, File mupOutput,
+	public static SimpleFeatureCollection runParcelRecomp(String splitZone, SimpleFeatureCollection bigZonedParcel, File tmpFolder, File mupOutput, File outFolder,
 			SimpluParametersJSON pBuildingType, boolean dontTouchUZones, File geoFile, File regulFile, String typeOfRecomp) throws Exception {
 		double maximalWidth = pBuildingType.getDouble("maximalWidthSplitParcel");
 		double maximalArea = pBuildingType.getDouble("maximalAreaSplitParcel");
@@ -234,7 +235,7 @@ public class ApplyParcelManager {
 			SimpleFeatureCollection densifyedParcel = ArtiScalesParcelFields.fixParcelAttributes(salut,bigZonedParcel, buildingFile, mupOutput,
 					zoningFile, allOrCell);
 			if (DEBUG)
-				Collec.exportSFC(densifyedParcel, new File("/tmp/ParcelConsolidRecomp.shp"));
+				Collec.exportSFC(densifyedParcel, new File(tmpFolder,"ParcelConsolidRecomp.shp"));
 			shpDSIlot.dispose();
 			return densifyedParcel;
 		case "partRecomp":
@@ -245,22 +246,24 @@ public class ApplyParcelManager {
 			SimpleFeatureCollection consolidRecompParcel = ArtiScalesParcelFields.fixParcelAttributes(cuted, bigZonedParcel, buildingFile,
 					mupOutput, zoningFile, allOrCell);
 			if (DEBUG)
-				Collec.exportSFC(consolidRecompParcel, new File("/tmp/ParcelConsolidRecomp.shp"));
+				Collec.exportSFC(consolidRecompParcel, new File(tmpFolder, "ParcelConsolidRecomp.shp"));
 			return consolidRecompParcel;
 		// return ParcelDensification.parcelPartRecomp(splitZone, bigZoned, tmpFile, mupOutput, pBuildingType, dontTouchUZones, geoFile, regulFile);
 		case "totRecomp":
-			SimpleFeatureCollection zone = ZoneDivision.createZoneToCut(splitZone, zoningFile, bigZonedParcel);
+			ShapefileDataStore sds = new ShapefileDataStore(zoningFile.toURI().toURL());
+			SimpleFeatureCollection zone = ZoneDivision.createZoneToCut(splitZone, DataUtilities.collection(sds.getFeatureSource().getFeatures()), zoningFile, bigZonedParcel);
+			sds.dispose();
 			// If no zones, we won't bother
 			if (zone.isEmpty()) {
 				System.out.println("parcelGenZone : no zones to be cut");
 				System.exit(1);
 			}
-			SimpleFeatureCollection parcelCuted = ZoneDivision.zoneDivision(zone, bigZonedParcel, tmpFolder, maximalArea, minimalArea, maximalWidth,
+			SimpleFeatureCollection parcelCuted = ZoneDivision.zoneDivision(zone, bigZonedParcel, tmpFolder, outFolder,  maximalArea, minimalArea, maximalWidth,
 					lenRoad, decompositionLevelWithoutStreet);
 			SimpleFeatureCollection totRecompParcel = ArtiScalesParcelFields.fixParcelAttributes(parcelCuted, bigZonedParcel, buildingFile, mupOutput,
 					zoningFile, allOrCell);
 			if (DEBUG)
-				Collec.exportSFC(totRecompParcel, new File("/tmp/parcelTotZone.shp"));
+				Collec.exportSFC(totRecompParcel, new File(tmpFolder, "parcelTotZone.shp"));
 			return totRecompParcel;
 		}
 		throw new FileNotFoundException("I didn't get the Recomp order");

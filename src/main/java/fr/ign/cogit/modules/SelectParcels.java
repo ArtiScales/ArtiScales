@@ -34,7 +34,7 @@ import fr.ign.cogit.util.SimuTool;
 
 public class SelectParcels {
 
-	File rootFile, geoFile, regulFile, parcelFile, zoningFile, outFile, spatialConfigurationMUP;
+	File rootFile, geoFile, regulFile, parcelFile, zoningFile, outFolder, spatialConfigurationMUP;
 
 	String action;
 	SimpluParametersJSON p;
@@ -75,7 +75,7 @@ public class SelectParcels {
 
 		// where the regulation data are stored
 		regulFile = new File(rootFile, "dataRegulation");
-		outFile = outfile;
+		outFolder = outfile;
 
 		// Liste des sorties de MupCity
 		spatialConfigurationMUP = spatialconfiguration;
@@ -94,10 +94,10 @@ public class SelectParcels {
 	 */
 	public File run(File specificFile) throws Exception {
 
-		File parcGen = new File(outFile, "parcelGenExport.shp");
+		File parcGen = new File(outFolder, "parcelGenExport.shp");
 
 		// if we simul on one city (debug) or the whole area
-		List<String> listZip = SimuTool.getIntrestingCommunities(p, geoFile, regulFile, outFile, specificFile);
+		List<String> listZip = SimuTool.getIntrestingCommunities(p, geoFile, regulFile, outFolder, specificFile);
 		// we loop on every cities
 		for (String zip : listZip) {
 			if (specificFile != null && specificFile.exists()) {
@@ -111,18 +111,18 @@ public class SelectParcels {
 		////// Packing the parcels for SimPLU3D distribution
 		////////////////
 		// optimized packages
-		File tmpFile = new File(outFile, "tmpFile");
+		File tmpFile = new File(outFolder, "tmpFile");
 		tmpFile.mkdirs();
 		if (p.getString("package").equals("ilot")) {
-			separateToDifferentOptimizedPack(parcGen, outFile, tmpFile, regulFile, geoFile);
+			separateToDifferentOptimizedPack(parcGen, outFolder, tmpFile, regulFile, geoFile);
 		}
 		// city (better for a continuous urbanisation)
 		else if (p.getString("package").equals("communities")) {
-			separateToDifferentCitiesPack(parcGen, outFile, regulFile, geoFile);
+			separateToDifferentCitiesPack(parcGen, outFolder, regulFile, geoFile);
 		}
 
 		// SimuTool.deleteDirectoryStream(tmpFile.toPath());
-		return outFile;
+		return outFolder;
 	}
 
 	public void setGeoFile(File newGeoFile) {
@@ -200,7 +200,7 @@ public class SelectParcels {
 				if (!splitZone.contains("-")) {
 					System.out.println();
 					System.out.println("///// We start the densification process\\\\\\");
-					parcelCollection = ApplyParcelManager.setRecompositionProcesssus(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP,
+					parcelCollection = ApplyParcelManager.setRecompositionProcesssus(splitZone, parcelCollection, tmpFile, outFolder, spatialConfigurationMUP,
 							rootFile, geoFile, regulFile, p, "densification", true);
 					Collec.exportSFC(parcelCollection, new File(tmpFile, "afterDensification"));
 				} else {
@@ -214,7 +214,7 @@ public class SelectParcels {
 			if (!splitZone.contains("-")) {
 				System.out.println();
 				System.out.println("///// We start the splitTotRecomp process\\\\\\");
-				parcelCollection = ApplyParcelManager.setRecompositionProcesssus(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP,
+				parcelCollection = ApplyParcelManager.setRecompositionProcesssus(splitZone, parcelCollection, tmpFile, outFolder, spatialConfigurationMUP,
 						rootFile, geoFile, regulFile, p, "totRecomp", true);
 				Collec.exportSFC(parcelCollection, new File(tmpFile, "afterSplitTotRecomp"));
 			} else {
@@ -226,7 +226,7 @@ public class SelectParcels {
 			if (!splitZone.contains("-")) {
 				System.out.println();
 				System.out.println("///// We start the splitPartRecomp process\\\\\\");
-				parcelCollection = ApplyParcelManager.setRecompositionProcesssus(splitZone, parcelCollection, tmpFile, spatialConfigurationMUP,
+				parcelCollection = ApplyParcelManager.setRecompositionProcesssus(splitZone, parcelCollection, tmpFile, outFolder, spatialConfigurationMUP,
 						rootFile, geoFile, regulFile, p, "partRecomp", true);
 				Collec.exportSFC(parcelCollection, new File(tmpFile, "aftersplitPartRecomp"));
 			} else {
@@ -254,7 +254,7 @@ public class SelectParcels {
 		}
 		// else, if distributed calculation, we create a shapeFile for each zip
 		else {
-			File zipFolder = new File(outFile, zip);
+			File zipFolder = new File(outFolder, zip);
 			zipFolder.mkdirs();
 			System.out.println("Export into " + zipFolder + " ? " + zipFolder.exists());
 			System.out.println("Writing " + new File(zipFolder, "parcelOut-" + zip));
@@ -777,7 +777,7 @@ public class SelectParcels {
 	}
 
 	public void separateToDifferentOptimizedPack(File parcelCollection, File tmpFile) throws Exception {
-		separateToDifferentOptimizedPack(parcelCollection, outFile, tmpFile, regulFile, geoFile);
+		separateToDifferentOptimizedPack(parcelCollection, outFolder, tmpFile, regulFile, geoFile);
 	}
 
 	public static void separateToDifferentOptimizedPack(File parcelCollection, File fileOut, File tmpFile, File regulFile, File geoFile)
