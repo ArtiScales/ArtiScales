@@ -25,6 +25,7 @@ import fr.ign.artiscales.parcelFunction.ParcelState;
 import fr.ign.cogit.geoToolsFunctions.vectors.Collec;
 import fr.ign.cogit.geoToolsFunctions.vectors.Geom;
 import fr.ign.cogit.geoToolsFunctions.vectors.Shp;
+import fr.ign.cogit.parameter.ProfileUrbanFabric;
 import fr.ign.cogit.simplu3d.util.SimpluParameters;
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON;
 import fr.ign.cogit.util.ApplyParcelManager;
@@ -137,7 +138,7 @@ public class SelectParcels {
 
 		File tmpFile = new File(mergeFile.getParentFile(), "tmpFile");
 		tmpFile.mkdirs();
-
+		ProfileUrbanFabric profileUrbanFabric = new ProfileUrbanFabric();
 		List<String> listeAction = selectionType(p);
 
 		// if (zip.equals("25056")) {continue;}
@@ -200,8 +201,8 @@ public class SelectParcels {
 				if (!splitZone.contains("-")) {
 					System.out.println();
 					System.out.println("///// We start the densification process\\\\\\");
-					parcelCollection = ApplyParcelManager.setRecompositionProcesssus(splitZone, parcelCollection, tmpFile, outFolder, spatialConfigurationMUP,
-							rootFile, geoFile, regulFile, p, "densification", true);
+					parcelCollection = ApplyParcelManager.setRecompositionProcesssus(splitZone, parcelCollection, tmpFile, outFolder,
+							spatialConfigurationMUP, rootFile, geoFile, regulFile, p, profileUrbanFabric, "densification", true);
 					Collec.exportSFC(parcelCollection, new File(tmpFile, "afterDensification"));
 				} else {
 					System.err.println("splitParcel : complex section non implemented yet");
@@ -214,8 +215,8 @@ public class SelectParcels {
 			if (!splitZone.contains("-")) {
 				System.out.println();
 				System.out.println("///// We start the splitTotRecomp process\\\\\\");
-				parcelCollection = ApplyParcelManager.setRecompositionProcesssus(splitZone, parcelCollection, tmpFile, outFolder, spatialConfigurationMUP,
-						rootFile, geoFile, regulFile, p, "totRecomp", true);
+				parcelCollection = ApplyParcelManager.setRecompositionProcesssus(splitZone, parcelCollection, tmpFile, outFolder,
+						spatialConfigurationMUP, rootFile, geoFile, regulFile, p, profileUrbanFabric, "totRecomp", true);
 				Collec.exportSFC(parcelCollection, new File(tmpFile, "afterSplitTotRecomp"));
 			} else {
 				System.err.println("splitParcel : complex section non implemented yet");
@@ -226,8 +227,8 @@ public class SelectParcels {
 			if (!splitZone.contains("-")) {
 				System.out.println();
 				System.out.println("///// We start the splitPartRecomp process\\\\\\");
-				parcelCollection = ApplyParcelManager.setRecompositionProcesssus(splitZone, parcelCollection, tmpFile, outFolder, spatialConfigurationMUP,
-						rootFile, geoFile, regulFile, p, "partRecomp", true);
+				parcelCollection = ApplyParcelManager.setRecompositionProcesssus(splitZone, parcelCollection, tmpFile, outFolder,
+						spatialConfigurationMUP, rootFile, geoFile, regulFile, p, profileUrbanFabric, "partRecomp", true);
 				Collec.exportSFC(parcelCollection, new File(tmpFile, "aftersplitPartRecomp"));
 			} else {
 				System.err.println("splitParcel : complex section non implemented yet");
@@ -237,9 +238,9 @@ public class SelectParcels {
 		// if there's been a bug and a parcel is missing
 		ShapefileDataStore shpDSparcel2 = new ShapefileDataStore(FromGeom.getParcel(geoFile).toURI().toURL());
 		SimpleFeatureCollection parcelOriginal = shpDSparcel2.getFeatureSource().getFeatures();
-		
-		//TODO look if that works well
-//		parcelCollection = ParcelCollection.completeParcelMissingWithOriginal(parcelCollection, parcelOriginal);
+
+		// TODO look if that works well
+		// parcelCollection = ParcelCollection.completeParcelMissingWithOriginal(parcelCollection, parcelOriginal);
 		shpDSparcel2.dispose();
 
 		// if used in the normal case, we append the newly generated file onto parcelGenExport
@@ -820,28 +821,28 @@ public class SelectParcels {
 						ShapefileDataStore build_datastore = new ShapefileDataStore(FromGeom.getBuild(geoFile).toURI().toURL());
 						SimpleFeatureCollection buildFeatures = build_datastore.getFeatureSource().getFeatures();
 						SimpleFeatureCollection buildSnapped = Collec.snapDatas(buildFeatures, fBBox);
-						if (!buildSnapped.isEmpty()) 
+						if (!buildSnapped.isEmpty())
 							Collec.exportSFC(buildSnapped, new File(snapPack, "batiment.shp"));
 						build_datastore.dispose();
 
 						ShapefileDataStore road_datastore = new ShapefileDataStore(FromGeom.getRoute(geoFile).toURI().toURL());
 						SimpleFeatureCollection roadFeatures = road_datastore.getFeatureSource().getFeatures();
 						SimpleFeatureCollection roadSnap = Collec.snapDatas(roadFeatures, fBBox, 15);
-						if (!roadSnap.isEmpty()) 
+						if (!roadSnap.isEmpty())
 							Collec.exportSFC(roadSnap, new File(snapPack, "route.shp"));
 						road_datastore.dispose();
 
 						ShapefileDataStore zoning_datastore = new ShapefileDataStore(FromGeom.getZoning(regulFile).toURI().toURL());
 						SimpleFeatureCollection zoningFeatures = zoning_datastore.getFeatureSource().getFeatures();
 						SimpleFeatureCollection zoningSnap = Collec.snapDatas(zoningFeatures, fBBox);
-						if (!zoningSnap.isEmpty()) 
+						if (!zoningSnap.isEmpty())
 							Collec.exportSFC(Collec.snapDatas(zoningFeatures, fBBox), new File(snapPack, "zone_urba.shp"));
 						zoning_datastore.dispose();
 
 						ShapefileDataStore prescPonct_datastore = new ShapefileDataStore(FromGeom.getPrescPonct(regulFile).toURI().toURL());
 						SimpleFeatureCollection prescPonctFeatures = prescPonct_datastore.getFeatureSource().getFeatures();
 						SimpleFeatureCollection prescPSnap = Collec.snapDatas(prescPonctFeatures, fBBox);
-						if (!prescPSnap.isEmpty()) 
+						if (!prescPSnap.isEmpty())
 							Collec.exportSFC(prescPSnap, new File(snapPack, "prescription_pct.shp"));
 						prescPonct_datastore.dispose();
 

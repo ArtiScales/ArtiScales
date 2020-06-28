@@ -43,6 +43,7 @@ import fr.ign.cogit.geoToolsFunctions.Schemas;
 import fr.ign.cogit.geoToolsFunctions.vectors.Collec;
 import fr.ign.cogit.geoToolsFunctions.vectors.Geom;
 import fr.ign.cogit.geoToolsFunctions.vectors.Shp;
+import fr.ign.cogit.parameter.ProfileUrbanFabric;
 
 public class PAUDigger {
 	// cut cluster polygons with limits
@@ -119,7 +120,7 @@ public class PAUDigger {
 				.subCollection(filCluster).subCollection(filMorpho);
 
 		// TODO mark all (anf
-		SimpleFeatureCollection parcelSplitted = ConsolidationDivision.consolidationDivision(parcelPreSelected, null, tmpFile, 2000.0, 500, 7, 99, 99);
+		SimpleFeatureCollection parcelSplitted = ConsolidationDivision.consolidationDivision(parcelPreSelected, null, tmpFile, new ProfileUrbanFabric() );
 		SimpleFeatureCollection out = makeEnvelopePAU(parcelSplitted.subCollection(filNU).subCollection(filMorpho).subCollection(filCluster),
 				communitiesFile);
 		nUSDS.dispose();
