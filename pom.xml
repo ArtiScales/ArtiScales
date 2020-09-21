@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>fr.ign.cogit</groupId>
+	<groupId>fr.ign.artiscales.main</groupId>
 	<artifactId>ArtiScales</artifactId>
 	<version>0.3-SNAPSHOT</version>
 	<packaging>jar</packaging>
@@ -13,8 +13,8 @@
 		<geotools.version>21.0</geotools.version>
 		<mupcity-openMole.version>0.0.3-SNAPSHOT</mupcity-openMole.version>
 		<simplu3d.version>1.3-SNAPSHOT</simplu3d.version>
-		<artiscales.tools.version>0.2-SNAPSHOT</artiscales.tools.version>
-		<parcelManager.version>0.1-SNAPSHOT</parcelManager.version>
+		<artiscales.tools.version>0.3-SNAPSHOT</artiscales.tools.version>
+		<parcelManager.version>0.2-SNAPSHOT</parcelManager.version>
 	</properties>
 
 	<name>ArtiScales</name>
@@ -132,7 +132,7 @@
 			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>fr.ign.cogit</groupId>
+			<groupId>fr.ign.artiscales.pm</groupId>
 			<artifactId>ParcelManager</artifactId>
 			<version>${parcelManager.version}</version>
 		</dependency>
@@ -170,7 +170,7 @@
 			<version>2.3</version>
 		</dependency>
 		<dependency>
-			<groupId>fr.ign.cogit</groupId>
+			<groupId>fr.ign.artiscales.tools</groupId>
 			<artifactId>ArtiScales-tools</artifactId>
 			<version>${artiscales.tools.version}</version>
 		</dependency>
