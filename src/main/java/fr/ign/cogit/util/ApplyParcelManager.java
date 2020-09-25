@@ -12,9 +12,9 @@ import org.geotools.feature.DefaultFeatureCollection;
 
 import fr.ign.artiscales.fields.artiscales.ArtiScalesParcelFields;
 import fr.ign.artiscales.fields.french.FrenchZoningSchemas;
-import fr.ign.artiscales.goal.ConsolidationDivision;
-import fr.ign.artiscales.goal.Densification;
-import fr.ign.artiscales.goal.ZoneDivision;
+import fr.ign.artiscales.workflow.ConsolidationDivision;
+import fr.ign.artiscales.workflow.Densification;
+import fr.ign.artiscales.workflow.ZoneDivision;
 import fr.ign.artiscales.parcelFunction.MarkParcelAttributeFromPosition;
 import fr.ign.artiscales.parcelFunction.ParcelCollection;
 import fr.ign.artiscales.parcelFunction.ParcelGetter;

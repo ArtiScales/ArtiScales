@@ -36,7 +36,7 @@ import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
-import fr.ign.artiscales.goal.ConsolidationDivision;
+import fr.ign.artiscales.workflow.ConsolidationDivision;
 import fr.ign.cogit.FeaturePolygonizer;
 import fr.ign.cogit.geoToolsFunctions.Attribute;
 import fr.ign.cogit.geoToolsFunctions.Schemas;
